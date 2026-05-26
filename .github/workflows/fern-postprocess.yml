@@ -1,0 +1,49 @@
+name: Post-process Fern PR
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  postprocess:
+    if: startsWith(github.head_ref, 'fern-bot/') || startsWith(github.head_ref, 'sdk-sync/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.AUTOMATION_PAT || secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417  # v6
+        with:
+          go-version-file: go.mod
+
+      - name: Verify build before post-processing
+        run: go build ./...
+
+      - name: Fix generated file headers
+        run: ./scripts/fix_headers.sh
+
+      - name: Generate type aliases
+        run: ./scripts/gen_aliases.sh
+
+      - name: Verify build and tests
+        run: |
+          go build ./...
+          go test -race ./...
+
+      - name: Commit post-processed files
+        run: |
+          git config user.name "levelfour-automation"
+          git config user.email "automation@levelfour.ai"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No post-processing changes"
+          else
+            git commit -m "chore: post-process Fern generated code"
+            git push
+          fi

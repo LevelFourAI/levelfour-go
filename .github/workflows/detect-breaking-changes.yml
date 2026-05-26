@@ -1,0 +1,32 @@
+name: Detect Breaking Changes
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: >-
+      github.repository == 'LevelFourAI/levelfour-go'
+      && !startsWith(github.head_ref, 'fern-bot/')
+      && !startsWith(github.head_ref, 'sdk-sync/')
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417  # v6
+        with:
+          go-version-file: ./go.mod
+
+      - name: Detect breaking changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git checkout "$BASE_SHA" -- ./scripts/detect-breaking-changes 2>/dev/null || true
+          ./scripts/detect-breaking-changes "$BASE_SHA"

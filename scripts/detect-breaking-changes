@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -e
+cd "$(dirname "$0")/.."
+
+echo "==> Detecting breaking changes"
+
+mapfile -t TEST_FILES < <(git ls-tree -r --name-only "$1" | grep '_test\.go$')
+
+if [ ${#TEST_FILES[@]} -gt 0 ]; then
+  git checkout "$1" -- "${TEST_FILES[@]}" 2>/dev/null || true
+fi
+
+echo "==> Checking build"
+go build ./...
+echo "==> Checking test compilation"
+go test -run='^$' ./...
+echo "==> No breaking changes detected"

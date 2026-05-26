@@ -1,0 +1,51 @@
+repos:
+  - repo: local
+    hooks:
+      - id: gofmt
+        name: gofmt
+        entry: bash -c 'test -z "$(gofmt -l .)"'
+        language: system
+        pass_filenames: false
+        types: [go]
+
+      - id: go-mod-tidy
+        name: go mod tidy
+        entry: bash -c 'go mod tidy && git diff --exit-code go.mod go.sum'
+        language: system
+        pass_filenames: false
+        types: [go]
+
+      - id: go-build
+        name: go build
+        entry: go build ./...
+        language: system
+        pass_filenames: false
+        types: [go]
+
+      - id: go-test
+        name: go test
+        entry: go test -race ./...
+        language: system
+        pass_filenames: false
+        types: [go]
+
+      - id: go-vet
+        name: go vet
+        entry: go vet ./...
+        language: system
+        pass_filenames: false
+        types: [go]
+
+      - id: golangci-lint-verify
+        name: golangci-lint config verify
+        entry: bash -c 'golangci-lint config verify || $(go env GOPATH)/bin/golangci-lint config verify'
+        language: system
+        pass_filenames: false
+        types_or: [go, yaml]
+
+      - id: golangci-lint
+        name: golangci-lint
+        entry: bash -c 'golangci-lint run || $(go env GOPATH)/bin/golangci-lint run'
+        language: system
+        pass_filenames: false
+        types: [go]

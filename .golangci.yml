@@ -1,0 +1,13 @@
+version: "2"
+
+linters:
+  settings:
+    errcheck:
+      exclude-functions:
+        - (io.Closer).Close
+        - (net/http.ResponseWriter).Write
+  exclusions:
+    paths:
+      - core
+      - client
+      - option
