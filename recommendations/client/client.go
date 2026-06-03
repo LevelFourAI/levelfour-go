@@ -181,6 +181,23 @@ func (c *Client) Get(
 	return response.Body, nil
 }
 
+// Returns the Automated Savings managed-policy connection state and the Launch Stack URL
+func (c *Client) GetAutomatedSavings(
+	ctx context.Context,
+	recommendationID string,
+	opts ...option.RequestOption,
+) (*levelfour.AutomatedSavingsResponse, error) {
+	response, err := c.WithRawResponse.GetAutomatedSavings(
+		ctx,
+		recommendationID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
 // Backfill reason/explanation on an already-rejected recommendation
 func (c *Client) AddRejectionFeedback(
 	ctx context.Context,
