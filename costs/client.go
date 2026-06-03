@@ -47,6 +47,74 @@ func (c *Client) GetSummary(
 	return response.Body, nil
 }
 
+// Returns services ranked by largest percent growth between current and previous period.
+func (c *Client) GetTopGrowing(
+	ctx context.Context,
+	request *levelfour.GetTopGrowingAPIV1CostsTopGrowingGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.TopGrowingResponse, error) {
+	response, err := c.WithRawResponse.GetTopGrowing(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Returns the distinct tag keys present in the tenant's per-tag cost data so the dashboard can offer them as choices.
+func (c *Client) GetTagKeys(
+	ctx context.Context,
+	request *levelfour.GetTagKeysAPIV1CostsByTagKeysGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.TagKeysResponse, error) {
+	response, err := c.WithRawResponse.GetTagKeys(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Returns spend grouped by tag_value for a given tag_key (e.g., team, tribe, squad, cost-center). Includes a per-team category breakdown.
+func (c *Client) GetCostByTag(
+	ctx context.Context,
+	request *levelfour.GetCostByTagAPIV1CostsByTagGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.TeamCostResponse, error) {
+	response, err := c.WithRawResponse.GetCostByTag(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Returns forecasted spend value, confidence bounds, and a 60-point sparkline (past 30 days actual + next 30 days forecast).
+func (c *Client) GetForecast(
+	ctx context.Context,
+	request *levelfour.GetForecastAPIV1CostsForecastGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.ForecastResponse, error) {
+	response, err := c.WithRawResponse.GetForecast(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
 // Returns cost breakdown in different formats: table (paginated), chart (aggregated), csv (export), raw (all records)
 func (c *Client) List(
 	ctx context.Context,
