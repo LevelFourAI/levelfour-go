@@ -179,6 +179,9 @@ var (
 	connectedAccountFieldIsManagementAccount = big.NewInt(1 << 5)
 	connectedAccountFieldOrganizationID      = big.NewInt(1 << 6)
 	connectedAccountFieldConnectedAt         = big.NewInt(1 << 7)
+	connectedAccountFieldCurStatus           = big.NewInt(1 << 8)
+	connectedAccountFieldCurRegion           = big.NewInt(1 << 9)
+	connectedAccountFieldCurLastIngestedAt   = big.NewInt(1 << 10)
 )
 
 type ConnectedAccount struct {
@@ -192,6 +195,12 @@ type ConnectedAccount struct {
 	IsManagementAccount *bool                  `json:"is_management_account,omitempty" url:"is_management_account,omitempty"`
 	OrganizationID      *string                `json:"organization_id,omitempty" url:"organization_id,omitempty"`
 	ConnectedAt         *time.Time             `json:"connected_at,omitempty" url:"connected_at,omitempty"`
+	// Detailed cost data (CUR 2.0) ingestion state for this account
+	CurStatus *ConnectedAccountCurStatus `json:"cur_status,omitempty" url:"cur_status,omitempty"`
+	// Region the CUR 2.0 export delivers in, once detected
+	CurRegion *string `json:"cur_region,omitempty" url:"cur_region,omitempty"`
+	// When LevelFour last ingested CUR data for this account
+	CurLastIngestedAt *time.Time `json:"cur_last_ingested_at,omitempty" url:"cur_last_ingested_at,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -254,6 +263,27 @@ func (c *ConnectedAccount) GetConnectedAt() *time.Time {
 		return nil
 	}
 	return c.ConnectedAt
+}
+
+func (c *ConnectedAccount) GetCurStatus() *ConnectedAccountCurStatus {
+	if c == nil {
+		return nil
+	}
+	return c.CurStatus
+}
+
+func (c *ConnectedAccount) GetCurRegion() *string {
+	if c == nil {
+		return nil
+	}
+	return c.CurRegion
+}
+
+func (c *ConnectedAccount) GetCurLastIngestedAt() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.CurLastIngestedAt
 }
 
 func (c *ConnectedAccount) GetExtraProperties() map[string]interface{} {
@@ -326,11 +356,33 @@ func (c *ConnectedAccount) SetConnectedAt(connectedAt *time.Time) {
 	c.require(connectedAccountFieldConnectedAt)
 }
 
+// SetCurStatus sets the CurStatus field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectedAccount) SetCurStatus(curStatus *ConnectedAccountCurStatus) {
+	c.CurStatus = curStatus
+	c.require(connectedAccountFieldCurStatus)
+}
+
+// SetCurRegion sets the CurRegion field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectedAccount) SetCurRegion(curRegion *string) {
+	c.CurRegion = curRegion
+	c.require(connectedAccountFieldCurRegion)
+}
+
+// SetCurLastIngestedAt sets the CurLastIngestedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectedAccount) SetCurLastIngestedAt(curLastIngestedAt *time.Time) {
+	c.CurLastIngestedAt = curLastIngestedAt
+	c.require(connectedAccountFieldCurLastIngestedAt)
+}
+
 func (c *ConnectedAccount) UnmarshalJSON(data []byte) error {
 	type embed ConnectedAccount
 	var unmarshaler = struct {
 		embed
-		ConnectedAt *internal.DateTime `json:"connected_at,omitempty"`
+		ConnectedAt       *internal.DateTime `json:"connected_at,omitempty"`
+		CurLastIngestedAt *internal.DateTime `json:"cur_last_ingested_at,omitempty"`
 	}{
 		embed: embed(*c),
 	}
@@ -339,6 +391,7 @@ func (c *ConnectedAccount) UnmarshalJSON(data []byte) error {
 	}
 	*c = ConnectedAccount(unmarshaler.embed)
 	c.ConnectedAt = unmarshaler.ConnectedAt.TimePtr()
+	c.CurLastIngestedAt = unmarshaler.CurLastIngestedAt.TimePtr()
 	extraProperties, err := internal.ExtractExtraProperties(data, *c)
 	if err != nil {
 		return err
@@ -352,10 +405,12 @@ func (c *ConnectedAccount) MarshalJSON() ([]byte, error) {
 	type embed ConnectedAccount
 	var marshaler = struct {
 		embed
-		ConnectedAt *internal.DateTime `json:"connected_at,omitempty"`
+		ConnectedAt       *internal.DateTime `json:"connected_at,omitempty"`
+		CurLastIngestedAt *internal.DateTime `json:"cur_last_ingested_at,omitempty"`
 	}{
-		embed:       embed(*c),
-		ConnectedAt: internal.NewOptionalDateTime(c.ConnectedAt),
+		embed:             embed(*c),
+		ConnectedAt:       internal.NewOptionalDateTime(c.ConnectedAt),
+		CurLastIngestedAt: internal.NewOptionalDateTime(c.CurLastIngestedAt),
 	}
 	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
 	return json.Marshal(explicitMarshaler)
@@ -374,6 +429,38 @@ func (c *ConnectedAccount) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", c)
+}
+
+// Detailed cost data (CUR 2.0) ingestion state for this account
+type ConnectedAccountCurStatus string
+
+const (
+	ConnectedAccountCurStatusNotEnabled   ConnectedAccountCurStatus = "not_enabled"
+	ConnectedAccountCurStatusProvisioning ConnectedAccountCurStatus = "provisioning"
+	ConnectedAccountCurStatusActive       ConnectedAccountCurStatus = "active"
+	ConnectedAccountCurStatusActionNeeded ConnectedAccountCurStatus = "action_needed"
+	ConnectedAccountCurStatusError        ConnectedAccountCurStatus = "error"
+)
+
+func NewConnectedAccountCurStatusFromString(s string) (ConnectedAccountCurStatus, error) {
+	switch s {
+	case "not_enabled":
+		return ConnectedAccountCurStatusNotEnabled, nil
+	case "provisioning":
+		return ConnectedAccountCurStatusProvisioning, nil
+	case "active":
+		return ConnectedAccountCurStatusActive, nil
+	case "action_needed":
+		return ConnectedAccountCurStatusActionNeeded, nil
+	case "error":
+		return ConnectedAccountCurStatusError, nil
+	}
+	var t ConnectedAccountCurStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c ConnectedAccountCurStatus) Ptr() *ConnectedAccountCurStatus {
+	return &c
 }
 
 type ConnectedAccountStatus string
@@ -614,6 +701,528 @@ func (c *ConnectedAccountsResponse) MarshalJSON() ([]byte, error) {
 }
 
 func (c *ConnectedAccountsResponse) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	connectionAccountFieldAccountID    = big.NewInt(1 << 0)
+	connectionAccountFieldAccountName  = big.NewInt(1 << 1)
+	connectionAccountFieldStatus       = big.NewInt(1 << 2)
+	connectionAccountFieldCapabilities = big.NewInt(1 << 3)
+)
+
+type ConnectionAccount struct {
+	// 12-digit AWS account identifier
+	AccountID    string                  `json:"account_id" url:"account_id"`
+	AccountName  *string                 `json:"account_name,omitempty" url:"account_name,omitempty"`
+	Status       ConnectionAccountStatus `json:"status" url:"status"`
+	Capabilities []*ConnectionCapability `json:"capabilities" url:"capabilities"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ConnectionAccount) GetAccountID() string {
+	if c == nil {
+		return ""
+	}
+	return c.AccountID
+}
+
+func (c *ConnectionAccount) GetAccountName() *string {
+	if c == nil {
+		return nil
+	}
+	return c.AccountName
+}
+
+func (c *ConnectionAccount) GetStatus() ConnectionAccountStatus {
+	if c == nil {
+		return ""
+	}
+	return c.Status
+}
+
+func (c *ConnectionAccount) GetCapabilities() []*ConnectionCapability {
+	if c == nil {
+		return nil
+	}
+	return c.Capabilities
+}
+
+func (c *ConnectionAccount) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ConnectionAccount) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetAccountID sets the AccountID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectionAccount) SetAccountID(accountID string) {
+	c.AccountID = accountID
+	c.require(connectionAccountFieldAccountID)
+}
+
+// SetAccountName sets the AccountName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectionAccount) SetAccountName(accountName *string) {
+	c.AccountName = accountName
+	c.require(connectionAccountFieldAccountName)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectionAccount) SetStatus(status ConnectionAccountStatus) {
+	c.Status = status
+	c.require(connectionAccountFieldStatus)
+}
+
+// SetCapabilities sets the Capabilities field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectionAccount) SetCapabilities(capabilities []*ConnectionCapability) {
+	c.Capabilities = capabilities
+	c.require(connectionAccountFieldCapabilities)
+}
+
+func (c *ConnectionAccount) UnmarshalJSON(data []byte) error {
+	type unmarshaler ConnectionAccount
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ConnectionAccount(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ConnectionAccount) MarshalJSON() ([]byte, error) {
+	type embed ConnectionAccount
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ConnectionAccount) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type ConnectionAccountStatus string
+
+const (
+	ConnectionAccountStatusPendingRole ConnectionAccountStatus = "pending_role"
+	ConnectionAccountStatusConnected   ConnectionAccountStatus = "connected"
+	ConnectionAccountStatusError       ConnectionAccountStatus = "error"
+	ConnectionAccountStatusRevoked     ConnectionAccountStatus = "revoked"
+)
+
+func NewConnectionAccountStatusFromString(s string) (ConnectionAccountStatus, error) {
+	switch s {
+	case "pending_role":
+		return ConnectionAccountStatusPendingRole, nil
+	case "connected":
+		return ConnectionAccountStatusConnected, nil
+	case "error":
+		return ConnectionAccountStatusError, nil
+	case "revoked":
+		return ConnectionAccountStatusRevoked, nil
+	}
+	var t ConnectionAccountStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c ConnectionAccountStatus) Ptr() *ConnectionAccountStatus {
+	return &c
+}
+
+var (
+	connectionCapabilityFieldKey            = big.NewInt(1 << 0)
+	connectionCapabilityFieldName           = big.NewInt(1 << 1)
+	connectionCapabilityFieldReady          = big.NewInt(1 << 2)
+	connectionCapabilityFieldAction         = big.NewInt(1 << 3)
+	connectionCapabilityFieldLaunchStackURL = big.NewInt(1 << 4)
+)
+
+type ConnectionCapability struct {
+	// Stable capability identifier (e.g. 'automated_savings')
+	Key string `json:"key" url:"key"`
+	// Human-friendly capability name
+	Name string `json:"name" url:"name"`
+	// True when enabled, False when setup is required, null when the status could not be determined
+	Ready *bool `json:"ready,omitempty" url:"ready,omitempty"`
+	// enable when setup is required, otherwise none
+	Action string `json:"action" url:"action"`
+	// One-click CloudFormation quick-create URL, present when setup is required
+	LaunchStackURL *string `json:"launch_stack_url,omitempty" url:"launch_stack_url,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ConnectionCapability) GetKey() string {
+	if c == nil {
+		return ""
+	}
+	return c.Key
+}
+
+func (c *ConnectionCapability) GetName() string {
+	if c == nil {
+		return ""
+	}
+	return c.Name
+}
+
+func (c *ConnectionCapability) GetReady() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Ready
+}
+
+func (c *ConnectionCapability) GetAction() string {
+	if c == nil {
+		return ""
+	}
+	return c.Action
+}
+
+func (c *ConnectionCapability) GetLaunchStackURL() *string {
+	if c == nil {
+		return nil
+	}
+	return c.LaunchStackURL
+}
+
+func (c *ConnectionCapability) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ConnectionCapability) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetKey sets the Key field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectionCapability) SetKey(key string) {
+	c.Key = key
+	c.require(connectionCapabilityFieldKey)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectionCapability) SetName(name string) {
+	c.Name = name
+	c.require(connectionCapabilityFieldName)
+}
+
+// SetReady sets the Ready field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectionCapability) SetReady(ready *bool) {
+	c.Ready = ready
+	c.require(connectionCapabilityFieldReady)
+}
+
+// SetAction sets the Action field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectionCapability) SetAction(action string) {
+	c.Action = action
+	c.require(connectionCapabilityFieldAction)
+}
+
+// SetLaunchStackURL sets the LaunchStackURL field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectionCapability) SetLaunchStackURL(launchStackURL *string) {
+	c.LaunchStackURL = launchStackURL
+	c.require(connectionCapabilityFieldLaunchStackURL)
+}
+
+func (c *ConnectionCapability) UnmarshalJSON(data []byte) error {
+	type unmarshaler ConnectionCapability
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ConnectionCapability(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ConnectionCapability) MarshalJSON() ([]byte, error) {
+	type embed ConnectionCapability
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ConnectionCapability) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	connectionsDataFieldItems = big.NewInt(1 << 0)
+)
+
+type ConnectionsData struct {
+	Items []*ConnectionAccount `json:"items" url:"items"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ConnectionsData) GetItems() []*ConnectionAccount {
+	if c == nil {
+		return nil
+	}
+	return c.Items
+}
+
+func (c *ConnectionsData) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ConnectionsData) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectionsData) SetItems(items []*ConnectionAccount) {
+	c.Items = items
+	c.require(connectionsDataFieldItems)
+}
+
+func (c *ConnectionsData) UnmarshalJSON(data []byte) error {
+	type unmarshaler ConnectionsData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ConnectionsData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ConnectionsData) MarshalJSON() ([]byte, error) {
+	type embed ConnectionsData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ConnectionsData) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	connectionsResponseFieldSuccess   = big.NewInt(1 << 0)
+	connectionsResponseFieldTimestamp = big.NewInt(1 << 1)
+	connectionsResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type ConnectionsResponse struct {
+	Success   *bool            `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time       `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *ConnectionsData `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ConnectionsResponse) GetSuccess() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Success
+}
+
+func (c *ConnectionsResponse) GetTimestamp() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.Timestamp
+}
+
+func (c *ConnectionsResponse) GetData() *ConnectionsData {
+	if c == nil {
+		return nil
+	}
+	return c.Data
+}
+
+func (c *ConnectionsResponse) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ConnectionsResponse) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectionsResponse) SetSuccess(success *bool) {
+	c.Success = success
+	c.require(connectionsResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectionsResponse) SetTimestamp(timestamp *time.Time) {
+	c.Timestamp = timestamp
+	c.require(connectionsResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectionsResponse) SetData(data *ConnectionsData) {
+	c.Data = data
+	c.require(connectionsResponseFieldData)
+}
+
+func (c *ConnectionsResponse) UnmarshalJSON(data []byte) error {
+	type embed ConnectionsResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = ConnectionsResponse(unmarshaler.embed)
+	c.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ConnectionsResponse) MarshalJSON() ([]byte, error) {
+	type embed ConnectionsResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*c),
+		Timestamp: internal.NewOptionalDateTime(c.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ConnectionsResponse) String() string {
 	if c == nil {
 		return "<nil>"
 	}
@@ -1320,357 +1929,6 @@ func (c *CustomerModulesResponse) String() string {
 }
 
 var (
-	githubInstallationFieldInstallationID = big.NewInt(1 << 0)
-	githubInstallationFieldAccountLogin   = big.NewInt(1 << 1)
-	githubInstallationFieldRepos          = big.NewInt(1 << 2)
-	githubInstallationFieldConnectedAt    = big.NewInt(1 << 3)
-)
-
-type GithubInstallation struct {
-	// GitHub App installation ID
-	InstallationID int `json:"installation_id" url:"installation_id"`
-	// GitHub organization or user login the app is installed on
-	AccountLogin string `json:"account_login" url:"account_login"`
-	// Full names (owner/name) of repos in the installation
-	Repos       []string   `json:"repos,omitempty" url:"repos,omitempty"`
-	ConnectedAt *time.Time `json:"connected_at,omitempty" url:"connected_at,omitempty"`
-
-	// Private bitmask of fields set to an explicit value and therefore not to be omitted
-	explicitFields *big.Int `json:"-" url:"-"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (g *GithubInstallation) GetInstallationID() int {
-	if g == nil {
-		return 0
-	}
-	return g.InstallationID
-}
-
-func (g *GithubInstallation) GetAccountLogin() string {
-	if g == nil {
-		return ""
-	}
-	return g.AccountLogin
-}
-
-func (g *GithubInstallation) GetRepos() []string {
-	if g == nil {
-		return nil
-	}
-	return g.Repos
-}
-
-func (g *GithubInstallation) GetConnectedAt() *time.Time {
-	if g == nil {
-		return nil
-	}
-	return g.ConnectedAt
-}
-
-func (g *GithubInstallation) GetExtraProperties() map[string]interface{} {
-	if g == nil {
-		return nil
-	}
-	return g.extraProperties
-}
-
-func (g *GithubInstallation) require(field *big.Int) {
-	if g.explicitFields == nil {
-		g.explicitFields = big.NewInt(0)
-	}
-	g.explicitFields.Or(g.explicitFields, field)
-}
-
-// SetInstallationID sets the InstallationID field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (g *GithubInstallation) SetInstallationID(installationID int) {
-	g.InstallationID = installationID
-	g.require(githubInstallationFieldInstallationID)
-}
-
-// SetAccountLogin sets the AccountLogin field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (g *GithubInstallation) SetAccountLogin(accountLogin string) {
-	g.AccountLogin = accountLogin
-	g.require(githubInstallationFieldAccountLogin)
-}
-
-// SetRepos sets the Repos field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (g *GithubInstallation) SetRepos(repos []string) {
-	g.Repos = repos
-	g.require(githubInstallationFieldRepos)
-}
-
-// SetConnectedAt sets the ConnectedAt field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (g *GithubInstallation) SetConnectedAt(connectedAt *time.Time) {
-	g.ConnectedAt = connectedAt
-	g.require(githubInstallationFieldConnectedAt)
-}
-
-func (g *GithubInstallation) UnmarshalJSON(data []byte) error {
-	type embed GithubInstallation
-	var unmarshaler = struct {
-		embed
-		ConnectedAt *internal.DateTime `json:"connected_at,omitempty"`
-	}{
-		embed: embed(*g),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*g = GithubInstallation(unmarshaler.embed)
-	g.ConnectedAt = unmarshaler.ConnectedAt.TimePtr()
-	extraProperties, err := internal.ExtractExtraProperties(data, *g)
-	if err != nil {
-		return err
-	}
-	g.extraProperties = extraProperties
-	g.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (g *GithubInstallation) MarshalJSON() ([]byte, error) {
-	type embed GithubInstallation
-	var marshaler = struct {
-		embed
-		ConnectedAt *internal.DateTime `json:"connected_at,omitempty"`
-	}{
-		embed:       embed(*g),
-		ConnectedAt: internal.NewOptionalDateTime(g.ConnectedAt),
-	}
-	explicitMarshaler := internal.HandleExplicitFields(marshaler, g.explicitFields)
-	return json.Marshal(explicitMarshaler)
-}
-
-func (g *GithubInstallation) String() string {
-	if g == nil {
-		return "<nil>"
-	}
-	if len(g.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(g.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(g); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", g)
-}
-
-var (
-	githubInstallationsDataFieldItems = big.NewInt(1 << 0)
-)
-
-type GithubInstallationsData struct {
-	Items []*GithubInstallation `json:"items" url:"items"`
-
-	// Private bitmask of fields set to an explicit value and therefore not to be omitted
-	explicitFields *big.Int `json:"-" url:"-"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (g *GithubInstallationsData) GetItems() []*GithubInstallation {
-	if g == nil {
-		return nil
-	}
-	return g.Items
-}
-
-func (g *GithubInstallationsData) GetExtraProperties() map[string]interface{} {
-	if g == nil {
-		return nil
-	}
-	return g.extraProperties
-}
-
-func (g *GithubInstallationsData) require(field *big.Int) {
-	if g.explicitFields == nil {
-		g.explicitFields = big.NewInt(0)
-	}
-	g.explicitFields.Or(g.explicitFields, field)
-}
-
-// SetItems sets the Items field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (g *GithubInstallationsData) SetItems(items []*GithubInstallation) {
-	g.Items = items
-	g.require(githubInstallationsDataFieldItems)
-}
-
-func (g *GithubInstallationsData) UnmarshalJSON(data []byte) error {
-	type unmarshaler GithubInstallationsData
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*g = GithubInstallationsData(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *g)
-	if err != nil {
-		return err
-	}
-	g.extraProperties = extraProperties
-	g.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (g *GithubInstallationsData) MarshalJSON() ([]byte, error) {
-	type embed GithubInstallationsData
-	var marshaler = struct {
-		embed
-	}{
-		embed: embed(*g),
-	}
-	explicitMarshaler := internal.HandleExplicitFields(marshaler, g.explicitFields)
-	return json.Marshal(explicitMarshaler)
-}
-
-func (g *GithubInstallationsData) String() string {
-	if g == nil {
-		return "<nil>"
-	}
-	if len(g.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(g.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(g); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", g)
-}
-
-var (
-	githubInstallationsResponseFieldSuccess   = big.NewInt(1 << 0)
-	githubInstallationsResponseFieldTimestamp = big.NewInt(1 << 1)
-	githubInstallationsResponseFieldData      = big.NewInt(1 << 2)
-)
-
-type GithubInstallationsResponse struct {
-	Success   *bool                    `json:"success,omitempty" url:"success,omitempty"`
-	Timestamp *time.Time               `json:"timestamp,omitempty" url:"timestamp,omitempty"`
-	Data      *GithubInstallationsData `json:"data" url:"data"`
-
-	// Private bitmask of fields set to an explicit value and therefore not to be omitted
-	explicitFields *big.Int `json:"-" url:"-"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (g *GithubInstallationsResponse) GetSuccess() *bool {
-	if g == nil {
-		return nil
-	}
-	return g.Success
-}
-
-func (g *GithubInstallationsResponse) GetTimestamp() *time.Time {
-	if g == nil {
-		return nil
-	}
-	return g.Timestamp
-}
-
-func (g *GithubInstallationsResponse) GetData() *GithubInstallationsData {
-	if g == nil {
-		return nil
-	}
-	return g.Data
-}
-
-func (g *GithubInstallationsResponse) GetExtraProperties() map[string]interface{} {
-	if g == nil {
-		return nil
-	}
-	return g.extraProperties
-}
-
-func (g *GithubInstallationsResponse) require(field *big.Int) {
-	if g.explicitFields == nil {
-		g.explicitFields = big.NewInt(0)
-	}
-	g.explicitFields.Or(g.explicitFields, field)
-}
-
-// SetSuccess sets the Success field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (g *GithubInstallationsResponse) SetSuccess(success *bool) {
-	g.Success = success
-	g.require(githubInstallationsResponseFieldSuccess)
-}
-
-// SetTimestamp sets the Timestamp field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (g *GithubInstallationsResponse) SetTimestamp(timestamp *time.Time) {
-	g.Timestamp = timestamp
-	g.require(githubInstallationsResponseFieldTimestamp)
-}
-
-// SetData sets the Data field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (g *GithubInstallationsResponse) SetData(data *GithubInstallationsData) {
-	g.Data = data
-	g.require(githubInstallationsResponseFieldData)
-}
-
-func (g *GithubInstallationsResponse) UnmarshalJSON(data []byte) error {
-	type embed GithubInstallationsResponse
-	var unmarshaler = struct {
-		embed
-		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
-	}{
-		embed: embed(*g),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*g = GithubInstallationsResponse(unmarshaler.embed)
-	g.Timestamp = unmarshaler.Timestamp.TimePtr()
-	extraProperties, err := internal.ExtractExtraProperties(data, *g)
-	if err != nil {
-		return err
-	}
-	g.extraProperties = extraProperties
-	g.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (g *GithubInstallationsResponse) MarshalJSON() ([]byte, error) {
-	type embed GithubInstallationsResponse
-	var marshaler = struct {
-		embed
-		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
-	}{
-		embed:     embed(*g),
-		Timestamp: internal.NewOptionalDateTime(g.Timestamp),
-	}
-	explicitMarshaler := internal.HandleExplicitFields(marshaler, g.explicitFields)
-	return json.Marshal(explicitMarshaler)
-}
-
-func (g *GithubInstallationsResponse) String() string {
-	if g == nil {
-		return "<nil>"
-	}
-	if len(g.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(g.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(g); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", g)
-}
-
-var (
 	integrationStatusDataFieldIntegrationID        = big.NewInt(1 << 0)
 	integrationStatusDataFieldProvider             = big.NewInt(1 << 1)
 	integrationStatusDataFieldMode                 = big.NewInt(1 << 2)
@@ -2077,6 +2335,357 @@ func (i *IntegrationStatusResponse) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", i)
+}
+
+var (
+	srcAccountsSchemasGithubInstallationFieldInstallationID = big.NewInt(1 << 0)
+	srcAccountsSchemasGithubInstallationFieldAccountLogin   = big.NewInt(1 << 1)
+	srcAccountsSchemasGithubInstallationFieldRepos          = big.NewInt(1 << 2)
+	srcAccountsSchemasGithubInstallationFieldConnectedAt    = big.NewInt(1 << 3)
+)
+
+type SrcAccountsSchemasGithubInstallation struct {
+	// GitHub App installation ID
+	InstallationID int `json:"installation_id" url:"installation_id"`
+	// GitHub organization or user login the app is installed on
+	AccountLogin string `json:"account_login" url:"account_login"`
+	// Full names (owner/name) of repos in the installation
+	Repos       []string   `json:"repos,omitempty" url:"repos,omitempty"`
+	ConnectedAt *time.Time `json:"connected_at,omitempty" url:"connected_at,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SrcAccountsSchemasGithubInstallation) GetInstallationID() int {
+	if s == nil {
+		return 0
+	}
+	return s.InstallationID
+}
+
+func (s *SrcAccountsSchemasGithubInstallation) GetAccountLogin() string {
+	if s == nil {
+		return ""
+	}
+	return s.AccountLogin
+}
+
+func (s *SrcAccountsSchemasGithubInstallation) GetRepos() []string {
+	if s == nil {
+		return nil
+	}
+	return s.Repos
+}
+
+func (s *SrcAccountsSchemasGithubInstallation) GetConnectedAt() *time.Time {
+	if s == nil {
+		return nil
+	}
+	return s.ConnectedAt
+}
+
+func (s *SrcAccountsSchemasGithubInstallation) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *SrcAccountsSchemasGithubInstallation) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetInstallationID sets the InstallationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SrcAccountsSchemasGithubInstallation) SetInstallationID(installationID int) {
+	s.InstallationID = installationID
+	s.require(srcAccountsSchemasGithubInstallationFieldInstallationID)
+}
+
+// SetAccountLogin sets the AccountLogin field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SrcAccountsSchemasGithubInstallation) SetAccountLogin(accountLogin string) {
+	s.AccountLogin = accountLogin
+	s.require(srcAccountsSchemasGithubInstallationFieldAccountLogin)
+}
+
+// SetRepos sets the Repos field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SrcAccountsSchemasGithubInstallation) SetRepos(repos []string) {
+	s.Repos = repos
+	s.require(srcAccountsSchemasGithubInstallationFieldRepos)
+}
+
+// SetConnectedAt sets the ConnectedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SrcAccountsSchemasGithubInstallation) SetConnectedAt(connectedAt *time.Time) {
+	s.ConnectedAt = connectedAt
+	s.require(srcAccountsSchemasGithubInstallationFieldConnectedAt)
+}
+
+func (s *SrcAccountsSchemasGithubInstallation) UnmarshalJSON(data []byte) error {
+	type embed SrcAccountsSchemasGithubInstallation
+	var unmarshaler = struct {
+		embed
+		ConnectedAt *internal.DateTime `json:"connected_at,omitempty"`
+	}{
+		embed: embed(*s),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*s = SrcAccountsSchemasGithubInstallation(unmarshaler.embed)
+	s.ConnectedAt = unmarshaler.ConnectedAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SrcAccountsSchemasGithubInstallation) MarshalJSON() ([]byte, error) {
+	type embed SrcAccountsSchemasGithubInstallation
+	var marshaler = struct {
+		embed
+		ConnectedAt *internal.DateTime `json:"connected_at,omitempty"`
+	}{
+		embed:       embed(*s),
+		ConnectedAt: internal.NewOptionalDateTime(s.ConnectedAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *SrcAccountsSchemasGithubInstallation) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+var (
+	srcAccountsSchemasGithubInstallationsDataFieldItems = big.NewInt(1 << 0)
+)
+
+type SrcAccountsSchemasGithubInstallationsData struct {
+	Items []*SrcAccountsSchemasGithubInstallation `json:"items" url:"items"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SrcAccountsSchemasGithubInstallationsData) GetItems() []*SrcAccountsSchemasGithubInstallation {
+	if s == nil {
+		return nil
+	}
+	return s.Items
+}
+
+func (s *SrcAccountsSchemasGithubInstallationsData) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *SrcAccountsSchemasGithubInstallationsData) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SrcAccountsSchemasGithubInstallationsData) SetItems(items []*SrcAccountsSchemasGithubInstallation) {
+	s.Items = items
+	s.require(srcAccountsSchemasGithubInstallationsDataFieldItems)
+}
+
+func (s *SrcAccountsSchemasGithubInstallationsData) UnmarshalJSON(data []byte) error {
+	type unmarshaler SrcAccountsSchemasGithubInstallationsData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SrcAccountsSchemasGithubInstallationsData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SrcAccountsSchemasGithubInstallationsData) MarshalJSON() ([]byte, error) {
+	type embed SrcAccountsSchemasGithubInstallationsData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *SrcAccountsSchemasGithubInstallationsData) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+var (
+	srcAccountsSchemasGithubInstallationsResponseFieldSuccess   = big.NewInt(1 << 0)
+	srcAccountsSchemasGithubInstallationsResponseFieldTimestamp = big.NewInt(1 << 1)
+	srcAccountsSchemasGithubInstallationsResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type SrcAccountsSchemasGithubInstallationsResponse struct {
+	Success   *bool                                      `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time                                 `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *SrcAccountsSchemasGithubInstallationsData `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SrcAccountsSchemasGithubInstallationsResponse) GetSuccess() *bool {
+	if s == nil {
+		return nil
+	}
+	return s.Success
+}
+
+func (s *SrcAccountsSchemasGithubInstallationsResponse) GetTimestamp() *time.Time {
+	if s == nil {
+		return nil
+	}
+	return s.Timestamp
+}
+
+func (s *SrcAccountsSchemasGithubInstallationsResponse) GetData() *SrcAccountsSchemasGithubInstallationsData {
+	if s == nil {
+		return nil
+	}
+	return s.Data
+}
+
+func (s *SrcAccountsSchemasGithubInstallationsResponse) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *SrcAccountsSchemasGithubInstallationsResponse) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SrcAccountsSchemasGithubInstallationsResponse) SetSuccess(success *bool) {
+	s.Success = success
+	s.require(srcAccountsSchemasGithubInstallationsResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SrcAccountsSchemasGithubInstallationsResponse) SetTimestamp(timestamp *time.Time) {
+	s.Timestamp = timestamp
+	s.require(srcAccountsSchemasGithubInstallationsResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SrcAccountsSchemasGithubInstallationsResponse) SetData(data *SrcAccountsSchemasGithubInstallationsData) {
+	s.Data = data
+	s.require(srcAccountsSchemasGithubInstallationsResponseFieldData)
+}
+
+func (s *SrcAccountsSchemasGithubInstallationsResponse) UnmarshalJSON(data []byte) error {
+	type embed SrcAccountsSchemasGithubInstallationsResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*s),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*s = SrcAccountsSchemasGithubInstallationsResponse(unmarshaler.embed)
+	s.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SrcAccountsSchemasGithubInstallationsResponse) MarshalJSON() ([]byte, error) {
+	type embed SrcAccountsSchemasGithubInstallationsResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*s),
+		Timestamp: internal.NewOptionalDateTime(s.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *SrcAccountsSchemasGithubInstallationsResponse) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
 }
 
 // Onboarding mode. AWS: single|organization. GitHub: github_app.
