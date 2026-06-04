@@ -316,6 +316,275 @@ func (l *ListProviderPotentialSavingsRecommendationsRequest) SetSortOrder(sortOr
 }
 
 var (
+	automatedSavingsInfoFieldPermissionStatus = big.NewInt(1 << 0)
+	automatedSavingsInfoFieldLaunchStackURL   = big.NewInt(1 << 1)
+	automatedSavingsInfoFieldTemplateVersion  = big.NewInt(1 << 2)
+)
+
+type AutomatedSavingsInfo struct {
+	// Whether the Automated Savings managed policy is attached to the cross-account role
+	PermissionStatus *AutomatedSavingsInfoPermissionStatus `json:"permission_status,omitempty" url:"permission_status,omitempty"`
+	// CloudFormation quick-create URL that attaches the Automated Savings managed policy to the role
+	LaunchStackURL *string `json:"launch_stack_url,omitempty" url:"launch_stack_url,omitempty"`
+	// Automated Savings catalog template version
+	TemplateVersion *string `json:"template_version,omitempty" url:"template_version,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AutomatedSavingsInfo) GetPermissionStatus() *AutomatedSavingsInfoPermissionStatus {
+	if a == nil {
+		return nil
+	}
+	return a.PermissionStatus
+}
+
+func (a *AutomatedSavingsInfo) GetLaunchStackURL() *string {
+	if a == nil {
+		return nil
+	}
+	return a.LaunchStackURL
+}
+
+func (a *AutomatedSavingsInfo) GetTemplateVersion() *string {
+	if a == nil {
+		return nil
+	}
+	return a.TemplateVersion
+}
+
+func (a *AutomatedSavingsInfo) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AutomatedSavingsInfo) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetPermissionStatus sets the PermissionStatus field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomatedSavingsInfo) SetPermissionStatus(permissionStatus *AutomatedSavingsInfoPermissionStatus) {
+	a.PermissionStatus = permissionStatus
+	a.require(automatedSavingsInfoFieldPermissionStatus)
+}
+
+// SetLaunchStackURL sets the LaunchStackURL field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomatedSavingsInfo) SetLaunchStackURL(launchStackURL *string) {
+	a.LaunchStackURL = launchStackURL
+	a.require(automatedSavingsInfoFieldLaunchStackURL)
+}
+
+// SetTemplateVersion sets the TemplateVersion field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomatedSavingsInfo) SetTemplateVersion(templateVersion *string) {
+	a.TemplateVersion = templateVersion
+	a.require(automatedSavingsInfoFieldTemplateVersion)
+}
+
+func (a *AutomatedSavingsInfo) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomatedSavingsInfo
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AutomatedSavingsInfo(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AutomatedSavingsInfo) MarshalJSON() ([]byte, error) {
+	type embed AutomatedSavingsInfo
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AutomatedSavingsInfo) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+// Whether the Automated Savings managed policy is attached to the cross-account role
+type AutomatedSavingsInfoPermissionStatus string
+
+const (
+	AutomatedSavingsInfoPermissionStatusConnected AutomatedSavingsInfoPermissionStatus = "connected"
+	AutomatedSavingsInfoPermissionStatusPending   AutomatedSavingsInfoPermissionStatus = "pending"
+	AutomatedSavingsInfoPermissionStatusUnknown   AutomatedSavingsInfoPermissionStatus = "unknown"
+)
+
+func NewAutomatedSavingsInfoPermissionStatusFromString(s string) (AutomatedSavingsInfoPermissionStatus, error) {
+	switch s {
+	case "connected":
+		return AutomatedSavingsInfoPermissionStatusConnected, nil
+	case "pending":
+		return AutomatedSavingsInfoPermissionStatusPending, nil
+	case "unknown":
+		return AutomatedSavingsInfoPermissionStatusUnknown, nil
+	}
+	var t AutomatedSavingsInfoPermissionStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AutomatedSavingsInfoPermissionStatus) Ptr() *AutomatedSavingsInfoPermissionStatus {
+	return &a
+}
+
+var (
+	automatedSavingsResponseFieldSuccess   = big.NewInt(1 << 0)
+	automatedSavingsResponseFieldTimestamp = big.NewInt(1 << 1)
+	automatedSavingsResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type AutomatedSavingsResponse struct {
+	Success   *bool                 `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time            `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *AutomatedSavingsInfo `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AutomatedSavingsResponse) GetSuccess() *bool {
+	if a == nil {
+		return nil
+	}
+	return a.Success
+}
+
+func (a *AutomatedSavingsResponse) GetTimestamp() *time.Time {
+	if a == nil {
+		return nil
+	}
+	return a.Timestamp
+}
+
+func (a *AutomatedSavingsResponse) GetData() *AutomatedSavingsInfo {
+	if a == nil {
+		return nil
+	}
+	return a.Data
+}
+
+func (a *AutomatedSavingsResponse) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AutomatedSavingsResponse) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomatedSavingsResponse) SetSuccess(success *bool) {
+	a.Success = success
+	a.require(automatedSavingsResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomatedSavingsResponse) SetTimestamp(timestamp *time.Time) {
+	a.Timestamp = timestamp
+	a.require(automatedSavingsResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomatedSavingsResponse) SetData(data *AutomatedSavingsInfo) {
+	a.Data = data
+	a.require(automatedSavingsResponseFieldData)
+}
+
+func (a *AutomatedSavingsResponse) UnmarshalJSON(data []byte) error {
+	type embed AutomatedSavingsResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*a = AutomatedSavingsResponse(unmarshaler.embed)
+	a.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AutomatedSavingsResponse) MarshalJSON() ([]byte, error) {
+	type embed AutomatedSavingsResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*a),
+		Timestamp: internal.NewOptionalDateTime(a.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AutomatedSavingsResponse) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
 	linkedToChildFieldRecommendationID = big.NewInt(1 << 0)
 	linkedToChildFieldMonthlySavings   = big.NewInt(1 << 1)
 )
@@ -3722,18 +3991,30 @@ type RecommendationDetailStatus string
 
 const (
 	RecommendationDetailStatusPending     RecommendationDetailStatus = "pending"
-	RecommendationDetailStatusImplemented RecommendationDetailStatus = "implemented"
+	RecommendationDetailStatusProcessing  RecommendationDetailStatus = "processing"
+	RecommendationDetailStatusInProgress  RecommendationDetailStatus = "in_progress"
+	RecommendationDetailStatusOptimized   RecommendationDetailStatus = "optimized"
 	RecommendationDetailStatusRejected    RecommendationDetailStatus = "rejected"
+	RecommendationDetailStatusUnavailable RecommendationDetailStatus = "unavailable"
+	RecommendationDetailStatusFailed      RecommendationDetailStatus = "failed"
 )
 
 func NewRecommendationDetailStatusFromString(s string) (RecommendationDetailStatus, error) {
 	switch s {
 	case "pending":
 		return RecommendationDetailStatusPending, nil
-	case "implemented":
-		return RecommendationDetailStatusImplemented, nil
+	case "processing":
+		return RecommendationDetailStatusProcessing, nil
+	case "in_progress":
+		return RecommendationDetailStatusInProgress, nil
+	case "optimized":
+		return RecommendationDetailStatusOptimized, nil
 	case "rejected":
 		return RecommendationDetailStatusRejected, nil
+	case "unavailable":
+		return RecommendationDetailStatusUnavailable, nil
+	case "failed":
+		return RecommendationDetailStatusFailed, nil
 	}
 	var t RecommendationDetailStatus
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -4453,6 +4734,9 @@ var (
 	recommendationsOverviewDataFieldSavedItd                   = big.NewInt(1 << 3)
 	recommendationsOverviewDataFieldPotentialSavings           = big.NewInt(1 << 4)
 	recommendationsOverviewDataFieldEvaluationAvailableSavings = big.NewInt(1 << 5)
+	recommendationsOverviewDataFieldSavedItdDeltaPct           = big.NewInt(1 << 6)
+	recommendationsOverviewDataFieldSavedItdHistory            = big.NewInt(1 << 7)
+	recommendationsOverviewDataFieldTopRecommendation          = big.NewInt(1 << 8)
 )
 
 type RecommendationsOverviewData struct {
@@ -4468,6 +4752,12 @@ type RecommendationsOverviewData struct {
 	PotentialSavings *float64 `json:"potential_savings,omitempty" url:"potential_savings,omitempty"`
 	// Sum of allowed evaluation IDs' monthly_savings
 	EvaluationAvailableSavings *float64 `json:"evaluation_available_savings,omitempty" url:"evaluation_available_savings,omitempty"`
+	// Percent change of saved_itd vs the prior period (30d)
+	SavedItdDeltaPct *float64 `json:"saved_itd_delta_pct,omitempty" url:"saved_itd_delta_pct,omitempty"`
+	// 30-point daily cumulative saved series for the sparkline
+	SavedItdHistory []float64 `json:"saved_itd_history,omitempty" url:"saved_itd_history,omitempty"`
+	// The single highest-savings pending recommendation for this provider
+	TopRecommendation *TopRecommendationSummary `json:"top_recommendation,omitempty" url:"top_recommendation,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -4516,6 +4806,27 @@ func (r *RecommendationsOverviewData) GetEvaluationAvailableSavings() *float64 {
 		return nil
 	}
 	return r.EvaluationAvailableSavings
+}
+
+func (r *RecommendationsOverviewData) GetSavedItdDeltaPct() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.SavedItdDeltaPct
+}
+
+func (r *RecommendationsOverviewData) GetSavedItdHistory() []float64 {
+	if r == nil {
+		return nil
+	}
+	return r.SavedItdHistory
+}
+
+func (r *RecommendationsOverviewData) GetTopRecommendation() *TopRecommendationSummary {
+	if r == nil {
+		return nil
+	}
+	return r.TopRecommendation
 }
 
 func (r *RecommendationsOverviewData) GetExtraProperties() map[string]interface{} {
@@ -4572,6 +4883,27 @@ func (r *RecommendationsOverviewData) SetPotentialSavings(potentialSavings *floa
 func (r *RecommendationsOverviewData) SetEvaluationAvailableSavings(evaluationAvailableSavings *float64) {
 	r.EvaluationAvailableSavings = evaluationAvailableSavings
 	r.require(recommendationsOverviewDataFieldEvaluationAvailableSavings)
+}
+
+// SetSavedItdDeltaPct sets the SavedItdDeltaPct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RecommendationsOverviewData) SetSavedItdDeltaPct(savedItdDeltaPct *float64) {
+	r.SavedItdDeltaPct = savedItdDeltaPct
+	r.require(recommendationsOverviewDataFieldSavedItdDeltaPct)
+}
+
+// SetSavedItdHistory sets the SavedItdHistory field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RecommendationsOverviewData) SetSavedItdHistory(savedItdHistory []float64) {
+	r.SavedItdHistory = savedItdHistory
+	r.require(recommendationsOverviewDataFieldSavedItdHistory)
+}
+
+// SetTopRecommendation sets the TopRecommendation field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RecommendationsOverviewData) SetTopRecommendation(topRecommendation *TopRecommendationSummary) {
+	r.TopRecommendation = topRecommendation
+	r.require(recommendationsOverviewDataFieldTopRecommendation)
 }
 
 func (r *RecommendationsOverviewData) UnmarshalJSON(data []byte) error {
@@ -5220,6 +5552,154 @@ func NewTopRecommendationStatusFromString(s string) (TopRecommendationStatus, er
 
 func (t TopRecommendationStatus) Ptr() *TopRecommendationStatus {
 	return &t
+}
+
+var (
+	topRecommendationSummaryFieldID           = big.NewInt(1 << 0)
+	topRecommendationSummaryFieldService      = big.NewInt(1 << 1)
+	topRecommendationSummaryFieldServiceLabel = big.NewInt(1 << 2)
+	topRecommendationSummaryFieldAccountName  = big.NewInt(1 << 3)
+	topRecommendationSummaryFieldSavingsValue = big.NewInt(1 << 4)
+)
+
+type TopRecommendationSummary struct {
+	ID           string  `json:"id" url:"id"`
+	Service      string  `json:"service" url:"service"`
+	ServiceLabel string  `json:"service_label" url:"service_label"`
+	AccountName  *string `json:"account_name,omitempty" url:"account_name,omitempty"`
+	SavingsValue float64 `json:"savings_value" url:"savings_value"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TopRecommendationSummary) GetID() string {
+	if t == nil {
+		return ""
+	}
+	return t.ID
+}
+
+func (t *TopRecommendationSummary) GetService() string {
+	if t == nil {
+		return ""
+	}
+	return t.Service
+}
+
+func (t *TopRecommendationSummary) GetServiceLabel() string {
+	if t == nil {
+		return ""
+	}
+	return t.ServiceLabel
+}
+
+func (t *TopRecommendationSummary) GetAccountName() *string {
+	if t == nil {
+		return nil
+	}
+	return t.AccountName
+}
+
+func (t *TopRecommendationSummary) GetSavingsValue() float64 {
+	if t == nil {
+		return 0
+	}
+	return t.SavingsValue
+}
+
+func (t *TopRecommendationSummary) GetExtraProperties() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.extraProperties
+}
+
+func (t *TopRecommendationSummary) require(field *big.Int) {
+	if t.explicitFields == nil {
+		t.explicitFields = big.NewInt(0)
+	}
+	t.explicitFields.Or(t.explicitFields, field)
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TopRecommendationSummary) SetID(id string) {
+	t.ID = id
+	t.require(topRecommendationSummaryFieldID)
+}
+
+// SetService sets the Service field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TopRecommendationSummary) SetService(service string) {
+	t.Service = service
+	t.require(topRecommendationSummaryFieldService)
+}
+
+// SetServiceLabel sets the ServiceLabel field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TopRecommendationSummary) SetServiceLabel(serviceLabel string) {
+	t.ServiceLabel = serviceLabel
+	t.require(topRecommendationSummaryFieldServiceLabel)
+}
+
+// SetAccountName sets the AccountName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TopRecommendationSummary) SetAccountName(accountName *string) {
+	t.AccountName = accountName
+	t.require(topRecommendationSummaryFieldAccountName)
+}
+
+// SetSavingsValue sets the SavingsValue field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TopRecommendationSummary) SetSavingsValue(savingsValue float64) {
+	t.SavingsValue = savingsValue
+	t.require(topRecommendationSummaryFieldSavingsValue)
+}
+
+func (t *TopRecommendationSummary) UnmarshalJSON(data []byte) error {
+	type unmarshaler TopRecommendationSummary
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*t = TopRecommendationSummary(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TopRecommendationSummary) MarshalJSON() ([]byte, error) {
+	type embed TopRecommendationSummary
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*t),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, t.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (t *TopRecommendationSummary) String() string {
+	if t == nil {
+		return "<nil>"
+	}
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
 }
 
 // Sort order
