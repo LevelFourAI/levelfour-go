@@ -4,9 +4,13 @@ package client
 
 import (
 	accounts "github.com/LevelFourAI/levelfour-go/accounts"
+	anomalies "github.com/LevelFourAI/levelfour-go/anomalies"
 	apikeys "github.com/LevelFourAI/levelfour-go/apikeys"
 	audit "github.com/LevelFourAI/levelfour-go/audit"
 	auth "github.com/LevelFourAI/levelfour-go/auth"
+	boards "github.com/LevelFourAI/levelfour-go/boards"
+	ceseed "github.com/LevelFourAI/levelfour-go/ceseed"
+	commitments "github.com/LevelFourAI/levelfour-go/commitments"
 	core "github.com/LevelFourAI/levelfour-go/core"
 	costs "github.com/LevelFourAI/levelfour-go/costs"
 	health "github.com/LevelFourAI/levelfour-go/health"
@@ -14,6 +18,8 @@ import (
 	option "github.com/LevelFourAI/levelfour-go/option"
 	providers "github.com/LevelFourAI/levelfour-go/providers"
 	client "github.com/LevelFourAI/levelfour-go/recommendations/client"
+	repobinding "github.com/LevelFourAI/levelfour-go/repobinding"
+	savingsgrants "github.com/LevelFourAI/levelfour-go/savingsgrants"
 	webhooks "github.com/LevelFourAI/levelfour-go/webhooks"
 )
 
@@ -23,9 +29,15 @@ type Client struct {
 	Auth            *auth.Client
 	Webhooks        *webhooks.Client
 	Recommendations *client.Client
+	SavingsGrants   *savingsgrants.Client
+	RepoBinding     *repobinding.Client
 	Audit           *audit.Client
 	Costs           *costs.Client
+	CeSeed          *ceseed.Client
 	Providers       *providers.Client
+	Boards          *boards.Client
+	Commitments     *commitments.Client
+	Anomalies       *anomalies.Client
 	Health          *health.Client
 
 	options *core.RequestOptions
@@ -41,9 +53,15 @@ func NewClient(opts ...option.RequestOption) *Client {
 		Auth:            auth.NewClient(options),
 		Webhooks:        webhooks.NewClient(options),
 		Recommendations: client.NewClient(options),
+		SavingsGrants:   savingsgrants.NewClient(options),
+		RepoBinding:     repobinding.NewClient(options),
 		Audit:           audit.NewClient(options),
 		Costs:           costs.NewClient(options),
+		CeSeed:          ceseed.NewClient(options),
 		Providers:       providers.NewClient(options),
+		Boards:          boards.NewClient(options),
+		Commitments:     commitments.NewClient(options),
+		Anomalies:       anomalies.NewClient(options),
 		Health:          health.NewClient(options),
 		options:         options,
 		baseURL:         options.BaseURL,
