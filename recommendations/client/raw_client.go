@@ -234,6 +234,50 @@ func (r *RawClient) Get(
 	}, nil
 }
 
+func (r *RawClient) GetAutomatedSavings(
+	ctx context.Context,
+	recommendationID string,
+	opts ...option.RequestOption,
+) (*core.Response[*levelfour.AutomatedSavingsResponse], error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		r.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/api/v1/recommendations/%v/automated-savings",
+		recommendationID,
+	)
+	headers := internal.MergeHeaders(
+		r.options.ToHeader(),
+		options.ToHeader(),
+	)
+	var response *levelfour.AutomatedSavingsResponse
+	raw, err := r.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+			ErrorDecoder:    internal.NewErrorDecoder(levelfour.ErrorCodes),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &core.Response[*levelfour.AutomatedSavingsResponse]{
+		StatusCode: raw.StatusCode,
+		Header:     raw.Header,
+		Body:       response,
+	}, nil
+}
+
 func (r *RawClient) AddRejectionFeedback(
 	ctx context.Context,
 	recommendationID string,
