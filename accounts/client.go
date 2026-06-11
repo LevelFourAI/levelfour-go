@@ -82,10 +82,28 @@ func (c *Client) CompleteGithubIntegration(
 	return response.Body, nil
 }
 
+func (c *Client) CompleteGitlabIntegration(
+	ctx context.Context,
+	integrationID string,
+	request *levelfour.GitlabCompleteRequest,
+	opts ...option.RequestOption,
+) (*levelfour.IntegrationStatusResponse, error) {
+	response, err := c.WithRawResponse.CompleteGitlabIntegration(
+		ctx,
+		integrationID,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
 func (c *Client) ListGithubInstallations(
 	ctx context.Context,
 	opts ...option.RequestOption,
-) (*levelfour.GithubInstallationsResponse, error) {
+) (*levelfour.SrcAccountsSchemasGithubInstallationsResponse, error) {
 	response, err := c.WithRawResponse.ListGithubInstallations(
 		ctx,
 		opts...,
@@ -104,6 +122,20 @@ func (c *Client) ListConnectedAccounts(
 	response, err := c.WithRawResponse.ListConnectedAccounts(
 		ctx,
 		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+func (c *Client) ListConnections(
+	ctx context.Context,
+	opts ...option.RequestOption,
+) (*levelfour.ConnectionsResponse, error) {
+	response, err := c.WithRawResponse.ListConnections(
+		ctx,
 		opts...,
 	)
 	if err != nil {
