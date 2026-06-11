@@ -81,11 +81,12 @@ var (
 	aPIKeyCreatedDataFieldName       = big.NewInt(1 << 1)
 	aPIKeyCreatedDataFieldKeyPrefix  = big.NewInt(1 << 2)
 	aPIKeyCreatedDataFieldScope      = big.NewInt(1 << 3)
-	aPIKeyCreatedDataFieldCreatedAt  = big.NewInt(1 << 4)
-	aPIKeyCreatedDataFieldExpiresAt  = big.NewInt(1 << 5)
-	aPIKeyCreatedDataFieldLastUsedAt = big.NewInt(1 << 6)
-	aPIKeyCreatedDataFieldRevokedAt  = big.NewInt(1 << 7)
-	aPIKeyCreatedDataFieldRawKey     = big.NewInt(1 << 8)
+	aPIKeyCreatedDataFieldCreatedBy  = big.NewInt(1 << 4)
+	aPIKeyCreatedDataFieldCreatedAt  = big.NewInt(1 << 5)
+	aPIKeyCreatedDataFieldExpiresAt  = big.NewInt(1 << 6)
+	aPIKeyCreatedDataFieldLastUsedAt = big.NewInt(1 << 7)
+	aPIKeyCreatedDataFieldRevokedAt  = big.NewInt(1 << 8)
+	aPIKeyCreatedDataFieldRawKey     = big.NewInt(1 << 9)
 )
 
 type APIKeyCreatedData struct {
@@ -93,6 +94,7 @@ type APIKeyCreatedData struct {
 	Name       string     `json:"name" url:"name"`
 	KeyPrefix  string     `json:"key_prefix" url:"key_prefix"`
 	Scope      string     `json:"scope" url:"scope"`
+	CreatedBy  string     `json:"created_by" url:"created_by"`
 	CreatedAt  time.Time  `json:"created_at" url:"created_at"`
 	ExpiresAt  *time.Time `json:"expires_at,omitempty" url:"expires_at,omitempty"`
 	LastUsedAt *time.Time `json:"last_used_at,omitempty" url:"last_used_at,omitempty"`
@@ -132,6 +134,13 @@ func (a *APIKeyCreatedData) GetScope() string {
 		return ""
 	}
 	return a.Scope
+}
+
+func (a *APIKeyCreatedData) GetCreatedBy() string {
+	if a == nil {
+		return ""
+	}
+	return a.CreatedBy
 }
 
 func (a *APIKeyCreatedData) GetCreatedAt() time.Time {
@@ -209,6 +218,13 @@ func (a *APIKeyCreatedData) SetKeyPrefix(keyPrefix string) {
 func (a *APIKeyCreatedData) SetScope(scope string) {
 	a.Scope = scope
 	a.require(aPIKeyCreatedDataFieldScope)
+}
+
+// SetCreatedBy sets the CreatedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *APIKeyCreatedData) SetCreatedBy(createdBy string) {
+	a.CreatedBy = createdBy
+	a.require(aPIKeyCreatedDataFieldCreatedBy)
 }
 
 // SetCreatedAt sets the CreatedAt field and marks it as non-optional;
@@ -313,10 +329,11 @@ var (
 	aPIKeyDataFieldName       = big.NewInt(1 << 1)
 	aPIKeyDataFieldKeyPrefix  = big.NewInt(1 << 2)
 	aPIKeyDataFieldScope      = big.NewInt(1 << 3)
-	aPIKeyDataFieldCreatedAt  = big.NewInt(1 << 4)
-	aPIKeyDataFieldExpiresAt  = big.NewInt(1 << 5)
-	aPIKeyDataFieldLastUsedAt = big.NewInt(1 << 6)
-	aPIKeyDataFieldRevokedAt  = big.NewInt(1 << 7)
+	aPIKeyDataFieldCreatedBy  = big.NewInt(1 << 4)
+	aPIKeyDataFieldCreatedAt  = big.NewInt(1 << 5)
+	aPIKeyDataFieldExpiresAt  = big.NewInt(1 << 6)
+	aPIKeyDataFieldLastUsedAt = big.NewInt(1 << 7)
+	aPIKeyDataFieldRevokedAt  = big.NewInt(1 << 8)
 )
 
 type APIKeyData struct {
@@ -324,6 +341,7 @@ type APIKeyData struct {
 	Name       string     `json:"name" url:"name"`
 	KeyPrefix  string     `json:"key_prefix" url:"key_prefix"`
 	Scope      string     `json:"scope" url:"scope"`
+	CreatedBy  string     `json:"created_by" url:"created_by"`
 	CreatedAt  time.Time  `json:"created_at" url:"created_at"`
 	ExpiresAt  *time.Time `json:"expires_at,omitempty" url:"expires_at,omitempty"`
 	LastUsedAt *time.Time `json:"last_used_at,omitempty" url:"last_used_at,omitempty"`
@@ -362,6 +380,13 @@ func (a *APIKeyData) GetScope() string {
 		return ""
 	}
 	return a.Scope
+}
+
+func (a *APIKeyData) GetCreatedBy() string {
+	if a == nil {
+		return ""
+	}
+	return a.CreatedBy
 }
 
 func (a *APIKeyData) GetCreatedAt() time.Time {
@@ -432,6 +457,13 @@ func (a *APIKeyData) SetKeyPrefix(keyPrefix string) {
 func (a *APIKeyData) SetScope(scope string) {
 	a.Scope = scope
 	a.require(aPIKeyDataFieldScope)
+}
+
+// SetCreatedBy sets the CreatedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *APIKeyData) SetCreatedBy(createdBy string) {
+	a.CreatedBy = createdBy
+	a.require(aPIKeyDataFieldCreatedBy)
 }
 
 // SetCreatedAt sets the CreatedAt field and marks it as non-optional;
