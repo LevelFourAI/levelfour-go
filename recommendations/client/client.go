@@ -164,6 +164,21 @@ func (c *Client) ListInProgress(
 	return response.Body, nil
 }
 
+// Recommendations a member has submitted for execution that need an admin's release.
+func (c *Client) ListPendingApprovals(
+	ctx context.Context,
+	opts ...option.RequestOption,
+) (*levelfour.PendingApprovalsResponse, error) {
+	response, err := c.WithRawResponse.ListPendingApprovals(
+		ctx,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
 // Returns complete details for a specific recommendation
 func (c *Client) Get(
 	ctx context.Context,
@@ -171,6 +186,23 @@ func (c *Client) Get(
 	opts ...option.RequestOption,
 ) (*levelfour.RecommendationDetailResponse, error) {
 	response, err := c.WithRawResponse.Get(
+		ctx,
+		recommendationID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Returns the Automated Savings managed-policy connection state and the Launch Stack URL
+func (c *Client) GetAutomatedSavings(
+	ctx context.Context,
+	recommendationID string,
+	opts ...option.RequestOption,
+) (*levelfour.AutomatedSavingsResponse, error) {
+	response, err := c.WithRawResponse.GetAutomatedSavings(
 		ctx,
 		recommendationID,
 		opts...,
@@ -209,6 +241,61 @@ func (c *Client) GetRecommendationActivity(
 	response, err := c.WithRawResponse.GetRecommendationActivity(
 		ctx,
 		recommendationID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// A member requests execution; the recommendation moves to pending_approval and awaits an admin.
+func (c *Client) RequestExecution(
+	ctx context.Context,
+	recommendationID string,
+	request *levelfour.RequestExecutionBody,
+	opts ...option.RequestOption,
+) (*levelfour.ExecutionApprovalResponse, error) {
+	response, err := c.WithRawResponse.RequestExecution(
+		ctx,
+		recommendationID,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// An admin's second signature releases a pending execution and triggers it.
+func (c *Client) ApproveExecution(
+	ctx context.Context,
+	recommendationID string,
+	opts ...option.RequestOption,
+) (*levelfour.ExecutionApprovalResponse, error) {
+	response, err := c.WithRawResponse.ApproveExecution(
+		ctx,
+		recommendationID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// An admin rejects a pending execution request.
+func (c *Client) RejectExecution(
+	ctx context.Context,
+	recommendationID string,
+	request *levelfour.RejectExecutionBody,
+	opts ...option.RequestOption,
+) (*levelfour.ExecutionApprovalResponse, error) {
+	response, err := c.WithRawResponse.RejectExecution(
+		ctx,
+		recommendationID,
+		request,
 		opts...,
 	)
 	if err != nil {
