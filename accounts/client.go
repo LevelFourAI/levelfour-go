@@ -82,12 +82,108 @@ func (c *Client) CompleteGithubIntegration(
 	return response.Body, nil
 }
 
+func (c *Client) CompleteGitlabIntegration(
+	ctx context.Context,
+	integrationID string,
+	request *levelfour.GitlabCompleteRequest,
+	opts ...option.RequestOption,
+) (*levelfour.GitlabConnectResponse, error) {
+	response, err := c.WithRawResponse.CompleteGitlabIntegration(
+		ctx,
+		integrationID,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+func (c *Client) CompleteJiraIntegration(
+	ctx context.Context,
+	integrationID string,
+	request *levelfour.JiraCompleteRequest,
+	opts ...option.RequestOption,
+) (*levelfour.JiraCompleteResponse, error) {
+	response, err := c.WithRawResponse.CompleteJiraIntegration(
+		ctx,
+		integrationID,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
 func (c *Client) ListGithubInstallations(
 	ctx context.Context,
 	opts ...option.RequestOption,
-) (*levelfour.GithubInstallationsResponse, error) {
+) (*levelfour.SrcAccountsSchemasGithubInstallationsResponse, error) {
 	response, err := c.WithRawResponse.ListGithubInstallations(
 		ctx,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+func (c *Client) ListGitlabConnections(
+	ctx context.Context,
+	opts ...option.RequestOption,
+) (*levelfour.GitlabConnectionsResponse, error) {
+	response, err := c.WithRawResponse.ListGitlabConnections(
+		ctx,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+func (c *Client) DisconnectGitlabConnection(
+	ctx context.Context,
+	connectionID string,
+	opts ...option.RequestOption,
+) (*levelfour.GitlabDisconnectResponse, error) {
+	response, err := c.WithRawResponse.DisconnectGitlabConnection(
+		ctx,
+		connectionID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+func (c *Client) ListJiraConnections(
+	ctx context.Context,
+	opts ...option.RequestOption,
+) (*levelfour.JiraConnectionsResponse, error) {
+	response, err := c.WithRawResponse.ListJiraConnections(
+		ctx,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+func (c *Client) DisconnectJiraConnection(
+	ctx context.Context,
+	connectionID string,
+	opts ...option.RequestOption,
+) (*levelfour.JiraDisconnectResponse, error) {
+	response, err := c.WithRawResponse.DisconnectJiraConnection(
+		ctx,
+		connectionID,
 		opts...,
 	)
 	if err != nil {
@@ -104,6 +200,20 @@ func (c *Client) ListConnectedAccounts(
 	response, err := c.WithRawResponse.ListConnectedAccounts(
 		ctx,
 		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+func (c *Client) ListConnections(
+	ctx context.Context,
+	opts ...option.RequestOption,
+) (*levelfour.ConnectionsResponse, error) {
+	response, err := c.WithRawResponse.ListConnections(
+		ctx,
 		opts...,
 	)
 	if err != nil {
