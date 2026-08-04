@@ -716,6 +716,125 @@ func (e ExecutionStepSchemaStatus) Ptr() *ExecutionStepSchemaStatus {
 	return &e
 }
 
+var (
+	moduleSavingsBreakdownFieldID                  = big.NewInt(1 << 0)
+	moduleSavingsBreakdownFieldMonthlySavings      = big.NewInt(1 << 1)
+	moduleSavingsBreakdownFieldOpenRecommendations = big.NewInt(1 << 2)
+)
+
+type ModuleSavingsBreakdown struct {
+	// Module identifier: 'cloud' or 'commitments'
+	ID string `json:"id" url:"id"`
+	// Monthly savings attributed to this module
+	MonthlySavings float64 `json:"monthly_savings" url:"monthly_savings"`
+	// Count of pending recommendations in this module
+	OpenRecommendations int `json:"open_recommendations" url:"open_recommendations"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (m *ModuleSavingsBreakdown) GetID() string {
+	if m == nil {
+		return ""
+	}
+	return m.ID
+}
+
+func (m *ModuleSavingsBreakdown) GetMonthlySavings() float64 {
+	if m == nil {
+		return 0
+	}
+	return m.MonthlySavings
+}
+
+func (m *ModuleSavingsBreakdown) GetOpenRecommendations() int {
+	if m == nil {
+		return 0
+	}
+	return m.OpenRecommendations
+}
+
+func (m *ModuleSavingsBreakdown) GetExtraProperties() map[string]interface{} {
+	if m == nil {
+		return nil
+	}
+	return m.extraProperties
+}
+
+func (m *ModuleSavingsBreakdown) require(field *big.Int) {
+	if m.explicitFields == nil {
+		m.explicitFields = big.NewInt(0)
+	}
+	m.explicitFields.Or(m.explicitFields, field)
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (m *ModuleSavingsBreakdown) SetID(id string) {
+	m.ID = id
+	m.require(moduleSavingsBreakdownFieldID)
+}
+
+// SetMonthlySavings sets the MonthlySavings field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (m *ModuleSavingsBreakdown) SetMonthlySavings(monthlySavings float64) {
+	m.MonthlySavings = monthlySavings
+	m.require(moduleSavingsBreakdownFieldMonthlySavings)
+}
+
+// SetOpenRecommendations sets the OpenRecommendations field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (m *ModuleSavingsBreakdown) SetOpenRecommendations(openRecommendations int) {
+	m.OpenRecommendations = openRecommendations
+	m.require(moduleSavingsBreakdownFieldOpenRecommendations)
+}
+
+func (m *ModuleSavingsBreakdown) UnmarshalJSON(data []byte) error {
+	type unmarshaler ModuleSavingsBreakdown
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*m = ModuleSavingsBreakdown(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *m)
+	if err != nil {
+		return err
+	}
+	m.extraProperties = extraProperties
+	m.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (m *ModuleSavingsBreakdown) MarshalJSON() ([]byte, error) {
+	type embed ModuleSavingsBreakdown
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*m),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, m.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (m *ModuleSavingsBreakdown) String() string {
+	if m == nil {
+		return "<nil>"
+	}
+	if len(m.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(m); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", m)
+}
+
 type NotFound = *ErrorResponse
 
 // Pagination metadata
@@ -1203,6 +1322,142 @@ func (p *ProviderSavedSummaryResponse) String() string {
 }
 
 type RateLimitError = *ErrorResponse
+
+var (
+	resourceBreakdownItemFieldResource       = big.NewInt(1 << 0)
+	resourceBreakdownItemFieldDateAnalyzed   = big.NewInt(1 << 1)
+	resourceBreakdownItemFieldMonthlyCost    = big.NewInt(1 << 2)
+	resourceBreakdownItemFieldMonthlySavings = big.NewInt(1 << 3)
+)
+
+type ResourceBreakdownItem struct {
+	// Resource identifier shown in the first column, e.g. an instance id or node name
+	Resource string `json:"resource" url:"resource"`
+	// Date the resource was analyzed (YYYY-MM-DD); null when unavailable
+	DateAnalyzed *string `json:"date_analyzed,omitempty" url:"date_analyzed,omitempty"`
+	// The resource's current monthly cost; null when not yet provided
+	MonthlyCost *float64 `json:"monthly_cost,omitempty" url:"monthly_cost,omitempty"`
+	// The resource's monthly saving; null when not yet provided
+	MonthlySavings *float64 `json:"monthly_savings,omitempty" url:"monthly_savings,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *ResourceBreakdownItem) GetResource() string {
+	if r == nil {
+		return ""
+	}
+	return r.Resource
+}
+
+func (r *ResourceBreakdownItem) GetDateAnalyzed() *string {
+	if r == nil {
+		return nil
+	}
+	return r.DateAnalyzed
+}
+
+func (r *ResourceBreakdownItem) GetMonthlyCost() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.MonthlyCost
+}
+
+func (r *ResourceBreakdownItem) GetMonthlySavings() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.MonthlySavings
+}
+
+func (r *ResourceBreakdownItem) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *ResourceBreakdownItem) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetResource sets the Resource field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceBreakdownItem) SetResource(resource string) {
+	r.Resource = resource
+	r.require(resourceBreakdownItemFieldResource)
+}
+
+// SetDateAnalyzed sets the DateAnalyzed field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceBreakdownItem) SetDateAnalyzed(dateAnalyzed *string) {
+	r.DateAnalyzed = dateAnalyzed
+	r.require(resourceBreakdownItemFieldDateAnalyzed)
+}
+
+// SetMonthlyCost sets the MonthlyCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceBreakdownItem) SetMonthlyCost(monthlyCost *float64) {
+	r.MonthlyCost = monthlyCost
+	r.require(resourceBreakdownItemFieldMonthlyCost)
+}
+
+// SetMonthlySavings sets the MonthlySavings field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceBreakdownItem) SetMonthlySavings(monthlySavings *float64) {
+	r.MonthlySavings = monthlySavings
+	r.require(resourceBreakdownItemFieldMonthlySavings)
+}
+
+func (r *ResourceBreakdownItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler ResourceBreakdownItem
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = ResourceBreakdownItem(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *ResourceBreakdownItem) MarshalJSON() ([]byte, error) {
+	type embed ResourceBreakdownItem
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *ResourceBreakdownItem) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
 
 // Saved breakdown data with pagination
 var (
@@ -1707,21 +1962,23 @@ var (
 	savedByProviderItemFieldCost                         = big.NewInt(1 << 12)
 	savedByProviderItemFieldSavings                      = big.NewInt(1 << 13)
 	savedByProviderItemFieldAuthor                       = big.NewInt(1 << 14)
-	savedByProviderItemFieldAppliedVia                   = big.NewInt(1 << 15)
-	savedByProviderItemFieldImplementationMethod         = big.NewInt(1 << 16)
-	savedByProviderItemFieldFirstViewAt                  = big.NewInt(1 << 17)
-	savedByProviderItemFieldFirstViewChannel             = big.NewInt(1 << 18)
-	savedByProviderItemFieldViewCountAtAudit             = big.NewInt(1 << 19)
-	savedByProviderItemFieldVerification                 = big.NewInt(1 << 20)
-	savedByProviderItemFieldEstimatedSavingsUsd          = big.NewInt(1 << 21)
-	savedByProviderItemFieldRealizedSavingsUsd           = big.NewInt(1 << 22)
-	savedByProviderItemFieldRealizedSavingsInProgressUsd = big.NewInt(1 << 23)
-	savedByProviderItemFieldSettledAt                    = big.NewInt(1 << 24)
-	savedByProviderItemFieldRealizedSavings7DUsd         = big.NewInt(1 << 25)
-	savedByProviderItemFieldRealizedSavings30DUsd        = big.NewInt(1 << 26)
-	savedByProviderItemFieldSnapshot7DAt                 = big.NewInt(1 << 27)
-	savedByProviderItemFieldSnapshot30DAt                = big.NewInt(1 << 28)
-	savedByProviderItemFieldRealizedBasis                = big.NewInt(1 << 29)
+	savedByProviderItemFieldRequestedBy                  = big.NewInt(1 << 15)
+	savedByProviderItemFieldApprovedBy                   = big.NewInt(1 << 16)
+	savedByProviderItemFieldAppliedVia                   = big.NewInt(1 << 17)
+	savedByProviderItemFieldImplementationMethod         = big.NewInt(1 << 18)
+	savedByProviderItemFieldFirstViewAt                  = big.NewInt(1 << 19)
+	savedByProviderItemFieldFirstViewChannel             = big.NewInt(1 << 20)
+	savedByProviderItemFieldViewCountAtAudit             = big.NewInt(1 << 21)
+	savedByProviderItemFieldVerification                 = big.NewInt(1 << 22)
+	savedByProviderItemFieldEstimatedSavingsUsd          = big.NewInt(1 << 23)
+	savedByProviderItemFieldRealizedSavingsUsd           = big.NewInt(1 << 24)
+	savedByProviderItemFieldRealizedSavingsInProgressUsd = big.NewInt(1 << 25)
+	savedByProviderItemFieldSettledAt                    = big.NewInt(1 << 26)
+	savedByProviderItemFieldRealizedSavings7DUsd         = big.NewInt(1 << 27)
+	savedByProviderItemFieldRealizedSavings30DUsd        = big.NewInt(1 << 28)
+	savedByProviderItemFieldSnapshot7DAt                 = big.NewInt(1 << 29)
+	savedByProviderItemFieldSnapshot30DAt                = big.NewInt(1 << 30)
+	savedByProviderItemFieldRealizedBasis                = big.NewInt(1 << 31)
 )
 
 type SavedByProviderItem struct {
@@ -1753,8 +2010,12 @@ type SavedByProviderItem struct {
 	Cost float64 `json:"cost" url:"cost"`
 	// Realized savings (alias of realized_savings_usd)
 	Savings float64 `json:"savings" url:"savings"`
-	// Dashboard user who approved the savings (saving_accepted_by); falls back to actor_principal
+	// Legacy alias of approved_by (saving_accepted_by, falls back to actor_principal); kept for older clients
 	Author *string `json:"author,omitempty" url:"author,omitempty"`
+	// Member who requested the execution (execution_request_by); null when there was no explicit requester
+	RequestedBy *string `json:"requested_by,omitempty" url:"requested_by,omitempty"`
+	// Dashboard user who approved the savings (saving_accepted_by); falls back to actor_principal
+	ApprovedBy *string `json:"approved_by,omitempty" url:"approved_by,omitempty"`
 	// How the apply was attributed (sourced from implementation_method)
 	AppliedVia string `json:"applied_via" url:"applied_via"`
 	// How the rec was implemented: one-click / one-click-plus-iac / iac / manual
@@ -1765,7 +2026,7 @@ type SavedByProviderItem struct {
 	FirstViewChannel *string `json:"first_view_channel,omitempty" url:"first_view_channel,omitempty"`
 	// Total view count snapshot at audit reconcile time
 	ViewCountAtAudit *int `json:"view_count_at_audit,omitempty" url:"view_count_at_audit,omitempty"`
-	// Verification state: pending / auto-by-worker / auto-by-iac / auto-wizard-manual / manual-verified / manual-unverified
+	// Verification state: pending / auto-by-worker / auto-by-worker-and-iac / auto-by-iac / auto-wizard-manual / manual-verified / manual-unverified
 	Verification *string `json:"verification,omitempty" url:"verification,omitempty"`
 	// Estimated savings at apply time
 	EstimatedSavingsUsd *float64 `json:"estimated_savings_usd,omitempty" url:"estimated_savings_usd,omitempty"`
@@ -1896,6 +2157,20 @@ func (s *SavedByProviderItem) GetAuthor() *string {
 		return nil
 	}
 	return s.Author
+}
+
+func (s *SavedByProviderItem) GetRequestedBy() *string {
+	if s == nil {
+		return nil
+	}
+	return s.RequestedBy
+}
+
+func (s *SavedByProviderItem) GetApprovedBy() *string {
+	if s == nil {
+		return nil
+	}
+	return s.ApprovedBy
 }
 
 func (s *SavedByProviderItem) GetAppliedVia() string {
@@ -2122,6 +2397,20 @@ func (s *SavedByProviderItem) SetAuthor(author *string) {
 	s.require(savedByProviderItemFieldAuthor)
 }
 
+// SetRequestedBy sets the RequestedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SavedByProviderItem) SetRequestedBy(requestedBy *string) {
+	s.RequestedBy = requestedBy
+	s.require(savedByProviderItemFieldRequestedBy)
+}
+
+// SetApprovedBy sets the ApprovedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SavedByProviderItem) SetApprovedBy(approvedBy *string) {
+	s.ApprovedBy = approvedBy
+	s.require(savedByProviderItemFieldApprovedBy)
+}
+
 // SetAppliedVia sets the AppliedVia field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (s *SavedByProviderItem) SetAppliedVia(appliedVia string) {
@@ -2336,7 +2625,7 @@ type SavedItem struct {
 	FirstViewChannel *string `json:"first_view_channel,omitempty" url:"first_view_channel,omitempty"`
 	// Total view count snapshot at audit reconcile time
 	ViewCountAtAudit *int `json:"view_count_at_audit,omitempty" url:"view_count_at_audit,omitempty"`
-	// Verification state: pending / auto-by-worker / auto-by-iac / auto-wizard-manual / manual-verified / manual-unverified
+	// Verification state: pending / auto-by-worker / auto-by-worker-and-iac / auto-by-iac / auto-wizard-manual / manual-verified / manual-unverified
 	Verification *string `json:"verification,omitempty" url:"verification,omitempty"`
 	// Estimated monthly savings snapshot at apply time (from recommendation)
 	EstimatedSavingsUsd *float64 `json:"estimated_savings_usd,omitempty" url:"estimated_savings_usd,omitempty"`
@@ -3003,6 +3292,7 @@ var (
 	savedSummaryDataFieldTotalSavings                  = big.NewInt(1 << 5)
 	savedSummaryDataFieldProviders                     = big.NewInt(1 << 6)
 	savedSummaryDataFieldByImplementationMethod        = big.NewInt(1 << 7)
+	savedSummaryDataFieldByModule                      = big.NewInt(1 << 8)
 )
 
 type SavedSummaryData struct {
@@ -3022,6 +3312,8 @@ type SavedSummaryData struct {
 	Providers []*SavedProviderSummary `json:"providers,omitempty" url:"providers,omitempty"`
 	// Realized savings grouped by implementation_method (one-click, one-click-plus-iac, iac, manual)
 	ByImplementationMethod map[string]float64 `json:"by_implementation_method,omitempty" url:"by_implementation_method,omitempty"`
+	// Open savings opportunity grouped by module ('cloud', 'commitments')
+	ByModule []*ModuleSavingsBreakdown `json:"by_module,omitempty" url:"by_module,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -3084,6 +3376,13 @@ func (s *SavedSummaryData) GetByImplementationMethod() map[string]float64 {
 		return nil
 	}
 	return s.ByImplementationMethod
+}
+
+func (s *SavedSummaryData) GetByModule() []*ModuleSavingsBreakdown {
+	if s == nil {
+		return nil
+	}
+	return s.ByModule
 }
 
 func (s *SavedSummaryData) GetExtraProperties() map[string]interface{} {
@@ -3154,6 +3453,13 @@ func (s *SavedSummaryData) SetProviders(providers []*SavedProviderSummary) {
 func (s *SavedSummaryData) SetByImplementationMethod(byImplementationMethod map[string]float64) {
 	s.ByImplementationMethod = byImplementationMethod
 	s.require(savedSummaryDataFieldByImplementationMethod)
+}
+
+// SetByModule sets the ByModule field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SavedSummaryData) SetByModule(byModule []*ModuleSavingsBreakdown) {
+	s.ByModule = byModule
+	s.require(savedSummaryDataFieldByModule)
 }
 
 func (s *SavedSummaryData) UnmarshalJSON(data []byte) error {
