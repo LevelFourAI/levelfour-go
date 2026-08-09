@@ -134,19 +134,22 @@ func (l *ListAuditRequest) SetAccountID(accountID []string) {
 }
 
 var (
-	listByProviderAuditRequestFieldStart       = big.NewInt(1 << 0)
-	listByProviderAuditRequestFieldEnd         = big.NewInt(1 << 1)
-	listByProviderAuditRequestFieldPage        = big.NewInt(1 << 2)
-	listByProviderAuditRequestFieldPageSize    = big.NewInt(1 << 3)
-	listByProviderAuditRequestFieldSortBy      = big.NewInt(1 << 4)
-	listByProviderAuditRequestFieldSortOrder   = big.NewInt(1 << 5)
-	listByProviderAuditRequestFieldPreset      = big.NewInt(1 << 6)
-	listByProviderAuditRequestFieldService     = big.NewInt(1 << 7)
-	listByProviderAuditRequestFieldEnvironment = big.NewInt(1 << 8)
-	listByProviderAuditRequestFieldAccountID   = big.NewInt(1 << 9)
+	listByProviderAuditRequestFieldFormat      = big.NewInt(1 << 0)
+	listByProviderAuditRequestFieldStart       = big.NewInt(1 << 1)
+	listByProviderAuditRequestFieldEnd         = big.NewInt(1 << 2)
+	listByProviderAuditRequestFieldPage        = big.NewInt(1 << 3)
+	listByProviderAuditRequestFieldPageSize    = big.NewInt(1 << 4)
+	listByProviderAuditRequestFieldSortBy      = big.NewInt(1 << 5)
+	listByProviderAuditRequestFieldSortOrder   = big.NewInt(1 << 6)
+	listByProviderAuditRequestFieldPreset      = big.NewInt(1 << 7)
+	listByProviderAuditRequestFieldService     = big.NewInt(1 << 8)
+	listByProviderAuditRequestFieldEnvironment = big.NewInt(1 << 9)
+	listByProviderAuditRequestFieldAccountID   = big.NewInt(1 << 10)
 )
 
 type ListByProviderAuditRequest struct {
+	// Response format: table (paginated JSON) or csv (full filtered set as a CSV download)
+	Format *string `json:"-" url:"format,omitempty"`
 	// Start date filter (ISO 8601 format: YYYY-MM-DD or YYYY-MM)
 	Start *string `json:"-" url:"start,omitempty"`
 	// End date filter (ISO 8601 format: YYYY-MM-DD or YYYY-MM)
@@ -155,7 +158,7 @@ type ListByProviderAuditRequest struct {
 	Page *int `json:"-" url:"page,omitempty"`
 	// Items per page (max 100)
 	PageSize *int `json:"-" url:"page_size,omitempty"`
-	// Field to sort by (period, account_id, environment, service, usage_type, usage_quantity, usage_unit, pre_optimization_cost, monthly_savings, approved_by)
+	// Field to sort by (period, account_id, environment, service, usage_type, usage_quantity, usage_unit, pre_optimization_cost, monthly_savings, requested_by, approved_by)
 	SortBy *string `json:"-" url:"sort_by,omitempty"`
 	// Sort order
 	SortOrder *ListByProviderAuditRequestSortOrder `json:"-" url:"sort_order,omitempty"`
@@ -177,6 +180,13 @@ func (l *ListByProviderAuditRequest) require(field *big.Int) {
 		l.explicitFields = big.NewInt(0)
 	}
 	l.explicitFields.Or(l.explicitFields, field)
+}
+
+// SetFormat sets the Format field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListByProviderAuditRequest) SetFormat(format *string) {
+	l.Format = format
+	l.require(listByProviderAuditRequestFieldFormat)
 }
 
 // SetStart sets the Start field and marks it as non-optional;
