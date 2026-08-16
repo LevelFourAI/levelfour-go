@@ -78,7 +78,7 @@ type RealizedAuditDetailData struct {
 	FirstViewChannel *string `json:"first_view_channel,omitempty" url:"first_view_channel,omitempty"`
 	// Total view count snapshot at audit reconcile time
 	ViewCountAtAudit *int `json:"view_count_at_audit,omitempty" url:"view_count_at_audit,omitempty"`
-	// Verification state: pending / auto-by-worker / auto-by-iac / auto-wizard-manual / manual-verified / manual-unverified
+	// Verification state: pending / auto-by-worker / auto-by-worker-and-iac / auto-by-iac / auto-wizard-manual / manual-verified / manual-unverified
 	Verification *string `json:"verification,omitempty" url:"verification,omitempty"`
 	// Forensic CloudTrail evidence; populated only for manual-verified / manual-unverified rows
 	TechnicalDetails *TechnicalDetails `json:"technical_details,omitempty" url:"technical_details,omitempty"`
