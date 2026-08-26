@@ -235,3 +235,368 @@ func (p *ProvidersListResponse) String() string {
 	}
 	return fmt.Sprintf("%#v", p)
 }
+
+// A single user ranked by realized (captured) savings they approved.
+var (
+	topSaverFieldUserID          = big.NewInt(1 << 0)
+	topSaverFieldEmail           = big.NewInt(1 << 1)
+	topSaverFieldAvatarURL       = big.NewInt(1 << 2)
+	topSaverFieldCapturedSavings = big.NewInt(1 << 3)
+	topSaverFieldTrendPct        = big.NewInt(1 << 4)
+)
+
+type TopSaver struct {
+	// Stable identifier for the user, used as the list key
+	UserID string `json:"user_id" url:"user_id"`
+	// Email of the user who approved the realized savings
+	Email string `json:"email" url:"email"`
+	// User avatar URL, null when not resolved
+	AvatarURL *string `json:"avatar_url,omitempty" url:"avatar_url,omitempty"`
+	// Monthly USD savings captured (realized) from recommendations this user approved
+	CapturedSavings float64 `json:"captured_savings" url:"captured_savings"`
+	// Signed period-over-period percent change of this user's captured savings (0 when no prior period)
+	TrendPct *float64 `json:"trend_pct,omitempty" url:"trend_pct,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TopSaver) GetUserID() string {
+	if t == nil {
+		return ""
+	}
+	return t.UserID
+}
+
+func (t *TopSaver) GetEmail() string {
+	if t == nil {
+		return ""
+	}
+	return t.Email
+}
+
+func (t *TopSaver) GetAvatarURL() *string {
+	if t == nil {
+		return nil
+	}
+	return t.AvatarURL
+}
+
+func (t *TopSaver) GetCapturedSavings() float64 {
+	if t == nil {
+		return 0
+	}
+	return t.CapturedSavings
+}
+
+func (t *TopSaver) GetTrendPct() *float64 {
+	if t == nil {
+		return nil
+	}
+	return t.TrendPct
+}
+
+func (t *TopSaver) GetExtraProperties() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.extraProperties
+}
+
+func (t *TopSaver) require(field *big.Int) {
+	if t.explicitFields == nil {
+		t.explicitFields = big.NewInt(0)
+	}
+	t.explicitFields.Or(t.explicitFields, field)
+}
+
+// SetUserID sets the UserID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TopSaver) SetUserID(userID string) {
+	t.UserID = userID
+	t.require(topSaverFieldUserID)
+}
+
+// SetEmail sets the Email field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TopSaver) SetEmail(email string) {
+	t.Email = email
+	t.require(topSaverFieldEmail)
+}
+
+// SetAvatarURL sets the AvatarURL field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TopSaver) SetAvatarURL(avatarURL *string) {
+	t.AvatarURL = avatarURL
+	t.require(topSaverFieldAvatarURL)
+}
+
+// SetCapturedSavings sets the CapturedSavings field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TopSaver) SetCapturedSavings(capturedSavings float64) {
+	t.CapturedSavings = capturedSavings
+	t.require(topSaverFieldCapturedSavings)
+}
+
+// SetTrendPct sets the TrendPct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TopSaver) SetTrendPct(trendPct *float64) {
+	t.TrendPct = trendPct
+	t.require(topSaverFieldTrendPct)
+}
+
+func (t *TopSaver) UnmarshalJSON(data []byte) error {
+	type unmarshaler TopSaver
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*t = TopSaver(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TopSaver) MarshalJSON() ([]byte, error) {
+	type embed TopSaver
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*t),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, t.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (t *TopSaver) String() string {
+	if t == nil {
+		return "<nil>"
+	}
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
+}
+
+// Top savers leaderboard data for a provider.
+var (
+	topSaversDataFieldItems = big.NewInt(1 << 0)
+)
+
+type TopSaversData struct {
+	// Users ranked by captured savings descending (max 3); empty when no realized savings exist
+	Items []*TopSaver `json:"items,omitempty" url:"items,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TopSaversData) GetItems() []*TopSaver {
+	if t == nil {
+		return nil
+	}
+	return t.Items
+}
+
+func (t *TopSaversData) GetExtraProperties() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.extraProperties
+}
+
+func (t *TopSaversData) require(field *big.Int) {
+	if t.explicitFields == nil {
+		t.explicitFields = big.NewInt(0)
+	}
+	t.explicitFields.Or(t.explicitFields, field)
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TopSaversData) SetItems(items []*TopSaver) {
+	t.Items = items
+	t.require(topSaversDataFieldItems)
+}
+
+func (t *TopSaversData) UnmarshalJSON(data []byte) error {
+	type unmarshaler TopSaversData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*t = TopSaversData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TopSaversData) MarshalJSON() ([]byte, error) {
+	type embed TopSaversData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*t),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, t.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (t *TopSaversData) String() string {
+	if t == nil {
+		return "<nil>"
+	}
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
+}
+
+// Response for the provider top-savers leaderboard.
+var (
+	topSaversResponseFieldSuccess   = big.NewInt(1 << 0)
+	topSaversResponseFieldTimestamp = big.NewInt(1 << 1)
+	topSaversResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type TopSaversResponse struct {
+	Success   *bool          `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time     `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *TopSaversData `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TopSaversResponse) GetSuccess() *bool {
+	if t == nil {
+		return nil
+	}
+	return t.Success
+}
+
+func (t *TopSaversResponse) GetTimestamp() *time.Time {
+	if t == nil {
+		return nil
+	}
+	return t.Timestamp
+}
+
+func (t *TopSaversResponse) GetData() *TopSaversData {
+	if t == nil {
+		return nil
+	}
+	return t.Data
+}
+
+func (t *TopSaversResponse) GetExtraProperties() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.extraProperties
+}
+
+func (t *TopSaversResponse) require(field *big.Int) {
+	if t.explicitFields == nil {
+		t.explicitFields = big.NewInt(0)
+	}
+	t.explicitFields.Or(t.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TopSaversResponse) SetSuccess(success *bool) {
+	t.Success = success
+	t.require(topSaversResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TopSaversResponse) SetTimestamp(timestamp *time.Time) {
+	t.Timestamp = timestamp
+	t.require(topSaversResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TopSaversResponse) SetData(data *TopSaversData) {
+	t.Data = data
+	t.require(topSaversResponseFieldData)
+}
+
+func (t *TopSaversResponse) UnmarshalJSON(data []byte) error {
+	type embed TopSaversResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*t),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*t = TopSaversResponse(unmarshaler.embed)
+	t.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TopSaversResponse) MarshalJSON() ([]byte, error) {
+	type embed TopSaversResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*t),
+		Timestamp: internal.NewOptionalDateTime(t.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, t.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (t *TopSaversResponse) String() string {
+	if t == nil {
+		return "<nil>"
+	}
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
+}
