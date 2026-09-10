@@ -20,7 +20,7 @@ go run .
 ```
 
 Examples use `replace` directives to reference the local SDK source.
-This means they must be run from inside the cloned repository — they
+This means they must be run from inside the cloned repository, because they
 cannot be copied standalone without updating the `go.mod` to reference
 a published SDK version.
 
