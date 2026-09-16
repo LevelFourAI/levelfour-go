@@ -4,29 +4,63 @@ package client
 
 import (
 	accounts "github.com/LevelFourAI/levelfour-go/accounts"
+	anomalies "github.com/LevelFourAI/levelfour-go/anomalies"
 	apikeys "github.com/LevelFourAI/levelfour-go/apikeys"
 	audit "github.com/LevelFourAI/levelfour-go/audit"
 	auth "github.com/LevelFourAI/levelfour-go/auth"
+	boards "github.com/LevelFourAI/levelfour-go/boards"
+	ceseed "github.com/LevelFourAI/levelfour-go/ceseed"
+	commitments "github.com/LevelFourAI/levelfour-go/commitments"
+	connectors "github.com/LevelFourAI/levelfour-go/connectors"
 	core "github.com/LevelFourAI/levelfour-go/core"
+	costalerts "github.com/LevelFourAI/levelfour-go/costalerts"
 	costs "github.com/LevelFourAI/levelfour-go/costs"
+	costviews "github.com/LevelFourAI/levelfour-go/costviews"
+	finopsagent "github.com/LevelFourAI/levelfour-go/finopsagent"
 	health "github.com/LevelFourAI/levelfour-go/health"
+	integrations "github.com/LevelFourAI/levelfour-go/integrations"
 	internal "github.com/LevelFourAI/levelfour-go/internal"
+	mcpoauth "github.com/LevelFourAI/levelfour-go/mcpoauth"
+	members "github.com/LevelFourAI/levelfour-go/members"
+	notifications "github.com/LevelFourAI/levelfour-go/notifications"
 	option "github.com/LevelFourAI/levelfour-go/option"
 	providers "github.com/LevelFourAI/levelfour-go/providers"
 	client "github.com/LevelFourAI/levelfour-go/recommendations/client"
+	recommendationtimeline "github.com/LevelFourAI/levelfour-go/recommendationtimeline"
+	repobinding "github.com/LevelFourAI/levelfour-go/repobinding"
+	savingsgrants "github.com/LevelFourAI/levelfour-go/savingsgrants"
+	suggestions "github.com/LevelFourAI/levelfour-go/suggestions"
+	tags "github.com/LevelFourAI/levelfour-go/tags"
 	webhooks "github.com/LevelFourAI/levelfour-go/webhooks"
 )
 
 type Client struct {
-	APIKeys         *apikeys.Client
-	Accounts        *accounts.Client
-	Auth            *auth.Client
-	Webhooks        *webhooks.Client
-	Recommendations *client.Client
-	Audit           *audit.Client
-	Costs           *costs.Client
-	Providers       *providers.Client
-	Health          *health.Client
+	APIKeys                *apikeys.Client
+	Members                *members.Client
+	Notifications          *notifications.Client
+	Accounts               *accounts.Client
+	Integrations           *integrations.Client
+	McpOAuth               *mcpoauth.Client
+	Auth                   *auth.Client
+	Webhooks               *webhooks.Client
+	Recommendations        *client.Client
+	SavingsGrants          *savingsgrants.Client
+	RecommendationTimeline *recommendationtimeline.Client
+	RepoBinding            *repobinding.Client
+	Audit                  *audit.Client
+	Costs                  *costs.Client
+	CeSeed                 *ceseed.Client
+	Providers              *providers.Client
+	Connectors             *connectors.Client
+	Boards                 *boards.Client
+	CostAlerts             *costalerts.Client
+	Tags                   *tags.Client
+	CostViews              *costviews.Client
+	Suggestions            *suggestions.Client
+	Commitments            *commitments.Client
+	Anomalies              *anomalies.Client
+	FinOpsAgent            *finopsagent.Client
+	Health                 *health.Client
 
 	options *core.RequestOptions
 	baseURL string
@@ -36,17 +70,34 @@ type Client struct {
 func NewClient(opts ...option.RequestOption) *Client {
 	options := core.NewRequestOptions(opts...)
 	return &Client{
-		APIKeys:         apikeys.NewClient(options),
-		Accounts:        accounts.NewClient(options),
-		Auth:            auth.NewClient(options),
-		Webhooks:        webhooks.NewClient(options),
-		Recommendations: client.NewClient(options),
-		Audit:           audit.NewClient(options),
-		Costs:           costs.NewClient(options),
-		Providers:       providers.NewClient(options),
-		Health:          health.NewClient(options),
-		options:         options,
-		baseURL:         options.BaseURL,
+		APIKeys:                apikeys.NewClient(options),
+		Members:                members.NewClient(options),
+		Notifications:          notifications.NewClient(options),
+		Accounts:               accounts.NewClient(options),
+		Integrations:           integrations.NewClient(options),
+		McpOAuth:               mcpoauth.NewClient(options),
+		Auth:                   auth.NewClient(options),
+		Webhooks:               webhooks.NewClient(options),
+		Recommendations:        client.NewClient(options),
+		SavingsGrants:          savingsgrants.NewClient(options),
+		RecommendationTimeline: recommendationtimeline.NewClient(options),
+		RepoBinding:            repobinding.NewClient(options),
+		Audit:                  audit.NewClient(options),
+		Costs:                  costs.NewClient(options),
+		CeSeed:                 ceseed.NewClient(options),
+		Providers:              providers.NewClient(options),
+		Connectors:             connectors.NewClient(options),
+		Boards:                 boards.NewClient(options),
+		CostAlerts:             costalerts.NewClient(options),
+		Tags:                   tags.NewClient(options),
+		CostViews:              costviews.NewClient(options),
+		Suggestions:            suggestions.NewClient(options),
+		Commitments:            commitments.NewClient(options),
+		Anomalies:              anomalies.NewClient(options),
+		FinOpsAgent:            finopsagent.NewClient(options),
+		Health:                 health.NewClient(options),
+		options:                options,
+		baseURL:                options.BaseURL,
 		caller: internal.NewCaller(
 			&internal.CallerParams{
 				Client:      options.HTTPClient,
