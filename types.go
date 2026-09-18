@@ -10,6 +10,478 @@ import (
 	time "time"
 )
 
+var (
+	accessRequestDataFieldProvider  = big.NewInt(1 << 0)
+	accessRequestDataFieldSource    = big.NewInt(1 << 1)
+	accessRequestDataFieldCreatedAt = big.NewInt(1 << 2)
+)
+
+type AccessRequestData struct {
+	Provider  string     `json:"provider" url:"provider"`
+	Source    *string    `json:"source,omitempty" url:"source,omitempty"`
+	CreatedAt *time.Time `json:"created_at,omitempty" url:"created_at,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AccessRequestData) GetProvider() string {
+	if a == nil {
+		return ""
+	}
+	return a.Provider
+}
+
+func (a *AccessRequestData) GetSource() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Source
+}
+
+func (a *AccessRequestData) GetCreatedAt() *time.Time {
+	if a == nil {
+		return nil
+	}
+	return a.CreatedAt
+}
+
+func (a *AccessRequestData) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AccessRequestData) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetProvider sets the Provider field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AccessRequestData) SetProvider(provider string) {
+	a.Provider = provider
+	a.require(accessRequestDataFieldProvider)
+}
+
+// SetSource sets the Source field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AccessRequestData) SetSource(source *string) {
+	a.Source = source
+	a.require(accessRequestDataFieldSource)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AccessRequestData) SetCreatedAt(createdAt *time.Time) {
+	a.CreatedAt = createdAt
+	a.require(accessRequestDataFieldCreatedAt)
+}
+
+func (a *AccessRequestData) UnmarshalJSON(data []byte) error {
+	type embed AccessRequestData
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"created_at,omitempty"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*a = AccessRequestData(unmarshaler.embed)
+	a.CreatedAt = unmarshaler.CreatedAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AccessRequestData) MarshalJSON() ([]byte, error) {
+	type embed AccessRequestData
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"created_at,omitempty"`
+	}{
+		embed:     embed(*a),
+		CreatedAt: internal.NewOptionalDateTime(a.CreatedAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AccessRequestData) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	accessRequestRequestFieldProvider = big.NewInt(1 << 0)
+	accessRequestRequestFieldSource   = big.NewInt(1 << 1)
+	accessRequestRequestFieldNote     = big.NewInt(1 << 2)
+)
+
+type AccessRequestRequest struct {
+	Provider string  `json:"provider" url:"provider"`
+	Source   *string `json:"source,omitempty" url:"source,omitempty"`
+	Note     *string `json:"note,omitempty" url:"note,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AccessRequestRequest) GetProvider() string {
+	if a == nil {
+		return ""
+	}
+	return a.Provider
+}
+
+func (a *AccessRequestRequest) GetSource() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Source
+}
+
+func (a *AccessRequestRequest) GetNote() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Note
+}
+
+func (a *AccessRequestRequest) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AccessRequestRequest) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetProvider sets the Provider field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AccessRequestRequest) SetProvider(provider string) {
+	a.Provider = provider
+	a.require(accessRequestRequestFieldProvider)
+}
+
+// SetSource sets the Source field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AccessRequestRequest) SetSource(source *string) {
+	a.Source = source
+	a.require(accessRequestRequestFieldSource)
+}
+
+// SetNote sets the Note field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AccessRequestRequest) SetNote(note *string) {
+	a.Note = note
+	a.require(accessRequestRequestFieldNote)
+}
+
+func (a *AccessRequestRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler AccessRequestRequest
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AccessRequestRequest(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AccessRequestRequest) MarshalJSON() ([]byte, error) {
+	type embed AccessRequestRequest
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AccessRequestRequest) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	accessRequestResponseFieldSuccess   = big.NewInt(1 << 0)
+	accessRequestResponseFieldData      = big.NewInt(1 << 1)
+	accessRequestResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type AccessRequestResponse struct {
+	Success   *bool              `json:"success,omitempty" url:"success,omitempty"`
+	Data      *AccessRequestData `json:"data" url:"data"`
+	Timestamp string             `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AccessRequestResponse) GetSuccess() *bool {
+	if a == nil {
+		return nil
+	}
+	return a.Success
+}
+
+func (a *AccessRequestResponse) GetData() *AccessRequestData {
+	if a == nil {
+		return nil
+	}
+	return a.Data
+}
+
+func (a *AccessRequestResponse) GetTimestamp() string {
+	if a == nil {
+		return ""
+	}
+	return a.Timestamp
+}
+
+func (a *AccessRequestResponse) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AccessRequestResponse) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AccessRequestResponse) SetSuccess(success *bool) {
+	a.Success = success
+	a.require(accessRequestResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AccessRequestResponse) SetData(data *AccessRequestData) {
+	a.Data = data
+	a.require(accessRequestResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AccessRequestResponse) SetTimestamp(timestamp string) {
+	a.Timestamp = timestamp
+	a.require(accessRequestResponseFieldTimestamp)
+}
+
+func (a *AccessRequestResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler AccessRequestResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AccessRequestResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AccessRequestResponse) MarshalJSON() ([]byte, error) {
+	type embed AccessRequestResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AccessRequestResponse) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	alertRecipientFieldName   = big.NewInt(1 << 0)
+	alertRecipientFieldEmail  = big.NewInt(1 << 1)
+	alertRecipientFieldMember = big.NewInt(1 << 2)
+)
+
+type AlertRecipient struct {
+	Name   string `json:"name" url:"name"`
+	Email  string `json:"email" url:"email"`
+	Member bool   `json:"member" url:"member"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AlertRecipient) GetName() string {
+	if a == nil {
+		return ""
+	}
+	return a.Name
+}
+
+func (a *AlertRecipient) GetEmail() string {
+	if a == nil {
+		return ""
+	}
+	return a.Email
+}
+
+func (a *AlertRecipient) GetMember() bool {
+	if a == nil {
+		return false
+	}
+	return a.Member
+}
+
+func (a *AlertRecipient) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AlertRecipient) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AlertRecipient) SetName(name string) {
+	a.Name = name
+	a.require(alertRecipientFieldName)
+}
+
+// SetEmail sets the Email field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AlertRecipient) SetEmail(email string) {
+	a.Email = email
+	a.require(alertRecipientFieldEmail)
+}
+
+// SetMember sets the Member field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AlertRecipient) SetMember(member bool) {
+	a.Member = member
+	a.require(alertRecipientFieldMember)
+}
+
+func (a *AlertRecipient) UnmarshalJSON(data []byte) error {
+	type unmarshaler AlertRecipient
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AlertRecipient(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AlertRecipient) MarshalJSON() ([]byte, error) {
+	type embed AlertRecipient
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AlertRecipient) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
 type AuthenticationError = *ErrorResponse
 
 type AuthorizationError = *ErrorResponse
@@ -17,6 +489,1782 @@ type AuthorizationError = *ErrorResponse
 type BadRequest = *ErrorResponse
 
 type Conflict = *ErrorResponse
+
+var (
+	connectionListResponseFieldSuccess   = big.NewInt(1 << 0)
+	connectionListResponseFieldData      = big.NewInt(1 << 1)
+	connectionListResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type ConnectionListResponse struct {
+	Success   *bool               `json:"success,omitempty" url:"success,omitempty"`
+	Data      []*ConnectionSchema `json:"data" url:"data"`
+	Timestamp string              `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ConnectionListResponse) GetSuccess() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Success
+}
+
+func (c *ConnectionListResponse) GetData() []*ConnectionSchema {
+	if c == nil {
+		return nil
+	}
+	return c.Data
+}
+
+func (c *ConnectionListResponse) GetTimestamp() string {
+	if c == nil {
+		return ""
+	}
+	return c.Timestamp
+}
+
+func (c *ConnectionListResponse) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ConnectionListResponse) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectionListResponse) SetSuccess(success *bool) {
+	c.Success = success
+	c.require(connectionListResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectionListResponse) SetData(data []*ConnectionSchema) {
+	c.Data = data
+	c.require(connectionListResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectionListResponse) SetTimestamp(timestamp string) {
+	c.Timestamp = timestamp
+	c.require(connectionListResponseFieldTimestamp)
+}
+
+func (c *ConnectionListResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler ConnectionListResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ConnectionListResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ConnectionListResponse) MarshalJSON() ([]byte, error) {
+	type embed ConnectionListResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ConnectionListResponse) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	connectionSettingsRequestFieldBilledVia = big.NewInt(1 << 0)
+)
+
+type ConnectionSettingsRequest struct {
+	BilledVia string `json:"billed_via" url:"billed_via"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ConnectionSettingsRequest) GetBilledVia() string {
+	if c == nil {
+		return ""
+	}
+	return c.BilledVia
+}
+
+func (c *ConnectionSettingsRequest) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ConnectionSettingsRequest) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetBilledVia sets the BilledVia field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectionSettingsRequest) SetBilledVia(billedVia string) {
+	c.BilledVia = billedVia
+	c.require(connectionSettingsRequestFieldBilledVia)
+}
+
+func (c *ConnectionSettingsRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler ConnectionSettingsRequest
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ConnectionSettingsRequest(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ConnectionSettingsRequest) MarshalJSON() ([]byte, error) {
+	type embed ConnectionSettingsRequest
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ConnectionSettingsRequest) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	connectorCatalogDataFieldCategories        = big.NewInt(1 << 0)
+	connectorCatalogDataFieldProviders         = big.NewInt(1 << 1)
+	connectorCatalogDataFieldCustomConnections = big.NewInt(1 << 2)
+)
+
+type ConnectorCatalogData struct {
+	Categories        []string                   `json:"categories" url:"categories"`
+	Providers         []*ConnectorProviderSchema `json:"providers" url:"providers"`
+	CustomConnections []*ConnectionSchema        `json:"custom_connections,omitempty" url:"custom_connections,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ConnectorCatalogData) GetCategories() []string {
+	if c == nil {
+		return nil
+	}
+	return c.Categories
+}
+
+func (c *ConnectorCatalogData) GetProviders() []*ConnectorProviderSchema {
+	if c == nil {
+		return nil
+	}
+	return c.Providers
+}
+
+func (c *ConnectorCatalogData) GetCustomConnections() []*ConnectionSchema {
+	if c == nil {
+		return nil
+	}
+	return c.CustomConnections
+}
+
+func (c *ConnectorCatalogData) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ConnectorCatalogData) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetCategories sets the Categories field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorCatalogData) SetCategories(categories []string) {
+	c.Categories = categories
+	c.require(connectorCatalogDataFieldCategories)
+}
+
+// SetProviders sets the Providers field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorCatalogData) SetProviders(providers []*ConnectorProviderSchema) {
+	c.Providers = providers
+	c.require(connectorCatalogDataFieldProviders)
+}
+
+// SetCustomConnections sets the CustomConnections field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorCatalogData) SetCustomConnections(customConnections []*ConnectionSchema) {
+	c.CustomConnections = customConnections
+	c.require(connectorCatalogDataFieldCustomConnections)
+}
+
+func (c *ConnectorCatalogData) UnmarshalJSON(data []byte) error {
+	type unmarshaler ConnectorCatalogData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ConnectorCatalogData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ConnectorCatalogData) MarshalJSON() ([]byte, error) {
+	type embed ConnectorCatalogData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ConnectorCatalogData) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	connectorCatalogResponseFieldSuccess   = big.NewInt(1 << 0)
+	connectorCatalogResponseFieldData      = big.NewInt(1 << 1)
+	connectorCatalogResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type ConnectorCatalogResponse struct {
+	Success   *bool                 `json:"success,omitempty" url:"success,omitempty"`
+	Data      *ConnectorCatalogData `json:"data" url:"data"`
+	Timestamp string                `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ConnectorCatalogResponse) GetSuccess() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Success
+}
+
+func (c *ConnectorCatalogResponse) GetData() *ConnectorCatalogData {
+	if c == nil {
+		return nil
+	}
+	return c.Data
+}
+
+func (c *ConnectorCatalogResponse) GetTimestamp() string {
+	if c == nil {
+		return ""
+	}
+	return c.Timestamp
+}
+
+func (c *ConnectorCatalogResponse) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ConnectorCatalogResponse) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorCatalogResponse) SetSuccess(success *bool) {
+	c.Success = success
+	c.require(connectorCatalogResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorCatalogResponse) SetData(data *ConnectorCatalogData) {
+	c.Data = data
+	c.require(connectorCatalogResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorCatalogResponse) SetTimestamp(timestamp string) {
+	c.Timestamp = timestamp
+	c.require(connectorCatalogResponseFieldTimestamp)
+}
+
+func (c *ConnectorCatalogResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler ConnectorCatalogResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ConnectorCatalogResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ConnectorCatalogResponse) MarshalJSON() ([]byte, error) {
+	type embed ConnectorCatalogResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ConnectorCatalogResponse) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	connectorProviderSchemaFieldID             = big.NewInt(1 << 0)
+	connectorProviderSchemaFieldDisplayName    = big.NewInt(1 << 1)
+	connectorProviderSchemaFieldCategory       = big.NewInt(1 << 2)
+	connectorProviderSchemaFieldStatus         = big.NewInt(1 << 3)
+	connectorProviderSchemaFieldIconKey        = big.NewInt(1 << 4)
+	connectorProviderSchemaFieldSummary        = big.NewInt(1 << 5)
+	connectorProviderSchemaFieldRequestNote    = big.NewInt(1 << 6)
+	connectorProviderSchemaFieldConnectPath    = big.NewInt(1 << 7)
+	connectorProviderSchemaFieldHasCommitments = big.NewInt(1 << 8)
+	connectorProviderSchemaFieldConnectedCount = big.NewInt(1 << 9)
+	connectorProviderSchemaFieldWorstStatus    = big.NewInt(1 << 10)
+	connectorProviderSchemaFieldRequested      = big.NewInt(1 << 11)
+	connectorProviderSchemaFieldSources        = big.NewInt(1 << 12)
+)
+
+type ConnectorProviderSchema struct {
+	ID          string `json:"id" url:"id"`
+	DisplayName string `json:"display_name" url:"display_name"`
+	Category    string `json:"category" url:"category"`
+	Status      string `json:"status" url:"status"`
+	IconKey     string `json:"icon_key" url:"icon_key"`
+	// Introduces the sources when a provider offers more than one.
+	Summary        *string                  `json:"summary,omitempty" url:"summary,omitempty"`
+	RequestNote    *string                  `json:"request_note,omitempty" url:"request_note,omitempty"`
+	ConnectPath    *string                  `json:"connect_path,omitempty" url:"connect_path,omitempty"`
+	HasCommitments *bool                    `json:"has_commitments,omitempty" url:"has_commitments,omitempty"`
+	ConnectedCount *int                     `json:"connected_count,omitempty" url:"connected_count,omitempty"`
+	WorstStatus    *string                  `json:"worst_status,omitempty" url:"worst_status,omitempty"`
+	Requested      *bool                    `json:"requested,omitempty" url:"requested,omitempty"`
+	Sources        []*ConnectorSourceSchema `json:"sources,omitempty" url:"sources,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ConnectorProviderSchema) GetID() string {
+	if c == nil {
+		return ""
+	}
+	return c.ID
+}
+
+func (c *ConnectorProviderSchema) GetDisplayName() string {
+	if c == nil {
+		return ""
+	}
+	return c.DisplayName
+}
+
+func (c *ConnectorProviderSchema) GetCategory() string {
+	if c == nil {
+		return ""
+	}
+	return c.Category
+}
+
+func (c *ConnectorProviderSchema) GetStatus() string {
+	if c == nil {
+		return ""
+	}
+	return c.Status
+}
+
+func (c *ConnectorProviderSchema) GetIconKey() string {
+	if c == nil {
+		return ""
+	}
+	return c.IconKey
+}
+
+func (c *ConnectorProviderSchema) GetSummary() *string {
+	if c == nil {
+		return nil
+	}
+	return c.Summary
+}
+
+func (c *ConnectorProviderSchema) GetRequestNote() *string {
+	if c == nil {
+		return nil
+	}
+	return c.RequestNote
+}
+
+func (c *ConnectorProviderSchema) GetConnectPath() *string {
+	if c == nil {
+		return nil
+	}
+	return c.ConnectPath
+}
+
+func (c *ConnectorProviderSchema) GetHasCommitments() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.HasCommitments
+}
+
+func (c *ConnectorProviderSchema) GetConnectedCount() *int {
+	if c == nil {
+		return nil
+	}
+	return c.ConnectedCount
+}
+
+func (c *ConnectorProviderSchema) GetWorstStatus() *string {
+	if c == nil {
+		return nil
+	}
+	return c.WorstStatus
+}
+
+func (c *ConnectorProviderSchema) GetRequested() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Requested
+}
+
+func (c *ConnectorProviderSchema) GetSources() []*ConnectorSourceSchema {
+	if c == nil {
+		return nil
+	}
+	return c.Sources
+}
+
+func (c *ConnectorProviderSchema) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ConnectorProviderSchema) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorProviderSchema) SetID(id string) {
+	c.ID = id
+	c.require(connectorProviderSchemaFieldID)
+}
+
+// SetDisplayName sets the DisplayName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorProviderSchema) SetDisplayName(displayName string) {
+	c.DisplayName = displayName
+	c.require(connectorProviderSchemaFieldDisplayName)
+}
+
+// SetCategory sets the Category field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorProviderSchema) SetCategory(category string) {
+	c.Category = category
+	c.require(connectorProviderSchemaFieldCategory)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorProviderSchema) SetStatus(status string) {
+	c.Status = status
+	c.require(connectorProviderSchemaFieldStatus)
+}
+
+// SetIconKey sets the IconKey field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorProviderSchema) SetIconKey(iconKey string) {
+	c.IconKey = iconKey
+	c.require(connectorProviderSchemaFieldIconKey)
+}
+
+// SetSummary sets the Summary field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorProviderSchema) SetSummary(summary *string) {
+	c.Summary = summary
+	c.require(connectorProviderSchemaFieldSummary)
+}
+
+// SetRequestNote sets the RequestNote field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorProviderSchema) SetRequestNote(requestNote *string) {
+	c.RequestNote = requestNote
+	c.require(connectorProviderSchemaFieldRequestNote)
+}
+
+// SetConnectPath sets the ConnectPath field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorProviderSchema) SetConnectPath(connectPath *string) {
+	c.ConnectPath = connectPath
+	c.require(connectorProviderSchemaFieldConnectPath)
+}
+
+// SetHasCommitments sets the HasCommitments field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorProviderSchema) SetHasCommitments(hasCommitments *bool) {
+	c.HasCommitments = hasCommitments
+	c.require(connectorProviderSchemaFieldHasCommitments)
+}
+
+// SetConnectedCount sets the ConnectedCount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorProviderSchema) SetConnectedCount(connectedCount *int) {
+	c.ConnectedCount = connectedCount
+	c.require(connectorProviderSchemaFieldConnectedCount)
+}
+
+// SetWorstStatus sets the WorstStatus field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorProviderSchema) SetWorstStatus(worstStatus *string) {
+	c.WorstStatus = worstStatus
+	c.require(connectorProviderSchemaFieldWorstStatus)
+}
+
+// SetRequested sets the Requested field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorProviderSchema) SetRequested(requested *bool) {
+	c.Requested = requested
+	c.require(connectorProviderSchemaFieldRequested)
+}
+
+// SetSources sets the Sources field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorProviderSchema) SetSources(sources []*ConnectorSourceSchema) {
+	c.Sources = sources
+	c.require(connectorProviderSchemaFieldSources)
+}
+
+func (c *ConnectorProviderSchema) UnmarshalJSON(data []byte) error {
+	type unmarshaler ConnectorProviderSchema
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ConnectorProviderSchema(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ConnectorProviderSchema) MarshalJSON() ([]byte, error) {
+	type embed ConnectorProviderSchema
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ConnectorProviderSchema) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	connectorSourceSchemaFieldKey                    = big.NewInt(1 << 0)
+	connectorSourceSchemaFieldDisplayName            = big.NewInt(1 << 1)
+	connectorSourceSchemaFieldAuthKind               = big.NewInt(1 << 2)
+	connectorSourceSchemaFieldStatus                 = big.NewInt(1 << 3)
+	connectorSourceSchemaFieldCredentialFields       = big.NewInt(1 << 4)
+	connectorSourceSchemaFieldConfigFields           = big.NewInt(1 << 5)
+	connectorSourceSchemaFieldSummary                = big.NewInt(1 << 6)
+	connectorSourceSchemaFieldSteps                  = big.NewInt(1 << 7)
+	connectorSourceSchemaFieldConnectLabel           = big.NewInt(1 << 8)
+	connectorSourceSchemaFieldPrerequisites          = big.NewInt(1 << 9)
+	connectorSourceSchemaFieldCoverageIncludes       = big.NewInt(1 << 10)
+	connectorSourceSchemaFieldCoverageExcludes       = big.NewInt(1 << 11)
+	connectorSourceSchemaFieldCostBasisClass         = big.NewInt(1 << 12)
+	connectorSourceSchemaFieldDataGrain              = big.NewInt(1 << 13)
+	connectorSourceSchemaFieldHistoryDailyDays       = big.NewInt(1 << 14)
+	connectorSourceSchemaFieldHistoryMonthlyMonths   = big.NewInt(1 << 15)
+	connectorSourceSchemaFieldHistoryFloor           = big.NewInt(1 << 16)
+	connectorSourceSchemaFieldFirstDataEta           = big.NewInt(1 << 17)
+	connectorSourceSchemaFieldWarehouseBudget        = big.NewInt(1 << 18)
+	connectorSourceSchemaFieldWriteCapableCredential = big.NewInt(1 << 19)
+	connectorSourceSchemaFieldDocsSlug               = big.NewInt(1 << 20)
+)
+
+type ConnectorSourceSchema struct {
+	Key              string                   `json:"key" url:"key"`
+	DisplayName      string                   `json:"display_name" url:"display_name"`
+	AuthKind         string                   `json:"auth_kind" url:"auth_kind"`
+	Status           string                   `json:"status" url:"status"`
+	CredentialFields []*CredentialFieldSchema `json:"credential_fields,omitempty" url:"credential_fields,omitempty"`
+	ConfigFields     []*CredentialFieldSchema `json:"config_fields,omitempty" url:"config_fields,omitempty"`
+	// What LevelFour reads and with which credential.
+	Summary *string `json:"summary,omitempty" url:"summary,omitempty"`
+	// Ordered procedure. Each step is Markdown limited to bold, inline code, https links, bullet lists and fenced code blocks.
+	Steps []string `json:"steps,omitempty" url:"steps,omitempty"`
+	// Label of the button that starts the connect flow, named in the steps.
+	ConnectLabel           *string  `json:"connect_label,omitempty" url:"connect_label,omitempty"`
+	Prerequisites          *string  `json:"prerequisites,omitempty" url:"prerequisites,omitempty"`
+	CoverageIncludes       []string `json:"coverage_includes,omitempty" url:"coverage_includes,omitempty"`
+	CoverageExcludes       []string `json:"coverage_excludes,omitempty" url:"coverage_excludes,omitempty"`
+	CostBasisClass         *string  `json:"cost_basis_class,omitempty" url:"cost_basis_class,omitempty"`
+	DataGrain              *string  `json:"data_grain,omitempty" url:"data_grain,omitempty"`
+	HistoryDailyDays       *int     `json:"history_daily_days,omitempty" url:"history_daily_days,omitempty"`
+	HistoryMonthlyMonths   *int     `json:"history_monthly_months,omitempty" url:"history_monthly_months,omitempty"`
+	HistoryFloor           *string  `json:"history_floor,omitempty" url:"history_floor,omitempty"`
+	FirstDataEta           *string  `json:"first_data_eta,omitempty" url:"first_data_eta,omitempty"`
+	WarehouseBudget        *string  `json:"warehouse_budget,omitempty" url:"warehouse_budget,omitempty"`
+	WriteCapableCredential *bool    `json:"write_capable_credential,omitempty" url:"write_capable_credential,omitempty"`
+	DocsSlug               *string  `json:"docs_slug,omitempty" url:"docs_slug,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ConnectorSourceSchema) GetKey() string {
+	if c == nil {
+		return ""
+	}
+	return c.Key
+}
+
+func (c *ConnectorSourceSchema) GetDisplayName() string {
+	if c == nil {
+		return ""
+	}
+	return c.DisplayName
+}
+
+func (c *ConnectorSourceSchema) GetAuthKind() string {
+	if c == nil {
+		return ""
+	}
+	return c.AuthKind
+}
+
+func (c *ConnectorSourceSchema) GetStatus() string {
+	if c == nil {
+		return ""
+	}
+	return c.Status
+}
+
+func (c *ConnectorSourceSchema) GetCredentialFields() []*CredentialFieldSchema {
+	if c == nil {
+		return nil
+	}
+	return c.CredentialFields
+}
+
+func (c *ConnectorSourceSchema) GetConfigFields() []*CredentialFieldSchema {
+	if c == nil {
+		return nil
+	}
+	return c.ConfigFields
+}
+
+func (c *ConnectorSourceSchema) GetSummary() *string {
+	if c == nil {
+		return nil
+	}
+	return c.Summary
+}
+
+func (c *ConnectorSourceSchema) GetSteps() []string {
+	if c == nil {
+		return nil
+	}
+	return c.Steps
+}
+
+func (c *ConnectorSourceSchema) GetConnectLabel() *string {
+	if c == nil {
+		return nil
+	}
+	return c.ConnectLabel
+}
+
+func (c *ConnectorSourceSchema) GetPrerequisites() *string {
+	if c == nil {
+		return nil
+	}
+	return c.Prerequisites
+}
+
+func (c *ConnectorSourceSchema) GetCoverageIncludes() []string {
+	if c == nil {
+		return nil
+	}
+	return c.CoverageIncludes
+}
+
+func (c *ConnectorSourceSchema) GetCoverageExcludes() []string {
+	if c == nil {
+		return nil
+	}
+	return c.CoverageExcludes
+}
+
+func (c *ConnectorSourceSchema) GetCostBasisClass() *string {
+	if c == nil {
+		return nil
+	}
+	return c.CostBasisClass
+}
+
+func (c *ConnectorSourceSchema) GetDataGrain() *string {
+	if c == nil {
+		return nil
+	}
+	return c.DataGrain
+}
+
+func (c *ConnectorSourceSchema) GetHistoryDailyDays() *int {
+	if c == nil {
+		return nil
+	}
+	return c.HistoryDailyDays
+}
+
+func (c *ConnectorSourceSchema) GetHistoryMonthlyMonths() *int {
+	if c == nil {
+		return nil
+	}
+	return c.HistoryMonthlyMonths
+}
+
+func (c *ConnectorSourceSchema) GetHistoryFloor() *string {
+	if c == nil {
+		return nil
+	}
+	return c.HistoryFloor
+}
+
+func (c *ConnectorSourceSchema) GetFirstDataEta() *string {
+	if c == nil {
+		return nil
+	}
+	return c.FirstDataEta
+}
+
+func (c *ConnectorSourceSchema) GetWarehouseBudget() *string {
+	if c == nil {
+		return nil
+	}
+	return c.WarehouseBudget
+}
+
+func (c *ConnectorSourceSchema) GetWriteCapableCredential() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.WriteCapableCredential
+}
+
+func (c *ConnectorSourceSchema) GetDocsSlug() *string {
+	if c == nil {
+		return nil
+	}
+	return c.DocsSlug
+}
+
+func (c *ConnectorSourceSchema) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ConnectorSourceSchema) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetKey sets the Key field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorSourceSchema) SetKey(key string) {
+	c.Key = key
+	c.require(connectorSourceSchemaFieldKey)
+}
+
+// SetDisplayName sets the DisplayName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorSourceSchema) SetDisplayName(displayName string) {
+	c.DisplayName = displayName
+	c.require(connectorSourceSchemaFieldDisplayName)
+}
+
+// SetAuthKind sets the AuthKind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorSourceSchema) SetAuthKind(authKind string) {
+	c.AuthKind = authKind
+	c.require(connectorSourceSchemaFieldAuthKind)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorSourceSchema) SetStatus(status string) {
+	c.Status = status
+	c.require(connectorSourceSchemaFieldStatus)
+}
+
+// SetCredentialFields sets the CredentialFields field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorSourceSchema) SetCredentialFields(credentialFields []*CredentialFieldSchema) {
+	c.CredentialFields = credentialFields
+	c.require(connectorSourceSchemaFieldCredentialFields)
+}
+
+// SetConfigFields sets the ConfigFields field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorSourceSchema) SetConfigFields(configFields []*CredentialFieldSchema) {
+	c.ConfigFields = configFields
+	c.require(connectorSourceSchemaFieldConfigFields)
+}
+
+// SetSummary sets the Summary field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorSourceSchema) SetSummary(summary *string) {
+	c.Summary = summary
+	c.require(connectorSourceSchemaFieldSummary)
+}
+
+// SetSteps sets the Steps field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorSourceSchema) SetSteps(steps []string) {
+	c.Steps = steps
+	c.require(connectorSourceSchemaFieldSteps)
+}
+
+// SetConnectLabel sets the ConnectLabel field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorSourceSchema) SetConnectLabel(connectLabel *string) {
+	c.ConnectLabel = connectLabel
+	c.require(connectorSourceSchemaFieldConnectLabel)
+}
+
+// SetPrerequisites sets the Prerequisites field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorSourceSchema) SetPrerequisites(prerequisites *string) {
+	c.Prerequisites = prerequisites
+	c.require(connectorSourceSchemaFieldPrerequisites)
+}
+
+// SetCoverageIncludes sets the CoverageIncludes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorSourceSchema) SetCoverageIncludes(coverageIncludes []string) {
+	c.CoverageIncludes = coverageIncludes
+	c.require(connectorSourceSchemaFieldCoverageIncludes)
+}
+
+// SetCoverageExcludes sets the CoverageExcludes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorSourceSchema) SetCoverageExcludes(coverageExcludes []string) {
+	c.CoverageExcludes = coverageExcludes
+	c.require(connectorSourceSchemaFieldCoverageExcludes)
+}
+
+// SetCostBasisClass sets the CostBasisClass field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorSourceSchema) SetCostBasisClass(costBasisClass *string) {
+	c.CostBasisClass = costBasisClass
+	c.require(connectorSourceSchemaFieldCostBasisClass)
+}
+
+// SetDataGrain sets the DataGrain field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorSourceSchema) SetDataGrain(dataGrain *string) {
+	c.DataGrain = dataGrain
+	c.require(connectorSourceSchemaFieldDataGrain)
+}
+
+// SetHistoryDailyDays sets the HistoryDailyDays field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorSourceSchema) SetHistoryDailyDays(historyDailyDays *int) {
+	c.HistoryDailyDays = historyDailyDays
+	c.require(connectorSourceSchemaFieldHistoryDailyDays)
+}
+
+// SetHistoryMonthlyMonths sets the HistoryMonthlyMonths field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorSourceSchema) SetHistoryMonthlyMonths(historyMonthlyMonths *int) {
+	c.HistoryMonthlyMonths = historyMonthlyMonths
+	c.require(connectorSourceSchemaFieldHistoryMonthlyMonths)
+}
+
+// SetHistoryFloor sets the HistoryFloor field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorSourceSchema) SetHistoryFloor(historyFloor *string) {
+	c.HistoryFloor = historyFloor
+	c.require(connectorSourceSchemaFieldHistoryFloor)
+}
+
+// SetFirstDataEta sets the FirstDataEta field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorSourceSchema) SetFirstDataEta(firstDataEta *string) {
+	c.FirstDataEta = firstDataEta
+	c.require(connectorSourceSchemaFieldFirstDataEta)
+}
+
+// SetWarehouseBudget sets the WarehouseBudget field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorSourceSchema) SetWarehouseBudget(warehouseBudget *string) {
+	c.WarehouseBudget = warehouseBudget
+	c.require(connectorSourceSchemaFieldWarehouseBudget)
+}
+
+// SetWriteCapableCredential sets the WriteCapableCredential field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorSourceSchema) SetWriteCapableCredential(writeCapableCredential *bool) {
+	c.WriteCapableCredential = writeCapableCredential
+	c.require(connectorSourceSchemaFieldWriteCapableCredential)
+}
+
+// SetDocsSlug sets the DocsSlug field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectorSourceSchema) SetDocsSlug(docsSlug *string) {
+	c.DocsSlug = docsSlug
+	c.require(connectorSourceSchemaFieldDocsSlug)
+}
+
+func (c *ConnectorSourceSchema) UnmarshalJSON(data []byte) error {
+	type unmarshaler ConnectorSourceSchema
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ConnectorSourceSchema(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ConnectorSourceSchema) MarshalJSON() ([]byte, error) {
+	type embed ConnectorSourceSchema
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ConnectorSourceSchema) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	createConnectionRequestFieldProvider    = big.NewInt(1 << 0)
+	createConnectionRequestFieldSource      = big.NewInt(1 << 1)
+	createConnectionRequestFieldDisplayName = big.NewInt(1 << 2)
+	createConnectionRequestFieldCredentials = big.NewInt(1 << 3)
+	createConnectionRequestFieldConfig      = big.NewInt(1 << 4)
+)
+
+type CreateConnectionRequest struct {
+	Provider    string            `json:"provider" url:"provider"`
+	Source      string            `json:"source" url:"source"`
+	DisplayName *string           `json:"display_name,omitempty" url:"display_name,omitempty"`
+	Credentials map[string]string `json:"credentials,omitempty" url:"credentials,omitempty"`
+	Config      map[string]any    `json:"config,omitempty" url:"config,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CreateConnectionRequest) GetProvider() string {
+	if c == nil {
+		return ""
+	}
+	return c.Provider
+}
+
+func (c *CreateConnectionRequest) GetSource() string {
+	if c == nil {
+		return ""
+	}
+	return c.Source
+}
+
+func (c *CreateConnectionRequest) GetDisplayName() *string {
+	if c == nil {
+		return nil
+	}
+	return c.DisplayName
+}
+
+func (c *CreateConnectionRequest) GetCredentials() map[string]string {
+	if c == nil {
+		return nil
+	}
+	return c.Credentials
+}
+
+func (c *CreateConnectionRequest) GetConfig() map[string]any {
+	if c == nil {
+		return nil
+	}
+	return c.Config
+}
+
+func (c *CreateConnectionRequest) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CreateConnectionRequest) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetProvider sets the Provider field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreateConnectionRequest) SetProvider(provider string) {
+	c.Provider = provider
+	c.require(createConnectionRequestFieldProvider)
+}
+
+// SetSource sets the Source field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreateConnectionRequest) SetSource(source string) {
+	c.Source = source
+	c.require(createConnectionRequestFieldSource)
+}
+
+// SetDisplayName sets the DisplayName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreateConnectionRequest) SetDisplayName(displayName *string) {
+	c.DisplayName = displayName
+	c.require(createConnectionRequestFieldDisplayName)
+}
+
+// SetCredentials sets the Credentials field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreateConnectionRequest) SetCredentials(credentials map[string]string) {
+	c.Credentials = credentials
+	c.require(createConnectionRequestFieldCredentials)
+}
+
+// SetConfig sets the Config field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreateConnectionRequest) SetConfig(config map[string]any) {
+	c.Config = config
+	c.require(createConnectionRequestFieldConfig)
+}
+
+func (c *CreateConnectionRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler CreateConnectionRequest
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CreateConnectionRequest(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CreateConnectionRequest) MarshalJSON() ([]byte, error) {
+	type embed CreateConnectionRequest
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CreateConnectionRequest) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	credentialFieldSchemaFieldKey         = big.NewInt(1 << 0)
+	credentialFieldSchemaFieldLabel       = big.NewInt(1 << 1)
+	credentialFieldSchemaFieldSecret      = big.NewInt(1 << 2)
+	credentialFieldSchemaFieldRequired    = big.NewInt(1 << 3)
+	credentialFieldSchemaFieldPattern     = big.NewInt(1 << 4)
+	credentialFieldSchemaFieldPlaceholder = big.NewInt(1 << 5)
+	credentialFieldSchemaFieldChoices     = big.NewInt(1 << 6)
+	credentialFieldSchemaFieldHelpText    = big.NewInt(1 << 7)
+)
+
+type CredentialFieldSchema struct {
+	Key         string   `json:"key" url:"key"`
+	Label       string   `json:"label" url:"label"`
+	Secret      *bool    `json:"secret,omitempty" url:"secret,omitempty"`
+	Required    *bool    `json:"required,omitempty" url:"required,omitempty"`
+	Pattern     *string  `json:"pattern,omitempty" url:"pattern,omitempty"`
+	Placeholder *string  `json:"placeholder,omitempty" url:"placeholder,omitempty"`
+	Choices     []string `json:"choices,omitempty" url:"choices,omitempty"`
+	HelpText    *string  `json:"help_text,omitempty" url:"help_text,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CredentialFieldSchema) GetKey() string {
+	if c == nil {
+		return ""
+	}
+	return c.Key
+}
+
+func (c *CredentialFieldSchema) GetLabel() string {
+	if c == nil {
+		return ""
+	}
+	return c.Label
+}
+
+func (c *CredentialFieldSchema) GetSecret() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Secret
+}
+
+func (c *CredentialFieldSchema) GetRequired() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Required
+}
+
+func (c *CredentialFieldSchema) GetPattern() *string {
+	if c == nil {
+		return nil
+	}
+	return c.Pattern
+}
+
+func (c *CredentialFieldSchema) GetPlaceholder() *string {
+	if c == nil {
+		return nil
+	}
+	return c.Placeholder
+}
+
+func (c *CredentialFieldSchema) GetChoices() []string {
+	if c == nil {
+		return nil
+	}
+	return c.Choices
+}
+
+func (c *CredentialFieldSchema) GetHelpText() *string {
+	if c == nil {
+		return nil
+	}
+	return c.HelpText
+}
+
+func (c *CredentialFieldSchema) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CredentialFieldSchema) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetKey sets the Key field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CredentialFieldSchema) SetKey(key string) {
+	c.Key = key
+	c.require(credentialFieldSchemaFieldKey)
+}
+
+// SetLabel sets the Label field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CredentialFieldSchema) SetLabel(label string) {
+	c.Label = label
+	c.require(credentialFieldSchemaFieldLabel)
+}
+
+// SetSecret sets the Secret field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CredentialFieldSchema) SetSecret(secret *bool) {
+	c.Secret = secret
+	c.require(credentialFieldSchemaFieldSecret)
+}
+
+// SetRequired sets the Required field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CredentialFieldSchema) SetRequired(required *bool) {
+	c.Required = required
+	c.require(credentialFieldSchemaFieldRequired)
+}
+
+// SetPattern sets the Pattern field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CredentialFieldSchema) SetPattern(pattern *string) {
+	c.Pattern = pattern
+	c.require(credentialFieldSchemaFieldPattern)
+}
+
+// SetPlaceholder sets the Placeholder field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CredentialFieldSchema) SetPlaceholder(placeholder *string) {
+	c.Placeholder = placeholder
+	c.require(credentialFieldSchemaFieldPlaceholder)
+}
+
+// SetChoices sets the Choices field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CredentialFieldSchema) SetChoices(choices []string) {
+	c.Choices = choices
+	c.require(credentialFieldSchemaFieldChoices)
+}
+
+// SetHelpText sets the HelpText field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CredentialFieldSchema) SetHelpText(helpText *string) {
+	c.HelpText = helpText
+	c.require(credentialFieldSchemaFieldHelpText)
+}
+
+func (c *CredentialFieldSchema) UnmarshalJSON(data []byte) error {
+	type unmarshaler CredentialFieldSchema
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CredentialFieldSchema(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CredentialFieldSchema) MarshalJSON() ([]byte, error) {
+	type embed CredentialFieldSchema
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CredentialFieldSchema) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	disconnectDataFieldID          = big.NewInt(1 << 0)
+	disconnectDataFieldProvider    = big.NewInt(1 << 1)
+	disconnectDataFieldRowsRemoved = big.NewInt(1 << 2)
+)
+
+type DisconnectData struct {
+	ID          string `json:"id" url:"id"`
+	Provider    string `json:"provider" url:"provider"`
+	RowsRemoved *int   `json:"rows_removed,omitempty" url:"rows_removed,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (d *DisconnectData) GetID() string {
+	if d == nil {
+		return ""
+	}
+	return d.ID
+}
+
+func (d *DisconnectData) GetProvider() string {
+	if d == nil {
+		return ""
+	}
+	return d.Provider
+}
+
+func (d *DisconnectData) GetRowsRemoved() *int {
+	if d == nil {
+		return nil
+	}
+	return d.RowsRemoved
+}
+
+func (d *DisconnectData) GetExtraProperties() map[string]interface{} {
+	if d == nil {
+		return nil
+	}
+	return d.extraProperties
+}
+
+func (d *DisconnectData) require(field *big.Int) {
+	if d.explicitFields == nil {
+		d.explicitFields = big.NewInt(0)
+	}
+	d.explicitFields.Or(d.explicitFields, field)
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DisconnectData) SetID(id string) {
+	d.ID = id
+	d.require(disconnectDataFieldID)
+}
+
+// SetProvider sets the Provider field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DisconnectData) SetProvider(provider string) {
+	d.Provider = provider
+	d.require(disconnectDataFieldProvider)
+}
+
+// SetRowsRemoved sets the RowsRemoved field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DisconnectData) SetRowsRemoved(rowsRemoved *int) {
+	d.RowsRemoved = rowsRemoved
+	d.require(disconnectDataFieldRowsRemoved)
+}
+
+func (d *DisconnectData) UnmarshalJSON(data []byte) error {
+	type unmarshaler DisconnectData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*d = DisconnectData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *d)
+	if err != nil {
+		return err
+	}
+	d.extraProperties = extraProperties
+	d.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (d *DisconnectData) MarshalJSON() ([]byte, error) {
+	type embed DisconnectData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*d),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, d.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (d *DisconnectData) String() string {
+	if d == nil {
+		return "<nil>"
+	}
+	if len(d.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(d.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(d); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", d)
+}
+
+var (
+	disconnectRequestFieldRemoveData = big.NewInt(1 << 0)
+)
+
+type DisconnectRequest struct {
+	RemoveData *bool `json:"remove_data,omitempty" url:"remove_data,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (d *DisconnectRequest) GetRemoveData() *bool {
+	if d == nil {
+		return nil
+	}
+	return d.RemoveData
+}
+
+func (d *DisconnectRequest) GetExtraProperties() map[string]interface{} {
+	if d == nil {
+		return nil
+	}
+	return d.extraProperties
+}
+
+func (d *DisconnectRequest) require(field *big.Int) {
+	if d.explicitFields == nil {
+		d.explicitFields = big.NewInt(0)
+	}
+	d.explicitFields.Or(d.explicitFields, field)
+}
+
+// SetRemoveData sets the RemoveData field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DisconnectRequest) SetRemoveData(removeData *bool) {
+	d.RemoveData = removeData
+	d.require(disconnectRequestFieldRemoveData)
+}
+
+func (d *DisconnectRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler DisconnectRequest
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*d = DisconnectRequest(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *d)
+	if err != nil {
+		return err
+	}
+	d.extraProperties = extraProperties
+	d.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (d *DisconnectRequest) MarshalJSON() ([]byte, error) {
+	type embed DisconnectRequest
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*d),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, d.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (d *DisconnectRequest) String() string {
+	if d == nil {
+		return "<nil>"
+	}
+	if len(d.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(d.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(d); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", d)
+}
+
+var (
+	disconnectResponseFieldSuccess   = big.NewInt(1 << 0)
+	disconnectResponseFieldData      = big.NewInt(1 << 1)
+	disconnectResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type DisconnectResponse struct {
+	Success   *bool           `json:"success,omitempty" url:"success,omitempty"`
+	Data      *DisconnectData `json:"data" url:"data"`
+	Timestamp string          `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (d *DisconnectResponse) GetSuccess() *bool {
+	if d == nil {
+		return nil
+	}
+	return d.Success
+}
+
+func (d *DisconnectResponse) GetData() *DisconnectData {
+	if d == nil {
+		return nil
+	}
+	return d.Data
+}
+
+func (d *DisconnectResponse) GetTimestamp() string {
+	if d == nil {
+		return ""
+	}
+	return d.Timestamp
+}
+
+func (d *DisconnectResponse) GetExtraProperties() map[string]interface{} {
+	if d == nil {
+		return nil
+	}
+	return d.extraProperties
+}
+
+func (d *DisconnectResponse) require(field *big.Int) {
+	if d.explicitFields == nil {
+		d.explicitFields = big.NewInt(0)
+	}
+	d.explicitFields.Or(d.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DisconnectResponse) SetSuccess(success *bool) {
+	d.Success = success
+	d.require(disconnectResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DisconnectResponse) SetData(data *DisconnectData) {
+	d.Data = data
+	d.require(disconnectResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DisconnectResponse) SetTimestamp(timestamp string) {
+	d.Timestamp = timestamp
+	d.require(disconnectResponseFieldTimestamp)
+}
+
+func (d *DisconnectResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler DisconnectResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*d = DisconnectResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *d)
+	if err != nil {
+		return err
+	}
+	d.extraProperties = extraProperties
+	d.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (d *DisconnectResponse) MarshalJSON() ([]byte, error) {
+	type embed DisconnectResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*d),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, d.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (d *DisconnectResponse) String() string {
+	if d == nil {
+		return "<nil>"
+	}
+	if len(d.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(d.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(d); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", d)
+}
 
 var (
 	errorResponseFieldSuccess   = big.NewInt(1 << 0)
@@ -716,6 +2964,125 @@ func (e ExecutionStepSchemaStatus) Ptr() *ExecutionStepSchemaStatus {
 	return &e
 }
 
+var (
+	moduleSavingsBreakdownFieldID                  = big.NewInt(1 << 0)
+	moduleSavingsBreakdownFieldMonthlySavings      = big.NewInt(1 << 1)
+	moduleSavingsBreakdownFieldOpenRecommendations = big.NewInt(1 << 2)
+)
+
+type ModuleSavingsBreakdown struct {
+	// Module identifier: 'cloud' or 'commitments'
+	ID string `json:"id" url:"id"`
+	// Monthly savings attributed to this module
+	MonthlySavings float64 `json:"monthly_savings" url:"monthly_savings"`
+	// Count of pending recommendations in this module
+	OpenRecommendations int `json:"open_recommendations" url:"open_recommendations"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (m *ModuleSavingsBreakdown) GetID() string {
+	if m == nil {
+		return ""
+	}
+	return m.ID
+}
+
+func (m *ModuleSavingsBreakdown) GetMonthlySavings() float64 {
+	if m == nil {
+		return 0
+	}
+	return m.MonthlySavings
+}
+
+func (m *ModuleSavingsBreakdown) GetOpenRecommendations() int {
+	if m == nil {
+		return 0
+	}
+	return m.OpenRecommendations
+}
+
+func (m *ModuleSavingsBreakdown) GetExtraProperties() map[string]interface{} {
+	if m == nil {
+		return nil
+	}
+	return m.extraProperties
+}
+
+func (m *ModuleSavingsBreakdown) require(field *big.Int) {
+	if m.explicitFields == nil {
+		m.explicitFields = big.NewInt(0)
+	}
+	m.explicitFields.Or(m.explicitFields, field)
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (m *ModuleSavingsBreakdown) SetID(id string) {
+	m.ID = id
+	m.require(moduleSavingsBreakdownFieldID)
+}
+
+// SetMonthlySavings sets the MonthlySavings field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (m *ModuleSavingsBreakdown) SetMonthlySavings(monthlySavings float64) {
+	m.MonthlySavings = monthlySavings
+	m.require(moduleSavingsBreakdownFieldMonthlySavings)
+}
+
+// SetOpenRecommendations sets the OpenRecommendations field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (m *ModuleSavingsBreakdown) SetOpenRecommendations(openRecommendations int) {
+	m.OpenRecommendations = openRecommendations
+	m.require(moduleSavingsBreakdownFieldOpenRecommendations)
+}
+
+func (m *ModuleSavingsBreakdown) UnmarshalJSON(data []byte) error {
+	type unmarshaler ModuleSavingsBreakdown
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*m = ModuleSavingsBreakdown(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *m)
+	if err != nil {
+		return err
+	}
+	m.extraProperties = extraProperties
+	m.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (m *ModuleSavingsBreakdown) MarshalJSON() ([]byte, error) {
+	type embed ModuleSavingsBreakdown
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*m),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, m.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (m *ModuleSavingsBreakdown) String() string {
+	if m == nil {
+		return "<nil>"
+	}
+	if len(m.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(m); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", m)
+}
+
 type NotFound = *ErrorResponse
 
 // Pagination metadata
@@ -1203,6 +3570,2083 @@ func (p *ProviderSavedSummaryResponse) String() string {
 }
 
 type RateLimitError = *ErrorResponse
+
+var (
+	resourceBreakdownItemFieldResource       = big.NewInt(1 << 0)
+	resourceBreakdownItemFieldDateAnalyzed   = big.NewInt(1 << 1)
+	resourceBreakdownItemFieldMonthlyCost    = big.NewInt(1 << 2)
+	resourceBreakdownItemFieldMonthlySavings = big.NewInt(1 << 3)
+)
+
+type ResourceBreakdownItem struct {
+	// Resource identifier shown in the first column, e.g. an instance id or node name
+	Resource string `json:"resource" url:"resource"`
+	// Date the resource was analyzed (YYYY-MM-DD); null when unavailable
+	DateAnalyzed *string `json:"date_analyzed,omitempty" url:"date_analyzed,omitempty"`
+	// The resource's current monthly cost; null when not yet provided
+	MonthlyCost *float64 `json:"monthly_cost,omitempty" url:"monthly_cost,omitempty"`
+	// The resource's monthly saving; null when not yet provided
+	MonthlySavings *float64 `json:"monthly_savings,omitempty" url:"monthly_savings,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *ResourceBreakdownItem) GetResource() string {
+	if r == nil {
+		return ""
+	}
+	return r.Resource
+}
+
+func (r *ResourceBreakdownItem) GetDateAnalyzed() *string {
+	if r == nil {
+		return nil
+	}
+	return r.DateAnalyzed
+}
+
+func (r *ResourceBreakdownItem) GetMonthlyCost() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.MonthlyCost
+}
+
+func (r *ResourceBreakdownItem) GetMonthlySavings() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.MonthlySavings
+}
+
+func (r *ResourceBreakdownItem) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *ResourceBreakdownItem) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetResource sets the Resource field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceBreakdownItem) SetResource(resource string) {
+	r.Resource = resource
+	r.require(resourceBreakdownItemFieldResource)
+}
+
+// SetDateAnalyzed sets the DateAnalyzed field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceBreakdownItem) SetDateAnalyzed(dateAnalyzed *string) {
+	r.DateAnalyzed = dateAnalyzed
+	r.require(resourceBreakdownItemFieldDateAnalyzed)
+}
+
+// SetMonthlyCost sets the MonthlyCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceBreakdownItem) SetMonthlyCost(monthlyCost *float64) {
+	r.MonthlyCost = monthlyCost
+	r.require(resourceBreakdownItemFieldMonthlyCost)
+}
+
+// SetMonthlySavings sets the MonthlySavings field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceBreakdownItem) SetMonthlySavings(monthlySavings *float64) {
+	r.MonthlySavings = monthlySavings
+	r.require(resourceBreakdownItemFieldMonthlySavings)
+}
+
+func (r *ResourceBreakdownItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler ResourceBreakdownItem
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = ResourceBreakdownItem(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *ResourceBreakdownItem) MarshalJSON() ([]byte, error) {
+	type embed ResourceBreakdownItem
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *ResourceBreakdownItem) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	resourceCoverageFieldResourceType   = big.NewInt(1 << 0)
+	resourceCoverageFieldStatus         = big.NewInt(1 << 1)
+	resourceCoverageFieldFailureCode    = big.NewInt(1 << 2)
+	resourceCoverageFieldRequiredScope  = big.NewInt(1 << 3)
+	resourceCoverageFieldLastCompleteAt = big.NewInt(1 << 4)
+)
+
+type ResourceCoverage struct {
+	ResourceType string `json:"resource_type" url:"resource_type"`
+	// complete, forbidden when the credential lacks the scope, or failed
+	Status         string     `json:"status" url:"status"`
+	FailureCode    string     `json:"failure_code" url:"failure_code"`
+	RequiredScope  string     `json:"required_scope" url:"required_scope"`
+	LastCompleteAt *time.Time `json:"last_complete_at,omitempty" url:"last_complete_at,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *ResourceCoverage) GetResourceType() string {
+	if r == nil {
+		return ""
+	}
+	return r.ResourceType
+}
+
+func (r *ResourceCoverage) GetStatus() string {
+	if r == nil {
+		return ""
+	}
+	return r.Status
+}
+
+func (r *ResourceCoverage) GetFailureCode() string {
+	if r == nil {
+		return ""
+	}
+	return r.FailureCode
+}
+
+func (r *ResourceCoverage) GetRequiredScope() string {
+	if r == nil {
+		return ""
+	}
+	return r.RequiredScope
+}
+
+func (r *ResourceCoverage) GetLastCompleteAt() *time.Time {
+	if r == nil {
+		return nil
+	}
+	return r.LastCompleteAt
+}
+
+func (r *ResourceCoverage) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *ResourceCoverage) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetResourceType sets the ResourceType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceCoverage) SetResourceType(resourceType string) {
+	r.ResourceType = resourceType
+	r.require(resourceCoverageFieldResourceType)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceCoverage) SetStatus(status string) {
+	r.Status = status
+	r.require(resourceCoverageFieldStatus)
+}
+
+// SetFailureCode sets the FailureCode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceCoverage) SetFailureCode(failureCode string) {
+	r.FailureCode = failureCode
+	r.require(resourceCoverageFieldFailureCode)
+}
+
+// SetRequiredScope sets the RequiredScope field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceCoverage) SetRequiredScope(requiredScope string) {
+	r.RequiredScope = requiredScope
+	r.require(resourceCoverageFieldRequiredScope)
+}
+
+// SetLastCompleteAt sets the LastCompleteAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceCoverage) SetLastCompleteAt(lastCompleteAt *time.Time) {
+	r.LastCompleteAt = lastCompleteAt
+	r.require(resourceCoverageFieldLastCompleteAt)
+}
+
+func (r *ResourceCoverage) UnmarshalJSON(data []byte) error {
+	type embed ResourceCoverage
+	var unmarshaler = struct {
+		embed
+		LastCompleteAt *internal.DateTime `json:"last_complete_at,omitempty"`
+	}{
+		embed: embed(*r),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*r = ResourceCoverage(unmarshaler.embed)
+	r.LastCompleteAt = unmarshaler.LastCompleteAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *ResourceCoverage) MarshalJSON() ([]byte, error) {
+	type embed ResourceCoverage
+	var marshaler = struct {
+		embed
+		LastCompleteAt *internal.DateTime `json:"last_complete_at,omitempty"`
+	}{
+		embed:          embed(*r),
+		LastCompleteAt: internal.NewOptionalDateTime(r.LastCompleteAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *ResourceCoverage) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	resourceFilterOptionsDataFieldResourceTypes = big.NewInt(1 << 0)
+	resourceFilterOptionsDataFieldRegions       = big.NewInt(1 << 1)
+	resourceFilterOptionsDataFieldProjects      = big.NewInt(1 << 2)
+	resourceFilterOptionsDataFieldTags          = big.NewInt(1 << 3)
+)
+
+type ResourceFilterOptionsData struct {
+	ResourceTypes []string `json:"resource_types" url:"resource_types"`
+	Regions       []string `json:"regions" url:"regions"`
+	Projects      []string `json:"projects" url:"projects"`
+	Tags          []string `json:"tags" url:"tags"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *ResourceFilterOptionsData) GetResourceTypes() []string {
+	if r == nil {
+		return nil
+	}
+	return r.ResourceTypes
+}
+
+func (r *ResourceFilterOptionsData) GetRegions() []string {
+	if r == nil {
+		return nil
+	}
+	return r.Regions
+}
+
+func (r *ResourceFilterOptionsData) GetProjects() []string {
+	if r == nil {
+		return nil
+	}
+	return r.Projects
+}
+
+func (r *ResourceFilterOptionsData) GetTags() []string {
+	if r == nil {
+		return nil
+	}
+	return r.Tags
+}
+
+func (r *ResourceFilterOptionsData) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *ResourceFilterOptionsData) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetResourceTypes sets the ResourceTypes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceFilterOptionsData) SetResourceTypes(resourceTypes []string) {
+	r.ResourceTypes = resourceTypes
+	r.require(resourceFilterOptionsDataFieldResourceTypes)
+}
+
+// SetRegions sets the Regions field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceFilterOptionsData) SetRegions(regions []string) {
+	r.Regions = regions
+	r.require(resourceFilterOptionsDataFieldRegions)
+}
+
+// SetProjects sets the Projects field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceFilterOptionsData) SetProjects(projects []string) {
+	r.Projects = projects
+	r.require(resourceFilterOptionsDataFieldProjects)
+}
+
+// SetTags sets the Tags field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceFilterOptionsData) SetTags(tags []string) {
+	r.Tags = tags
+	r.require(resourceFilterOptionsDataFieldTags)
+}
+
+func (r *ResourceFilterOptionsData) UnmarshalJSON(data []byte) error {
+	type unmarshaler ResourceFilterOptionsData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = ResourceFilterOptionsData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *ResourceFilterOptionsData) MarshalJSON() ([]byte, error) {
+	type embed ResourceFilterOptionsData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *ResourceFilterOptionsData) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	resourceFilterOptionsResponseFieldSuccess   = big.NewInt(1 << 0)
+	resourceFilterOptionsResponseFieldData      = big.NewInt(1 << 1)
+	resourceFilterOptionsResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type ResourceFilterOptionsResponse struct {
+	Success   *bool                      `json:"success,omitempty" url:"success,omitempty"`
+	Data      *ResourceFilterOptionsData `json:"data" url:"data"`
+	Timestamp string                     `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *ResourceFilterOptionsResponse) GetSuccess() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.Success
+}
+
+func (r *ResourceFilterOptionsResponse) GetData() *ResourceFilterOptionsData {
+	if r == nil {
+		return nil
+	}
+	return r.Data
+}
+
+func (r *ResourceFilterOptionsResponse) GetTimestamp() string {
+	if r == nil {
+		return ""
+	}
+	return r.Timestamp
+}
+
+func (r *ResourceFilterOptionsResponse) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *ResourceFilterOptionsResponse) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceFilterOptionsResponse) SetSuccess(success *bool) {
+	r.Success = success
+	r.require(resourceFilterOptionsResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceFilterOptionsResponse) SetData(data *ResourceFilterOptionsData) {
+	r.Data = data
+	r.require(resourceFilterOptionsResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceFilterOptionsResponse) SetTimestamp(timestamp string) {
+	r.Timestamp = timestamp
+	r.require(resourceFilterOptionsResponseFieldTimestamp)
+}
+
+func (r *ResourceFilterOptionsResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler ResourceFilterOptionsResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = ResourceFilterOptionsResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *ResourceFilterOptionsResponse) MarshalJSON() ([]byte, error) {
+	type embed ResourceFilterOptionsResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *ResourceFilterOptionsResponse) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	resourceItemFieldConnectionID        = big.NewInt(1 << 0)
+	resourceItemFieldAccountID           = big.NewInt(1 << 1)
+	resourceItemFieldResourceType        = big.NewInt(1 << 2)
+	resourceItemFieldResourceID          = big.NewInt(1 << 3)
+	resourceItemFieldUrn                 = big.NewInt(1 << 4)
+	resourceItemFieldName                = big.NewInt(1 << 5)
+	resourceItemFieldRegion              = big.NewInt(1 << 6)
+	resourceItemFieldSizeSlug            = big.NewInt(1 << 7)
+	resourceItemFieldStatus              = big.NewInt(1 << 8)
+	resourceItemFieldProjectName         = big.NewInt(1 << 9)
+	resourceItemFieldTags                = big.NewInt(1 << 10)
+	resourceItemFieldAttributes          = big.NewInt(1 << 11)
+	resourceItemFieldListPriceMonthlyUsd = big.NewInt(1 << 12)
+	resourceItemFieldMonthToDateCostUsd  = big.NewInt(1 << 13)
+	resourceItemFieldLastMonthCostUsd    = big.NewInt(1 << 14)
+	resourceItemFieldCreatedAtProvider   = big.NewInt(1 << 15)
+	resourceItemFieldFirstSeenAt         = big.NewInt(1 << 16)
+	resourceItemFieldLastSeenAt          = big.NewInt(1 << 17)
+	resourceItemFieldRemovedAt           = big.NewInt(1 << 18)
+)
+
+type ResourceItem struct {
+	ConnectionID string `json:"connection_id" url:"connection_id"`
+	AccountID    string `json:"account_id" url:"account_id"`
+	// Kind of resource, for example droplet, volume or database_cluster
+	ResourceType string  `json:"resource_type" url:"resource_type"`
+	ResourceID   string  `json:"resource_id" url:"resource_id"`
+	Urn          string  `json:"urn" url:"urn"`
+	Name         string  `json:"name" url:"name"`
+	Region       *string `json:"region,omitempty" url:"region,omitempty"`
+	SizeSlug     *string `json:"size_slug,omitempty" url:"size_slug,omitempty"`
+	// The provider's own state for the resource
+	Status      *string                                 `json:"status,omitempty" url:"status,omitempty"`
+	ProjectName *string                                 `json:"project_name,omitempty" url:"project_name,omitempty"`
+	Tags        map[string]string                       `json:"tags,omitempty" url:"tags,omitempty"`
+	Attributes  map[string]*ResourceItemAttributesValue `json:"attributes,omitempty" url:"attributes,omitempty"`
+	// Estimate from the provider's list prices, not what was billed
+	ListPriceMonthlyUsd *float64 `json:"list_price_monthly_usd,omitempty" url:"list_price_monthly_usd,omitempty"`
+	// Invoice line items for this resource so far
+	MonthToDateCostUsd *float64 `json:"month_to_date_cost_usd,omitempty" url:"month_to_date_cost_usd,omitempty"`
+	// Invoice line items for this resource last month
+	LastMonthCostUsd  *float64   `json:"last_month_cost_usd,omitempty" url:"last_month_cost_usd,omitempty"`
+	CreatedAtProvider *time.Time `json:"created_at_provider,omitempty" url:"created_at_provider,omitempty"`
+	FirstSeenAt       time.Time  `json:"first_seen_at" url:"first_seen_at"`
+	LastSeenAt        time.Time  `json:"last_seen_at" url:"last_seen_at"`
+	// When the resource stopped appearing in the listing
+	RemovedAt *time.Time `json:"removed_at,omitempty" url:"removed_at,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *ResourceItem) GetConnectionID() string {
+	if r == nil {
+		return ""
+	}
+	return r.ConnectionID
+}
+
+func (r *ResourceItem) GetAccountID() string {
+	if r == nil {
+		return ""
+	}
+	return r.AccountID
+}
+
+func (r *ResourceItem) GetResourceType() string {
+	if r == nil {
+		return ""
+	}
+	return r.ResourceType
+}
+
+func (r *ResourceItem) GetResourceID() string {
+	if r == nil {
+		return ""
+	}
+	return r.ResourceID
+}
+
+func (r *ResourceItem) GetUrn() string {
+	if r == nil {
+		return ""
+	}
+	return r.Urn
+}
+
+func (r *ResourceItem) GetName() string {
+	if r == nil {
+		return ""
+	}
+	return r.Name
+}
+
+func (r *ResourceItem) GetRegion() *string {
+	if r == nil {
+		return nil
+	}
+	return r.Region
+}
+
+func (r *ResourceItem) GetSizeSlug() *string {
+	if r == nil {
+		return nil
+	}
+	return r.SizeSlug
+}
+
+func (r *ResourceItem) GetStatus() *string {
+	if r == nil {
+		return nil
+	}
+	return r.Status
+}
+
+func (r *ResourceItem) GetProjectName() *string {
+	if r == nil {
+		return nil
+	}
+	return r.ProjectName
+}
+
+func (r *ResourceItem) GetTags() map[string]string {
+	if r == nil {
+		return nil
+	}
+	return r.Tags
+}
+
+func (r *ResourceItem) GetAttributes() map[string]*ResourceItemAttributesValue {
+	if r == nil {
+		return nil
+	}
+	return r.Attributes
+}
+
+func (r *ResourceItem) GetListPriceMonthlyUsd() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.ListPriceMonthlyUsd
+}
+
+func (r *ResourceItem) GetMonthToDateCostUsd() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.MonthToDateCostUsd
+}
+
+func (r *ResourceItem) GetLastMonthCostUsd() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.LastMonthCostUsd
+}
+
+func (r *ResourceItem) GetCreatedAtProvider() *time.Time {
+	if r == nil {
+		return nil
+	}
+	return r.CreatedAtProvider
+}
+
+func (r *ResourceItem) GetFirstSeenAt() time.Time {
+	if r == nil {
+		return time.Time{}
+	}
+	return r.FirstSeenAt
+}
+
+func (r *ResourceItem) GetLastSeenAt() time.Time {
+	if r == nil {
+		return time.Time{}
+	}
+	return r.LastSeenAt
+}
+
+func (r *ResourceItem) GetRemovedAt() *time.Time {
+	if r == nil {
+		return nil
+	}
+	return r.RemovedAt
+}
+
+func (r *ResourceItem) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *ResourceItem) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetConnectionID sets the ConnectionID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceItem) SetConnectionID(connectionID string) {
+	r.ConnectionID = connectionID
+	r.require(resourceItemFieldConnectionID)
+}
+
+// SetAccountID sets the AccountID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceItem) SetAccountID(accountID string) {
+	r.AccountID = accountID
+	r.require(resourceItemFieldAccountID)
+}
+
+// SetResourceType sets the ResourceType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceItem) SetResourceType(resourceType string) {
+	r.ResourceType = resourceType
+	r.require(resourceItemFieldResourceType)
+}
+
+// SetResourceID sets the ResourceID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceItem) SetResourceID(resourceID string) {
+	r.ResourceID = resourceID
+	r.require(resourceItemFieldResourceID)
+}
+
+// SetUrn sets the Urn field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceItem) SetUrn(urn string) {
+	r.Urn = urn
+	r.require(resourceItemFieldUrn)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceItem) SetName(name string) {
+	r.Name = name
+	r.require(resourceItemFieldName)
+}
+
+// SetRegion sets the Region field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceItem) SetRegion(region *string) {
+	r.Region = region
+	r.require(resourceItemFieldRegion)
+}
+
+// SetSizeSlug sets the SizeSlug field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceItem) SetSizeSlug(sizeSlug *string) {
+	r.SizeSlug = sizeSlug
+	r.require(resourceItemFieldSizeSlug)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceItem) SetStatus(status *string) {
+	r.Status = status
+	r.require(resourceItemFieldStatus)
+}
+
+// SetProjectName sets the ProjectName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceItem) SetProjectName(projectName *string) {
+	r.ProjectName = projectName
+	r.require(resourceItemFieldProjectName)
+}
+
+// SetTags sets the Tags field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceItem) SetTags(tags map[string]string) {
+	r.Tags = tags
+	r.require(resourceItemFieldTags)
+}
+
+// SetAttributes sets the Attributes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceItem) SetAttributes(attributes map[string]*ResourceItemAttributesValue) {
+	r.Attributes = attributes
+	r.require(resourceItemFieldAttributes)
+}
+
+// SetListPriceMonthlyUsd sets the ListPriceMonthlyUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceItem) SetListPriceMonthlyUsd(listPriceMonthlyUsd *float64) {
+	r.ListPriceMonthlyUsd = listPriceMonthlyUsd
+	r.require(resourceItemFieldListPriceMonthlyUsd)
+}
+
+// SetMonthToDateCostUsd sets the MonthToDateCostUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceItem) SetMonthToDateCostUsd(monthToDateCostUsd *float64) {
+	r.MonthToDateCostUsd = monthToDateCostUsd
+	r.require(resourceItemFieldMonthToDateCostUsd)
+}
+
+// SetLastMonthCostUsd sets the LastMonthCostUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceItem) SetLastMonthCostUsd(lastMonthCostUsd *float64) {
+	r.LastMonthCostUsd = lastMonthCostUsd
+	r.require(resourceItemFieldLastMonthCostUsd)
+}
+
+// SetCreatedAtProvider sets the CreatedAtProvider field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceItem) SetCreatedAtProvider(createdAtProvider *time.Time) {
+	r.CreatedAtProvider = createdAtProvider
+	r.require(resourceItemFieldCreatedAtProvider)
+}
+
+// SetFirstSeenAt sets the FirstSeenAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceItem) SetFirstSeenAt(firstSeenAt time.Time) {
+	r.FirstSeenAt = firstSeenAt
+	r.require(resourceItemFieldFirstSeenAt)
+}
+
+// SetLastSeenAt sets the LastSeenAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceItem) SetLastSeenAt(lastSeenAt time.Time) {
+	r.LastSeenAt = lastSeenAt
+	r.require(resourceItemFieldLastSeenAt)
+}
+
+// SetRemovedAt sets the RemovedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceItem) SetRemovedAt(removedAt *time.Time) {
+	r.RemovedAt = removedAt
+	r.require(resourceItemFieldRemovedAt)
+}
+
+func (r *ResourceItem) UnmarshalJSON(data []byte) error {
+	type embed ResourceItem
+	var unmarshaler = struct {
+		embed
+		CreatedAtProvider *internal.DateTime `json:"created_at_provider,omitempty"`
+		FirstSeenAt       *internal.DateTime `json:"first_seen_at"`
+		LastSeenAt        *internal.DateTime `json:"last_seen_at"`
+		RemovedAt         *internal.DateTime `json:"removed_at,omitempty"`
+	}{
+		embed: embed(*r),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*r = ResourceItem(unmarshaler.embed)
+	r.CreatedAtProvider = unmarshaler.CreatedAtProvider.TimePtr()
+	r.FirstSeenAt = unmarshaler.FirstSeenAt.Time()
+	r.LastSeenAt = unmarshaler.LastSeenAt.Time()
+	r.RemovedAt = unmarshaler.RemovedAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *ResourceItem) MarshalJSON() ([]byte, error) {
+	type embed ResourceItem
+	var marshaler = struct {
+		embed
+		CreatedAtProvider *internal.DateTime `json:"created_at_provider,omitempty"`
+		FirstSeenAt       *internal.DateTime `json:"first_seen_at"`
+		LastSeenAt        *internal.DateTime `json:"last_seen_at"`
+		RemovedAt         *internal.DateTime `json:"removed_at,omitempty"`
+	}{
+		embed:             embed(*r),
+		CreatedAtProvider: internal.NewOptionalDateTime(r.CreatedAtProvider),
+		FirstSeenAt:       internal.NewDateTime(r.FirstSeenAt),
+		LastSeenAt:        internal.NewDateTime(r.LastSeenAt),
+		RemovedAt:         internal.NewOptionalDateTime(r.RemovedAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *ResourceItem) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+type ResourceItemAttributesValue struct {
+	String  string
+	Integer int
+	Double  float64
+	Boolean bool
+
+	typ string
+}
+
+func (r *ResourceItemAttributesValue) GetString() string {
+	if r == nil {
+		return ""
+	}
+	return r.String
+}
+
+func (r *ResourceItemAttributesValue) GetInteger() int {
+	if r == nil {
+		return 0
+	}
+	return r.Integer
+}
+
+func (r *ResourceItemAttributesValue) GetDouble() float64 {
+	if r == nil {
+		return 0
+	}
+	return r.Double
+}
+
+func (r *ResourceItemAttributesValue) GetBoolean() bool {
+	if r == nil {
+		return false
+	}
+	return r.Boolean
+}
+
+func (r *ResourceItemAttributesValue) UnmarshalJSON(data []byte) error {
+	var valueString string
+	if err := json.Unmarshal(data, &valueString); err == nil {
+		r.typ = "String"
+		r.String = valueString
+		return nil
+	}
+	var valueInteger int
+	if err := json.Unmarshal(data, &valueInteger); err == nil {
+		r.typ = "Integer"
+		r.Integer = valueInteger
+		return nil
+	}
+	var valueDouble float64
+	if err := json.Unmarshal(data, &valueDouble); err == nil {
+		r.typ = "Double"
+		r.Double = valueDouble
+		return nil
+	}
+	var valueBoolean bool
+	if err := json.Unmarshal(data, &valueBoolean); err == nil {
+		r.typ = "Boolean"
+		r.Boolean = valueBoolean
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, r)
+}
+
+func (r ResourceItemAttributesValue) MarshalJSON() ([]byte, error) {
+	if r.typ == "String" || r.String != "" {
+		return json.Marshal(r.String)
+	}
+	if r.typ == "Integer" || r.Integer != 0 {
+		return json.Marshal(r.Integer)
+	}
+	if r.typ == "Double" || r.Double != 0 {
+		return json.Marshal(r.Double)
+	}
+	if r.typ == "Boolean" || r.Boolean != false {
+		return json.Marshal(r.Boolean)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", r)
+}
+
+type ResourceItemAttributesValueVisitor interface {
+	VisitString(string) error
+	VisitInteger(int) error
+	VisitDouble(float64) error
+	VisitBoolean(bool) error
+}
+
+func (r *ResourceItemAttributesValue) Accept(visitor ResourceItemAttributesValueVisitor) error {
+	if r.typ == "String" || r.String != "" {
+		return visitor.VisitString(r.String)
+	}
+	if r.typ == "Integer" || r.Integer != 0 {
+		return visitor.VisitInteger(r.Integer)
+	}
+	if r.typ == "Double" || r.Double != 0 {
+		return visitor.VisitDouble(r.Double)
+	}
+	if r.typ == "Boolean" || r.Boolean != false {
+		return visitor.VisitBoolean(r.Boolean)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", r)
+}
+
+var (
+	resourceListDataFieldItems      = big.NewInt(1 << 0)
+	resourceListDataFieldPagination = big.NewInt(1 << 1)
+	resourceListDataFieldTotals     = big.NewInt(1 << 2)
+)
+
+type ResourceListData struct {
+	Items      []*ResourceItem `json:"items" url:"items"`
+	Pagination *PaginationMeta `json:"pagination" url:"pagination"`
+	Totals     *ResourceTotals `json:"totals" url:"totals"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *ResourceListData) GetItems() []*ResourceItem {
+	if r == nil {
+		return nil
+	}
+	return r.Items
+}
+
+func (r *ResourceListData) GetPagination() *PaginationMeta {
+	if r == nil {
+		return nil
+	}
+	return r.Pagination
+}
+
+func (r *ResourceListData) GetTotals() *ResourceTotals {
+	if r == nil {
+		return nil
+	}
+	return r.Totals
+}
+
+func (r *ResourceListData) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *ResourceListData) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceListData) SetItems(items []*ResourceItem) {
+	r.Items = items
+	r.require(resourceListDataFieldItems)
+}
+
+// SetPagination sets the Pagination field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceListData) SetPagination(pagination *PaginationMeta) {
+	r.Pagination = pagination
+	r.require(resourceListDataFieldPagination)
+}
+
+// SetTotals sets the Totals field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceListData) SetTotals(totals *ResourceTotals) {
+	r.Totals = totals
+	r.require(resourceListDataFieldTotals)
+}
+
+func (r *ResourceListData) UnmarshalJSON(data []byte) error {
+	type unmarshaler ResourceListData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = ResourceListData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *ResourceListData) MarshalJSON() ([]byte, error) {
+	type embed ResourceListData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *ResourceListData) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	resourceListResponseFieldSuccess   = big.NewInt(1 << 0)
+	resourceListResponseFieldData      = big.NewInt(1 << 1)
+	resourceListResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type ResourceListResponse struct {
+	Success   *bool             `json:"success,omitempty" url:"success,omitempty"`
+	Data      *ResourceListData `json:"data" url:"data"`
+	Timestamp string            `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *ResourceListResponse) GetSuccess() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.Success
+}
+
+func (r *ResourceListResponse) GetData() *ResourceListData {
+	if r == nil {
+		return nil
+	}
+	return r.Data
+}
+
+func (r *ResourceListResponse) GetTimestamp() string {
+	if r == nil {
+		return ""
+	}
+	return r.Timestamp
+}
+
+func (r *ResourceListResponse) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *ResourceListResponse) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceListResponse) SetSuccess(success *bool) {
+	r.Success = success
+	r.require(resourceListResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceListResponse) SetData(data *ResourceListData) {
+	r.Data = data
+	r.require(resourceListResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceListResponse) SetTimestamp(timestamp string) {
+	r.Timestamp = timestamp
+	r.require(resourceListResponseFieldTimestamp)
+}
+
+func (r *ResourceListResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler ResourceListResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = ResourceListResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *ResourceListResponse) MarshalJSON() ([]byte, error) {
+	type embed ResourceListResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *ResourceListResponse) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	resourceSummaryDataFieldSupported       = big.NewInt(1 << 0)
+	resourceSummaryDataFieldLastInventoryAt = big.NewInt(1 << 1)
+	resourceSummaryDataFieldTotals          = big.NewInt(1 << 2)
+	resourceSummaryDataFieldByType          = big.NewInt(1 << 3)
+	resourceSummaryDataFieldCoverage        = big.NewInt(1 << 4)
+)
+
+type ResourceSummaryData struct {
+	// False for providers whose connection does not list resources
+	Supported       bool                   `json:"supported" url:"supported"`
+	LastInventoryAt *time.Time             `json:"last_inventory_at,omitempty" url:"last_inventory_at,omitempty"`
+	Totals          *ResourceSummaryTotals `json:"totals" url:"totals"`
+	ByType          []*ResourceTypeSummary `json:"by_type" url:"by_type"`
+	Coverage        []*ResourceCoverage    `json:"coverage" url:"coverage"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *ResourceSummaryData) GetSupported() bool {
+	if r == nil {
+		return false
+	}
+	return r.Supported
+}
+
+func (r *ResourceSummaryData) GetLastInventoryAt() *time.Time {
+	if r == nil {
+		return nil
+	}
+	return r.LastInventoryAt
+}
+
+func (r *ResourceSummaryData) GetTotals() *ResourceSummaryTotals {
+	if r == nil {
+		return nil
+	}
+	return r.Totals
+}
+
+func (r *ResourceSummaryData) GetByType() []*ResourceTypeSummary {
+	if r == nil {
+		return nil
+	}
+	return r.ByType
+}
+
+func (r *ResourceSummaryData) GetCoverage() []*ResourceCoverage {
+	if r == nil {
+		return nil
+	}
+	return r.Coverage
+}
+
+func (r *ResourceSummaryData) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *ResourceSummaryData) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetSupported sets the Supported field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceSummaryData) SetSupported(supported bool) {
+	r.Supported = supported
+	r.require(resourceSummaryDataFieldSupported)
+}
+
+// SetLastInventoryAt sets the LastInventoryAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceSummaryData) SetLastInventoryAt(lastInventoryAt *time.Time) {
+	r.LastInventoryAt = lastInventoryAt
+	r.require(resourceSummaryDataFieldLastInventoryAt)
+}
+
+// SetTotals sets the Totals field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceSummaryData) SetTotals(totals *ResourceSummaryTotals) {
+	r.Totals = totals
+	r.require(resourceSummaryDataFieldTotals)
+}
+
+// SetByType sets the ByType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceSummaryData) SetByType(byType []*ResourceTypeSummary) {
+	r.ByType = byType
+	r.require(resourceSummaryDataFieldByType)
+}
+
+// SetCoverage sets the Coverage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceSummaryData) SetCoverage(coverage []*ResourceCoverage) {
+	r.Coverage = coverage
+	r.require(resourceSummaryDataFieldCoverage)
+}
+
+func (r *ResourceSummaryData) UnmarshalJSON(data []byte) error {
+	type embed ResourceSummaryData
+	var unmarshaler = struct {
+		embed
+		LastInventoryAt *internal.DateTime `json:"last_inventory_at,omitempty"`
+	}{
+		embed: embed(*r),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*r = ResourceSummaryData(unmarshaler.embed)
+	r.LastInventoryAt = unmarshaler.LastInventoryAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *ResourceSummaryData) MarshalJSON() ([]byte, error) {
+	type embed ResourceSummaryData
+	var marshaler = struct {
+		embed
+		LastInventoryAt *internal.DateTime `json:"last_inventory_at,omitempty"`
+	}{
+		embed:           embed(*r),
+		LastInventoryAt: internal.NewOptionalDateTime(r.LastInventoryAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *ResourceSummaryData) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	resourceSummaryResponseFieldSuccess   = big.NewInt(1 << 0)
+	resourceSummaryResponseFieldData      = big.NewInt(1 << 1)
+	resourceSummaryResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type ResourceSummaryResponse struct {
+	Success   *bool                `json:"success,omitempty" url:"success,omitempty"`
+	Data      *ResourceSummaryData `json:"data" url:"data"`
+	Timestamp string               `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *ResourceSummaryResponse) GetSuccess() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.Success
+}
+
+func (r *ResourceSummaryResponse) GetData() *ResourceSummaryData {
+	if r == nil {
+		return nil
+	}
+	return r.Data
+}
+
+func (r *ResourceSummaryResponse) GetTimestamp() string {
+	if r == nil {
+		return ""
+	}
+	return r.Timestamp
+}
+
+func (r *ResourceSummaryResponse) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *ResourceSummaryResponse) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceSummaryResponse) SetSuccess(success *bool) {
+	r.Success = success
+	r.require(resourceSummaryResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceSummaryResponse) SetData(data *ResourceSummaryData) {
+	r.Data = data
+	r.require(resourceSummaryResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceSummaryResponse) SetTimestamp(timestamp string) {
+	r.Timestamp = timestamp
+	r.require(resourceSummaryResponseFieldTimestamp)
+}
+
+func (r *ResourceSummaryResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler ResourceSummaryResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = ResourceSummaryResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *ResourceSummaryResponse) MarshalJSON() ([]byte, error) {
+	type embed ResourceSummaryResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *ResourceSummaryResponse) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	resourceSummaryTotalsFieldActiveCount                    = big.NewInt(1 << 0)
+	resourceSummaryTotalsFieldListPriceMonthlyUsd            = big.NewInt(1 << 1)
+	resourceSummaryTotalsFieldMonthToDateCostUsd             = big.NewInt(1 << 2)
+	resourceSummaryTotalsFieldLastMonthCostUsd               = big.NewInt(1 << 3)
+	resourceSummaryTotalsFieldUnattributedMonthToDateCostUsd = big.NewInt(1 << 4)
+	resourceSummaryTotalsFieldUnattributedLastMonthCostUsd   = big.NewInt(1 << 5)
+)
+
+type ResourceSummaryTotals struct {
+	ActiveCount         int     `json:"active_count" url:"active_count"`
+	ListPriceMonthlyUsd float64 `json:"list_price_monthly_usd" url:"list_price_monthly_usd"`
+	MonthToDateCostUsd  float64 `json:"month_to_date_cost_usd" url:"month_to_date_cost_usd"`
+	LastMonthCostUsd    float64 `json:"last_month_cost_usd" url:"last_month_cost_usd"`
+	// Invoice line items that name no listed resource, such as bandwidth or grouped charges
+	UnattributedMonthToDateCostUsd float64 `json:"unattributed_month_to_date_cost_usd" url:"unattributed_month_to_date_cost_usd"`
+	UnattributedLastMonthCostUsd   float64 `json:"unattributed_last_month_cost_usd" url:"unattributed_last_month_cost_usd"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *ResourceSummaryTotals) GetActiveCount() int {
+	if r == nil {
+		return 0
+	}
+	return r.ActiveCount
+}
+
+func (r *ResourceSummaryTotals) GetListPriceMonthlyUsd() float64 {
+	if r == nil {
+		return 0
+	}
+	return r.ListPriceMonthlyUsd
+}
+
+func (r *ResourceSummaryTotals) GetMonthToDateCostUsd() float64 {
+	if r == nil {
+		return 0
+	}
+	return r.MonthToDateCostUsd
+}
+
+func (r *ResourceSummaryTotals) GetLastMonthCostUsd() float64 {
+	if r == nil {
+		return 0
+	}
+	return r.LastMonthCostUsd
+}
+
+func (r *ResourceSummaryTotals) GetUnattributedMonthToDateCostUsd() float64 {
+	if r == nil {
+		return 0
+	}
+	return r.UnattributedMonthToDateCostUsd
+}
+
+func (r *ResourceSummaryTotals) GetUnattributedLastMonthCostUsd() float64 {
+	if r == nil {
+		return 0
+	}
+	return r.UnattributedLastMonthCostUsd
+}
+
+func (r *ResourceSummaryTotals) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *ResourceSummaryTotals) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetActiveCount sets the ActiveCount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceSummaryTotals) SetActiveCount(activeCount int) {
+	r.ActiveCount = activeCount
+	r.require(resourceSummaryTotalsFieldActiveCount)
+}
+
+// SetListPriceMonthlyUsd sets the ListPriceMonthlyUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceSummaryTotals) SetListPriceMonthlyUsd(listPriceMonthlyUsd float64) {
+	r.ListPriceMonthlyUsd = listPriceMonthlyUsd
+	r.require(resourceSummaryTotalsFieldListPriceMonthlyUsd)
+}
+
+// SetMonthToDateCostUsd sets the MonthToDateCostUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceSummaryTotals) SetMonthToDateCostUsd(monthToDateCostUsd float64) {
+	r.MonthToDateCostUsd = monthToDateCostUsd
+	r.require(resourceSummaryTotalsFieldMonthToDateCostUsd)
+}
+
+// SetLastMonthCostUsd sets the LastMonthCostUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceSummaryTotals) SetLastMonthCostUsd(lastMonthCostUsd float64) {
+	r.LastMonthCostUsd = lastMonthCostUsd
+	r.require(resourceSummaryTotalsFieldLastMonthCostUsd)
+}
+
+// SetUnattributedMonthToDateCostUsd sets the UnattributedMonthToDateCostUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceSummaryTotals) SetUnattributedMonthToDateCostUsd(unattributedMonthToDateCostUsd float64) {
+	r.UnattributedMonthToDateCostUsd = unattributedMonthToDateCostUsd
+	r.require(resourceSummaryTotalsFieldUnattributedMonthToDateCostUsd)
+}
+
+// SetUnattributedLastMonthCostUsd sets the UnattributedLastMonthCostUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceSummaryTotals) SetUnattributedLastMonthCostUsd(unattributedLastMonthCostUsd float64) {
+	r.UnattributedLastMonthCostUsd = unattributedLastMonthCostUsd
+	r.require(resourceSummaryTotalsFieldUnattributedLastMonthCostUsd)
+}
+
+func (r *ResourceSummaryTotals) UnmarshalJSON(data []byte) error {
+	type unmarshaler ResourceSummaryTotals
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = ResourceSummaryTotals(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *ResourceSummaryTotals) MarshalJSON() ([]byte, error) {
+	type embed ResourceSummaryTotals
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *ResourceSummaryTotals) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	resourceTotalsFieldListPriceMonthlyUsd = big.NewInt(1 << 0)
+	resourceTotalsFieldMonthToDateCostUsd  = big.NewInt(1 << 1)
+	resourceTotalsFieldLastMonthCostUsd    = big.NewInt(1 << 2)
+)
+
+type ResourceTotals struct {
+	ListPriceMonthlyUsd float64 `json:"list_price_monthly_usd" url:"list_price_monthly_usd"`
+	MonthToDateCostUsd  float64 `json:"month_to_date_cost_usd" url:"month_to_date_cost_usd"`
+	LastMonthCostUsd    float64 `json:"last_month_cost_usd" url:"last_month_cost_usd"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *ResourceTotals) GetListPriceMonthlyUsd() float64 {
+	if r == nil {
+		return 0
+	}
+	return r.ListPriceMonthlyUsd
+}
+
+func (r *ResourceTotals) GetMonthToDateCostUsd() float64 {
+	if r == nil {
+		return 0
+	}
+	return r.MonthToDateCostUsd
+}
+
+func (r *ResourceTotals) GetLastMonthCostUsd() float64 {
+	if r == nil {
+		return 0
+	}
+	return r.LastMonthCostUsd
+}
+
+func (r *ResourceTotals) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *ResourceTotals) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetListPriceMonthlyUsd sets the ListPriceMonthlyUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceTotals) SetListPriceMonthlyUsd(listPriceMonthlyUsd float64) {
+	r.ListPriceMonthlyUsd = listPriceMonthlyUsd
+	r.require(resourceTotalsFieldListPriceMonthlyUsd)
+}
+
+// SetMonthToDateCostUsd sets the MonthToDateCostUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceTotals) SetMonthToDateCostUsd(monthToDateCostUsd float64) {
+	r.MonthToDateCostUsd = monthToDateCostUsd
+	r.require(resourceTotalsFieldMonthToDateCostUsd)
+}
+
+// SetLastMonthCostUsd sets the LastMonthCostUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceTotals) SetLastMonthCostUsd(lastMonthCostUsd float64) {
+	r.LastMonthCostUsd = lastMonthCostUsd
+	r.require(resourceTotalsFieldLastMonthCostUsd)
+}
+
+func (r *ResourceTotals) UnmarshalJSON(data []byte) error {
+	type unmarshaler ResourceTotals
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = ResourceTotals(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *ResourceTotals) MarshalJSON() ([]byte, error) {
+	type embed ResourceTotals
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *ResourceTotals) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	resourceTypeSummaryFieldResourceType        = big.NewInt(1 << 0)
+	resourceTypeSummaryFieldActiveCount         = big.NewInt(1 << 1)
+	resourceTypeSummaryFieldRemovedCount        = big.NewInt(1 << 2)
+	resourceTypeSummaryFieldListPriceMonthlyUsd = big.NewInt(1 << 3)
+	resourceTypeSummaryFieldMonthToDateCostUsd  = big.NewInt(1 << 4)
+	resourceTypeSummaryFieldLastMonthCostUsd    = big.NewInt(1 << 5)
+)
+
+type ResourceTypeSummary struct {
+	ResourceType        string  `json:"resource_type" url:"resource_type"`
+	ActiveCount         int     `json:"active_count" url:"active_count"`
+	RemovedCount        int     `json:"removed_count" url:"removed_count"`
+	ListPriceMonthlyUsd float64 `json:"list_price_monthly_usd" url:"list_price_monthly_usd"`
+	MonthToDateCostUsd  float64 `json:"month_to_date_cost_usd" url:"month_to_date_cost_usd"`
+	LastMonthCostUsd    float64 `json:"last_month_cost_usd" url:"last_month_cost_usd"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *ResourceTypeSummary) GetResourceType() string {
+	if r == nil {
+		return ""
+	}
+	return r.ResourceType
+}
+
+func (r *ResourceTypeSummary) GetActiveCount() int {
+	if r == nil {
+		return 0
+	}
+	return r.ActiveCount
+}
+
+func (r *ResourceTypeSummary) GetRemovedCount() int {
+	if r == nil {
+		return 0
+	}
+	return r.RemovedCount
+}
+
+func (r *ResourceTypeSummary) GetListPriceMonthlyUsd() float64 {
+	if r == nil {
+		return 0
+	}
+	return r.ListPriceMonthlyUsd
+}
+
+func (r *ResourceTypeSummary) GetMonthToDateCostUsd() float64 {
+	if r == nil {
+		return 0
+	}
+	return r.MonthToDateCostUsd
+}
+
+func (r *ResourceTypeSummary) GetLastMonthCostUsd() float64 {
+	if r == nil {
+		return 0
+	}
+	return r.LastMonthCostUsd
+}
+
+func (r *ResourceTypeSummary) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *ResourceTypeSummary) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetResourceType sets the ResourceType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceTypeSummary) SetResourceType(resourceType string) {
+	r.ResourceType = resourceType
+	r.require(resourceTypeSummaryFieldResourceType)
+}
+
+// SetActiveCount sets the ActiveCount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceTypeSummary) SetActiveCount(activeCount int) {
+	r.ActiveCount = activeCount
+	r.require(resourceTypeSummaryFieldActiveCount)
+}
+
+// SetRemovedCount sets the RemovedCount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceTypeSummary) SetRemovedCount(removedCount int) {
+	r.RemovedCount = removedCount
+	r.require(resourceTypeSummaryFieldRemovedCount)
+}
+
+// SetListPriceMonthlyUsd sets the ListPriceMonthlyUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceTypeSummary) SetListPriceMonthlyUsd(listPriceMonthlyUsd float64) {
+	r.ListPriceMonthlyUsd = listPriceMonthlyUsd
+	r.require(resourceTypeSummaryFieldListPriceMonthlyUsd)
+}
+
+// SetMonthToDateCostUsd sets the MonthToDateCostUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceTypeSummary) SetMonthToDateCostUsd(monthToDateCostUsd float64) {
+	r.MonthToDateCostUsd = monthToDateCostUsd
+	r.require(resourceTypeSummaryFieldMonthToDateCostUsd)
+}
+
+// SetLastMonthCostUsd sets the LastMonthCostUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceTypeSummary) SetLastMonthCostUsd(lastMonthCostUsd float64) {
+	r.LastMonthCostUsd = lastMonthCostUsd
+	r.require(resourceTypeSummaryFieldLastMonthCostUsd)
+}
+
+func (r *ResourceTypeSummary) UnmarshalJSON(data []byte) error {
+	type unmarshaler ResourceTypeSummary
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = ResourceTypeSummary(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *ResourceTypeSummary) MarshalJSON() ([]byte, error) {
+	type embed ResourceTypeSummary
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *ResourceTypeSummary) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	rotateCredentialRequestFieldCredentials = big.NewInt(1 << 0)
+)
+
+type RotateCredentialRequest struct {
+	Credentials map[string]string `json:"credentials" url:"credentials"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RotateCredentialRequest) GetCredentials() map[string]string {
+	if r == nil {
+		return nil
+	}
+	return r.Credentials
+}
+
+func (r *RotateCredentialRequest) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RotateCredentialRequest) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetCredentials sets the Credentials field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RotateCredentialRequest) SetCredentials(credentials map[string]string) {
+	r.Credentials = credentials
+	r.require(rotateCredentialRequestFieldCredentials)
+}
+
+func (r *RotateCredentialRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler RotateCredentialRequest
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = RotateCredentialRequest(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RotateCredentialRequest) MarshalJSON() ([]byte, error) {
+	type embed RotateCredentialRequest
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RotateCredentialRequest) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
 
 // Saved breakdown data with pagination
 var (
@@ -1707,21 +6151,23 @@ var (
 	savedByProviderItemFieldCost                         = big.NewInt(1 << 12)
 	savedByProviderItemFieldSavings                      = big.NewInt(1 << 13)
 	savedByProviderItemFieldAuthor                       = big.NewInt(1 << 14)
-	savedByProviderItemFieldAppliedVia                   = big.NewInt(1 << 15)
-	savedByProviderItemFieldImplementationMethod         = big.NewInt(1 << 16)
-	savedByProviderItemFieldFirstViewAt                  = big.NewInt(1 << 17)
-	savedByProviderItemFieldFirstViewChannel             = big.NewInt(1 << 18)
-	savedByProviderItemFieldViewCountAtAudit             = big.NewInt(1 << 19)
-	savedByProviderItemFieldVerification                 = big.NewInt(1 << 20)
-	savedByProviderItemFieldEstimatedSavingsUsd          = big.NewInt(1 << 21)
-	savedByProviderItemFieldRealizedSavingsUsd           = big.NewInt(1 << 22)
-	savedByProviderItemFieldRealizedSavingsInProgressUsd = big.NewInt(1 << 23)
-	savedByProviderItemFieldSettledAt                    = big.NewInt(1 << 24)
-	savedByProviderItemFieldRealizedSavings7DUsd         = big.NewInt(1 << 25)
-	savedByProviderItemFieldRealizedSavings30DUsd        = big.NewInt(1 << 26)
-	savedByProviderItemFieldSnapshot7DAt                 = big.NewInt(1 << 27)
-	savedByProviderItemFieldSnapshot30DAt                = big.NewInt(1 << 28)
-	savedByProviderItemFieldRealizedBasis                = big.NewInt(1 << 29)
+	savedByProviderItemFieldRequestedBy                  = big.NewInt(1 << 15)
+	savedByProviderItemFieldApprovedBy                   = big.NewInt(1 << 16)
+	savedByProviderItemFieldAppliedVia                   = big.NewInt(1 << 17)
+	savedByProviderItemFieldImplementationMethod         = big.NewInt(1 << 18)
+	savedByProviderItemFieldFirstViewAt                  = big.NewInt(1 << 19)
+	savedByProviderItemFieldFirstViewChannel             = big.NewInt(1 << 20)
+	savedByProviderItemFieldViewCountAtAudit             = big.NewInt(1 << 21)
+	savedByProviderItemFieldVerification                 = big.NewInt(1 << 22)
+	savedByProviderItemFieldEstimatedSavingsUsd          = big.NewInt(1 << 23)
+	savedByProviderItemFieldRealizedSavingsUsd           = big.NewInt(1 << 24)
+	savedByProviderItemFieldRealizedSavingsInProgressUsd = big.NewInt(1 << 25)
+	savedByProviderItemFieldSettledAt                    = big.NewInt(1 << 26)
+	savedByProviderItemFieldRealizedSavings7DUsd         = big.NewInt(1 << 27)
+	savedByProviderItemFieldRealizedSavings30DUsd        = big.NewInt(1 << 28)
+	savedByProviderItemFieldSnapshot7DAt                 = big.NewInt(1 << 29)
+	savedByProviderItemFieldSnapshot30DAt                = big.NewInt(1 << 30)
+	savedByProviderItemFieldRealizedBasis                = big.NewInt(1 << 31)
 )
 
 type SavedByProviderItem struct {
@@ -1737,7 +6183,7 @@ type SavedByProviderItem struct {
 	ImplementedAt *string `json:"implemented_at,omitempty" url:"implemented_at,omitempty"`
 	// Cloud account ID
 	AccountID *string `json:"account_id,omitempty" url:"account_id,omitempty"`
-	// Environment: Production, Staging, etc.
+	// Environment. Holds the account alias rather than a fixed vocabulary, e.g. creditas-scd-prod, aws.scd.staging, production-kirvano, Shared-Services.
 	Environment *string `json:"environment,omitempty" url:"environment,omitempty"`
 	// Provider identifier: aws, gcp, azure, k8s
 	Provider string `json:"provider" url:"provider"`
@@ -1753,8 +6199,12 @@ type SavedByProviderItem struct {
 	Cost float64 `json:"cost" url:"cost"`
 	// Realized savings (alias of realized_savings_usd)
 	Savings float64 `json:"savings" url:"savings"`
-	// Dashboard user who approved the savings (saving_accepted_by); falls back to actor_principal
+	// Legacy alias of approved_by (saving_accepted_by, falls back to actor_principal); kept for older clients
 	Author *string `json:"author,omitempty" url:"author,omitempty"`
+	// Member who requested the execution (execution_request_by); null when there was no explicit requester
+	RequestedBy *string `json:"requested_by,omitempty" url:"requested_by,omitempty"`
+	// Dashboard user who approved the savings (saving_accepted_by); falls back to actor_principal
+	ApprovedBy *string `json:"approved_by,omitempty" url:"approved_by,omitempty"`
 	// How the apply was attributed (sourced from implementation_method)
 	AppliedVia string `json:"applied_via" url:"applied_via"`
 	// How the rec was implemented: one-click / one-click-plus-iac / iac / manual
@@ -1765,7 +6215,7 @@ type SavedByProviderItem struct {
 	FirstViewChannel *string `json:"first_view_channel,omitempty" url:"first_view_channel,omitempty"`
 	// Total view count snapshot at audit reconcile time
 	ViewCountAtAudit *int `json:"view_count_at_audit,omitempty" url:"view_count_at_audit,omitempty"`
-	// Verification state: pending / auto-by-worker / auto-by-iac / auto-wizard-manual / manual-verified / manual-unverified
+	// Verification state: pending / auto-by-worker / auto-by-worker-and-iac / auto-by-iac / auto-wizard-manual / manual-verified / manual-unverified
 	Verification *string `json:"verification,omitempty" url:"verification,omitempty"`
 	// Estimated savings at apply time
 	EstimatedSavingsUsd *float64 `json:"estimated_savings_usd,omitempty" url:"estimated_savings_usd,omitempty"`
@@ -1896,6 +6346,20 @@ func (s *SavedByProviderItem) GetAuthor() *string {
 		return nil
 	}
 	return s.Author
+}
+
+func (s *SavedByProviderItem) GetRequestedBy() *string {
+	if s == nil {
+		return nil
+	}
+	return s.RequestedBy
+}
+
+func (s *SavedByProviderItem) GetApprovedBy() *string {
+	if s == nil {
+		return nil
+	}
+	return s.ApprovedBy
 }
 
 func (s *SavedByProviderItem) GetAppliedVia() string {
@@ -2122,6 +6586,20 @@ func (s *SavedByProviderItem) SetAuthor(author *string) {
 	s.require(savedByProviderItemFieldAuthor)
 }
 
+// SetRequestedBy sets the RequestedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SavedByProviderItem) SetRequestedBy(requestedBy *string) {
+	s.RequestedBy = requestedBy
+	s.require(savedByProviderItemFieldRequestedBy)
+}
+
+// SetApprovedBy sets the ApprovedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SavedByProviderItem) SetApprovedBy(approvedBy *string) {
+	s.ApprovedBy = approvedBy
+	s.require(savedByProviderItemFieldApprovedBy)
+}
+
 // SetAppliedVia sets the AppliedVia field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (s *SavedByProviderItem) SetAppliedVia(appliedVia string) {
@@ -2336,7 +6814,7 @@ type SavedItem struct {
 	FirstViewChannel *string `json:"first_view_channel,omitempty" url:"first_view_channel,omitempty"`
 	// Total view count snapshot at audit reconcile time
 	ViewCountAtAudit *int `json:"view_count_at_audit,omitempty" url:"view_count_at_audit,omitempty"`
-	// Verification state: pending / auto-by-worker / auto-by-iac / auto-wizard-manual / manual-verified / manual-unverified
+	// Verification state: pending / auto-by-worker / auto-by-worker-and-iac / auto-by-iac / auto-wizard-manual / manual-verified / manual-unverified
 	Verification *string `json:"verification,omitempty" url:"verification,omitempty"`
 	// Estimated monthly savings snapshot at apply time (from recommendation)
 	EstimatedSavingsUsd *float64 `json:"estimated_savings_usd,omitempty" url:"estimated_savings_usd,omitempty"`
@@ -3003,25 +7481,28 @@ var (
 	savedSummaryDataFieldTotalSavings                  = big.NewInt(1 << 5)
 	savedSummaryDataFieldProviders                     = big.NewInt(1 << 6)
 	savedSummaryDataFieldByImplementationMethod        = big.NewInt(1 << 7)
+	savedSummaryDataFieldByModule                      = big.NewInt(1 << 8)
 )
 
 type SavedSummaryData struct {
-	// Total monthly savings from implemented recommendations
+	// Combined monthly savings run rate across every implemented recommendation. Each ledger row carries a recommendation's monthly rate once, in the month it was applied, so this spans several billing periods and is still a monthly figure.
 	TotalMonthlySavings float64 `json:"total_monthly_savings" url:"total_monthly_savings"`
-	// MoM change percentage
+	// Change in the monthly run rate from the previous billing period to the latest one
 	TotalMonthlySavingsPercentage *float64 `json:"total_monthly_savings_percentage,omitempty" url:"total_monthly_savings_percentage,omitempty"`
-	// Total annual savings
+	// The monthly run rate multiplied by 12
 	TotalAnnualSavings float64 `json:"total_annual_savings" url:"total_annual_savings"`
 	// Payback period in months
 	Payback *float64 `json:"payback,omitempty" url:"payback,omitempty"`
 	// Average ROI percentage
 	AverageRoi float64 `json:"average_roi" url:"average_roi"`
-	// Savings Audit total (annualized)
+	// Total savings annualized, the figure LevelFour bills against. Equal to total_annual_savings. Not an inception-to-date accumulation, and note that providers[].total_savings is the monthly run rate rather than an annual figure.
 	TotalSavings float64 `json:"total_savings" url:"total_savings"`
 	// Per-provider savings breakdown for filtering
 	Providers []*SavedProviderSummary `json:"providers,omitempty" url:"providers,omitempty"`
 	// Realized savings grouped by implementation_method (one-click, one-click-plus-iac, iac, manual)
 	ByImplementationMethod map[string]float64 `json:"by_implementation_method,omitempty" url:"by_implementation_method,omitempty"`
+	// Open savings opportunity grouped by module ('cloud', 'commitments')
+	ByModule []*ModuleSavingsBreakdown `json:"by_module,omitempty" url:"by_module,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -3084,6 +7565,13 @@ func (s *SavedSummaryData) GetByImplementationMethod() map[string]float64 {
 		return nil
 	}
 	return s.ByImplementationMethod
+}
+
+func (s *SavedSummaryData) GetByModule() []*ModuleSavingsBreakdown {
+	if s == nil {
+		return nil
+	}
+	return s.ByModule
 }
 
 func (s *SavedSummaryData) GetExtraProperties() map[string]interface{} {
@@ -3154,6 +7642,13 @@ func (s *SavedSummaryData) SetProviders(providers []*SavedProviderSummary) {
 func (s *SavedSummaryData) SetByImplementationMethod(byImplementationMethod map[string]float64) {
 	s.ByImplementationMethod = byImplementationMethod
 	s.require(savedSummaryDataFieldByImplementationMethod)
+}
+
+// SetByModule sets the ByModule field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SavedSummaryData) SetByModule(byModule []*ModuleSavingsBreakdown) {
+	s.ByModule = byModule
+	s.require(savedSummaryDataFieldByModule)
 }
 
 func (s *SavedSummaryData) UnmarshalJSON(data []byte) error {
@@ -3324,3 +7819,615 @@ func (s *SavedSummaryResponse) String() string {
 }
 
 type ServerFault = *ErrorResponse
+
+var (
+	startUploadDataFieldUploadID = big.NewInt(1 << 0)
+	startUploadDataFieldUpload   = big.NewInt(1 << 1)
+	startUploadDataFieldMaxBytes = big.NewInt(1 << 2)
+)
+
+type StartUploadData struct {
+	UploadID string         `json:"upload_id" url:"upload_id"`
+	Upload   map[string]any `json:"upload" url:"upload"`
+	MaxBytes int            `json:"max_bytes" url:"max_bytes"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *StartUploadData) GetUploadID() string {
+	if s == nil {
+		return ""
+	}
+	return s.UploadID
+}
+
+func (s *StartUploadData) GetUpload() map[string]any {
+	if s == nil {
+		return nil
+	}
+	return s.Upload
+}
+
+func (s *StartUploadData) GetMaxBytes() int {
+	if s == nil {
+		return 0
+	}
+	return s.MaxBytes
+}
+
+func (s *StartUploadData) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *StartUploadData) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetUploadID sets the UploadID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *StartUploadData) SetUploadID(uploadID string) {
+	s.UploadID = uploadID
+	s.require(startUploadDataFieldUploadID)
+}
+
+// SetUpload sets the Upload field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *StartUploadData) SetUpload(upload map[string]any) {
+	s.Upload = upload
+	s.require(startUploadDataFieldUpload)
+}
+
+// SetMaxBytes sets the MaxBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *StartUploadData) SetMaxBytes(maxBytes int) {
+	s.MaxBytes = maxBytes
+	s.require(startUploadDataFieldMaxBytes)
+}
+
+func (s *StartUploadData) UnmarshalJSON(data []byte) error {
+	type unmarshaler StartUploadData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = StartUploadData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *StartUploadData) MarshalJSON() ([]byte, error) {
+	type embed StartUploadData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *StartUploadData) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+var (
+	startUploadRequestFieldConnectionID = big.NewInt(1 << 0)
+	startUploadRequestFieldFileName     = big.NewInt(1 << 1)
+)
+
+type StartUploadRequest struct {
+	ConnectionID string  `json:"connection_id" url:"connection_id"`
+	FileName     *string `json:"file_name,omitempty" url:"file_name,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *StartUploadRequest) GetConnectionID() string {
+	if s == nil {
+		return ""
+	}
+	return s.ConnectionID
+}
+
+func (s *StartUploadRequest) GetFileName() *string {
+	if s == nil {
+		return nil
+	}
+	return s.FileName
+}
+
+func (s *StartUploadRequest) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *StartUploadRequest) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetConnectionID sets the ConnectionID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *StartUploadRequest) SetConnectionID(connectionID string) {
+	s.ConnectionID = connectionID
+	s.require(startUploadRequestFieldConnectionID)
+}
+
+// SetFileName sets the FileName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *StartUploadRequest) SetFileName(fileName *string) {
+	s.FileName = fileName
+	s.require(startUploadRequestFieldFileName)
+}
+
+func (s *StartUploadRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler StartUploadRequest
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = StartUploadRequest(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *StartUploadRequest) MarshalJSON() ([]byte, error) {
+	type embed StartUploadRequest
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *StartUploadRequest) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+var (
+	startUploadResponseFieldSuccess   = big.NewInt(1 << 0)
+	startUploadResponseFieldData      = big.NewInt(1 << 1)
+	startUploadResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type StartUploadResponse struct {
+	Success   *bool            `json:"success,omitempty" url:"success,omitempty"`
+	Data      *StartUploadData `json:"data" url:"data"`
+	Timestamp string           `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *StartUploadResponse) GetSuccess() *bool {
+	if s == nil {
+		return nil
+	}
+	return s.Success
+}
+
+func (s *StartUploadResponse) GetData() *StartUploadData {
+	if s == nil {
+		return nil
+	}
+	return s.Data
+}
+
+func (s *StartUploadResponse) GetTimestamp() string {
+	if s == nil {
+		return ""
+	}
+	return s.Timestamp
+}
+
+func (s *StartUploadResponse) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *StartUploadResponse) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *StartUploadResponse) SetSuccess(success *bool) {
+	s.Success = success
+	s.require(startUploadResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *StartUploadResponse) SetData(data *StartUploadData) {
+	s.Data = data
+	s.require(startUploadResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *StartUploadResponse) SetTimestamp(timestamp string) {
+	s.Timestamp = timestamp
+	s.require(startUploadResponseFieldTimestamp)
+}
+
+func (s *StartUploadResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler StartUploadResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = StartUploadResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *StartUploadResponse) MarshalJSON() ([]byte, error) {
+	type embed StartUploadResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *StartUploadResponse) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+var (
+	uploadStatusDataFieldUploadID     = big.NewInt(1 << 0)
+	uploadStatusDataFieldConnectionID = big.NewInt(1 << 1)
+	uploadStatusDataFieldState        = big.NewInt(1 << 2)
+	uploadStatusDataFieldPreview      = big.NewInt(1 << 3)
+	uploadStatusDataFieldRowErrors    = big.NewInt(1 << 4)
+	uploadStatusDataFieldReplaceScope = big.NewInt(1 << 5)
+)
+
+type UploadStatusData struct {
+	UploadID     string           `json:"upload_id" url:"upload_id"`
+	ConnectionID *string          `json:"connection_id,omitempty" url:"connection_id,omitempty"`
+	State        string           `json:"state" url:"state"`
+	Preview      map[string]any   `json:"preview,omitempty" url:"preview,omitempty"`
+	RowErrors    []map[string]any `json:"row_errors,omitempty" url:"row_errors,omitempty"`
+	ReplaceScope []string         `json:"replace_scope,omitempty" url:"replace_scope,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (u *UploadStatusData) GetUploadID() string {
+	if u == nil {
+		return ""
+	}
+	return u.UploadID
+}
+
+func (u *UploadStatusData) GetConnectionID() *string {
+	if u == nil {
+		return nil
+	}
+	return u.ConnectionID
+}
+
+func (u *UploadStatusData) GetState() string {
+	if u == nil {
+		return ""
+	}
+	return u.State
+}
+
+func (u *UploadStatusData) GetPreview() map[string]any {
+	if u == nil {
+		return nil
+	}
+	return u.Preview
+}
+
+func (u *UploadStatusData) GetRowErrors() []map[string]any {
+	if u == nil {
+		return nil
+	}
+	return u.RowErrors
+}
+
+func (u *UploadStatusData) GetReplaceScope() []string {
+	if u == nil {
+		return nil
+	}
+	return u.ReplaceScope
+}
+
+func (u *UploadStatusData) GetExtraProperties() map[string]interface{} {
+	if u == nil {
+		return nil
+	}
+	return u.extraProperties
+}
+
+func (u *UploadStatusData) require(field *big.Int) {
+	if u.explicitFields == nil {
+		u.explicitFields = big.NewInt(0)
+	}
+	u.explicitFields.Or(u.explicitFields, field)
+}
+
+// SetUploadID sets the UploadID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UploadStatusData) SetUploadID(uploadID string) {
+	u.UploadID = uploadID
+	u.require(uploadStatusDataFieldUploadID)
+}
+
+// SetConnectionID sets the ConnectionID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UploadStatusData) SetConnectionID(connectionID *string) {
+	u.ConnectionID = connectionID
+	u.require(uploadStatusDataFieldConnectionID)
+}
+
+// SetState sets the State field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UploadStatusData) SetState(state string) {
+	u.State = state
+	u.require(uploadStatusDataFieldState)
+}
+
+// SetPreview sets the Preview field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UploadStatusData) SetPreview(preview map[string]any) {
+	u.Preview = preview
+	u.require(uploadStatusDataFieldPreview)
+}
+
+// SetRowErrors sets the RowErrors field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UploadStatusData) SetRowErrors(rowErrors []map[string]any) {
+	u.RowErrors = rowErrors
+	u.require(uploadStatusDataFieldRowErrors)
+}
+
+// SetReplaceScope sets the ReplaceScope field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UploadStatusData) SetReplaceScope(replaceScope []string) {
+	u.ReplaceScope = replaceScope
+	u.require(uploadStatusDataFieldReplaceScope)
+}
+
+func (u *UploadStatusData) UnmarshalJSON(data []byte) error {
+	type unmarshaler UploadStatusData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*u = UploadStatusData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *u)
+	if err != nil {
+		return err
+	}
+	u.extraProperties = extraProperties
+	u.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (u *UploadStatusData) MarshalJSON() ([]byte, error) {
+	type embed UploadStatusData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*u),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, u.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (u *UploadStatusData) String() string {
+	if u == nil {
+		return "<nil>"
+	}
+	if len(u.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(u); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", u)
+}
+
+var (
+	uploadStatusResponseFieldSuccess   = big.NewInt(1 << 0)
+	uploadStatusResponseFieldData      = big.NewInt(1 << 1)
+	uploadStatusResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type UploadStatusResponse struct {
+	Success   *bool             `json:"success,omitempty" url:"success,omitempty"`
+	Data      *UploadStatusData `json:"data" url:"data"`
+	Timestamp string            `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (u *UploadStatusResponse) GetSuccess() *bool {
+	if u == nil {
+		return nil
+	}
+	return u.Success
+}
+
+func (u *UploadStatusResponse) GetData() *UploadStatusData {
+	if u == nil {
+		return nil
+	}
+	return u.Data
+}
+
+func (u *UploadStatusResponse) GetTimestamp() string {
+	if u == nil {
+		return ""
+	}
+	return u.Timestamp
+}
+
+func (u *UploadStatusResponse) GetExtraProperties() map[string]interface{} {
+	if u == nil {
+		return nil
+	}
+	return u.extraProperties
+}
+
+func (u *UploadStatusResponse) require(field *big.Int) {
+	if u.explicitFields == nil {
+		u.explicitFields = big.NewInt(0)
+	}
+	u.explicitFields.Or(u.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UploadStatusResponse) SetSuccess(success *bool) {
+	u.Success = success
+	u.require(uploadStatusResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UploadStatusResponse) SetData(data *UploadStatusData) {
+	u.Data = data
+	u.require(uploadStatusResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UploadStatusResponse) SetTimestamp(timestamp string) {
+	u.Timestamp = timestamp
+	u.require(uploadStatusResponseFieldTimestamp)
+}
+
+func (u *UploadStatusResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler UploadStatusResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*u = UploadStatusResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *u)
+	if err != nil {
+		return err
+	}
+	u.extraProperties = extraProperties
+	u.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (u *UploadStatusResponse) MarshalJSON() ([]byte, error) {
+	type embed UploadStatusResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*u),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, u.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (u *UploadStatusResponse) String() string {
+	if u == nil {
+		return "<nil>"
+	}
+	if len(u.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(u); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", u)
+}
