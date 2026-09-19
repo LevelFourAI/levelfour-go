@@ -1,4 +1,7 @@
 .DS_Store
+
+# Fern generator bookkeeping, not part of the SDK
+.fern/
 *.exe
 *.test
 *.out
