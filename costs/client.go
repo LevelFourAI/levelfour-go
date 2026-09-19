@@ -35,10 +35,131 @@ func NewClient(options *core.RequestOptions) *Client {
 // Returns spending summary: overall costs, forecast, savings, and provider breakdown
 func (c *Client) GetSummary(
 	ctx context.Context,
+	request *levelfour.GetSummaryCostsRequest,
 	opts ...option.RequestOption,
 ) (*levelfour.SpendingSummaryResponse, error) {
 	response, err := c.WithRawResponse.GetSummary(
 		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Returns services ranked by largest percent growth between current and previous period.
+func (c *Client) GetTopGrowing(
+	ctx context.Context,
+	request *levelfour.GetTopGrowingAPIV1CostsTopGrowingGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.TopGrowingResponse, error) {
+	response, err := c.WithRawResponse.GetTopGrowing(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Returns the distinct provider tag keys present in the tenant's per-tag cost data and every virtual tag key, so the dashboard can offer both as choices. A provider key that a virtual key of the same name replaces is left out.
+func (c *Client) GetTagKeys(
+	ctx context.Context,
+	request *levelfour.GetTagKeysAPIV1CostsByTagKeysGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.TagKeysResponse, error) {
+	response, err := c.WithRawResponse.GetTagKeys(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Returns spend grouped by tag_value for a given tag_key (e.g., team, tribe, squad, cost-center). Includes a per-team category breakdown.
+func (c *Client) GetCostByTag(
+	ctx context.Context,
+	request *levelfour.GetCostByTagAPIV1CostsByTagGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.TeamCostResponse, error) {
+	response, err := c.WithRawResponse.GetCostByTag(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Returns showback coverage for a tag key: total, tagged, untagged, coverage percentage, and a per-value breakdown.
+func (c *Client) GetAllocation(
+	ctx context.Context,
+	request *levelfour.GetAllocationAPIV1CostsAllocationGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.AllocationResponse, error) {
+	response, err := c.WithRawResponse.GetAllocation(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Returns Google Cloud spend grouped by up to three label keys at once, for example cluster, namespace and workload. A resource label wins over the same key set on its project.
+func (c *Client) GetCostByLabels(
+	ctx context.Context,
+	request *levelfour.GetCostByLabelsAPIV1CostsByLabelsGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.CostByLabelsResponse, error) {
+	response, err := c.WithRawResponse.GetCostByLabels(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Returns spend, billable quantity, unit, and derived cost per unit grouped by usage type.
+func (c *Client) GetUsage(
+	ctx context.Context,
+	request *levelfour.GetUsageAPIV1CostsUsageGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.UsageResponse, error) {
+	response, err := c.WithRawResponse.GetUsage(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Returns forecasted spend value, confidence bounds, and a 60-point sparkline (past 30 days actual + next 30 days forecast).
+func (c *Client) GetForecast(
+	ctx context.Context,
+	request *levelfour.GetForecastAPIV1CostsForecastGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.ForecastResponse, error) {
+	response, err := c.WithRawResponse.GetForecast(
+		ctx,
+		request,
 		opts...,
 	)
 	if err != nil {
@@ -100,11 +221,13 @@ func (c *Client) GetMonthlyCosts(
 func (c *Client) GetProviderSummary(
 	ctx context.Context,
 	providerID string,
+	request *levelfour.GetProviderSummaryCostsRequest,
 	opts ...option.RequestOption,
 ) (*levelfour.ProviderSpendingSummaryResponse, error) {
 	response, err := c.WithRawResponse.GetProviderSummary(
 		ctx,
 		providerID,
+		request,
 		opts...,
 	)
 	if err != nil {
