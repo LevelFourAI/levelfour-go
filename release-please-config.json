@@ -3,7 +3,6 @@
     ".": {
       "release-type": "go",
       "bump-minor-pre-major": true,
-      "bump-patch-for-minor-pre-major": true,
       "extra-files": ["levelfour/client.go", "README.md"],
       "changelog-sections": [
         { "type": "feat", "section": "Features" },

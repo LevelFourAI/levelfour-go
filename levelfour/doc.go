@@ -19,6 +19,6 @@
 //	}
 //
 // Sub-packages:
-//   - [github.com/LevelFourAI/levelfour-go/levelfour/webhooks] — webhook signature verification
-//   - [github.com/LevelFourAI/levelfour-go/middleware] — HTTP middleware for context injection
+//   - [github.com/LevelFourAI/levelfour-go/levelfour/webhooks]: webhook signature verification
+//   - [github.com/LevelFourAI/levelfour-go/middleware]: HTTP middleware for context injection
 package levelfour
