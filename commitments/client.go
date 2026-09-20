@@ -149,6 +149,75 @@ func (c *Client) ListCommitments(
 	return response.Body, nil
 }
 
+// Priced from the current offering rather than from the expiring term, whose price is as old as the term. error_message carries a lookup that failed, so an unpriced renewal reads as unpriced rather than as zero.
+func (c *Client) GetRenewalQuote(
+	ctx context.Context,
+	commitmentID string,
+	opts ...option.RequestOption,
+) (*levelfour.RenewalQuoteResponse, error) {
+	response, err := c.WithRawResponse.GetRenewalQuote(
+		ctx,
+		commitmentID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// The contract priced again as it stands, beside every other term its shape is sold on today, each at the quantity this customer's own usage supports. sizing_basis says where that quantity came from: usage of the same shape, which can argue for buying more, or the commitment's own fee line, which can only argue for buying less.
+func (c *Client) GetRenewalOptions(
+	ctx context.Context,
+	commitmentID string,
+	opts ...option.RequestOption,
+) (*levelfour.RenewalOptionsResponse, error) {
+	response, err := c.WithRawResponse.GetRenewalOptions(
+		ctx,
+		commitmentID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+func (c *Client) GetRenewal(
+	ctx context.Context,
+	commitmentID string,
+	opts ...option.RequestOption,
+) (*levelfour.CommitmentRenewalResponse, error) {
+	response, err := c.WithRawResponse.GetRenewal(
+		ctx,
+		commitmentID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Returns the recommendation that buys the new term. Calling it twice returns the first one rather than raising a rival. Nothing is bought here: the recommendation carries the offering, the quantity and the instant after which buying is safe, and the apply path acts on it.
+func (c *Client) PostRenewal(
+	ctx context.Context,
+	commitmentID string,
+	request *levelfour.PostRenewalAPIV1CommitmentsRenewalCommitmentIDPostRequest,
+	opts ...option.RequestOption,
+) (*levelfour.CommitmentRenewalResponse, error) {
+	response, err := c.WithRawResponse.PostRenewal(
+		ctx,
+		commitmentID,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
 func (c *Client) GetDetail(
 	ctx context.Context,
 	commitmentID string,
