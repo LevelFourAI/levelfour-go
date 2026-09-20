@@ -1,3 +1,4 @@
+minimum_pre_commit_version: "3.2.0"
 repos:
   - repo: local
     hooks:
@@ -49,3 +50,12 @@ repos:
         language: system
         pass_filenames: false
         types: [go]
+
+  - repo: local
+    hooks:
+      - id: check-docs
+        name: No internal working documents
+        entry: scripts/check-docs.sh --staged
+        language: script
+        pass_filenames: false
+        stages: [pre-commit]
