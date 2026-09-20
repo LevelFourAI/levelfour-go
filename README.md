@@ -19,7 +19,7 @@ API reference is available at [pkg.go.dev](https://pkg.go.dev/github.com/LevelFo
 
 ```bash
 # x-release-please-start-version
-go get github.com/LevelFourAI/levelfour-go@v0.1.0
+go get github.com/LevelFourAI/levelfour-go@v0.2.0
 # x-release-please-end
 ```
 
