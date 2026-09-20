@@ -16,7 +16,7 @@ func main() {
 
 	ctx := context.Background()
 
-	// Auto-paging iterator — handles page fetching automatically.
+	// Auto-paging iterator: handles page fetching automatically.
 	page, err := client.Recommendations.List(ctx, &levelfour.ListRecommendationsRequest{})
 	if err != nil {
 		log.Fatal(err)
