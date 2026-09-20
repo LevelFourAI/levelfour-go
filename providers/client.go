@@ -45,3 +45,39 @@ func (c *Client) List(
 	}
 	return response.Body, nil
 }
+
+// Returns the top users by realized (captured) savings for a provider, ranked descending (max 3)
+func (c *Client) GetProviderTopSavers(
+	ctx context.Context,
+	providerID string,
+	opts ...option.RequestOption,
+) (*levelfour.TopSaversResponse, error) {
+	response, err := c.WithRawResponse.GetProviderTopSavers(
+		ctx,
+		providerID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Returns spend per invoice month split by cost type (regular, tax, adjustment, rounding). Google Cloud only; other providers return no months.
+func (c *Client) GetProviderInvoices(
+	ctx context.Context,
+	providerID string,
+	request *levelfour.GetProviderInvoicesAPIV1ProvidersProviderIDCostsInvoicesGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.InvoicesResponse, error) {
+	response, err := c.WithRawResponse.GetProviderInvoices(
+		ctx,
+		providerID,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
