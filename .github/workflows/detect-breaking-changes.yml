@@ -11,22 +11,51 @@ jobs:
   detect:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: >-
-      github.repository == 'LevelFourAI/levelfour-go'
-      && !startsWith(github.head_ref, 'fern-bot/')
-      && !startsWith(github.head_ref, 'sdk-sync/')
+    if: github.repository == 'LevelFourAI/levelfour-go'
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417  # v6
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e  # v6
         with:
           go-version-file: ./go.mod
 
+      # Generated syncs used to skip this job, which meant the only pull requests
+      # that ever change the public surface were the ones exempt from the surface
+      # check. They now run it: a sync that drops or renames a method is a real
+      # breaking change and the diff belongs in the pull request, even though it is
+      # an intended one, so the step reports there instead of blocking. A
+      # hand-written pull request still fails.
       - name: Detect breaking changes
+        id: detect
+        continue-on-error: ${{ startsWith(github.head_ref, 'fern-bot/') || startsWith(github.head_ref, 'sdk-sync/') }}
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           git checkout "$BASE_SHA" -- ./scripts/detect-breaking-changes 2>/dev/null || true
-          ./scripts/detect-breaking-changes "$BASE_SHA"
+          ./scripts/detect-breaking-changes "$BASE_SHA" 2>&1 | tee detect.log
+
+      - name: Summarize
+        if: always()
+        env:
+          OUTCOME: ${{ steps.detect.outcome }}
+        run: |
+          {
+            echo "## Breaking change check"
+            echo
+            if [ "$OUTCOME" = "success" ]; then
+              echo "The previous release's tests still build against this branch."
+            else
+              echo "The previous release's tests no longer build against this branch, so"
+              echo "something in the public surface was removed, renamed or retyped."
+              echo
+              echo '```'
+              tail -40 detect.log 2>/dev/null || echo "(no output captured)"
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail on an unintended break
+        if: steps.detect.outcome == 'failure' && !startsWith(github.head_ref, 'fern-bot/') && !startsWith(github.head_ref, 'sdk-sync/')
+        run: exit 1
