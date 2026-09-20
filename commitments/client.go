@@ -149,6 +149,56 @@ func (c *Client) ListCommitments(
 	return response.Body, nil
 }
 
+// Priced from the current offering rather than from the expiring term, whose price is as old as the term. error_message carries a lookup that failed, so an unpriced renewal reads as unpriced rather than as zero.
+func (c *Client) GetRenewalQuote(
+	ctx context.Context,
+	commitmentID string,
+	opts ...option.RequestOption,
+) (*levelfour.RenewalQuoteResponse, error) {
+	response, err := c.WithRawResponse.GetRenewalQuote(
+		ctx,
+		commitmentID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+func (c *Client) GetRenewal(
+	ctx context.Context,
+	commitmentID string,
+	opts ...option.RequestOption,
+) (*levelfour.CommitmentRenewalResponse, error) {
+	response, err := c.WithRawResponse.GetRenewal(
+		ctx,
+		commitmentID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Returns the recommendation that buys the new term. Calling it twice returns the first one rather than raising a rival. Nothing is bought here: the recommendation carries the offering, the quantity and the instant after which buying is safe, and the apply path acts on it.
+func (c *Client) PostRenewal(
+	ctx context.Context,
+	commitmentID string,
+	opts ...option.RequestOption,
+) (*levelfour.CommitmentRenewalResponse, error) {
+	response, err := c.WithRawResponse.PostRenewal(
+		ctx,
+		commitmentID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
 func (c *Client) GetDetail(
 	ctx context.Context,
 	commitmentID string,

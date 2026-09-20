@@ -973,8 +973,8 @@ var (
 )
 
 type CommitmentCoveragePoint struct {
-	Date        string  `json:"date" url:"date"`
-	CoveragePct float64 `json:"coverage_pct" url:"coverage_pct"`
+	Date        string   `json:"date" url:"date"`
+	CoveragePct *float64 `json:"coverage_pct,omitempty" url:"coverage_pct,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -990,9 +990,9 @@ func (c *CommitmentCoveragePoint) GetDate() string {
 	return c.Date
 }
 
-func (c *CommitmentCoveragePoint) GetCoveragePct() float64 {
+func (c *CommitmentCoveragePoint) GetCoveragePct() *float64 {
 	if c == nil {
-		return 0
+		return nil
 	}
 	return c.CoveragePct
 }
@@ -1020,7 +1020,7 @@ func (c *CommitmentCoveragePoint) SetDate(date string) {
 
 // SetCoveragePct sets the CoveragePct field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (c *CommitmentCoveragePoint) SetCoveragePct(coveragePct float64) {
+func (c *CommitmentCoveragePoint) SetCoveragePct(coveragePct *float64) {
 	c.CoveragePct = coveragePct
 	c.require(commitmentCoveragePointFieldCoveragePct)
 }
@@ -1068,75 +1068,77 @@ func (c *CommitmentCoveragePoint) String() string {
 }
 
 var (
-	commitmentDetailDataFieldID                    = big.NewInt(1 << 0)
-	commitmentDetailDataFieldProvider              = big.NewInt(1 << 1)
-	commitmentDetailDataFieldService               = big.NewInt(1 << 2)
-	commitmentDetailDataFieldServiceLabel          = big.NewInt(1 << 3)
-	commitmentDetailDataFieldAccountID             = big.NewInt(1 << 4)
-	commitmentDetailDataFieldAccountName           = big.NewInt(1 << 5)
-	commitmentDetailDataFieldRegion                = big.NewInt(1 << 6)
-	commitmentDetailDataFieldKind                  = big.NewInt(1 << 7)
-	commitmentDetailDataFieldStartDate             = big.NewInt(1 << 8)
-	commitmentDetailDataFieldEndDate               = big.NewInt(1 << 9)
-	commitmentDetailDataFieldTermMonths            = big.NewInt(1 << 10)
-	commitmentDetailDataFieldPaymentOption         = big.NewInt(1 << 11)
-	commitmentDetailDataFieldHourlyCommitmentUsd   = big.NewInt(1 << 12)
-	commitmentDetailDataFieldMonthlyCommitmentUsd  = big.NewInt(1 << 13)
-	commitmentDetailDataFieldStatus                = big.NewInt(1 << 14)
-	commitmentDetailDataFieldCurrentUtilizationPct = big.NewInt(1 << 15)
-	commitmentDetailDataFieldCurrentCoveragePct    = big.NewInt(1 << 16)
-	commitmentDetailDataFieldIsCommitable          = big.NewInt(1 << 17)
-	commitmentDetailDataFieldEndAt                 = big.NewInt(1 << 18)
-	commitmentDetailDataFieldHolderAccountID       = big.NewInt(1 << 19)
-	commitmentDetailDataFieldUnitCount             = big.NewInt(1 << 20)
-	commitmentDetailDataFieldFeeMonthlyList        = big.NewInt(1 << 21)
-	commitmentDetailDataFieldFeeMonthlyNet         = big.NewInt(1 << 22)
-	commitmentDetailDataFieldUtilizationSlopePp30D = big.NewInt(1 << 23)
-	commitmentDetailDataFieldProtectsMonthly       = big.NewInt(1 << 24)
-	commitmentDetailDataFieldRightsizingMonthly    = big.NewInt(1 << 25)
-	commitmentDetailDataFieldExchangeable          = big.NewInt(1 << 26)
-	commitmentDetailDataFieldCancellable           = big.NewInt(1 << 27)
-	commitmentDetailDataFieldUtilizationHistory    = big.NewInt(1 << 28)
-	commitmentDetailDataFieldCoverageHistory       = big.NewInt(1 << 29)
-	commitmentDetailDataFieldConsumers             = big.NewInt(1 << 30)
-	commitmentDetailDataFieldHistory               = big.NewInt(1 << 31)
-	commitmentDetailDataFieldRecommendations       = big.NewInt(1 << 32)
+	commitmentDetailDataFieldID                      = big.NewInt(1 << 0)
+	commitmentDetailDataFieldProvider                = big.NewInt(1 << 1)
+	commitmentDetailDataFieldService                 = big.NewInt(1 << 2)
+	commitmentDetailDataFieldServiceLabel            = big.NewInt(1 << 3)
+	commitmentDetailDataFieldAccountID               = big.NewInt(1 << 4)
+	commitmentDetailDataFieldAccountName             = big.NewInt(1 << 5)
+	commitmentDetailDataFieldRegion                  = big.NewInt(1 << 6)
+	commitmentDetailDataFieldKind                    = big.NewInt(1 << 7)
+	commitmentDetailDataFieldStartDate               = big.NewInt(1 << 8)
+	commitmentDetailDataFieldEndDate                 = big.NewInt(1 << 9)
+	commitmentDetailDataFieldTermMonths              = big.NewInt(1 << 10)
+	commitmentDetailDataFieldPaymentOption           = big.NewInt(1 << 11)
+	commitmentDetailDataFieldHourlyCommitmentUsd     = big.NewInt(1 << 12)
+	commitmentDetailDataFieldMonthlyCommitmentUsd    = big.NewInt(1 << 13)
+	commitmentDetailDataFieldStatus                  = big.NewInt(1 << 14)
+	commitmentDetailDataFieldCurrentUtilizationPct   = big.NewInt(1 << 15)
+	commitmentDetailDataFieldCurrentCoveragePct      = big.NewInt(1 << 16)
+	commitmentDetailDataFieldIsCommitable            = big.NewInt(1 << 17)
+	commitmentDetailDataFieldEndAt                   = big.NewInt(1 << 18)
+	commitmentDetailDataFieldHolderAccountID         = big.NewInt(1 << 19)
+	commitmentDetailDataFieldUnitCount               = big.NewInt(1 << 20)
+	commitmentDetailDataFieldFeeMonthlyList          = big.NewInt(1 << 21)
+	commitmentDetailDataFieldFeeMonthlyNet           = big.NewInt(1 << 22)
+	commitmentDetailDataFieldUtilizationSlopePp30D   = big.NewInt(1 << 23)
+	commitmentDetailDataFieldProtectsMonthly         = big.NewInt(1 << 24)
+	commitmentDetailDataFieldRightsizingMonthly      = big.NewInt(1 << 25)
+	commitmentDetailDataFieldExchangeable            = big.NewInt(1 << 26)
+	commitmentDetailDataFieldCancellable             = big.NewInt(1 << 27)
+	commitmentDetailDataFieldRenewalRecommendationID = big.NewInt(1 << 28)
+	commitmentDetailDataFieldUtilizationHistory      = big.NewInt(1 << 29)
+	commitmentDetailDataFieldCoverageHistory         = big.NewInt(1 << 30)
+	commitmentDetailDataFieldConsumers               = big.NewInt(1 << 31)
+	commitmentDetailDataFieldHistory                 = big.NewInt(1 << 32)
+	commitmentDetailDataFieldRecommendations         = big.NewInt(1 << 33)
 )
 
 type CommitmentDetailData struct {
-	ID                    string                             `json:"id" url:"id"`
-	Provider              string                             `json:"provider" url:"provider"`
-	Service               string                             `json:"service" url:"service"`
-	ServiceLabel          string                             `json:"service_label" url:"service_label"`
-	AccountID             string                             `json:"account_id" url:"account_id"`
-	AccountName           string                             `json:"account_name" url:"account_name"`
-	Region                string                             `json:"region" url:"region"`
-	Kind                  CommitmentDetailDataKind           `json:"kind" url:"kind"`
-	StartDate             string                             `json:"start_date" url:"start_date"`
-	EndDate               string                             `json:"end_date" url:"end_date"`
-	TermMonths            int                                `json:"term_months" url:"term_months"`
-	PaymentOption         *CommitmentDetailDataPaymentOption `json:"payment_option,omitempty" url:"payment_option,omitempty"`
-	HourlyCommitmentUsd   *float64                           `json:"hourly_commitment_usd,omitempty" url:"hourly_commitment_usd,omitempty"`
-	MonthlyCommitmentUsd  float64                            `json:"monthly_commitment_usd" url:"monthly_commitment_usd"`
-	Status                CommitmentDetailDataStatus         `json:"status" url:"status"`
-	CurrentUtilizationPct float64                            `json:"current_utilization_pct" url:"current_utilization_pct"`
-	CurrentCoveragePct    float64                            `json:"current_coverage_pct" url:"current_coverage_pct"`
-	IsCommitable          bool                               `json:"is_commitable" url:"is_commitable"`
-	EndAt                 *string                            `json:"end_at,omitempty" url:"end_at,omitempty"`
-	HolderAccountID       *string                            `json:"holder_account_id,omitempty" url:"holder_account_id,omitempty"`
-	UnitCount             *int                               `json:"unit_count,omitempty" url:"unit_count,omitempty"`
-	FeeMonthlyList        *float64                           `json:"fee_monthly_list,omitempty" url:"fee_monthly_list,omitempty"`
-	FeeMonthlyNet         *float64                           `json:"fee_monthly_net,omitempty" url:"fee_monthly_net,omitempty"`
-	UtilizationSlopePp30D *float64                           `json:"utilization_slope_pp_30d,omitempty" url:"utilization_slope_pp_30d,omitempty"`
-	ProtectsMonthly       *float64                           `json:"protects_monthly,omitempty" url:"protects_monthly,omitempty"`
-	RightsizingMonthly    *float64                           `json:"rightsizing_monthly,omitempty" url:"rightsizing_monthly,omitempty"`
-	Exchangeable          *bool                              `json:"exchangeable,omitempty" url:"exchangeable,omitempty"`
-	Cancellable           *bool                              `json:"cancellable,omitempty" url:"cancellable,omitempty"`
-	UtilizationHistory    []*CommitmentUtilizationPoint      `json:"utilization_history,omitempty" url:"utilization_history,omitempty"`
-	CoverageHistory       []*CommitmentCoveragePoint         `json:"coverage_history,omitempty" url:"coverage_history,omitempty"`
-	Consumers             []*CommitmentConsumer              `json:"consumers,omitempty" url:"consumers,omitempty"`
-	History               []*HistoryEvent                    `json:"history,omitempty" url:"history,omitempty"`
-	Recommendations       []*CommitmentDetailRecommendation  `json:"recommendations,omitempty" url:"recommendations,omitempty"`
+	ID                      string                             `json:"id" url:"id"`
+	Provider                string                             `json:"provider" url:"provider"`
+	Service                 string                             `json:"service" url:"service"`
+	ServiceLabel            string                             `json:"service_label" url:"service_label"`
+	AccountID               string                             `json:"account_id" url:"account_id"`
+	AccountName             string                             `json:"account_name" url:"account_name"`
+	Region                  string                             `json:"region" url:"region"`
+	Kind                    CommitmentDetailDataKind           `json:"kind" url:"kind"`
+	StartDate               string                             `json:"start_date" url:"start_date"`
+	EndDate                 string                             `json:"end_date" url:"end_date"`
+	TermMonths              int                                `json:"term_months" url:"term_months"`
+	PaymentOption           *CommitmentDetailDataPaymentOption `json:"payment_option,omitempty" url:"payment_option,omitempty"`
+	HourlyCommitmentUsd     *float64                           `json:"hourly_commitment_usd,omitempty" url:"hourly_commitment_usd,omitempty"`
+	MonthlyCommitmentUsd    float64                            `json:"monthly_commitment_usd" url:"monthly_commitment_usd"`
+	Status                  CommitmentDetailDataStatus         `json:"status" url:"status"`
+	CurrentUtilizationPct   float64                            `json:"current_utilization_pct" url:"current_utilization_pct"`
+	CurrentCoveragePct      *float64                           `json:"current_coverage_pct,omitempty" url:"current_coverage_pct,omitempty"`
+	IsCommitable            bool                               `json:"is_commitable" url:"is_commitable"`
+	EndAt                   *string                            `json:"end_at,omitempty" url:"end_at,omitempty"`
+	HolderAccountID         *string                            `json:"holder_account_id,omitempty" url:"holder_account_id,omitempty"`
+	UnitCount               *int                               `json:"unit_count,omitempty" url:"unit_count,omitempty"`
+	FeeMonthlyList          *float64                           `json:"fee_monthly_list,omitempty" url:"fee_monthly_list,omitempty"`
+	FeeMonthlyNet           *float64                           `json:"fee_monthly_net,omitempty" url:"fee_monthly_net,omitempty"`
+	UtilizationSlopePp30D   *float64                           `json:"utilization_slope_pp_30d,omitempty" url:"utilization_slope_pp_30d,omitempty"`
+	ProtectsMonthly         *float64                           `json:"protects_monthly,omitempty" url:"protects_monthly,omitempty"`
+	RightsizingMonthly      *float64                           `json:"rightsizing_monthly,omitempty" url:"rightsizing_monthly,omitempty"`
+	Exchangeable            *bool                              `json:"exchangeable,omitempty" url:"exchangeable,omitempty"`
+	Cancellable             *bool                              `json:"cancellable,omitempty" url:"cancellable,omitempty"`
+	RenewalRecommendationID *string                            `json:"renewal_recommendation_id,omitempty" url:"renewal_recommendation_id,omitempty"`
+	UtilizationHistory      []*CommitmentUtilizationPoint      `json:"utilization_history,omitempty" url:"utilization_history,omitempty"`
+	CoverageHistory         []*CommitmentCoveragePoint         `json:"coverage_history,omitempty" url:"coverage_history,omitempty"`
+	Consumers               []*CommitmentConsumer              `json:"consumers,omitempty" url:"consumers,omitempty"`
+	History                 []*HistoryEvent                    `json:"history,omitempty" url:"history,omitempty"`
+	Recommendations         []*CommitmentDetailRecommendation  `json:"recommendations,omitempty" url:"recommendations,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -1257,9 +1259,9 @@ func (c *CommitmentDetailData) GetCurrentUtilizationPct() float64 {
 	return c.CurrentUtilizationPct
 }
 
-func (c *CommitmentDetailData) GetCurrentCoveragePct() float64 {
+func (c *CommitmentDetailData) GetCurrentCoveragePct() *float64 {
 	if c == nil {
-		return 0
+		return nil
 	}
 	return c.CurrentCoveragePct
 }
@@ -1339,6 +1341,13 @@ func (c *CommitmentDetailData) GetCancellable() *bool {
 		return nil
 	}
 	return c.Cancellable
+}
+
+func (c *CommitmentDetailData) GetRenewalRecommendationID() *string {
+	if c == nil {
+		return nil
+	}
+	return c.RenewalRecommendationID
 }
 
 func (c *CommitmentDetailData) GetUtilizationHistory() []*CommitmentUtilizationPoint {
@@ -1504,7 +1513,7 @@ func (c *CommitmentDetailData) SetCurrentUtilizationPct(currentUtilizationPct fl
 
 // SetCurrentCoveragePct sets the CurrentCoveragePct field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (c *CommitmentDetailData) SetCurrentCoveragePct(currentCoveragePct float64) {
+func (c *CommitmentDetailData) SetCurrentCoveragePct(currentCoveragePct *float64) {
 	c.CurrentCoveragePct = currentCoveragePct
 	c.require(commitmentDetailDataFieldCurrentCoveragePct)
 }
@@ -1584,6 +1593,13 @@ func (c *CommitmentDetailData) SetExchangeable(exchangeable *bool) {
 func (c *CommitmentDetailData) SetCancellable(cancellable *bool) {
 	c.Cancellable = cancellable
 	c.require(commitmentDetailDataFieldCancellable)
+}
+
+// SetRenewalRecommendationID sets the RenewalRecommendationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentDetailData) SetRenewalRecommendationID(renewalRecommendationID *string) {
+	c.RenewalRecommendationID = renewalRecommendationID
+	c.require(commitmentDetailDataFieldRenewalRecommendationID)
 }
 
 // SetUtilizationHistory sets the UtilizationHistory field and marks it as non-optional;
@@ -3329,6 +3345,190 @@ func (c *CommitmentListResponse) String() string {
 	return fmt.Sprintf("%#v", c)
 }
 
+// What the usage this commitment covered would have cost on demand.
+//
+// Both figures are read off the covered lines in the customer's own export, over the window
+// named here, so nothing in this block comes from a price list.
+var (
+	commitmentOnDemandFieldCurrency          = big.NewInt(1 << 0)
+	commitmentOnDemandFieldMeasuredFrom      = big.NewInt(1 << 1)
+	commitmentOnDemandFieldMeasuredTo        = big.NewInt(1 << 2)
+	commitmentOnDemandFieldOnDemandCost      = big.NewInt(1 << 3)
+	commitmentOnDemandFieldCoveredCost       = big.NewInt(1 << 4)
+	commitmentOnDemandFieldUnitHours         = big.NewInt(1 << 5)
+	commitmentOnDemandFieldDailyOnDemandCost = big.NewInt(1 << 6)
+)
+
+type CommitmentOnDemand struct {
+	Currency          string   `json:"currency" url:"currency"`
+	MeasuredFrom      string   `json:"measured_from" url:"measured_from"`
+	MeasuredTo        string   `json:"measured_to" url:"measured_to"`
+	OnDemandCost      float64  `json:"on_demand_cost" url:"on_demand_cost"`
+	CoveredCost       *float64 `json:"covered_cost,omitempty" url:"covered_cost,omitempty"`
+	UnitHours         *float64 `json:"unit_hours,omitempty" url:"unit_hours,omitempty"`
+	DailyOnDemandCost float64  `json:"daily_on_demand_cost" url:"daily_on_demand_cost"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CommitmentOnDemand) GetCurrency() string {
+	if c == nil {
+		return ""
+	}
+	return c.Currency
+}
+
+func (c *CommitmentOnDemand) GetMeasuredFrom() string {
+	if c == nil {
+		return ""
+	}
+	return c.MeasuredFrom
+}
+
+func (c *CommitmentOnDemand) GetMeasuredTo() string {
+	if c == nil {
+		return ""
+	}
+	return c.MeasuredTo
+}
+
+func (c *CommitmentOnDemand) GetOnDemandCost() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.OnDemandCost
+}
+
+func (c *CommitmentOnDemand) GetCoveredCost() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.CoveredCost
+}
+
+func (c *CommitmentOnDemand) GetUnitHours() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.UnitHours
+}
+
+func (c *CommitmentOnDemand) GetDailyOnDemandCost() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.DailyOnDemandCost
+}
+
+func (c *CommitmentOnDemand) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CommitmentOnDemand) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetCurrency sets the Currency field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentOnDemand) SetCurrency(currency string) {
+	c.Currency = currency
+	c.require(commitmentOnDemandFieldCurrency)
+}
+
+// SetMeasuredFrom sets the MeasuredFrom field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentOnDemand) SetMeasuredFrom(measuredFrom string) {
+	c.MeasuredFrom = measuredFrom
+	c.require(commitmentOnDemandFieldMeasuredFrom)
+}
+
+// SetMeasuredTo sets the MeasuredTo field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentOnDemand) SetMeasuredTo(measuredTo string) {
+	c.MeasuredTo = measuredTo
+	c.require(commitmentOnDemandFieldMeasuredTo)
+}
+
+// SetOnDemandCost sets the OnDemandCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentOnDemand) SetOnDemandCost(onDemandCost float64) {
+	c.OnDemandCost = onDemandCost
+	c.require(commitmentOnDemandFieldOnDemandCost)
+}
+
+// SetCoveredCost sets the CoveredCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentOnDemand) SetCoveredCost(coveredCost *float64) {
+	c.CoveredCost = coveredCost
+	c.require(commitmentOnDemandFieldCoveredCost)
+}
+
+// SetUnitHours sets the UnitHours field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentOnDemand) SetUnitHours(unitHours *float64) {
+	c.UnitHours = unitHours
+	c.require(commitmentOnDemandFieldUnitHours)
+}
+
+// SetDailyOnDemandCost sets the DailyOnDemandCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentOnDemand) SetDailyOnDemandCost(dailyOnDemandCost float64) {
+	c.DailyOnDemandCost = dailyOnDemandCost
+	c.require(commitmentOnDemandFieldDailyOnDemandCost)
+}
+
+func (c *CommitmentOnDemand) UnmarshalJSON(data []byte) error {
+	type unmarshaler CommitmentOnDemand
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CommitmentOnDemand(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CommitmentOnDemand) MarshalJSON() ([]byte, error) {
+	type embed CommitmentOnDemand
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CommitmentOnDemand) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
 var (
 	commitmentPortfolioDataFieldBasis  = big.NewInt(1 << 0)
 	commitmentPortfolioDataFieldTotals = big.NewInt(1 << 1)
@@ -4673,6 +4873,446 @@ func (c *CommitmentRecommendationsResponse) MarshalJSON() ([]byte, error) {
 }
 
 func (c *CommitmentRecommendationsResponse) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	commitmentRenewalDataFieldCommitmentID     = big.NewInt(1 << 0)
+	commitmentRenewalDataFieldRecommendationID = big.NewInt(1 << 1)
+	commitmentRenewalDataFieldCreatedBy        = big.NewInt(1 << 2)
+	commitmentRenewalDataFieldCreatedAt        = big.NewInt(1 << 3)
+	commitmentRenewalDataFieldCreated          = big.NewInt(1 << 4)
+	commitmentRenewalDataFieldBlockingChanges  = big.NewInt(1 << 5)
+)
+
+type CommitmentRenewalData struct {
+	CommitmentID     string                  `json:"commitment_id" url:"commitment_id"`
+	RecommendationID string                  `json:"recommendation_id" url:"recommendation_id"`
+	CreatedBy        *string                 `json:"created_by,omitempty" url:"created_by,omitempty"`
+	CreatedAt        *string                 `json:"created_at,omitempty" url:"created_at,omitempty"`
+	Created          *bool                   `json:"created,omitempty" url:"created,omitempty"`
+	BlockingChanges  []*RenewalPendingChange `json:"blocking_changes,omitempty" url:"blocking_changes,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CommitmentRenewalData) GetCommitmentID() string {
+	if c == nil {
+		return ""
+	}
+	return c.CommitmentID
+}
+
+func (c *CommitmentRenewalData) GetRecommendationID() string {
+	if c == nil {
+		return ""
+	}
+	return c.RecommendationID
+}
+
+func (c *CommitmentRenewalData) GetCreatedBy() *string {
+	if c == nil {
+		return nil
+	}
+	return c.CreatedBy
+}
+
+func (c *CommitmentRenewalData) GetCreatedAt() *string {
+	if c == nil {
+		return nil
+	}
+	return c.CreatedAt
+}
+
+func (c *CommitmentRenewalData) GetCreated() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Created
+}
+
+func (c *CommitmentRenewalData) GetBlockingChanges() []*RenewalPendingChange {
+	if c == nil {
+		return nil
+	}
+	return c.BlockingChanges
+}
+
+func (c *CommitmentRenewalData) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CommitmentRenewalData) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetCommitmentID sets the CommitmentID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalData) SetCommitmentID(commitmentID string) {
+	c.CommitmentID = commitmentID
+	c.require(commitmentRenewalDataFieldCommitmentID)
+}
+
+// SetRecommendationID sets the RecommendationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalData) SetRecommendationID(recommendationID string) {
+	c.RecommendationID = recommendationID
+	c.require(commitmentRenewalDataFieldRecommendationID)
+}
+
+// SetCreatedBy sets the CreatedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalData) SetCreatedBy(createdBy *string) {
+	c.CreatedBy = createdBy
+	c.require(commitmentRenewalDataFieldCreatedBy)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalData) SetCreatedAt(createdAt *string) {
+	c.CreatedAt = createdAt
+	c.require(commitmentRenewalDataFieldCreatedAt)
+}
+
+// SetCreated sets the Created field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalData) SetCreated(created *bool) {
+	c.Created = created
+	c.require(commitmentRenewalDataFieldCreated)
+}
+
+// SetBlockingChanges sets the BlockingChanges field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalData) SetBlockingChanges(blockingChanges []*RenewalPendingChange) {
+	c.BlockingChanges = blockingChanges
+	c.require(commitmentRenewalDataFieldBlockingChanges)
+}
+
+func (c *CommitmentRenewalData) UnmarshalJSON(data []byte) error {
+	type unmarshaler CommitmentRenewalData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CommitmentRenewalData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CommitmentRenewalData) MarshalJSON() ([]byte, error) {
+	type embed CommitmentRenewalData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CommitmentRenewalData) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	commitmentRenewalResponseFieldSuccess   = big.NewInt(1 << 0)
+	commitmentRenewalResponseFieldTimestamp = big.NewInt(1 << 1)
+	commitmentRenewalResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type CommitmentRenewalResponse struct {
+	Success   *bool                  `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time             `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *CommitmentRenewalData `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CommitmentRenewalResponse) GetSuccess() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Success
+}
+
+func (c *CommitmentRenewalResponse) GetTimestamp() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.Timestamp
+}
+
+func (c *CommitmentRenewalResponse) GetData() *CommitmentRenewalData {
+	if c == nil {
+		return nil
+	}
+	return c.Data
+}
+
+func (c *CommitmentRenewalResponse) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CommitmentRenewalResponse) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalResponse) SetSuccess(success *bool) {
+	c.Success = success
+	c.require(commitmentRenewalResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalResponse) SetTimestamp(timestamp *time.Time) {
+	c.Timestamp = timestamp
+	c.require(commitmentRenewalResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalResponse) SetData(data *CommitmentRenewalData) {
+	c.Data = data
+	c.require(commitmentRenewalResponseFieldData)
+}
+
+func (c *CommitmentRenewalResponse) UnmarshalJSON(data []byte) error {
+	type embed CommitmentRenewalResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = CommitmentRenewalResponse(unmarshaler.embed)
+	c.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CommitmentRenewalResponse) MarshalJSON() ([]byte, error) {
+	type embed CommitmentRenewalResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*c),
+		Timestamp: internal.NewOptionalDateTime(c.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CommitmentRenewalResponse) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+// What the whole term costs, with the per unit arithmetic already done.
+//
+// A reservation is priced per unit and a plan whole, so these totals are the only figures on
+// this payload that can be compared or summed without knowing which.
+var (
+	commitmentTermPricingFieldCurrency             = big.NewInt(1 << 0)
+	commitmentTermPricingFieldTermHours            = big.NewInt(1 << 1)
+	commitmentTermPricingFieldUpfrontTotal         = big.NewInt(1 << 2)
+	commitmentTermPricingFieldRecurringHourlyTotal = big.NewInt(1 << 3)
+	commitmentTermPricingFieldTermTotal            = big.NewInt(1 << 4)
+)
+
+type CommitmentTermPricing struct {
+	Currency             string  `json:"currency" url:"currency"`
+	TermHours            int     `json:"term_hours" url:"term_hours"`
+	UpfrontTotal         float64 `json:"upfront_total" url:"upfront_total"`
+	RecurringHourlyTotal float64 `json:"recurring_hourly_total" url:"recurring_hourly_total"`
+	TermTotal            float64 `json:"term_total" url:"term_total"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CommitmentTermPricing) GetCurrency() string {
+	if c == nil {
+		return ""
+	}
+	return c.Currency
+}
+
+func (c *CommitmentTermPricing) GetTermHours() int {
+	if c == nil {
+		return 0
+	}
+	return c.TermHours
+}
+
+func (c *CommitmentTermPricing) GetUpfrontTotal() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.UpfrontTotal
+}
+
+func (c *CommitmentTermPricing) GetRecurringHourlyTotal() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.RecurringHourlyTotal
+}
+
+func (c *CommitmentTermPricing) GetTermTotal() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.TermTotal
+}
+
+func (c *CommitmentTermPricing) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CommitmentTermPricing) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetCurrency sets the Currency field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentTermPricing) SetCurrency(currency string) {
+	c.Currency = currency
+	c.require(commitmentTermPricingFieldCurrency)
+}
+
+// SetTermHours sets the TermHours field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentTermPricing) SetTermHours(termHours int) {
+	c.TermHours = termHours
+	c.require(commitmentTermPricingFieldTermHours)
+}
+
+// SetUpfrontTotal sets the UpfrontTotal field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentTermPricing) SetUpfrontTotal(upfrontTotal float64) {
+	c.UpfrontTotal = upfrontTotal
+	c.require(commitmentTermPricingFieldUpfrontTotal)
+}
+
+// SetRecurringHourlyTotal sets the RecurringHourlyTotal field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentTermPricing) SetRecurringHourlyTotal(recurringHourlyTotal float64) {
+	c.RecurringHourlyTotal = recurringHourlyTotal
+	c.require(commitmentTermPricingFieldRecurringHourlyTotal)
+}
+
+// SetTermTotal sets the TermTotal field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentTermPricing) SetTermTotal(termTotal float64) {
+	c.TermTotal = termTotal
+	c.require(commitmentTermPricingFieldTermTotal)
+}
+
+func (c *CommitmentTermPricing) UnmarshalJSON(data []byte) error {
+	type unmarshaler CommitmentTermPricing
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CommitmentTermPricing(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CommitmentTermPricing) MarshalJSON() ([]byte, error) {
+	type embed CommitmentTermPricing
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CommitmentTermPricing) String() string {
 	if c == nil {
 		return "<nil>"
 	}
@@ -7066,17 +7706,19 @@ func (c *CoverageRateAccount) String() string {
 }
 
 var (
-	coverageRateServiceFieldInstrument  = big.NewInt(1 << 0)
-	coverageRateServiceFieldDimension   = big.NewInt(1 << 1)
-	coverageRateServiceFieldCoveragePct = big.NewInt(1 << 2)
-	coverageRateServiceFieldMeasuredOn  = big.NewInt(1 << 3)
+	coverageRateServiceFieldInstrument     = big.NewInt(1 << 0)
+	coverageRateServiceFieldDimension      = big.NewInt(1 << 1)
+	coverageRateServiceFieldDimensionLabel = big.NewInt(1 << 2)
+	coverageRateServiceFieldCoveragePct    = big.NewInt(1 << 3)
+	coverageRateServiceFieldMeasuredOn     = big.NewInt(1 << 4)
 )
 
 type CoverageRateService struct {
-	Instrument  string  `json:"instrument" url:"instrument"`
-	Dimension   string  `json:"dimension" url:"dimension"`
-	CoveragePct float64 `json:"coverage_pct" url:"coverage_pct"`
-	MeasuredOn  *string `json:"measured_on,omitempty" url:"measured_on,omitempty"`
+	Instrument     string  `json:"instrument" url:"instrument"`
+	Dimension      string  `json:"dimension" url:"dimension"`
+	DimensionLabel string  `json:"dimension_label" url:"dimension_label"`
+	CoveragePct    float64 `json:"coverage_pct" url:"coverage_pct"`
+	MeasuredOn     *string `json:"measured_on,omitempty" url:"measured_on,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -7097,6 +7739,13 @@ func (c *CoverageRateService) GetDimension() string {
 		return ""
 	}
 	return c.Dimension
+}
+
+func (c *CoverageRateService) GetDimensionLabel() string {
+	if c == nil {
+		return ""
+	}
+	return c.DimensionLabel
 }
 
 func (c *CoverageRateService) GetCoveragePct() float64 {
@@ -7139,6 +7788,13 @@ func (c *CoverageRateService) SetInstrument(instrument string) {
 func (c *CoverageRateService) SetDimension(dimension string) {
 	c.Dimension = dimension
 	c.require(coverageRateServiceFieldDimension)
+}
+
+// SetDimensionLabel sets the DimensionLabel field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageRateService) SetDimensionLabel(dimensionLabel string) {
+	c.DimensionLabel = dimensionLabel
+	c.require(coverageRateServiceFieldDimensionLabel)
 }
 
 // SetCoveragePct sets the CoveragePct field and marks it as non-optional;
@@ -8999,14 +9655,16 @@ var (
 	inventoryPlanRowFieldCommittedMonthly   = big.NewInt(1 << 13)
 	inventoryPlanRowFieldSavedMonthly       = big.NewInt(1 << 14)
 	inventoryPlanRowFieldUnusedMonthly      = big.NewInt(1 << 15)
-	inventoryPlanRowFieldPlanType           = big.NewInt(1 << 16)
-	inventoryPlanRowFieldCommitmentHourly   = big.NewInt(1 << 17)
-	inventoryPlanRowFieldRegion             = big.NewInt(1 << 18)
-	inventoryPlanRowFieldInstanceFamily     = big.NewInt(1 << 19)
-	inventoryPlanRowFieldProductTypes       = big.NewInt(1 << 20)
-	inventoryPlanRowFieldUpfront            = big.NewInt(1 << 21)
-	inventoryPlanRowFieldRecurringMonthly   = big.NewInt(1 << 22)
-	inventoryPlanRowFieldReturnableUntil    = big.NewInt(1 << 23)
+	inventoryPlanRowFieldOnDemand           = big.NewInt(1 << 16)
+	inventoryPlanRowFieldPlanType           = big.NewInt(1 << 17)
+	inventoryPlanRowFieldCommitmentHourly   = big.NewInt(1 << 18)
+	inventoryPlanRowFieldRegion             = big.NewInt(1 << 19)
+	inventoryPlanRowFieldInstanceFamily     = big.NewInt(1 << 20)
+	inventoryPlanRowFieldProductTypes       = big.NewInt(1 << 21)
+	inventoryPlanRowFieldUpfront            = big.NewInt(1 << 22)
+	inventoryPlanRowFieldRecurringHourly    = big.NewInt(1 << 23)
+	inventoryPlanRowFieldRecurringMonthly   = big.NewInt(1 << 24)
+	inventoryPlanRowFieldReturnableUntil    = big.NewInt(1 << 25)
 )
 
 type InventoryPlanRow struct {
@@ -9026,12 +9684,14 @@ type InventoryPlanRow struct {
 	CommittedMonthly   float64               `json:"committed_monthly" url:"committed_monthly"`
 	SavedMonthly       *float64              `json:"saved_monthly,omitempty" url:"saved_monthly,omitempty"`
 	UnusedMonthly      *float64              `json:"unused_monthly,omitempty" url:"unused_monthly,omitempty"`
+	OnDemand           *CommitmentOnDemand   `json:"on_demand,omitempty" url:"on_demand,omitempty"`
 	PlanType           string                `json:"plan_type" url:"plan_type"`
 	CommitmentHourly   float64               `json:"commitment_hourly" url:"commitment_hourly"`
 	Region             *string               `json:"region,omitempty" url:"region,omitempty"`
 	InstanceFamily     *string               `json:"instance_family,omitempty" url:"instance_family,omitempty"`
 	ProductTypes       []string              `json:"product_types" url:"product_types"`
 	Upfront            *float64              `json:"upfront,omitempty" url:"upfront,omitempty"`
+	RecurringHourly    *float64              `json:"recurring_hourly,omitempty" url:"recurring_hourly,omitempty"`
 	RecurringMonthly   *float64              `json:"recurring_monthly,omitempty" url:"recurring_monthly,omitempty"`
 	ReturnableUntil    *string               `json:"returnable_until,omitempty" url:"returnable_until,omitempty"`
 
@@ -9154,6 +9814,13 @@ func (i *InventoryPlanRow) GetUnusedMonthly() *float64 {
 	return i.UnusedMonthly
 }
 
+func (i *InventoryPlanRow) GetOnDemand() *CommitmentOnDemand {
+	if i == nil {
+		return nil
+	}
+	return i.OnDemand
+}
+
 func (i *InventoryPlanRow) GetPlanType() string {
 	if i == nil {
 		return ""
@@ -9194,6 +9861,13 @@ func (i *InventoryPlanRow) GetUpfront() *float64 {
 		return nil
 	}
 	return i.Upfront
+}
+
+func (i *InventoryPlanRow) GetRecurringHourly() *float64 {
+	if i == nil {
+		return nil
+	}
+	return i.RecurringHourly
 }
 
 func (i *InventoryPlanRow) GetRecurringMonthly() *float64 {
@@ -9336,6 +10010,13 @@ func (i *InventoryPlanRow) SetUnusedMonthly(unusedMonthly *float64) {
 	i.require(inventoryPlanRowFieldUnusedMonthly)
 }
 
+// SetOnDemand sets the OnDemand field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InventoryPlanRow) SetOnDemand(onDemand *CommitmentOnDemand) {
+	i.OnDemand = onDemand
+	i.require(inventoryPlanRowFieldOnDemand)
+}
+
 // SetPlanType sets the PlanType field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (i *InventoryPlanRow) SetPlanType(planType string) {
@@ -9376,6 +10057,13 @@ func (i *InventoryPlanRow) SetProductTypes(productTypes []string) {
 func (i *InventoryPlanRow) SetUpfront(upfront *float64) {
 	i.Upfront = upfront
 	i.require(inventoryPlanRowFieldUpfront)
+}
+
+// SetRecurringHourly sets the RecurringHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InventoryPlanRow) SetRecurringHourly(recurringHourly *float64) {
+	i.RecurringHourly = recurringHourly
+	i.require(inventoryPlanRowFieldRecurringHourly)
 }
 
 // SetRecurringMonthly sets the RecurringMonthly field and marks it as non-optional;
@@ -9482,20 +10170,22 @@ var (
 	inventoryReservationRowFieldCommittedMonthly   = big.NewInt(1 << 13)
 	inventoryReservationRowFieldSavedMonthly       = big.NewInt(1 << 14)
 	inventoryReservationRowFieldUnusedMonthly      = big.NewInt(1 << 15)
-	inventoryReservationRowFieldService            = big.NewInt(1 << 16)
-	inventoryReservationRowFieldServiceLabel       = big.NewInt(1 << 17)
-	inventoryReservationRowFieldResource           = big.NewInt(1 << 18)
-	inventoryReservationRowFieldQty                = big.NewInt(1 << 19)
-	inventoryReservationRowFieldRegion             = big.NewInt(1 << 20)
-	inventoryReservationRowFieldFixedPrice         = big.NewInt(1 << 21)
-	inventoryReservationRowFieldRecurringHourly    = big.NewInt(1 << 22)
-	inventoryReservationRowFieldUsageHourly        = big.NewInt(1 << 23)
-	inventoryReservationRowFieldOfferingClass      = big.NewInt(1 << 24)
-	inventoryReservationRowFieldScope              = big.NewInt(1 << 25)
-	inventoryReservationRowFieldTenancy            = big.NewInt(1 << 26)
-	inventoryReservationRowFieldMultiAz            = big.NewInt(1 << 27)
-	inventoryReservationRowFieldNodeOffering       = big.NewInt(1 << 28)
-	inventoryReservationRowFieldReservationName    = big.NewInt(1 << 29)
+	inventoryReservationRowFieldOnDemand           = big.NewInt(1 << 16)
+	inventoryReservationRowFieldService            = big.NewInt(1 << 17)
+	inventoryReservationRowFieldServiceLabel       = big.NewInt(1 << 18)
+	inventoryReservationRowFieldResource           = big.NewInt(1 << 19)
+	inventoryReservationRowFieldQty                = big.NewInt(1 << 20)
+	inventoryReservationRowFieldRegion             = big.NewInt(1 << 21)
+	inventoryReservationRowFieldFixedPrice         = big.NewInt(1 << 22)
+	inventoryReservationRowFieldRecurringHourly    = big.NewInt(1 << 23)
+	inventoryReservationRowFieldUsageHourly        = big.NewInt(1 << 24)
+	inventoryReservationRowFieldOfferingClass      = big.NewInt(1 << 25)
+	inventoryReservationRowFieldScope              = big.NewInt(1 << 26)
+	inventoryReservationRowFieldAvailabilityZone   = big.NewInt(1 << 27)
+	inventoryReservationRowFieldTenancy            = big.NewInt(1 << 28)
+	inventoryReservationRowFieldMultiAz            = big.NewInt(1 << 29)
+	inventoryReservationRowFieldNodeOffering       = big.NewInt(1 << 30)
+	inventoryReservationRowFieldReservationName    = big.NewInt(1 << 31)
 )
 
 type InventoryReservationRow struct {
@@ -9515,6 +10205,7 @@ type InventoryReservationRow struct {
 	CommittedMonthly   float64                      `json:"committed_monthly" url:"committed_monthly"`
 	SavedMonthly       *float64                     `json:"saved_monthly,omitempty" url:"saved_monthly,omitempty"`
 	UnusedMonthly      *float64                     `json:"unused_monthly,omitempty" url:"unused_monthly,omitempty"`
+	OnDemand           *CommitmentOnDemand          `json:"on_demand,omitempty" url:"on_demand,omitempty"`
 	Service            string                       `json:"service" url:"service"`
 	ServiceLabel       string                       `json:"service_label" url:"service_label"`
 	Resource           string                       `json:"resource" url:"resource"`
@@ -9525,6 +10216,7 @@ type InventoryReservationRow struct {
 	UsageHourly        *float64                     `json:"usage_hourly,omitempty" url:"usage_hourly,omitempty"`
 	OfferingClass      *string                      `json:"offering_class,omitempty" url:"offering_class,omitempty"`
 	Scope              *string                      `json:"scope,omitempty" url:"scope,omitempty"`
+	AvailabilityZone   *string                      `json:"availability_zone,omitempty" url:"availability_zone,omitempty"`
 	Tenancy            *string                      `json:"tenancy,omitempty" url:"tenancy,omitempty"`
 	MultiAz            *bool                        `json:"multi_az,omitempty" url:"multi_az,omitempty"`
 	NodeOffering       *string                      `json:"node_offering,omitempty" url:"node_offering,omitempty"`
@@ -9649,6 +10341,13 @@ func (i *InventoryReservationRow) GetUnusedMonthly() *float64 {
 	return i.UnusedMonthly
 }
 
+func (i *InventoryReservationRow) GetOnDemand() *CommitmentOnDemand {
+	if i == nil {
+		return nil
+	}
+	return i.OnDemand
+}
+
 func (i *InventoryReservationRow) GetService() string {
 	if i == nil {
 		return ""
@@ -9717,6 +10416,13 @@ func (i *InventoryReservationRow) GetScope() *string {
 		return nil
 	}
 	return i.Scope
+}
+
+func (i *InventoryReservationRow) GetAvailabilityZone() *string {
+	if i == nil {
+		return nil
+	}
+	return i.AvailabilityZone
 }
 
 func (i *InventoryReservationRow) GetTenancy() *string {
@@ -9873,6 +10579,13 @@ func (i *InventoryReservationRow) SetUnusedMonthly(unusedMonthly *float64) {
 	i.require(inventoryReservationRowFieldUnusedMonthly)
 }
 
+// SetOnDemand sets the OnDemand field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InventoryReservationRow) SetOnDemand(onDemand *CommitmentOnDemand) {
+	i.OnDemand = onDemand
+	i.require(inventoryReservationRowFieldOnDemand)
+}
+
 // SetService sets the Service field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (i *InventoryReservationRow) SetService(service string) {
@@ -9941,6 +10654,13 @@ func (i *InventoryReservationRow) SetOfferingClass(offeringClass *string) {
 func (i *InventoryReservationRow) SetScope(scope *string) {
 	i.Scope = scope
 	i.require(inventoryReservationRowFieldScope)
+}
+
+// SetAvailabilityZone sets the AvailabilityZone field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InventoryReservationRow) SetAvailabilityZone(availabilityZone *string) {
+	i.AvailabilityZone = availabilityZone
+	i.require(inventoryReservationRowFieldAvailabilityZone)
 }
 
 // SetTenancy sets the Tenancy field and marks it as non-optional;
@@ -10197,16 +10917,19 @@ var (
 	renewalPlanDataFieldService            = big.NewInt(1 << 1)
 	renewalPlanDataFieldHolderAccountID    = big.NewInt(1 << 2)
 	renewalPlanDataFieldEndAt              = big.NewInt(1 << 3)
-	renewalPlanDataFieldBuyAfterUtc        = big.NewInt(1 << 4)
-	renewalPlanDataFieldExpiresInSeconds   = big.NewInt(1 << 5)
-	renewalPlanDataFieldUnitsHeld          = big.NewInt(1 << 6)
-	renewalPlanDataFieldUnitsConsumed      = big.NewInt(1 << 7)
-	renewalPlanDataFieldUnitsRecommended   = big.NewInt(1 << 8)
-	renewalPlanDataFieldProtectsMonthly    = big.NewInt(1 << 9)
-	renewalPlanDataFieldRightsizingMonthly = big.NewInt(1 << 10)
-	renewalPlanDataFieldPendingChanges     = big.NewInt(1 << 11)
-	renewalPlanDataFieldExchangeable       = big.NewInt(1 << 12)
-	renewalPlanDataFieldCancellable        = big.NewInt(1 << 13)
+	renewalPlanDataFieldEndAtAssumed       = big.NewInt(1 << 4)
+	renewalPlanDataFieldBuyAfterUtc        = big.NewInt(1 << 5)
+	renewalPlanDataFieldExpiresInSeconds   = big.NewInt(1 << 6)
+	renewalPlanDataFieldRenewalWindowDays  = big.NewInt(1 << 7)
+	renewalPlanDataFieldUnitsHeld          = big.NewInt(1 << 8)
+	renewalPlanDataFieldUnitsConsumed      = big.NewInt(1 << 9)
+	renewalPlanDataFieldUnitsRecommended   = big.NewInt(1 << 10)
+	renewalPlanDataFieldProtectsMonthly    = big.NewInt(1 << 11)
+	renewalPlanDataFieldRightsizingMonthly = big.NewInt(1 << 12)
+	renewalPlanDataFieldPendingChanges     = big.NewInt(1 << 13)
+	renewalPlanDataFieldBlockingChanges    = big.NewInt(1 << 14)
+	renewalPlanDataFieldExchangeable       = big.NewInt(1 << 15)
+	renewalPlanDataFieldCancellable        = big.NewInt(1 << 16)
 )
 
 type RenewalPlanData struct {
@@ -10214,14 +10937,17 @@ type RenewalPlanData struct {
 	Service            string                  `json:"service" url:"service"`
 	HolderAccountID    string                  `json:"holder_account_id" url:"holder_account_id"`
 	EndAt              *string                 `json:"end_at,omitempty" url:"end_at,omitempty"`
+	EndAtAssumed       *bool                   `json:"end_at_assumed,omitempty" url:"end_at_assumed,omitempty"`
 	BuyAfterUtc        *string                 `json:"buy_after_utc,omitempty" url:"buy_after_utc,omitempty"`
 	ExpiresInSeconds   *int                    `json:"expires_in_seconds,omitempty" url:"expires_in_seconds,omitempty"`
+	RenewalWindowDays  int                     `json:"renewal_window_days" url:"renewal_window_days"`
 	UnitsHeld          int                     `json:"units_held" url:"units_held"`
 	UnitsConsumed      int                     `json:"units_consumed" url:"units_consumed"`
 	UnitsRecommended   int                     `json:"units_recommended" url:"units_recommended"`
 	ProtectsMonthly    float64                 `json:"protects_monthly" url:"protects_monthly"`
 	RightsizingMonthly float64                 `json:"rightsizing_monthly" url:"rightsizing_monthly"`
 	PendingChanges     []*RenewalPendingChange `json:"pending_changes" url:"pending_changes"`
+	BlockingChanges    []*RenewalPendingChange `json:"blocking_changes,omitempty" url:"blocking_changes,omitempty"`
 	Exchangeable       *bool                   `json:"exchangeable,omitempty" url:"exchangeable,omitempty"`
 	Cancellable        *bool                   `json:"cancellable,omitempty" url:"cancellable,omitempty"`
 
@@ -10260,6 +10986,13 @@ func (r *RenewalPlanData) GetEndAt() *string {
 	return r.EndAt
 }
 
+func (r *RenewalPlanData) GetEndAtAssumed() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.EndAtAssumed
+}
+
 func (r *RenewalPlanData) GetBuyAfterUtc() *string {
 	if r == nil {
 		return nil
@@ -10272,6 +11005,13 @@ func (r *RenewalPlanData) GetExpiresInSeconds() *int {
 		return nil
 	}
 	return r.ExpiresInSeconds
+}
+
+func (r *RenewalPlanData) GetRenewalWindowDays() int {
+	if r == nil {
+		return 0
+	}
+	return r.RenewalWindowDays
 }
 
 func (r *RenewalPlanData) GetUnitsHeld() int {
@@ -10314,6 +11054,13 @@ func (r *RenewalPlanData) GetPendingChanges() []*RenewalPendingChange {
 		return nil
 	}
 	return r.PendingChanges
+}
+
+func (r *RenewalPlanData) GetBlockingChanges() []*RenewalPendingChange {
+	if r == nil {
+		return nil
+	}
+	return r.BlockingChanges
 }
 
 func (r *RenewalPlanData) GetExchangeable() *bool {
@@ -10372,6 +11119,13 @@ func (r *RenewalPlanData) SetEndAt(endAt *string) {
 	r.require(renewalPlanDataFieldEndAt)
 }
 
+// SetEndAtAssumed sets the EndAtAssumed field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalPlanData) SetEndAtAssumed(endAtAssumed *bool) {
+	r.EndAtAssumed = endAtAssumed
+	r.require(renewalPlanDataFieldEndAtAssumed)
+}
+
 // SetBuyAfterUtc sets the BuyAfterUtc field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (r *RenewalPlanData) SetBuyAfterUtc(buyAfterUtc *string) {
@@ -10384,6 +11138,13 @@ func (r *RenewalPlanData) SetBuyAfterUtc(buyAfterUtc *string) {
 func (r *RenewalPlanData) SetExpiresInSeconds(expiresInSeconds *int) {
 	r.ExpiresInSeconds = expiresInSeconds
 	r.require(renewalPlanDataFieldExpiresInSeconds)
+}
+
+// SetRenewalWindowDays sets the RenewalWindowDays field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalPlanData) SetRenewalWindowDays(renewalWindowDays int) {
+	r.RenewalWindowDays = renewalWindowDays
+	r.require(renewalPlanDataFieldRenewalWindowDays)
 }
 
 // SetUnitsHeld sets the UnitsHeld field and marks it as non-optional;
@@ -10426,6 +11187,13 @@ func (r *RenewalPlanData) SetRightsizingMonthly(rightsizingMonthly float64) {
 func (r *RenewalPlanData) SetPendingChanges(pendingChanges []*RenewalPendingChange) {
 	r.PendingChanges = pendingChanges
 	r.require(renewalPlanDataFieldPendingChanges)
+}
+
+// SetBlockingChanges sets the BlockingChanges field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalPlanData) SetBlockingChanges(blockingChanges []*RenewalPendingChange) {
+	r.BlockingChanges = blockingChanges
+	r.require(renewalPlanDataFieldBlockingChanges)
 }
 
 // SetExchangeable sets the Exchangeable field and marks it as non-optional;
@@ -10594,6 +11362,422 @@ func (r *RenewalPlanResponse) MarshalJSON() ([]byte, error) {
 }
 
 func (r *RenewalPlanResponse) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	renewalQuoteDataFieldCommitmentID     = big.NewInt(1 << 0)
+	renewalQuoteDataFieldOfferingID       = big.NewInt(1 << 1)
+	renewalQuoteDataFieldTermMonths       = big.NewInt(1 << 2)
+	renewalQuoteDataFieldPaymentOption    = big.NewInt(1 << 3)
+	renewalQuoteDataFieldQty              = big.NewInt(1 << 4)
+	renewalQuoteDataFieldCurrency         = big.NewInt(1 << 5)
+	renewalQuoteDataFieldFixedPrice       = big.NewInt(1 << 6)
+	renewalQuoteDataFieldRecurringHourly  = big.NewInt(1 << 7)
+	renewalQuoteDataFieldUsageHourly      = big.NewInt(1 << 8)
+	renewalQuoteDataFieldUpfront          = big.NewInt(1 << 9)
+	renewalQuoteDataFieldCommitmentHourly = big.NewInt(1 << 10)
+	renewalQuoteDataFieldErrorMessage     = big.NewInt(1 << 11)
+	renewalQuoteDataFieldQuotedAt         = big.NewInt(1 << 12)
+	renewalQuoteDataFieldTerm             = big.NewInt(1 << 13)
+)
+
+type RenewalQuoteData struct {
+	CommitmentID     string                 `json:"commitment_id" url:"commitment_id"`
+	OfferingID       *string                `json:"offering_id,omitempty" url:"offering_id,omitempty"`
+	TermMonths       *int                   `json:"term_months,omitempty" url:"term_months,omitempty"`
+	PaymentOption    *string                `json:"payment_option,omitempty" url:"payment_option,omitempty"`
+	Qty              *int                   `json:"qty,omitempty" url:"qty,omitempty"`
+	Currency         *string                `json:"currency,omitempty" url:"currency,omitempty"`
+	FixedPrice       *float64               `json:"fixed_price,omitempty" url:"fixed_price,omitempty"`
+	RecurringHourly  *float64               `json:"recurring_hourly,omitempty" url:"recurring_hourly,omitempty"`
+	UsageHourly      *float64               `json:"usage_hourly,omitempty" url:"usage_hourly,omitempty"`
+	Upfront          *float64               `json:"upfront,omitempty" url:"upfront,omitempty"`
+	CommitmentHourly *float64               `json:"commitment_hourly,omitempty" url:"commitment_hourly,omitempty"`
+	ErrorMessage     *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
+	QuotedAt         *string                `json:"quoted_at,omitempty" url:"quoted_at,omitempty"`
+	Term             *CommitmentTermPricing `json:"term,omitempty" url:"term,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RenewalQuoteData) GetCommitmentID() string {
+	if r == nil {
+		return ""
+	}
+	return r.CommitmentID
+}
+
+func (r *RenewalQuoteData) GetOfferingID() *string {
+	if r == nil {
+		return nil
+	}
+	return r.OfferingID
+}
+
+func (r *RenewalQuoteData) GetTermMonths() *int {
+	if r == nil {
+		return nil
+	}
+	return r.TermMonths
+}
+
+func (r *RenewalQuoteData) GetPaymentOption() *string {
+	if r == nil {
+		return nil
+	}
+	return r.PaymentOption
+}
+
+func (r *RenewalQuoteData) GetQty() *int {
+	if r == nil {
+		return nil
+	}
+	return r.Qty
+}
+
+func (r *RenewalQuoteData) GetCurrency() *string {
+	if r == nil {
+		return nil
+	}
+	return r.Currency
+}
+
+func (r *RenewalQuoteData) GetFixedPrice() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.FixedPrice
+}
+
+func (r *RenewalQuoteData) GetRecurringHourly() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.RecurringHourly
+}
+
+func (r *RenewalQuoteData) GetUsageHourly() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.UsageHourly
+}
+
+func (r *RenewalQuoteData) GetUpfront() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.Upfront
+}
+
+func (r *RenewalQuoteData) GetCommitmentHourly() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.CommitmentHourly
+}
+
+func (r *RenewalQuoteData) GetErrorMessage() *string {
+	if r == nil {
+		return nil
+	}
+	return r.ErrorMessage
+}
+
+func (r *RenewalQuoteData) GetQuotedAt() *string {
+	if r == nil {
+		return nil
+	}
+	return r.QuotedAt
+}
+
+func (r *RenewalQuoteData) GetTerm() *CommitmentTermPricing {
+	if r == nil {
+		return nil
+	}
+	return r.Term
+}
+
+func (r *RenewalQuoteData) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RenewalQuoteData) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetCommitmentID sets the CommitmentID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetCommitmentID(commitmentID string) {
+	r.CommitmentID = commitmentID
+	r.require(renewalQuoteDataFieldCommitmentID)
+}
+
+// SetOfferingID sets the OfferingID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetOfferingID(offeringID *string) {
+	r.OfferingID = offeringID
+	r.require(renewalQuoteDataFieldOfferingID)
+}
+
+// SetTermMonths sets the TermMonths field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetTermMonths(termMonths *int) {
+	r.TermMonths = termMonths
+	r.require(renewalQuoteDataFieldTermMonths)
+}
+
+// SetPaymentOption sets the PaymentOption field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetPaymentOption(paymentOption *string) {
+	r.PaymentOption = paymentOption
+	r.require(renewalQuoteDataFieldPaymentOption)
+}
+
+// SetQty sets the Qty field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetQty(qty *int) {
+	r.Qty = qty
+	r.require(renewalQuoteDataFieldQty)
+}
+
+// SetCurrency sets the Currency field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetCurrency(currency *string) {
+	r.Currency = currency
+	r.require(renewalQuoteDataFieldCurrency)
+}
+
+// SetFixedPrice sets the FixedPrice field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetFixedPrice(fixedPrice *float64) {
+	r.FixedPrice = fixedPrice
+	r.require(renewalQuoteDataFieldFixedPrice)
+}
+
+// SetRecurringHourly sets the RecurringHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetRecurringHourly(recurringHourly *float64) {
+	r.RecurringHourly = recurringHourly
+	r.require(renewalQuoteDataFieldRecurringHourly)
+}
+
+// SetUsageHourly sets the UsageHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetUsageHourly(usageHourly *float64) {
+	r.UsageHourly = usageHourly
+	r.require(renewalQuoteDataFieldUsageHourly)
+}
+
+// SetUpfront sets the Upfront field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetUpfront(upfront *float64) {
+	r.Upfront = upfront
+	r.require(renewalQuoteDataFieldUpfront)
+}
+
+// SetCommitmentHourly sets the CommitmentHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetCommitmentHourly(commitmentHourly *float64) {
+	r.CommitmentHourly = commitmentHourly
+	r.require(renewalQuoteDataFieldCommitmentHourly)
+}
+
+// SetErrorMessage sets the ErrorMessage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetErrorMessage(errorMessage *string) {
+	r.ErrorMessage = errorMessage
+	r.require(renewalQuoteDataFieldErrorMessage)
+}
+
+// SetQuotedAt sets the QuotedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetQuotedAt(quotedAt *string) {
+	r.QuotedAt = quotedAt
+	r.require(renewalQuoteDataFieldQuotedAt)
+}
+
+// SetTerm sets the Term field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetTerm(term *CommitmentTermPricing) {
+	r.Term = term
+	r.require(renewalQuoteDataFieldTerm)
+}
+
+func (r *RenewalQuoteData) UnmarshalJSON(data []byte) error {
+	type unmarshaler RenewalQuoteData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = RenewalQuoteData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RenewalQuoteData) MarshalJSON() ([]byte, error) {
+	type embed RenewalQuoteData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RenewalQuoteData) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	renewalQuoteResponseFieldSuccess   = big.NewInt(1 << 0)
+	renewalQuoteResponseFieldTimestamp = big.NewInt(1 << 1)
+	renewalQuoteResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type RenewalQuoteResponse struct {
+	Success   *bool             `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time        `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *RenewalQuoteData `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RenewalQuoteResponse) GetSuccess() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.Success
+}
+
+func (r *RenewalQuoteResponse) GetTimestamp() *time.Time {
+	if r == nil {
+		return nil
+	}
+	return r.Timestamp
+}
+
+func (r *RenewalQuoteResponse) GetData() *RenewalQuoteData {
+	if r == nil {
+		return nil
+	}
+	return r.Data
+}
+
+func (r *RenewalQuoteResponse) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RenewalQuoteResponse) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteResponse) SetSuccess(success *bool) {
+	r.Success = success
+	r.require(renewalQuoteResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteResponse) SetTimestamp(timestamp *time.Time) {
+	r.Timestamp = timestamp
+	r.require(renewalQuoteResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteResponse) SetData(data *RenewalQuoteData) {
+	r.Data = data
+	r.require(renewalQuoteResponseFieldData)
+}
+
+func (r *RenewalQuoteResponse) UnmarshalJSON(data []byte) error {
+	type embed RenewalQuoteResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*r),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*r = RenewalQuoteResponse(unmarshaler.embed)
+	r.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RenewalQuoteResponse) MarshalJSON() ([]byte, error) {
+	type embed RenewalQuoteResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*r),
+		Timestamp: internal.NewOptionalDateTime(r.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RenewalQuoteResponse) String() string {
 	if r == nil {
 		return "<nil>"
 	}

@@ -84,6 +84,7 @@ type (
 	BoardListItem                                                                 = rootpkg.BoardListItem
 	BoardListResponse                                                             = rootpkg.BoardListResponse
 	BoardResponse                                                                 = rootpkg.BoardResponse
+	BodyUploadAttachmentAPIV1CommitmentsDetailCommitmentIDAttachmentsPost         = rootpkg.BodyUploadAttachmentAPIV1CommitmentsDetailCommitmentIDAttachmentsPost
 	BodyUploadAttachmentAPIV1RecommendationsRecommendationIDAttachmentsPost       = rootpkg.BodyUploadAttachmentAPIV1RecommendationsRecommendationIDAttachmentsPost
 	BudgetItem                                                                    = rootpkg.BudgetItem
 	BudgetItemAmountKind                                                          = rootpkg.BudgetItemAmountKind
@@ -150,6 +151,7 @@ type (
 	CommitmentListItemStatus                                                      = rootpkg.CommitmentListItemStatus
 	CommitmentListPagination                                                      = rootpkg.CommitmentListPagination
 	CommitmentListResponse                                                        = rootpkg.CommitmentListResponse
+	CommitmentOnDemand                                                            = rootpkg.CommitmentOnDemand
 	CommitmentParamsInput                                                         = rootpkg.CommitmentParamsInput
 	CommitmentParamsInputCostBasis                                                = rootpkg.CommitmentParamsInputCostBasis
 	CommitmentParamsInputCoverageBelow                                            = rootpkg.CommitmentParamsInputCoverageBelow
@@ -171,6 +173,9 @@ type (
 	CommitmentRecommendationConfidence                                            = rootpkg.CommitmentRecommendationConfidence
 	CommitmentRecommendationKind                                                  = rootpkg.CommitmentRecommendationKind
 	CommitmentRecommendationsResponse                                             = rootpkg.CommitmentRecommendationsResponse
+	CommitmentRenewalData                                                         = rootpkg.CommitmentRenewalData
+	CommitmentRenewalResponse                                                     = rootpkg.CommitmentRenewalResponse
+	CommitmentTermPricing                                                         = rootpkg.CommitmentTermPricing
 	CommitmentUtilizationData                                                     = rootpkg.CommitmentUtilizationData
 	CommitmentUtilizationDataInstrument                                           = rootpkg.CommitmentUtilizationDataInstrument
 	CommitmentUtilizationDay                                                      = rootpkg.CommitmentUtilizationDay
@@ -663,6 +668,8 @@ type (
 	RenewalPendingChange                                                          = rootpkg.RenewalPendingChange
 	RenewalPlanData                                                               = rootpkg.RenewalPlanData
 	RenewalPlanResponse                                                           = rootpkg.RenewalPlanResponse
+	RenewalQuoteData                                                              = rootpkg.RenewalQuoteData
+	RenewalQuoteResponse                                                          = rootpkg.RenewalQuoteResponse
 	RepoTarget                                                                    = rootpkg.RepoTarget
 	RepoTargetsData                                                               = rootpkg.RepoTargetsData
 	RepoTargetsResponse                                                           = rootpkg.RepoTargetsResponse
