@@ -8,6 +8,7 @@ import (
 	audit "github.com/LevelFourAI/levelfour-go/audit"
 	auth "github.com/LevelFourAI/levelfour-go/auth"
 	commitments "github.com/LevelFourAI/levelfour-go/commitments"
+	commitmenttimeline "github.com/LevelFourAI/levelfour-go/commitmenttimeline"
 	core "github.com/LevelFourAI/levelfour-go/core"
 	costalerts "github.com/LevelFourAI/levelfour-go/costalerts"
 	costs "github.com/LevelFourAI/levelfour-go/costs"
@@ -27,24 +28,25 @@ import (
 )
 
 type Client struct {
-	Accounts        *accounts.Client
-	Integrations    *integrations.Client
-	Auth            *auth.Client
-	Webhooks        *webhooks.Client
-	Recommendations *client.Client
-	SavingsGrants   *savingsgrants.Client
-	RepoBinding     *repobinding.Client
-	Audit           *audit.Client
-	Costs           *costs.Client
-	GoogleCloud     *googlecloud.Client
-	Providers       *providers.Client
-	CostAlerts      *costalerts.Client
-	Tags            *tags.Client
-	CostViews       *costviews.Client
-	Suggestions     *suggestions.Client
-	Commitments     *commitments.Client
-	Anomalies       *anomalies.Client
-	Health          *health.Client
+	Accounts           *accounts.Client
+	Integrations       *integrations.Client
+	Auth               *auth.Client
+	Webhooks           *webhooks.Client
+	Recommendations    *client.Client
+	SavingsGrants      *savingsgrants.Client
+	RepoBinding        *repobinding.Client
+	Audit              *audit.Client
+	Costs              *costs.Client
+	GoogleCloud        *googlecloud.Client
+	Providers          *providers.Client
+	CostAlerts         *costalerts.Client
+	Tags               *tags.Client
+	CostViews          *costviews.Client
+	Suggestions        *suggestions.Client
+	CommitmentTimeline *commitmenttimeline.Client
+	Commitments        *commitments.Client
+	Anomalies          *anomalies.Client
+	Health             *health.Client
 
 	options *core.RequestOptions
 	baseURL string
@@ -54,26 +56,27 @@ type Client struct {
 func NewClient(opts ...option.RequestOption) *Client {
 	options := core.NewRequestOptions(opts...)
 	return &Client{
-		Accounts:        accounts.NewClient(options),
-		Integrations:    integrations.NewClient(options),
-		Auth:            auth.NewClient(options),
-		Webhooks:        webhooks.NewClient(options),
-		Recommendations: client.NewClient(options),
-		SavingsGrants:   savingsgrants.NewClient(options),
-		RepoBinding:     repobinding.NewClient(options),
-		Audit:           audit.NewClient(options),
-		Costs:           costs.NewClient(options),
-		GoogleCloud:     googlecloud.NewClient(options),
-		Providers:       providers.NewClient(options),
-		CostAlerts:      costalerts.NewClient(options),
-		Tags:            tags.NewClient(options),
-		CostViews:       costviews.NewClient(options),
-		Suggestions:     suggestions.NewClient(options),
-		Commitments:     commitments.NewClient(options),
-		Anomalies:       anomalies.NewClient(options),
-		Health:          health.NewClient(options),
-		options:         options,
-		baseURL:         options.BaseURL,
+		Accounts:           accounts.NewClient(options),
+		Integrations:       integrations.NewClient(options),
+		Auth:               auth.NewClient(options),
+		Webhooks:           webhooks.NewClient(options),
+		Recommendations:    client.NewClient(options),
+		SavingsGrants:      savingsgrants.NewClient(options),
+		RepoBinding:        repobinding.NewClient(options),
+		Audit:              audit.NewClient(options),
+		Costs:              costs.NewClient(options),
+		GoogleCloud:        googlecloud.NewClient(options),
+		Providers:          providers.NewClient(options),
+		CostAlerts:         costalerts.NewClient(options),
+		Tags:               tags.NewClient(options),
+		CostViews:          costviews.NewClient(options),
+		Suggestions:        suggestions.NewClient(options),
+		CommitmentTimeline: commitmenttimeline.NewClient(options),
+		Commitments:        commitments.NewClient(options),
+		Anomalies:          anomalies.NewClient(options),
+		Health:             health.NewClient(options),
+		options:            options,
+		baseURL:            options.BaseURL,
 		caller: internal.NewCaller(
 			&internal.CallerParams{
 				Client:      options.HTTPClient,
