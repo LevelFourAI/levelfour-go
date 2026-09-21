@@ -149,6 +149,77 @@ func (c *Client) ListCommitments(
 	return response.Body, nil
 }
 
+// Priced from the current offering rather than from the expiring term, whose price is as old as the term. error_message carries a lookup that failed, so an unpriced renewal reads as unpriced rather than as zero.
+func (c *Client) GetRenewalQuote(
+	ctx context.Context,
+	commitmentID string,
+	opts ...option.RequestOption,
+) (*levelfour.RenewalQuoteResponse, error) {
+	response, err := c.WithRawResponse.GetRenewalQuote(
+		ctx,
+		commitmentID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// The contract priced again as it stands, beside every other term its shape is sold on today, each priced at up to about forty quantities spanning what was sized and what is held, and recommended on exactly one row, never above the quantity held. With quantity, each offering is priced at exactly that quantity instead, one row each; a reservation is sold in whole units, so a fractional quantity is a 422. Without a stored series every quantity is still priced, and idle_units, spill_units and spill_cost come back null. sizing_basis says where the recommended quantity came from: the commitment's own fee line, which can only argue for buying less, or unmeasured, where the quantity held stands; measured appears only on options an earlier sweep priced. upfront is the total paid at purchase for the row's quantity; recurring_hourly is the rate per unit. demand is the daily series the sizing read, with its projection across the longest term.
+func (c *Client) GetRenewalOptions(
+	ctx context.Context,
+	commitmentID string,
+	request *levelfour.GetRenewalOptionsAPIV1CommitmentsRenewalOptionsCommitmentIDGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.RenewalOptionsResponse, error) {
+	response, err := c.WithRawResponse.GetRenewalOptions(
+		ctx,
+		commitmentID,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+func (c *Client) GetRenewal(
+	ctx context.Context,
+	commitmentID string,
+	opts ...option.RequestOption,
+) (*levelfour.CommitmentRenewalResponse, error) {
+	response, err := c.WithRawResponse.GetRenewal(
+		ctx,
+		commitmentID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Returns the recommendation that buys the new term, and the offering and quantity it is bound to. Calling it again never raises a rival: with no choice it returns the first one, and with a different choice it points a renewal nobody has decided on at that choice (rebound). rebindable says whether what it buys can still change: once anybody accepts, rejects or requests it, only the choice it was decided on is accepted. Nothing is bought here: the recommendation carries the offering, the quantity and the instant after which buying is safe, and the apply path acts on it.
+func (c *Client) PostRenewal(
+	ctx context.Context,
+	commitmentID string,
+	request *levelfour.PostRenewalAPIV1CommitmentsRenewalCommitmentIDPostRequest,
+	opts ...option.RequestOption,
+) (*levelfour.CommitmentRenewalResponse, error) {
+	response, err := c.WithRawResponse.PostRenewal(
+		ctx,
+		commitmentID,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
 func (c *Client) GetDetail(
 	ctx context.Context,
 	commitmentID string,
