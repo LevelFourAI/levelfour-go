@@ -253,7 +253,7 @@ var (
 )
 
 type GetForecastAPIV1CostsForecastGetRequest struct {
-	// Provider to forecast
+	// Provider to forecast, or all. A provider with no costs returns an empty forecast.
 	Provider *string `json:"-" url:"provider,omitempty"`
 	// Forecast horizon
 	Horizon *string `json:"-" url:"horizon,omitempty"`
@@ -6671,16 +6671,17 @@ var (
 	providerServiceBreakdownItemFieldTagKey           = big.NewInt(1 << 4)
 	providerServiceBreakdownItemFieldTagValue         = big.NewInt(1 << 5)
 	providerServiceBreakdownItemFieldResource         = big.NewInt(1 << 6)
-	providerServiceBreakdownItemFieldUsageType        = big.NewInt(1 << 7)
-	providerServiceBreakdownItemFieldCostCategory     = big.NewInt(1 << 8)
-	providerServiceBreakdownItemFieldPurchaseType     = big.NewInt(1 << 9)
-	providerServiceBreakdownItemFieldInstanceType     = big.NewInt(1 << 10)
-	providerServiceBreakdownItemFieldChargeType       = big.NewInt(1 << 11)
-	providerServiceBreakdownItemFieldVirtualTag       = big.NewInt(1 << 12)
-	providerServiceBreakdownItemFieldCost             = big.NewInt(1 << 13)
-	providerServiceBreakdownItemFieldPreviousCost     = big.NewInt(1 << 14)
-	providerServiceBreakdownItemFieldChangePercentage = big.NewInt(1 << 15)
-	providerServiceBreakdownItemFieldSpendingsByDate  = big.NewInt(1 << 16)
+	providerServiceBreakdownItemFieldSku              = big.NewInt(1 << 7)
+	providerServiceBreakdownItemFieldUsageType        = big.NewInt(1 << 8)
+	providerServiceBreakdownItemFieldCostCategory     = big.NewInt(1 << 9)
+	providerServiceBreakdownItemFieldPurchaseType     = big.NewInt(1 << 10)
+	providerServiceBreakdownItemFieldInstanceType     = big.NewInt(1 << 11)
+	providerServiceBreakdownItemFieldChargeType       = big.NewInt(1 << 12)
+	providerServiceBreakdownItemFieldVirtualTag       = big.NewInt(1 << 13)
+	providerServiceBreakdownItemFieldCost             = big.NewInt(1 << 14)
+	providerServiceBreakdownItemFieldPreviousCost     = big.NewInt(1 << 15)
+	providerServiceBreakdownItemFieldChangePercentage = big.NewInt(1 << 16)
+	providerServiceBreakdownItemFieldSpendingsByDate  = big.NewInt(1 << 17)
 )
 
 type ProviderServiceBreakdownItem struct {
@@ -6698,6 +6699,8 @@ type ProviderServiceBreakdownItem struct {
 	TagValue *string `json:"tag_value,omitempty" url:"tag_value,omitempty"`
 	// Resource id (set when grouped by resource)
 	Resource *string `json:"resource,omitempty" url:"resource,omitempty"`
+	// Billed SKU (set when grouped by sku, connector providers only)
+	Sku *string `json:"sku,omitempty" url:"sku,omitempty"`
 	// Usage type (set when grouped by usage_type)
 	UsageType *string `json:"usage_type,omitempty" url:"usage_type,omitempty"`
 	// Cost category value (set when grouped by cost_category)
@@ -6773,6 +6776,13 @@ func (p *ProviderServiceBreakdownItem) GetResource() *string {
 		return nil
 	}
 	return p.Resource
+}
+
+func (p *ProviderServiceBreakdownItem) GetSku() *string {
+	if p == nil {
+		return nil
+	}
+	return p.Sku
 }
 
 func (p *ProviderServiceBreakdownItem) GetUsageType() *string {
@@ -6906,6 +6916,13 @@ func (p *ProviderServiceBreakdownItem) SetTagValue(tagValue *string) {
 func (p *ProviderServiceBreakdownItem) SetResource(resource *string) {
 	p.Resource = resource
 	p.require(providerServiceBreakdownItemFieldResource)
+}
+
+// SetSku sets the Sku field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderServiceBreakdownItem) SetSku(sku *string) {
+	p.Sku = sku
+	p.require(providerServiceBreakdownItemFieldSku)
 }
 
 // SetUsageType sets the UsageType field and marks it as non-optional;
