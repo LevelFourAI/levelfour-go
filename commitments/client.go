@@ -149,6 +149,77 @@ func (c *Client) ListCommitments(
 	return response.Body, nil
 }
 
+// Priced from the current offering rather than from the expiring term, whose price is as old as the term. error_message carries a lookup that failed, so an unpriced renewal reads as unpriced rather than as zero.
+func (c *Client) GetRenewalQuote(
+	ctx context.Context,
+	commitmentID string,
+	opts ...option.RequestOption,
+) (*levelfour.RenewalQuoteResponse, error) {
+	response, err := c.WithRawResponse.GetRenewalQuote(
+		ctx,
+		commitmentID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// The contract priced again as it stands, beside every other term its shape is sold on today, each priced at up to about forty quantities spanning what was sized and what is held, and recommended on exactly one row, above the quantity held only on a family basis, or on none when decision is let_expire: the commitment was used too little to pay for itself, so every row is priced at the quantity held for comparison and nothing is advised. With quantity, each offering is priced at exactly that quantity instead, one row each; a reservation is sold in whole units, so a fractional quantity is a 422. Without a stored series every quantity is still priced, and idle_units, spill_units and spill_cost come back null. sizing_basis says where the recommended quantity came from: the commitment's own fee line, which can only argue for buying less; family, that line plus the on-demand usage of its family and engine held on nine days in ten, the one basis that can argue for more; or unmeasured, where the quantity held stands; measured appears only on options an earlier sweep priced. upfront is the total paid at purchase for the row's quantity; recurring_hourly is the rate per unit. demand is the daily series the sizing read, with its projection across the longest term. A size-flexible RDS reservation can be renewed as a larger class of its family: resource is the class bought, every quantity and demand are counted in it, held_units_equivalent is a row's quantity in the class held, and quota says how many reservations the account may hold against what it would hold once the expiring ones are renewed; quota_blocked marks a renewal it could not hold in any class. size_mix is what the family runs by instance size and deployment.
+func (c *Client) GetRenewalOptions(
+	ctx context.Context,
+	commitmentID string,
+	request *levelfour.GetRenewalOptionsAPIV1CommitmentsRenewalOptionsCommitmentIDGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.RenewalOptionsResponse, error) {
+	response, err := c.WithRawResponse.GetRenewalOptions(
+		ctx,
+		commitmentID,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+func (c *Client) GetRenewal(
+	ctx context.Context,
+	commitmentID string,
+	opts ...option.RequestOption,
+) (*levelfour.CommitmentRenewalResponse, error) {
+	response, err := c.WithRawResponse.GetRenewal(
+		ctx,
+		commitmentID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Returns the recommendation that buys the new term, and the offering and quantity it is bound to. Calling it again never raises a rival: with no choice it returns the first one, and with a different choice it points a renewal nobody has decided on at that choice (rebound). rebindable says whether what it buys can still change: once anybody accepts, rejects or requests it, only the choice it was decided on is accepted. Nothing is bought here: the recommendation carries the offering, the quantity and the instant after which buying is safe, and the apply path acts on it.
+func (c *Client) PostRenewal(
+	ctx context.Context,
+	commitmentID string,
+	request *levelfour.PostRenewalAPIV1CommitmentsRenewalCommitmentIDPostRequest,
+	opts ...option.RequestOption,
+) (*levelfour.CommitmentRenewalResponse, error) {
+	response, err := c.WithRawResponse.PostRenewal(
+		ctx,
+		commitmentID,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
 func (c *Client) GetDetail(
 	ctx context.Context,
 	commitmentID string,
@@ -247,7 +318,7 @@ func (c *Client) GetUncovered(
 	return response.Body, nil
 }
 
-// What to repurchase and when. States the instant to buy after rather than a date, because a replacement bills from the moment it is bought, and lists the pending changes that must land first so their capacity is not reserved for another term.
+// What to repurchase and when. units_recommended is the quantity the renewal options recommend, the same number the drawer shows: 0 with decision let_expire when the commitment was used too little to pay for itself, the quantity held when nothing measured it. units_consumed is the average the sized series measured, null when unmeasured. States the instant to buy after rather than a date, because a replacement bills from the moment it is bought, and lists the pending changes that must land first so their capacity is not reserved for another term.
 func (c *Client) GetRenewalPlan(
 	ctx context.Context,
 	commitmentID string,
@@ -271,6 +342,25 @@ func (c *Client) GetContracts(
 ) (*levelfour.ContractsResponse, error) {
 	response, err := c.WithRawResponse.GetContracts(
 		ctx,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Sets the organization's own tag on a commitment, or clears it with null. This is not the provider tags map on the inventory row, which is read from the cloud and never written here.
+func (c *Client) UpdateTag(
+	ctx context.Context,
+	commitmentID string,
+	request *levelfour.UpdateCommitmentTagRequest,
+	opts ...option.RequestOption,
+) (*levelfour.UpdateCommitmentTagResponse, error) {
+	response, err := c.WithRawResponse.UpdateTag(
+		ctx,
+		commitmentID,
+		request,
 		opts...,
 	)
 	if err != nil {
