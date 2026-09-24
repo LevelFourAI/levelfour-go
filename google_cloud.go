@@ -3143,6 +3143,255 @@ func (s *SavingsReadinessResponse) String() string {
 }
 
 var (
+	srcProvidersGcpSchemasUtilizationSummaryDataFieldVM       = big.NewInt(1 << 0)
+	srcProvidersGcpSchemasUtilizationSummaryDataFieldSQL      = big.NewInt(1 << 1)
+	srcProvidersGcpSchemasUtilizationSummaryDataFieldGke      = big.NewInt(1 << 2)
+	srcProvidersGcpSchemasUtilizationSummaryDataFieldCoverage = big.NewInt(1 << 3)
+)
+
+type SrcProvidersGcpSchemasUtilizationSummaryData struct {
+	// Bands on the p95 of daily max CPU over 30 days
+	VM       *UtilizationBands    `json:"vm" url:"vm"`
+	SQL      *UtilizationBands    `json:"sql" url:"sql"`
+	Gke      *GkeUtilization      `json:"gke" url:"gke"`
+	Coverage *UtilizationCoverage `json:"coverage" url:"coverage"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SrcProvidersGcpSchemasUtilizationSummaryData) GetVM() *UtilizationBands {
+	if s == nil {
+		return nil
+	}
+	return s.VM
+}
+
+func (s *SrcProvidersGcpSchemasUtilizationSummaryData) GetSQL() *UtilizationBands {
+	if s == nil {
+		return nil
+	}
+	return s.SQL
+}
+
+func (s *SrcProvidersGcpSchemasUtilizationSummaryData) GetGke() *GkeUtilization {
+	if s == nil {
+		return nil
+	}
+	return s.Gke
+}
+
+func (s *SrcProvidersGcpSchemasUtilizationSummaryData) GetCoverage() *UtilizationCoverage {
+	if s == nil {
+		return nil
+	}
+	return s.Coverage
+}
+
+func (s *SrcProvidersGcpSchemasUtilizationSummaryData) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *SrcProvidersGcpSchemasUtilizationSummaryData) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetVM sets the VM field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SrcProvidersGcpSchemasUtilizationSummaryData) SetVM(vm *UtilizationBands) {
+	s.VM = vm
+	s.require(srcProvidersGcpSchemasUtilizationSummaryDataFieldVM)
+}
+
+// SetSQL sets the SQL field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SrcProvidersGcpSchemasUtilizationSummaryData) SetSQL(sql *UtilizationBands) {
+	s.SQL = sql
+	s.require(srcProvidersGcpSchemasUtilizationSummaryDataFieldSQL)
+}
+
+// SetGke sets the Gke field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SrcProvidersGcpSchemasUtilizationSummaryData) SetGke(gke *GkeUtilization) {
+	s.Gke = gke
+	s.require(srcProvidersGcpSchemasUtilizationSummaryDataFieldGke)
+}
+
+// SetCoverage sets the Coverage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SrcProvidersGcpSchemasUtilizationSummaryData) SetCoverage(coverage *UtilizationCoverage) {
+	s.Coverage = coverage
+	s.require(srcProvidersGcpSchemasUtilizationSummaryDataFieldCoverage)
+}
+
+func (s *SrcProvidersGcpSchemasUtilizationSummaryData) UnmarshalJSON(data []byte) error {
+	type unmarshaler SrcProvidersGcpSchemasUtilizationSummaryData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SrcProvidersGcpSchemasUtilizationSummaryData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SrcProvidersGcpSchemasUtilizationSummaryData) MarshalJSON() ([]byte, error) {
+	type embed SrcProvidersGcpSchemasUtilizationSummaryData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *SrcProvidersGcpSchemasUtilizationSummaryData) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+var (
+	srcProvidersGcpSchemasUtilizationSummaryResponseFieldSuccess   = big.NewInt(1 << 0)
+	srcProvidersGcpSchemasUtilizationSummaryResponseFieldTimestamp = big.NewInt(1 << 1)
+	srcProvidersGcpSchemasUtilizationSummaryResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type SrcProvidersGcpSchemasUtilizationSummaryResponse struct {
+	Success   *bool                                         `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp string                                        `json:"timestamp" url:"timestamp"`
+	Data      *SrcProvidersGcpSchemasUtilizationSummaryData `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SrcProvidersGcpSchemasUtilizationSummaryResponse) GetSuccess() *bool {
+	if s == nil {
+		return nil
+	}
+	return s.Success
+}
+
+func (s *SrcProvidersGcpSchemasUtilizationSummaryResponse) GetTimestamp() string {
+	if s == nil {
+		return ""
+	}
+	return s.Timestamp
+}
+
+func (s *SrcProvidersGcpSchemasUtilizationSummaryResponse) GetData() *SrcProvidersGcpSchemasUtilizationSummaryData {
+	if s == nil {
+		return nil
+	}
+	return s.Data
+}
+
+func (s *SrcProvidersGcpSchemasUtilizationSummaryResponse) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *SrcProvidersGcpSchemasUtilizationSummaryResponse) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SrcProvidersGcpSchemasUtilizationSummaryResponse) SetSuccess(success *bool) {
+	s.Success = success
+	s.require(srcProvidersGcpSchemasUtilizationSummaryResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SrcProvidersGcpSchemasUtilizationSummaryResponse) SetTimestamp(timestamp string) {
+	s.Timestamp = timestamp
+	s.require(srcProvidersGcpSchemasUtilizationSummaryResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SrcProvidersGcpSchemasUtilizationSummaryResponse) SetData(data *SrcProvidersGcpSchemasUtilizationSummaryData) {
+	s.Data = data
+	s.require(srcProvidersGcpSchemasUtilizationSummaryResponseFieldData)
+}
+
+func (s *SrcProvidersGcpSchemasUtilizationSummaryResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler SrcProvidersGcpSchemasUtilizationSummaryResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SrcProvidersGcpSchemasUtilizationSummaryResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SrcProvidersGcpSchemasUtilizationSummaryResponse) MarshalJSON() ([]byte, error) {
+	type embed SrcProvidersGcpSchemasUtilizationSummaryResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *SrcProvidersGcpSchemasUtilizationSummaryResponse) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+var (
 	unlabeledResourceFieldResourceID   = big.NewInt(1 << 0)
 	unlabeledResourceFieldResourceType = big.NewInt(1 << 1)
 	unlabeledResourceFieldProjectID    = big.NewInt(1 << 2)
@@ -4178,255 +4427,6 @@ func (u *UtilizationSeriesResponse) MarshalJSON() ([]byte, error) {
 }
 
 func (u *UtilizationSeriesResponse) String() string {
-	if u == nil {
-		return "<nil>"
-	}
-	if len(u.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(u); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", u)
-}
-
-var (
-	utilizationSummaryDataFieldVM       = big.NewInt(1 << 0)
-	utilizationSummaryDataFieldSQL      = big.NewInt(1 << 1)
-	utilizationSummaryDataFieldGke      = big.NewInt(1 << 2)
-	utilizationSummaryDataFieldCoverage = big.NewInt(1 << 3)
-)
-
-type UtilizationSummaryData struct {
-	// Bands on the p95 of daily max CPU over 30 days
-	VM       *UtilizationBands    `json:"vm" url:"vm"`
-	SQL      *UtilizationBands    `json:"sql" url:"sql"`
-	Gke      *GkeUtilization      `json:"gke" url:"gke"`
-	Coverage *UtilizationCoverage `json:"coverage" url:"coverage"`
-
-	// Private bitmask of fields set to an explicit value and therefore not to be omitted
-	explicitFields *big.Int `json:"-" url:"-"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (u *UtilizationSummaryData) GetVM() *UtilizationBands {
-	if u == nil {
-		return nil
-	}
-	return u.VM
-}
-
-func (u *UtilizationSummaryData) GetSQL() *UtilizationBands {
-	if u == nil {
-		return nil
-	}
-	return u.SQL
-}
-
-func (u *UtilizationSummaryData) GetGke() *GkeUtilization {
-	if u == nil {
-		return nil
-	}
-	return u.Gke
-}
-
-func (u *UtilizationSummaryData) GetCoverage() *UtilizationCoverage {
-	if u == nil {
-		return nil
-	}
-	return u.Coverage
-}
-
-func (u *UtilizationSummaryData) GetExtraProperties() map[string]interface{} {
-	if u == nil {
-		return nil
-	}
-	return u.extraProperties
-}
-
-func (u *UtilizationSummaryData) require(field *big.Int) {
-	if u.explicitFields == nil {
-		u.explicitFields = big.NewInt(0)
-	}
-	u.explicitFields.Or(u.explicitFields, field)
-}
-
-// SetVM sets the VM field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (u *UtilizationSummaryData) SetVM(vm *UtilizationBands) {
-	u.VM = vm
-	u.require(utilizationSummaryDataFieldVM)
-}
-
-// SetSQL sets the SQL field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (u *UtilizationSummaryData) SetSQL(sql *UtilizationBands) {
-	u.SQL = sql
-	u.require(utilizationSummaryDataFieldSQL)
-}
-
-// SetGke sets the Gke field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (u *UtilizationSummaryData) SetGke(gke *GkeUtilization) {
-	u.Gke = gke
-	u.require(utilizationSummaryDataFieldGke)
-}
-
-// SetCoverage sets the Coverage field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (u *UtilizationSummaryData) SetCoverage(coverage *UtilizationCoverage) {
-	u.Coverage = coverage
-	u.require(utilizationSummaryDataFieldCoverage)
-}
-
-func (u *UtilizationSummaryData) UnmarshalJSON(data []byte) error {
-	type unmarshaler UtilizationSummaryData
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*u = UtilizationSummaryData(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *u)
-	if err != nil {
-		return err
-	}
-	u.extraProperties = extraProperties
-	u.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (u *UtilizationSummaryData) MarshalJSON() ([]byte, error) {
-	type embed UtilizationSummaryData
-	var marshaler = struct {
-		embed
-	}{
-		embed: embed(*u),
-	}
-	explicitMarshaler := internal.HandleExplicitFields(marshaler, u.explicitFields)
-	return json.Marshal(explicitMarshaler)
-}
-
-func (u *UtilizationSummaryData) String() string {
-	if u == nil {
-		return "<nil>"
-	}
-	if len(u.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(u); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", u)
-}
-
-var (
-	utilizationSummaryResponseFieldSuccess   = big.NewInt(1 << 0)
-	utilizationSummaryResponseFieldTimestamp = big.NewInt(1 << 1)
-	utilizationSummaryResponseFieldData      = big.NewInt(1 << 2)
-)
-
-type UtilizationSummaryResponse struct {
-	Success   *bool                   `json:"success,omitempty" url:"success,omitempty"`
-	Timestamp string                  `json:"timestamp" url:"timestamp"`
-	Data      *UtilizationSummaryData `json:"data" url:"data"`
-
-	// Private bitmask of fields set to an explicit value and therefore not to be omitted
-	explicitFields *big.Int `json:"-" url:"-"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (u *UtilizationSummaryResponse) GetSuccess() *bool {
-	if u == nil {
-		return nil
-	}
-	return u.Success
-}
-
-func (u *UtilizationSummaryResponse) GetTimestamp() string {
-	if u == nil {
-		return ""
-	}
-	return u.Timestamp
-}
-
-func (u *UtilizationSummaryResponse) GetData() *UtilizationSummaryData {
-	if u == nil {
-		return nil
-	}
-	return u.Data
-}
-
-func (u *UtilizationSummaryResponse) GetExtraProperties() map[string]interface{} {
-	if u == nil {
-		return nil
-	}
-	return u.extraProperties
-}
-
-func (u *UtilizationSummaryResponse) require(field *big.Int) {
-	if u.explicitFields == nil {
-		u.explicitFields = big.NewInt(0)
-	}
-	u.explicitFields.Or(u.explicitFields, field)
-}
-
-// SetSuccess sets the Success field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (u *UtilizationSummaryResponse) SetSuccess(success *bool) {
-	u.Success = success
-	u.require(utilizationSummaryResponseFieldSuccess)
-}
-
-// SetTimestamp sets the Timestamp field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (u *UtilizationSummaryResponse) SetTimestamp(timestamp string) {
-	u.Timestamp = timestamp
-	u.require(utilizationSummaryResponseFieldTimestamp)
-}
-
-// SetData sets the Data field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (u *UtilizationSummaryResponse) SetData(data *UtilizationSummaryData) {
-	u.Data = data
-	u.require(utilizationSummaryResponseFieldData)
-}
-
-func (u *UtilizationSummaryResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler UtilizationSummaryResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*u = UtilizationSummaryResponse(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *u)
-	if err != nil {
-		return err
-	}
-	u.extraProperties = extraProperties
-	u.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (u *UtilizationSummaryResponse) MarshalJSON() ([]byte, error) {
-	type embed UtilizationSummaryResponse
-	var marshaler = struct {
-		embed
-	}{
-		embed: embed(*u),
-	}
-	explicitMarshaler := internal.HandleExplicitFields(marshaler, u.explicitFields)
-	return json.Marshal(explicitMarshaler)
-}
-
-func (u *UtilizationSummaryResponse) String() string {
 	if u == nil {
 		return "<nil>"
 	}
