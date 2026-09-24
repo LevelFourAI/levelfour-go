@@ -78,9 +78,9 @@ var (
 type GitlabCompleteRequest struct {
 	// OAuth authorization code returned to the GitLab callback
 	Code string `json:"code" url:"-"`
-	// Legacy single-target path. When scope='group', a group full path (e.g. globo or globo/infra). When scope='project', a single project full path (e.g. globo/infra/billing). Provide either namespace (legacy) or projects (multi-project mint-and-store), not both.
+	// Legacy single-target path. When scope='group', a group full path (e.g. acme or acme/infra). When scope='project', a single project full path (e.g. acme/infra/billing). Provide either namespace (legacy) or projects (multi-project mint-and-store), not both.
 	Namespace *string `json:"namespace,omitempty" url:"-"`
-	// Multi-project path: one or more project full paths (e.g. globo/infra/billing). Requires scope='project'. Each project mints its own scoped Project Access Token at connect time so the bot has a per-project identity and the connector's OAuth token is never stored.
+	// Multi-project path: one or more project full paths (e.g. acme/infra/billing). Requires scope='project'. Each project mints its own scoped Project Access Token at connect time so the bot has a per-project identity and the connector's OAuth token is never stored.
 	Projects []string `json:"projects,omitempty" url:"-"`
 	// Whether to connect an entire group (registers a group webhook, needs GitLab Premium/Ultimate) or one or more projects (registers a project webhook each, works on all tiers).
 	Scope *GitlabCompleteRequestScope `json:"scope,omitempty" url:"-"`
