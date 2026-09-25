@@ -63,6 +63,23 @@ func (c *Client) GetProviderTopSavers(
 	return response.Body, nil
 }
 
+// The groupings, filters and cost metrics the provider's cost breakdown answers, each under the name the provider gives it. The dashboard builds the Cost Breakdown's menus from this.
+func (c *Client) GetProviderCostDimensions(
+	ctx context.Context,
+	providerID string,
+	opts ...option.RequestOption,
+) (*levelfour.ProviderCostDimensionsResponse, error) {
+	response, err := c.WithRawResponse.GetProviderCostDimensions(
+		ctx,
+		providerID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
 // Returns spend per invoice month split by cost type (regular, tax, adjustment, rounding). Google Cloud only; other providers return no months.
 func (c *Client) GetProviderInvoices(
 	ctx context.Context,
