@@ -253,7 +253,7 @@ var (
 )
 
 type GetForecastAPIV1CostsForecastGetRequest struct {
-	// Provider to forecast
+	// Provider to forecast, or all. A provider with no costs returns an empty forecast.
 	Provider *string `json:"-" url:"provider,omitempty"`
 	// Forecast horizon
 	Horizon *string `json:"-" url:"horizon,omitempty"`
@@ -5863,26 +5863,27 @@ var (
 	providerFilterOptionsDataFieldServices           = big.NewInt(1 << 1)
 	providerFilterOptionsDataFieldRegions            = big.NewInt(1 << 2)
 	providerFilterOptionsDataFieldAccounts           = big.NewInt(1 << 3)
-	providerFilterOptionsDataFieldTagKeys            = big.NewInt(1 << 4)
-	providerFilterOptionsDataFieldTagValues          = big.NewInt(1 << 5)
-	providerFilterOptionsDataFieldInstanceTypes      = big.NewInt(1 << 6)
-	providerFilterOptionsDataFieldUsageTypes         = big.NewInt(1 << 7)
-	providerFilterOptionsDataFieldUsageTypeGroups    = big.NewInt(1 << 8)
-	providerFilterOptionsDataFieldChargeTypes        = big.NewInt(1 << 9)
-	providerFilterOptionsDataFieldAvailabilityZones  = big.NewInt(1 << 10)
-	providerFilterOptionsDataFieldPlatforms          = big.NewInt(1 << 11)
-	providerFilterOptionsDataFieldPurchaseOptions    = big.NewInt(1 << 12)
-	providerFilterOptionsDataFieldTenancies          = big.NewInt(1 << 13)
-	providerFilterOptionsDataFieldDatabaseEngines    = big.NewInt(1 << 14)
-	providerFilterOptionsDataFieldLegalEntities      = big.NewInt(1 << 15)
-	providerFilterOptionsDataFieldBillingEntities    = big.NewInt(1 << 16)
-	providerFilterOptionsDataFieldAPIOperations      = big.NewInt(1 << 17)
-	providerFilterOptionsDataFieldResources          = big.NewInt(1 << 18)
-	providerFilterOptionsDataFieldCostCategoryKeys   = big.NewInt(1 << 19)
-	providerFilterOptionsDataFieldCostCategoryValues = big.NewInt(1 << 20)
-	providerFilterOptionsDataFieldPayerAccounts      = big.NewInt(1 << 21)
-	providerFilterOptionsDataFieldVirtualTagKeys     = big.NewInt(1 << 22)
-	providerFilterOptionsDataFieldVirtualTagValues   = big.NewInt(1 << 23)
+	providerFilterOptionsDataFieldAccountNames       = big.NewInt(1 << 4)
+	providerFilterOptionsDataFieldTagKeys            = big.NewInt(1 << 5)
+	providerFilterOptionsDataFieldTagValues          = big.NewInt(1 << 6)
+	providerFilterOptionsDataFieldInstanceTypes      = big.NewInt(1 << 7)
+	providerFilterOptionsDataFieldUsageTypes         = big.NewInt(1 << 8)
+	providerFilterOptionsDataFieldUsageTypeGroups    = big.NewInt(1 << 9)
+	providerFilterOptionsDataFieldChargeTypes        = big.NewInt(1 << 10)
+	providerFilterOptionsDataFieldAvailabilityZones  = big.NewInt(1 << 11)
+	providerFilterOptionsDataFieldPlatforms          = big.NewInt(1 << 12)
+	providerFilterOptionsDataFieldPurchaseOptions    = big.NewInt(1 << 13)
+	providerFilterOptionsDataFieldTenancies          = big.NewInt(1 << 14)
+	providerFilterOptionsDataFieldDatabaseEngines    = big.NewInt(1 << 15)
+	providerFilterOptionsDataFieldLegalEntities      = big.NewInt(1 << 16)
+	providerFilterOptionsDataFieldBillingEntities    = big.NewInt(1 << 17)
+	providerFilterOptionsDataFieldAPIOperations      = big.NewInt(1 << 18)
+	providerFilterOptionsDataFieldResources          = big.NewInt(1 << 19)
+	providerFilterOptionsDataFieldCostCategoryKeys   = big.NewInt(1 << 20)
+	providerFilterOptionsDataFieldCostCategoryValues = big.NewInt(1 << 21)
+	providerFilterOptionsDataFieldPayerAccounts      = big.NewInt(1 << 22)
+	providerFilterOptionsDataFieldVirtualTagKeys     = big.NewInt(1 << 23)
+	providerFilterOptionsDataFieldVirtualTagValues   = big.NewInt(1 << 24)
 )
 
 type ProviderFilterOptionsData struct {
@@ -5893,25 +5894,27 @@ type ProviderFilterOptionsData struct {
 	// Distinct regions available for filtering
 	Regions []string `json:"regions" url:"regions"`
 	// Distinct account IDs available for filtering
-	Accounts           []string `json:"accounts" url:"accounts"`
-	TagKeys            []string `json:"tag_keys,omitempty" url:"tag_keys,omitempty"`
-	TagValues          []string `json:"tag_values,omitempty" url:"tag_values,omitempty"`
-	InstanceTypes      []string `json:"instance_types,omitempty" url:"instance_types,omitempty"`
-	UsageTypes         []string `json:"usage_types,omitempty" url:"usage_types,omitempty"`
-	UsageTypeGroups    []string `json:"usage_type_groups,omitempty" url:"usage_type_groups,omitempty"`
-	ChargeTypes        []string `json:"charge_types,omitempty" url:"charge_types,omitempty"`
-	AvailabilityZones  []string `json:"availability_zones,omitempty" url:"availability_zones,omitempty"`
-	Platforms          []string `json:"platforms,omitempty" url:"platforms,omitempty"`
-	PurchaseOptions    []string `json:"purchase_options,omitempty" url:"purchase_options,omitempty"`
-	Tenancies          []string `json:"tenancies,omitempty" url:"tenancies,omitempty"`
-	DatabaseEngines    []string `json:"database_engines,omitempty" url:"database_engines,omitempty"`
-	LegalEntities      []string `json:"legal_entities,omitempty" url:"legal_entities,omitempty"`
-	BillingEntities    []string `json:"billing_entities,omitempty" url:"billing_entities,omitempty"`
-	APIOperations      []string `json:"api_operations,omitempty" url:"api_operations,omitempty"`
-	Resources          []string `json:"resources,omitempty" url:"resources,omitempty"`
-	CostCategoryKeys   []string `json:"cost_category_keys,omitempty" url:"cost_category_keys,omitempty"`
-	CostCategoryValues []string `json:"cost_category_values,omitempty" url:"cost_category_values,omitempty"`
-	PayerAccounts      []string `json:"payer_accounts,omitempty" url:"payer_accounts,omitempty"`
+	Accounts []string `json:"accounts" url:"accounts"`
+	// Display name per account id, for connector providers that bill an account under a name
+	AccountNames       map[string]string `json:"account_names,omitempty" url:"account_names,omitempty"`
+	TagKeys            []string          `json:"tag_keys,omitempty" url:"tag_keys,omitempty"`
+	TagValues          []string          `json:"tag_values,omitempty" url:"tag_values,omitempty"`
+	InstanceTypes      []string          `json:"instance_types,omitempty" url:"instance_types,omitempty"`
+	UsageTypes         []string          `json:"usage_types,omitempty" url:"usage_types,omitempty"`
+	UsageTypeGroups    []string          `json:"usage_type_groups,omitempty" url:"usage_type_groups,omitempty"`
+	ChargeTypes        []string          `json:"charge_types,omitempty" url:"charge_types,omitempty"`
+	AvailabilityZones  []string          `json:"availability_zones,omitempty" url:"availability_zones,omitempty"`
+	Platforms          []string          `json:"platforms,omitempty" url:"platforms,omitempty"`
+	PurchaseOptions    []string          `json:"purchase_options,omitempty" url:"purchase_options,omitempty"`
+	Tenancies          []string          `json:"tenancies,omitempty" url:"tenancies,omitempty"`
+	DatabaseEngines    []string          `json:"database_engines,omitempty" url:"database_engines,omitempty"`
+	LegalEntities      []string          `json:"legal_entities,omitempty" url:"legal_entities,omitempty"`
+	BillingEntities    []string          `json:"billing_entities,omitempty" url:"billing_entities,omitempty"`
+	APIOperations      []string          `json:"api_operations,omitempty" url:"api_operations,omitempty"`
+	Resources          []string          `json:"resources,omitempty" url:"resources,omitempty"`
+	CostCategoryKeys   []string          `json:"cost_category_keys,omitempty" url:"cost_category_keys,omitempty"`
+	CostCategoryValues []string          `json:"cost_category_values,omitempty" url:"cost_category_values,omitempty"`
+	PayerAccounts      []string          `json:"payer_accounts,omitempty" url:"payer_accounts,omitempty"`
 	// Every virtual tag key
 	VirtualTagKeys []*VirtualTagKeyOption `json:"virtual_tag_keys,omitempty" url:"virtual_tag_keys,omitempty"`
 	// Values of the keys passed as virtual_tag_key, followed by __unallocated__
@@ -5950,6 +5953,13 @@ func (p *ProviderFilterOptionsData) GetAccounts() []string {
 		return nil
 	}
 	return p.Accounts
+}
+
+func (p *ProviderFilterOptionsData) GetAccountNames() map[string]string {
+	if p == nil {
+		return nil
+	}
+	return p.AccountNames
 }
 
 func (p *ProviderFilterOptionsData) GetTagKeys() []string {
@@ -6132,6 +6142,13 @@ func (p *ProviderFilterOptionsData) SetRegions(regions []string) {
 func (p *ProviderFilterOptionsData) SetAccounts(accounts []string) {
 	p.Accounts = accounts
 	p.require(providerFilterOptionsDataFieldAccounts)
+}
+
+// SetAccountNames sets the AccountNames field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderFilterOptionsData) SetAccountNames(accountNames map[string]string) {
+	p.AccountNames = accountNames
+	p.require(providerFilterOptionsDataFieldAccountNames)
 }
 
 // SetTagKeys sets the TagKeys field and marks it as non-optional;
@@ -6671,16 +6688,18 @@ var (
 	providerServiceBreakdownItemFieldTagKey           = big.NewInt(1 << 4)
 	providerServiceBreakdownItemFieldTagValue         = big.NewInt(1 << 5)
 	providerServiceBreakdownItemFieldResource         = big.NewInt(1 << 6)
-	providerServiceBreakdownItemFieldUsageType        = big.NewInt(1 << 7)
-	providerServiceBreakdownItemFieldCostCategory     = big.NewInt(1 << 8)
-	providerServiceBreakdownItemFieldPurchaseType     = big.NewInt(1 << 9)
-	providerServiceBreakdownItemFieldInstanceType     = big.NewInt(1 << 10)
-	providerServiceBreakdownItemFieldChargeType       = big.NewInt(1 << 11)
-	providerServiceBreakdownItemFieldVirtualTag       = big.NewInt(1 << 12)
-	providerServiceBreakdownItemFieldCost             = big.NewInt(1 << 13)
-	providerServiceBreakdownItemFieldPreviousCost     = big.NewInt(1 << 14)
-	providerServiceBreakdownItemFieldChangePercentage = big.NewInt(1 << 15)
-	providerServiceBreakdownItemFieldSpendingsByDate  = big.NewInt(1 << 16)
+	providerServiceBreakdownItemFieldSku              = big.NewInt(1 << 7)
+	providerServiceBreakdownItemFieldProject          = big.NewInt(1 << 8)
+	providerServiceBreakdownItemFieldUsageType        = big.NewInt(1 << 9)
+	providerServiceBreakdownItemFieldCostCategory     = big.NewInt(1 << 10)
+	providerServiceBreakdownItemFieldPurchaseType     = big.NewInt(1 << 11)
+	providerServiceBreakdownItemFieldInstanceType     = big.NewInt(1 << 12)
+	providerServiceBreakdownItemFieldChargeType       = big.NewInt(1 << 13)
+	providerServiceBreakdownItemFieldVirtualTag       = big.NewInt(1 << 14)
+	providerServiceBreakdownItemFieldCost             = big.NewInt(1 << 15)
+	providerServiceBreakdownItemFieldPreviousCost     = big.NewInt(1 << 16)
+	providerServiceBreakdownItemFieldChangePercentage = big.NewInt(1 << 17)
+	providerServiceBreakdownItemFieldSpendingsByDate  = big.NewInt(1 << 18)
 )
 
 type ProviderServiceBreakdownItem struct {
@@ -6698,6 +6717,10 @@ type ProviderServiceBreakdownItem struct {
 	TagValue *string `json:"tag_value,omitempty" url:"tag_value,omitempty"`
 	// Resource id (set when grouped by resource)
 	Resource *string `json:"resource,omitempty" url:"resource,omitempty"`
+	// Billed SKU (set when grouped by sku, connector providers only)
+	Sku *string `json:"sku,omitempty" url:"sku,omitempty"`
+	// Project (set when grouped by project, DigitalOcean only)
+	Project *string `json:"project,omitempty" url:"project,omitempty"`
 	// Usage type (set when grouped by usage_type)
 	UsageType *string `json:"usage_type,omitempty" url:"usage_type,omitempty"`
 	// Cost category value (set when grouped by cost_category)
@@ -6773,6 +6796,20 @@ func (p *ProviderServiceBreakdownItem) GetResource() *string {
 		return nil
 	}
 	return p.Resource
+}
+
+func (p *ProviderServiceBreakdownItem) GetSku() *string {
+	if p == nil {
+		return nil
+	}
+	return p.Sku
+}
+
+func (p *ProviderServiceBreakdownItem) GetProject() *string {
+	if p == nil {
+		return nil
+	}
+	return p.Project
 }
 
 func (p *ProviderServiceBreakdownItem) GetUsageType() *string {
@@ -6906,6 +6943,20 @@ func (p *ProviderServiceBreakdownItem) SetTagValue(tagValue *string) {
 func (p *ProviderServiceBreakdownItem) SetResource(resource *string) {
 	p.Resource = resource
 	p.require(providerServiceBreakdownItemFieldResource)
+}
+
+// SetSku sets the Sku field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderServiceBreakdownItem) SetSku(sku *string) {
+	p.Sku = sku
+	p.require(providerServiceBreakdownItemFieldSku)
+}
+
+// SetProject sets the Project field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderServiceBreakdownItem) SetProject(project *string) {
+	p.Project = project
+	p.require(providerServiceBreakdownItemFieldProject)
 }
 
 // SetUsageType sets the UsageType field and marks it as non-optional;
