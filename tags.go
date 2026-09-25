@@ -2007,8 +2007,9 @@ func (d DimensionInfoKeyMode) Ptr() *DimensionInfoKeyMode {
 type DimensionInfoProvidersItem string
 
 const (
-	DimensionInfoProvidersItemAws DimensionInfoProvidersItem = "aws"
-	DimensionInfoProvidersItemGcp DimensionInfoProvidersItem = "gcp"
+	DimensionInfoProvidersItemAws          DimensionInfoProvidersItem = "aws"
+	DimensionInfoProvidersItemGcp          DimensionInfoProvidersItem = "gcp"
+	DimensionInfoProvidersItemDigitalocean DimensionInfoProvidersItem = "digitalocean"
 )
 
 func NewDimensionInfoProvidersItemFromString(s string) (DimensionInfoProvidersItem, error) {
@@ -2017,6 +2018,8 @@ func NewDimensionInfoProvidersItemFromString(s string) (DimensionInfoProvidersIt
 		return DimensionInfoProvidersItemAws, nil
 	case "gcp":
 		return DimensionInfoProvidersItemGcp, nil
+	case "digitalocean":
+		return DimensionInfoProvidersItemDigitalocean, nil
 	}
 	var t DimensionInfoProvidersItem
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -2960,8 +2963,9 @@ func (p *PickerResourcePageResponse) String() string {
 type PickerResourceProvider string
 
 const (
-	PickerResourceProviderAws PickerResourceProvider = "aws"
-	PickerResourceProviderGcp PickerResourceProvider = "gcp"
+	PickerResourceProviderAws          PickerResourceProvider = "aws"
+	PickerResourceProviderGcp          PickerResourceProvider = "gcp"
+	PickerResourceProviderDigitalocean PickerResourceProvider = "digitalocean"
 )
 
 func NewPickerResourceProviderFromString(s string) (PickerResourceProvider, error) {
@@ -2970,6 +2974,8 @@ func NewPickerResourceProviderFromString(s string) (PickerResourceProvider, erro
 		return PickerResourceProviderAws, nil
 	case "gcp":
 		return PickerResourceProviderGcp, nil
+	case "digitalocean":
+		return PickerResourceProviderDigitalocean, nil
 	}
 	var t PickerResourceProvider
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -5753,8 +5759,9 @@ func (t TagKeyDetailOrigin) Ptr() *TagKeyDetailOrigin {
 type TagKeyDetailProvidersItem string
 
 const (
-	TagKeyDetailProvidersItemAws TagKeyDetailProvidersItem = "aws"
-	TagKeyDetailProvidersItemGcp TagKeyDetailProvidersItem = "gcp"
+	TagKeyDetailProvidersItemAws          TagKeyDetailProvidersItem = "aws"
+	TagKeyDetailProvidersItemGcp          TagKeyDetailProvidersItem = "gcp"
+	TagKeyDetailProvidersItemDigitalocean TagKeyDetailProvidersItem = "digitalocean"
 )
 
 func NewTagKeyDetailProvidersItemFromString(s string) (TagKeyDetailProvidersItem, error) {
@@ -5763,6 +5770,8 @@ func NewTagKeyDetailProvidersItemFromString(s string) (TagKeyDetailProvidersItem
 		return TagKeyDetailProvidersItemAws, nil
 	case "gcp":
 		return TagKeyDetailProvidersItemGcp, nil
+	case "digitalocean":
+		return TagKeyDetailProvidersItemDigitalocean, nil
 	}
 	var t TagKeyDetailProvidersItem
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -6554,8 +6563,9 @@ func (t TagKeyRowOrigin) Ptr() *TagKeyRowOrigin {
 type TagKeyRowProvidersItem string
 
 const (
-	TagKeyRowProvidersItemAws TagKeyRowProvidersItem = "aws"
-	TagKeyRowProvidersItemGcp TagKeyRowProvidersItem = "gcp"
+	TagKeyRowProvidersItemAws          TagKeyRowProvidersItem = "aws"
+	TagKeyRowProvidersItemGcp          TagKeyRowProvidersItem = "gcp"
+	TagKeyRowProvidersItemDigitalocean TagKeyRowProvidersItem = "digitalocean"
 )
 
 func NewTagKeyRowProvidersItemFromString(s string) (TagKeyRowProvidersItem, error) {
@@ -6564,6 +6574,8 @@ func NewTagKeyRowProvidersItemFromString(s string) (TagKeyRowProvidersItem, erro
 		return TagKeyRowProvidersItemAws, nil
 	case "gcp":
 		return TagKeyRowProvidersItemGcp, nil
+	case "digitalocean":
+		return TagKeyRowProvidersItemDigitalocean, nil
 	}
 	var t TagKeyRowProvidersItem
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -7053,8 +7065,9 @@ func (t *TagResourceRow) String() string {
 type TagResourceRowProvider string
 
 const (
-	TagResourceRowProviderAws TagResourceRowProvider = "aws"
-	TagResourceRowProviderGcp TagResourceRowProvider = "gcp"
+	TagResourceRowProviderAws          TagResourceRowProvider = "aws"
+	TagResourceRowProviderGcp          TagResourceRowProvider = "gcp"
+	TagResourceRowProviderDigitalocean TagResourceRowProvider = "digitalocean"
 )
 
 func NewTagResourceRowProviderFromString(s string) (TagResourceRowProvider, error) {
@@ -7063,6 +7076,8 @@ func NewTagResourceRowProviderFromString(s string) (TagResourceRowProvider, erro
 		return TagResourceRowProviderAws, nil
 	case "gcp":
 		return TagResourceRowProviderGcp, nil
+	case "digitalocean":
+		return TagResourceRowProviderDigitalocean, nil
 	}
 	var t TagResourceRowProvider
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -7203,8 +7218,9 @@ func (t *TagRule) String() string {
 type TagRuleProvidersItem string
 
 const (
-	TagRuleProvidersItemAws TagRuleProvidersItem = "aws"
-	TagRuleProvidersItemGcp TagRuleProvidersItem = "gcp"
+	TagRuleProvidersItemAws          TagRuleProvidersItem = "aws"
+	TagRuleProvidersItemGcp          TagRuleProvidersItem = "gcp"
+	TagRuleProvidersItemDigitalocean TagRuleProvidersItem = "digitalocean"
 )
 
 func NewTagRuleProvidersItemFromString(s string) (TagRuleProvidersItem, error) {
@@ -7213,6 +7229,8 @@ func NewTagRuleProvidersItemFromString(s string) (TagRuleProvidersItem, error) {
 		return TagRuleProvidersItemAws, nil
 	case "gcp":
 		return TagRuleProvidersItemGcp, nil
+	case "digitalocean":
+		return TagRuleProvidersItemDigitalocean, nil
 	}
 	var t TagRuleProvidersItem
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -7309,8 +7327,9 @@ func (t *TagScope) String() string {
 type TagScopeProvidersItem string
 
 const (
-	TagScopeProvidersItemAws TagScopeProvidersItem = "aws"
-	TagScopeProvidersItemGcp TagScopeProvidersItem = "gcp"
+	TagScopeProvidersItemAws          TagScopeProvidersItem = "aws"
+	TagScopeProvidersItemGcp          TagScopeProvidersItem = "gcp"
+	TagScopeProvidersItemDigitalocean TagScopeProvidersItem = "digitalocean"
 )
 
 func NewTagScopeProvidersItemFromString(s string) (TagScopeProvidersItem, error) {
@@ -7319,6 +7338,8 @@ func NewTagScopeProvidersItemFromString(s string) (TagScopeProvidersItem, error)
 		return TagScopeProvidersItemAws, nil
 	case "gcp":
 		return TagScopeProvidersItemGcp, nil
+	case "digitalocean":
+		return TagScopeProvidersItemDigitalocean, nil
 	}
 	var t TagScopeProvidersItem
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -7948,9 +7969,10 @@ func (g GetDimensionValuesTagsRequestDimension) Ptr() *GetDimensionValuesTagsReq
 type GetDimensionValuesTagsRequestProvider string
 
 const (
-	GetDimensionValuesTagsRequestProviderAws GetDimensionValuesTagsRequestProvider = "aws"
-	GetDimensionValuesTagsRequestProviderGcp GetDimensionValuesTagsRequestProvider = "gcp"
-	GetDimensionValuesTagsRequestProviderAll GetDimensionValuesTagsRequestProvider = "all"
+	GetDimensionValuesTagsRequestProviderAws          GetDimensionValuesTagsRequestProvider = "aws"
+	GetDimensionValuesTagsRequestProviderGcp          GetDimensionValuesTagsRequestProvider = "gcp"
+	GetDimensionValuesTagsRequestProviderDigitalocean GetDimensionValuesTagsRequestProvider = "digitalocean"
+	GetDimensionValuesTagsRequestProviderAll          GetDimensionValuesTagsRequestProvider = "all"
 )
 
 func NewGetDimensionValuesTagsRequestProviderFromString(s string) (GetDimensionValuesTagsRequestProvider, error) {
@@ -7959,6 +7981,8 @@ func NewGetDimensionValuesTagsRequestProviderFromString(s string) (GetDimensionV
 		return GetDimensionValuesTagsRequestProviderAws, nil
 	case "gcp":
 		return GetDimensionValuesTagsRequestProviderGcp, nil
+	case "digitalocean":
+		return GetDimensionValuesTagsRequestProviderDigitalocean, nil
 	case "all":
 		return GetDimensionValuesTagsRequestProviderAll, nil
 	}
@@ -7973,9 +7997,10 @@ func (g GetDimensionValuesTagsRequestProvider) Ptr() *GetDimensionValuesTagsRequ
 type GetDimensionsTagsRequestProvider string
 
 const (
-	GetDimensionsTagsRequestProviderAws GetDimensionsTagsRequestProvider = "aws"
-	GetDimensionsTagsRequestProviderGcp GetDimensionsTagsRequestProvider = "gcp"
-	GetDimensionsTagsRequestProviderAll GetDimensionsTagsRequestProvider = "all"
+	GetDimensionsTagsRequestProviderAws          GetDimensionsTagsRequestProvider = "aws"
+	GetDimensionsTagsRequestProviderGcp          GetDimensionsTagsRequestProvider = "gcp"
+	GetDimensionsTagsRequestProviderDigitalocean GetDimensionsTagsRequestProvider = "digitalocean"
+	GetDimensionsTagsRequestProviderAll          GetDimensionsTagsRequestProvider = "all"
 )
 
 func NewGetDimensionsTagsRequestProviderFromString(s string) (GetDimensionsTagsRequestProvider, error) {
@@ -7984,6 +8009,8 @@ func NewGetDimensionsTagsRequestProviderFromString(s string) (GetDimensionsTagsR
 		return GetDimensionsTagsRequestProviderAws, nil
 	case "gcp":
 		return GetDimensionsTagsRequestProviderGcp, nil
+	case "digitalocean":
+		return GetDimensionsTagsRequestProviderDigitalocean, nil
 	case "all":
 		return GetDimensionsTagsRequestProviderAll, nil
 	}

@@ -68,6 +68,73 @@ func (r *RejectionFeedbackRequest) MarshalJSON() ([]byte, error) {
 }
 
 var (
+	savingsDecisionRequestFieldDecision    = big.NewInt(1 << 0)
+	savingsDecisionRequestFieldReason      = big.NewInt(1 << 1)
+	savingsDecisionRequestFieldExplanation = big.NewInt(1 << 2)
+)
+
+type SavingsDecisionRequest struct {
+	// Decision: 'accepted' or 'rejected'
+	Decision string `json:"decision" url:"-"`
+	// Rejection reason (optional): operational, strategy, not_applicable, other
+	Reason *string `json:"reason,omitempty" url:"-"`
+	// Free text explanation (optional, used when reason is 'other')
+	Explanation *string `json:"explanation,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (s *SavingsDecisionRequest) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetDecision sets the Decision field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SavingsDecisionRequest) SetDecision(decision string) {
+	s.Decision = decision
+	s.require(savingsDecisionRequestFieldDecision)
+}
+
+// SetReason sets the Reason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SavingsDecisionRequest) SetReason(reason *string) {
+	s.Reason = reason
+	s.require(savingsDecisionRequestFieldReason)
+}
+
+// SetExplanation sets the Explanation field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SavingsDecisionRequest) SetExplanation(explanation *string) {
+	s.Explanation = explanation
+	s.require(savingsDecisionRequestFieldExplanation)
+}
+
+func (s *SavingsDecisionRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler SavingsDecisionRequest
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*s = SavingsDecisionRequest(body)
+	return nil
+}
+
+func (s *SavingsDecisionRequest) MarshalJSON() ([]byte, error) {
+	type embed SavingsDecisionRequest
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+var (
 	listRecommendationsRequestFieldPage      = big.NewInt(1 << 0)
 	listRecommendationsRequestFieldPageSize  = big.NewInt(1 << 1)
 	listRecommendationsRequestFieldSortBy    = big.NewInt(1 << 2)
@@ -2691,31 +2758,32 @@ func (p *ProviderBreakdownData) String() string {
 var (
 	providerBreakdownItemFieldRecommendationID       = big.NewInt(1 << 0)
 	providerBreakdownItemFieldService                = big.NewInt(1 << 1)
-	providerBreakdownItemFieldEnvironment            = big.NewInt(1 << 2)
-	providerBreakdownItemFieldAccount                = big.NewInt(1 << 3)
-	providerBreakdownItemFieldTag                    = big.NewInt(1 << 4)
-	providerBreakdownItemFieldMonthlySavings         = big.NewInt(1 << 5)
-	providerBreakdownItemFieldSavingsPercentage      = big.NewInt(1 << 6)
-	providerBreakdownItemFieldStatus                 = big.NewInt(1 << 7)
-	providerBreakdownItemFieldDisplayStatus          = big.NewInt(1 << 8)
-	providerBreakdownItemFieldActions                = big.NewInt(1 << 9)
-	providerBreakdownItemFieldTermsAcceptedAt        = big.NewInt(1 << 10)
-	providerBreakdownItemFieldSavingAcceptedBy       = big.NewInt(1 << 11)
-	providerBreakdownItemFieldSavingAcceptance       = big.NewInt(1 << 12)
-	providerBreakdownItemFieldImplementationMethod   = big.NewInt(1 << 13)
-	providerBreakdownItemFieldImplementationStatus   = big.NewInt(1 << 14)
-	providerBreakdownItemFieldImplementationTags     = big.NewInt(1 << 15)
-	providerBreakdownItemFieldCreatedAt              = big.NewInt(1 << 16)
-	providerBreakdownItemFieldUpdatedAt              = big.NewInt(1 << 17)
-	providerBreakdownItemFieldGroupID                = big.NewInt(1 << 18)
-	providerBreakdownItemFieldGroupName              = big.NewInt(1 << 19)
-	providerBreakdownItemFieldLinkedTo               = big.NewInt(1 << 20)
-	providerBreakdownItemFieldExecutionRequestStatus = big.NewInt(1 << 21)
-	providerBreakdownItemFieldExecutionRequestBy     = big.NewInt(1 << 22)
-	providerBreakdownItemFieldExecutionRequestByName = big.NewInt(1 << 23)
-	providerBreakdownItemFieldExecutionRequestAt     = big.NewInt(1 << 24)
-	providerBreakdownItemFieldVirtualTags            = big.NewInt(1 << 25)
-	providerBreakdownItemFieldRiskAssessment         = big.NewInt(1 << 26)
+	providerBreakdownItemFieldResourceType           = big.NewInt(1 << 2)
+	providerBreakdownItemFieldEnvironment            = big.NewInt(1 << 3)
+	providerBreakdownItemFieldAccount                = big.NewInt(1 << 4)
+	providerBreakdownItemFieldTag                    = big.NewInt(1 << 5)
+	providerBreakdownItemFieldMonthlySavings         = big.NewInt(1 << 6)
+	providerBreakdownItemFieldSavingsPercentage      = big.NewInt(1 << 7)
+	providerBreakdownItemFieldStatus                 = big.NewInt(1 << 8)
+	providerBreakdownItemFieldDisplayStatus          = big.NewInt(1 << 9)
+	providerBreakdownItemFieldActions                = big.NewInt(1 << 10)
+	providerBreakdownItemFieldTermsAcceptedAt        = big.NewInt(1 << 11)
+	providerBreakdownItemFieldSavingAcceptedBy       = big.NewInt(1 << 12)
+	providerBreakdownItemFieldSavingAcceptance       = big.NewInt(1 << 13)
+	providerBreakdownItemFieldImplementationMethod   = big.NewInt(1 << 14)
+	providerBreakdownItemFieldImplementationStatus   = big.NewInt(1 << 15)
+	providerBreakdownItemFieldImplementationTags     = big.NewInt(1 << 16)
+	providerBreakdownItemFieldCreatedAt              = big.NewInt(1 << 17)
+	providerBreakdownItemFieldUpdatedAt              = big.NewInt(1 << 18)
+	providerBreakdownItemFieldGroupID                = big.NewInt(1 << 19)
+	providerBreakdownItemFieldGroupName              = big.NewInt(1 << 20)
+	providerBreakdownItemFieldLinkedTo               = big.NewInt(1 << 21)
+	providerBreakdownItemFieldExecutionRequestStatus = big.NewInt(1 << 22)
+	providerBreakdownItemFieldExecutionRequestBy     = big.NewInt(1 << 23)
+	providerBreakdownItemFieldExecutionRequestByName = big.NewInt(1 << 24)
+	providerBreakdownItemFieldExecutionRequestAt     = big.NewInt(1 << 25)
+	providerBreakdownItemFieldVirtualTags            = big.NewInt(1 << 26)
+	providerBreakdownItemFieldRiskAssessment         = big.NewInt(1 << 27)
 )
 
 type ProviderBreakdownItem struct {
@@ -2723,6 +2791,8 @@ type ProviderBreakdownItem struct {
 	RecommendationID string `json:"recommendation_id" url:"recommendation_id"`
 	// Service name (e.g., EC2, EBS, RDS)
 	Service string `json:"service" url:"service"`
+	// What the recommendation was raised as. commitment_renewal and commitment_purchase buy a commitment, which only an organization admin releases, in the dashboard or through an MCP connection they authorized
+	ResourceType *string `json:"resource_type,omitempty" url:"resource_type,omitempty"`
 	// Environment (e.g., Production, Staging)
 	Environment *string `json:"environment,omitempty" url:"environment,omitempty"`
 	// Cloud account identifier
@@ -2792,6 +2862,13 @@ func (p *ProviderBreakdownItem) GetService() string {
 		return ""
 	}
 	return p.Service
+}
+
+func (p *ProviderBreakdownItem) GetResourceType() *string {
+	if p == nil {
+		return nil
+	}
+	return p.ResourceType
 }
 
 func (p *ProviderBreakdownItem) GetEnvironment() *string {
@@ -2995,6 +3072,13 @@ func (p *ProviderBreakdownItem) SetRecommendationID(recommendationID string) {
 func (p *ProviderBreakdownItem) SetService(service string) {
 	p.Service = service
 	p.require(providerBreakdownItemFieldService)
+}
+
+// SetResourceType sets the ResourceType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderBreakdownItem) SetResourceType(resourceType *string) {
+	p.ResourceType = resourceType
+	p.require(providerBreakdownItemFieldResourceType)
 }
 
 // SetEnvironment sets the Environment field and marks it as non-optional;
@@ -7458,6 +7542,296 @@ func (r *ResourceSelectionResponse) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", r)
+}
+
+// Data returned after making a decision
+var (
+	savingsDecisionDataFieldRecommendationID     = big.NewInt(1 << 0)
+	savingsDecisionDataFieldSavingAcceptance     = big.NewInt(1 << 1)
+	savingsDecisionDataFieldSavingAcceptedBy     = big.NewInt(1 << 2)
+	savingsDecisionDataFieldSavingAcceptedAt     = big.NewInt(1 << 3)
+	savingsDecisionDataFieldRejectionReason      = big.NewInt(1 << 4)
+	savingsDecisionDataFieldRejectionExplanation = big.NewInt(1 << 5)
+)
+
+type SavingsDecisionData struct {
+	RecommendationID     string  `json:"recommendation_id" url:"recommendation_id"`
+	SavingAcceptance     string  `json:"saving_acceptance" url:"saving_acceptance"`
+	SavingAcceptedBy     string  `json:"saving_accepted_by" url:"saving_accepted_by"`
+	SavingAcceptedAt     string  `json:"saving_accepted_at" url:"saving_accepted_at"`
+	RejectionReason      *string `json:"rejection_reason,omitempty" url:"rejection_reason,omitempty"`
+	RejectionExplanation *string `json:"rejection_explanation,omitempty" url:"rejection_explanation,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SavingsDecisionData) GetRecommendationID() string {
+	if s == nil {
+		return ""
+	}
+	return s.RecommendationID
+}
+
+func (s *SavingsDecisionData) GetSavingAcceptance() string {
+	if s == nil {
+		return ""
+	}
+	return s.SavingAcceptance
+}
+
+func (s *SavingsDecisionData) GetSavingAcceptedBy() string {
+	if s == nil {
+		return ""
+	}
+	return s.SavingAcceptedBy
+}
+
+func (s *SavingsDecisionData) GetSavingAcceptedAt() string {
+	if s == nil {
+		return ""
+	}
+	return s.SavingAcceptedAt
+}
+
+func (s *SavingsDecisionData) GetRejectionReason() *string {
+	if s == nil {
+		return nil
+	}
+	return s.RejectionReason
+}
+
+func (s *SavingsDecisionData) GetRejectionExplanation() *string {
+	if s == nil {
+		return nil
+	}
+	return s.RejectionExplanation
+}
+
+func (s *SavingsDecisionData) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *SavingsDecisionData) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetRecommendationID sets the RecommendationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SavingsDecisionData) SetRecommendationID(recommendationID string) {
+	s.RecommendationID = recommendationID
+	s.require(savingsDecisionDataFieldRecommendationID)
+}
+
+// SetSavingAcceptance sets the SavingAcceptance field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SavingsDecisionData) SetSavingAcceptance(savingAcceptance string) {
+	s.SavingAcceptance = savingAcceptance
+	s.require(savingsDecisionDataFieldSavingAcceptance)
+}
+
+// SetSavingAcceptedBy sets the SavingAcceptedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SavingsDecisionData) SetSavingAcceptedBy(savingAcceptedBy string) {
+	s.SavingAcceptedBy = savingAcceptedBy
+	s.require(savingsDecisionDataFieldSavingAcceptedBy)
+}
+
+// SetSavingAcceptedAt sets the SavingAcceptedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SavingsDecisionData) SetSavingAcceptedAt(savingAcceptedAt string) {
+	s.SavingAcceptedAt = savingAcceptedAt
+	s.require(savingsDecisionDataFieldSavingAcceptedAt)
+}
+
+// SetRejectionReason sets the RejectionReason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SavingsDecisionData) SetRejectionReason(rejectionReason *string) {
+	s.RejectionReason = rejectionReason
+	s.require(savingsDecisionDataFieldRejectionReason)
+}
+
+// SetRejectionExplanation sets the RejectionExplanation field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SavingsDecisionData) SetRejectionExplanation(rejectionExplanation *string) {
+	s.RejectionExplanation = rejectionExplanation
+	s.require(savingsDecisionDataFieldRejectionExplanation)
+}
+
+func (s *SavingsDecisionData) UnmarshalJSON(data []byte) error {
+	type unmarshaler SavingsDecisionData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SavingsDecisionData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SavingsDecisionData) MarshalJSON() ([]byte, error) {
+	type embed SavingsDecisionData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *SavingsDecisionData) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+// Response after making a decision
+var (
+	savingsDecisionResponseFieldSuccess   = big.NewInt(1 << 0)
+	savingsDecisionResponseFieldTimestamp = big.NewInt(1 << 1)
+	savingsDecisionResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type SavingsDecisionResponse struct {
+	Success   *bool                `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time           `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *SavingsDecisionData `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SavingsDecisionResponse) GetSuccess() *bool {
+	if s == nil {
+		return nil
+	}
+	return s.Success
+}
+
+func (s *SavingsDecisionResponse) GetTimestamp() *time.Time {
+	if s == nil {
+		return nil
+	}
+	return s.Timestamp
+}
+
+func (s *SavingsDecisionResponse) GetData() *SavingsDecisionData {
+	if s == nil {
+		return nil
+	}
+	return s.Data
+}
+
+func (s *SavingsDecisionResponse) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *SavingsDecisionResponse) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SavingsDecisionResponse) SetSuccess(success *bool) {
+	s.Success = success
+	s.require(savingsDecisionResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SavingsDecisionResponse) SetTimestamp(timestamp *time.Time) {
+	s.Timestamp = timestamp
+	s.require(savingsDecisionResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SavingsDecisionResponse) SetData(data *SavingsDecisionData) {
+	s.Data = data
+	s.require(savingsDecisionResponseFieldData)
+}
+
+func (s *SavingsDecisionResponse) UnmarshalJSON(data []byte) error {
+	type embed SavingsDecisionResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*s),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*s = SavingsDecisionResponse(unmarshaler.embed)
+	s.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SavingsDecisionResponse) MarshalJSON() ([]byte, error) {
+	type embed SavingsDecisionResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*s),
+		Timestamp: internal.NewOptionalDateTime(s.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *SavingsDecisionResponse) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
 }
 
 // Top recommendation for a specific provider
