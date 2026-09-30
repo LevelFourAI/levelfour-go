@@ -17414,6 +17414,13 @@ func TestEnumDimensionInfoProvidersItem(t *testing.T) {
 		assert.Equal(t, DimensionInfoProvidersItem("gcp"), val, "enum value should match expected wire value")
 	})
 
+	t.Run("NewFromString_digitalocean", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewDimensionInfoProvidersItemFromString("digitalocean")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, DimensionInfoProvidersItem("digitalocean"), val, "enum value should match expected wire value")
+	})
+
 	t.Run("NewFromString_Invalid", func(t *testing.T) {
 		_, err := NewDimensionInfoProvidersItemFromString("invalid_value_that_does_not_exist")
 		assert.Error(t, err)
@@ -17684,6 +17691,13 @@ func TestEnumGetDimensionValuesTagsRequestProvider(t *testing.T) {
 		assert.Equal(t, GetDimensionValuesTagsRequestProvider("gcp"), val, "enum value should match expected wire value")
 	})
 
+	t.Run("NewFromString_digitalocean", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewGetDimensionValuesTagsRequestProviderFromString("digitalocean")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, GetDimensionValuesTagsRequestProvider("digitalocean"), val, "enum value should match expected wire value")
+	})
+
 	t.Run("NewFromString_all", func(t *testing.T) {
 		t.Parallel()
 		val, err := NewGetDimensionValuesTagsRequestProviderFromString("all")
@@ -17718,6 +17732,13 @@ func TestEnumGetDimensionsTagsRequestProvider(t *testing.T) {
 		val, err := NewGetDimensionsTagsRequestProviderFromString("gcp")
 		assert.NoError(t, err, "valid enum value should not return error")
 		assert.Equal(t, GetDimensionsTagsRequestProvider("gcp"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_digitalocean", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewGetDimensionsTagsRequestProviderFromString("digitalocean")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, GetDimensionsTagsRequestProvider("digitalocean"), val, "enum value should match expected wire value")
 	})
 
 	t.Run("NewFromString_all", func(t *testing.T) {
@@ -17906,6 +17927,13 @@ func TestEnumPickerResourceProvider(t *testing.T) {
 		val, err := NewPickerResourceProviderFromString("gcp")
 		assert.NoError(t, err, "valid enum value should not return error")
 		assert.Equal(t, PickerResourceProvider("gcp"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_digitalocean", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewPickerResourceProviderFromString("digitalocean")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, PickerResourceProvider("digitalocean"), val, "enum value should match expected wire value")
 	})
 
 	t.Run("NewFromString_Invalid", func(t *testing.T) {
@@ -18251,6 +18279,13 @@ func TestEnumTagKeyDetailProvidersItem(t *testing.T) {
 		assert.Equal(t, TagKeyDetailProvidersItem("gcp"), val, "enum value should match expected wire value")
 	})
 
+	t.Run("NewFromString_digitalocean", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewTagKeyDetailProvidersItemFromString("digitalocean")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, TagKeyDetailProvidersItem("digitalocean"), val, "enum value should match expected wire value")
+	})
+
 	t.Run("NewFromString_Invalid", func(t *testing.T) {
 		_, err := NewTagKeyDetailProvidersItemFromString("invalid_value_that_does_not_exist")
 		assert.Error(t, err)
@@ -18345,6 +18380,13 @@ func TestEnumTagKeyRowProvidersItem(t *testing.T) {
 		assert.Equal(t, TagKeyRowProvidersItem("gcp"), val, "enum value should match expected wire value")
 	})
 
+	t.Run("NewFromString_digitalocean", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewTagKeyRowProvidersItemFromString("digitalocean")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, TagKeyRowProvidersItem("digitalocean"), val, "enum value should match expected wire value")
+	})
+
 	t.Run("NewFromString_Invalid", func(t *testing.T) {
 		_, err := NewTagKeyRowProvidersItemFromString("invalid_value_that_does_not_exist")
 		assert.Error(t, err)
@@ -18408,6 +18450,13 @@ func TestEnumTagResourceRowProvider(t *testing.T) {
 		val, err := NewTagResourceRowProviderFromString("gcp")
 		assert.NoError(t, err, "valid enum value should not return error")
 		assert.Equal(t, TagResourceRowProvider("gcp"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_digitalocean", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewTagResourceRowProviderFromString("digitalocean")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, TagResourceRowProvider("digitalocean"), val, "enum value should match expected wire value")
 	})
 
 	t.Run("NewFromString_Invalid", func(t *testing.T) {
@@ -18482,6 +18531,13 @@ func TestEnumTagRuleProvidersItem(t *testing.T) {
 		assert.Equal(t, TagRuleProvidersItem("gcp"), val, "enum value should match expected wire value")
 	})
 
+	t.Run("NewFromString_digitalocean", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewTagRuleProvidersItemFromString("digitalocean")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, TagRuleProvidersItem("digitalocean"), val, "enum value should match expected wire value")
+	})
+
 	t.Run("NewFromString_Invalid", func(t *testing.T) {
 		_, err := NewTagRuleProvidersItemFromString("invalid_value_that_does_not_exist")
 		assert.Error(t, err)
@@ -18509,6 +18565,13 @@ func TestEnumTagScopeProvidersItem(t *testing.T) {
 		val, err := NewTagScopeProvidersItemFromString("gcp")
 		assert.NoError(t, err, "valid enum value should not return error")
 		assert.Equal(t, TagScopeProvidersItem("gcp"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_digitalocean", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewTagScopeProvidersItemFromString("digitalocean")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, TagScopeProvidersItem("digitalocean"), val, "enum value should match expected wire value")
 	})
 
 	t.Run("NewFromString_Invalid", func(t *testing.T) {

@@ -83,7 +83,7 @@ func (c *Client) GetLabelHygiene(
 func (c *Client) GetUtilizationSummary(
 	ctx context.Context,
 	opts ...option.RequestOption,
-) (*levelfour.UtilizationSummaryResponse, error) {
+) (*levelfour.SrcProvidersGcpSchemasUtilizationSummaryResponse, error) {
 	response, err := c.WithRawResponse.GetUtilizationSummary(
 		ctx,
 		opts...,
