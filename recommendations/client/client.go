@@ -232,6 +232,25 @@ func (c *Client) UpdateResourceSelection(
 	return response.Body, nil
 }
 
+// Records user decision to accept or reject a savings recommendation
+func (c *Client) Decide(
+	ctx context.Context,
+	recommendationID string,
+	request *levelfour.SavingsDecisionRequest,
+	opts ...option.RequestOption,
+) (*levelfour.SavingsDecisionResponse, error) {
+	response, err := c.WithRawResponse.Decide(
+		ctx,
+		recommendationID,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
 // Backfill reason/explanation on an already-rejected recommendation
 func (c *Client) AddRejectionFeedback(
 	ctx context.Context,
