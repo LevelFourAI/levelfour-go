@@ -96,6 +96,14 @@ func TestSettersCreateGrantData(t *testing.T) {
 		assert.NotNil(t, obj.explicitFields)
 	})
 
+	t.Run("SetStaleGrantPolicies", func(t *testing.T) {
+		obj := &CreateGrantData{}
+		var fernTestValueStaleGrantPolicies []string
+		obj.SetStaleGrantPolicies(fernTestValueStaleGrantPolicies)
+		assert.Equal(t, fernTestValueStaleGrantPolicies, obj.StaleGrantPolicies)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
 }
 
 func TestGettersCreateGrantData(t *testing.T) {
@@ -244,6 +252,39 @@ func TestGettersCreateGrantData(t *testing.T) {
 		_ = obj.GetScopeSummary() // Should return zero value
 	})
 
+	t.Run("GetStaleGrantPolicies", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &CreateGrantData{}
+		var expected []string
+		obj.StaleGrantPolicies = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetStaleGrantPolicies(), "getter should return the property value")
+	})
+
+	t.Run("GetStaleGrantPolicies_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &CreateGrantData{}
+		obj.StaleGrantPolicies = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetStaleGrantPolicies(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetStaleGrantPolicies_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *CreateGrantData
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetStaleGrantPolicies() // Should return zero value
+	})
+
 }
 
 func TestSettersMarkExplicitCreateGrantData(t *testing.T) {
@@ -379,6 +420,37 @@ func TestSettersMarkExplicitCreateGrantData(t *testing.T) {
 
 		// Act
 		obj.SetScopeSummary(fernTestValueScopeSummary)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetStaleGrantPolicies_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &CreateGrantData{}
+		var fernTestValueStaleGrantPolicies []string
+
+		// Act
+		obj.SetStaleGrantPolicies(fernTestValueStaleGrantPolicies)
 
 		// Assert - object with explicitly set field can be marshaled/unmarshaled
 		bytes, err := json.Marshal(obj)
