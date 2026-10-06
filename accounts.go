@@ -78,9 +78,9 @@ var (
 type GitlabCompleteRequest struct {
 	// OAuth authorization code returned to the GitLab callback
 	Code string `json:"code" url:"-"`
-	// Legacy single-target path. When scope='group', a group full path (e.g. globo or globo/infra). When scope='project', a single project full path (e.g. globo/infra/billing). Provide either namespace (legacy) or projects (multi-project mint-and-store), not both.
+	// Legacy single-target path. When scope='group', a group full path (e.g. acme or acme/infra). When scope='project', a single project full path (e.g. acme/infra/billing). Provide either namespace (legacy) or projects (multi-project mint-and-store), not both.
 	Namespace *string `json:"namespace,omitempty" url:"-"`
-	// Multi-project path: one or more project full paths (e.g. globo/infra/billing). Requires scope='project'. Each project mints its own scoped Project Access Token at connect time so the bot has a per-project identity and the connector's OAuth token is never stored.
+	// Multi-project path: one or more project full paths (e.g. acme/infra/billing). Requires scope='project'. Each project mints its own scoped Project Access Token at connect time so the bot has a per-project identity and the connector's OAuth token is never stored.
 	Projects []string `json:"projects,omitempty" url:"-"`
 	// Whether to connect an entire group (registers a group webhook, needs GitLab Premium/Ultimate) or one or more projects (registers a project webhook each, works on all tiers).
 	Scope *GitlabCompleteRequestScope `json:"scope,omitempty" url:"-"`
@@ -5133,7 +5133,7 @@ type SlackConnectionSummary struct {
 	TeamName string `json:"team_name" url:"team_name"`
 	// Scopes the workspace actually granted. The history scopes are optional in the app manifest, so an admin can approve the install without them.
 	GrantedScopes []string `json:"granted_scopes" url:"granted_scopes"`
-	// True when the granted scopes allow reading a thread reply that does not mention the bot. False means the bot still posts alerts and still answers an @mention, but cannot pick up a plain reply, and the dashboard should say so.
+	// True when the granted scopes allow reading a thread reply that does not mention the bot. False means the bot still answers an @mention, but cannot pick up a plain reply, and the dashboard should say so.
 	CanAnswerUnmentioned bool       `json:"can_answer_unmentioned" url:"can_answer_unmentioned"`
 	ConnectedAt          *time.Time `json:"connected_at,omitempty" url:"connected_at,omitempty"`
 
