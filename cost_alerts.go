@@ -19,11 +19,12 @@ var (
 )
 
 type CreateAlertRequest struct {
-	Name         string                    `json:"name" url:"-"`
-	Params       *CreateAlertRequestParams `json:"params" url:"-"`
-	SourceID     string                    `json:"source_id" url:"-"`
-	Recipients   []*AlertRecipient         `json:"recipients" url:"-"`
-	SlackChannel *string                   `json:"slack_channel,omitempty" url:"-"`
+	Name       string                    `json:"name" url:"-"`
+	Params     *CreateAlertRequestParams `json:"params" url:"-"`
+	SourceID   string                    `json:"source_id" url:"-"`
+	Recipients []*AlertRecipient         `json:"recipients" url:"-"`
+	// Deprecated and never read: cost alerts post to the organization's Slack channel, chosen with PUT /api/v1/accounts/slack/alerts-channel
+	SlackChannel *string `json:"slack_channel,omitempty" url:"-"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -4785,11 +4786,12 @@ var (
 )
 
 type UpdateAlertRequest struct {
-	Name         *string                   `json:"name,omitempty" url:"-"`
-	Params       *UpdateAlertRequestParams `json:"params,omitempty" url:"-"`
-	Recipients   []*AlertRecipient         `json:"recipients,omitempty" url:"-"`
-	SlackChannel *string                   `json:"slack_channel,omitempty" url:"-"`
-	Enabled      *bool                     `json:"enabled,omitempty" url:"-"`
+	Name       *string                   `json:"name,omitempty" url:"-"`
+	Params     *UpdateAlertRequestParams `json:"params,omitempty" url:"-"`
+	Recipients []*AlertRecipient         `json:"recipients,omitempty" url:"-"`
+	// Deprecated and never read: cost alerts post to the organization's Slack channel, chosen with PUT /api/v1/accounts/slack/alerts-channel
+	SlackChannel *string `json:"slack_channel,omitempty" url:"-"`
+	Enabled      *bool   `json:"enabled,omitempty" url:"-"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
