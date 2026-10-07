@@ -5,6 +5,7 @@ package client
 import (
 	accounts "github.com/LevelFourAI/levelfour-go/accounts"
 	anomalies "github.com/LevelFourAI/levelfour-go/anomalies"
+	anthropic "github.com/LevelFourAI/levelfour-go/anthropic"
 	audit "github.com/LevelFourAI/levelfour-go/audit"
 	auth "github.com/LevelFourAI/levelfour-go/auth"
 	commitments "github.com/LevelFourAI/levelfour-go/commitments"
@@ -37,6 +38,7 @@ type Client struct {
 	Audit           *audit.Client
 	Costs           *costs.Client
 	GoogleCloud     *googlecloud.Client
+	Anthropic       *anthropic.Client
 	Providers       *providers.Client
 	CostAlerts      *costalerts.Client
 	Tags            *tags.Client
@@ -64,6 +66,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 		Audit:           audit.NewClient(options),
 		Costs:           costs.NewClient(options),
 		GoogleCloud:     googlecloud.NewClient(options),
+		Anthropic:       anthropic.NewClient(options),
 		Providers:       providers.NewClient(options),
 		CostAlerts:      costalerts.NewClient(options),
 		Tags:            tags.NewClient(options),
