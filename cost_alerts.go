@@ -11,19 +11,23 @@ import (
 )
 
 var (
-	createAlertRequestFieldName         = big.NewInt(1 << 0)
-	createAlertRequestFieldParams       = big.NewInt(1 << 1)
-	createAlertRequestFieldSourceID     = big.NewInt(1 << 2)
-	createAlertRequestFieldRecipients   = big.NewInt(1 << 3)
-	createAlertRequestFieldSlackChannel = big.NewInt(1 << 4)
+	createAlertRequestFieldName            = big.NewInt(1 << 0)
+	createAlertRequestFieldParams          = big.NewInt(1 << 1)
+	createAlertRequestFieldSourceID        = big.NewInt(1 << 2)
+	createAlertRequestFieldRecipients      = big.NewInt(1 << 3)
+	createAlertRequestFieldSlackChannelIDs = big.NewInt(1 << 4)
+	createAlertRequestFieldSlackChannel    = big.NewInt(1 << 5)
 )
 
 type CreateAlertRequest struct {
-	Name         string                    `json:"name" url:"-"`
-	Params       *CreateAlertRequestParams `json:"params" url:"-"`
-	SourceID     string                    `json:"source_id" url:"-"`
-	Recipients   []*AlertRecipient         `json:"recipients" url:"-"`
-	SlackChannel *string                   `json:"slack_channel,omitempty" url:"-"`
+	Name       string                    `json:"name" url:"-"`
+	Params     *CreateAlertRequestParams `json:"params" url:"-"`
+	SourceID   string                    `json:"source_id" url:"-"`
+	Recipients []*AlertRecipient         `json:"recipients" url:"-"`
+	// Slack channel ids to post in, public or private. Omitted, the alert takes the organization's default channel when one is set; an empty list posts in no channel
+	SlackChannelIDs []string `json:"slack_channel_ids,omitempty" url:"-"`
+	// Deprecated and never read: use slack_channel_ids
+	SlackChannel *string `json:"slack_channel,omitempty" url:"-"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -62,6 +66,13 @@ func (c *CreateAlertRequest) SetSourceID(sourceID string) {
 func (c *CreateAlertRequest) SetRecipients(recipients []*AlertRecipient) {
 	c.Recipients = recipients
 	c.require(createAlertRequestFieldRecipients)
+}
+
+// SetSlackChannelIDs sets the SlackChannelIDs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreateAlertRequest) SetSlackChannelIDs(slackChannelIDs []string) {
+	c.SlackChannelIDs = slackChannelIDs
+	c.require(createAlertRequestFieldSlackChannelIDs)
 }
 
 // SetSlackChannel sets the SlackChannel field and marks it as non-optional;
@@ -890,6 +901,107 @@ func (a *AlertResponse) MarshalJSON() ([]byte, error) {
 }
 
 func (a *AlertResponse) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	alertSlackChannelFieldID   = big.NewInt(1 << 0)
+	alertSlackChannelFieldName = big.NewInt(1 << 1)
+)
+
+type AlertSlackChannel struct {
+	ID string `json:"id" url:"id"`
+	// The channel's name when the alert was saved, without the #
+	Name string `json:"name" url:"name"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AlertSlackChannel) GetID() string {
+	if a == nil {
+		return ""
+	}
+	return a.ID
+}
+
+func (a *AlertSlackChannel) GetName() string {
+	if a == nil {
+		return ""
+	}
+	return a.Name
+}
+
+func (a *AlertSlackChannel) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AlertSlackChannel) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AlertSlackChannel) SetID(id string) {
+	a.ID = id
+	a.require(alertSlackChannelFieldID)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AlertSlackChannel) SetName(name string) {
+	a.Name = name
+	a.require(alertSlackChannelFieldName)
+}
+
+func (a *AlertSlackChannel) UnmarshalJSON(data []byte) error {
+	type unmarshaler AlertSlackChannel
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AlertSlackChannel(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AlertSlackChannel) MarshalJSON() ([]byte, error) {
+	type embed AlertSlackChannel
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AlertSlackChannel) String() string {
 	if a == nil {
 		return "<nil>"
 	}
@@ -3533,27 +3645,31 @@ func (c CommitmentParamsOutputWatch) Ptr() *CommitmentParamsOutputWatch {
 }
 
 var (
-	costAlertFieldID           = big.NewInt(1 << 0)
-	costAlertFieldName         = big.NewInt(1 << 1)
-	costAlertFieldParams       = big.NewInt(1 << 2)
-	costAlertFieldSourceID     = big.NewInt(1 << 3)
-	costAlertFieldRecipients   = big.NewInt(1 << 4)
-	costAlertFieldSlackChannel = big.NewInt(1 << 5)
-	costAlertFieldEnabled      = big.NewInt(1 << 6)
-	costAlertFieldPausedBy     = big.NewInt(1 << 7)
-	costAlertFieldSentToMe     = big.NewInt(1 << 8)
+	costAlertFieldID            = big.NewInt(1 << 0)
+	costAlertFieldName          = big.NewInt(1 << 1)
+	costAlertFieldParams        = big.NewInt(1 << 2)
+	costAlertFieldSourceID      = big.NewInt(1 << 3)
+	costAlertFieldRecipients    = big.NewInt(1 << 4)
+	costAlertFieldSlackChannels = big.NewInt(1 << 5)
+	costAlertFieldSlackChannel  = big.NewInt(1 << 6)
+	costAlertFieldEnabled       = big.NewInt(1 << 7)
+	costAlertFieldPausedBy      = big.NewInt(1 << 8)
+	costAlertFieldSentToMe      = big.NewInt(1 << 9)
 )
 
 type CostAlert struct {
-	ID           string            `json:"id" url:"id"`
-	Name         string            `json:"name" url:"name"`
-	Params       *CostAlertParams  `json:"params" url:"params"`
-	SourceID     string            `json:"source_id" url:"source_id"`
-	Recipients   []*AlertRecipient `json:"recipients" url:"recipients"`
-	SlackChannel *string           `json:"slack_channel,omitempty" url:"slack_channel,omitempty"`
-	Enabled      bool              `json:"enabled" url:"enabled"`
-	PausedBy     *string           `json:"paused_by,omitempty" url:"paused_by,omitempty"`
-	SentToMe     *bool             `json:"sent_to_me,omitempty" url:"sent_to_me,omitempty"`
+	ID         string            `json:"id" url:"id"`
+	Name       string            `json:"name" url:"name"`
+	Params     *CostAlertParams  `json:"params" url:"params"`
+	SourceID   string            `json:"source_id" url:"source_id"`
+	Recipients []*AlertRecipient `json:"recipients" url:"recipients"`
+	// The Slack channels this alert posts in, each once per firing
+	SlackChannels []*AlertSlackChannel `json:"slack_channels,omitempty" url:"slack_channels,omitempty"`
+	// Deprecated and always null: read slack_channels
+	SlackChannel *string `json:"slack_channel,omitempty" url:"slack_channel,omitempty"`
+	Enabled      bool    `json:"enabled" url:"enabled"`
+	PausedBy     *string `json:"paused_by,omitempty" url:"paused_by,omitempty"`
+	SentToMe     *bool   `json:"sent_to_me,omitempty" url:"sent_to_me,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -3595,6 +3711,13 @@ func (c *CostAlert) GetRecipients() []*AlertRecipient {
 		return nil
 	}
 	return c.Recipients
+}
+
+func (c *CostAlert) GetSlackChannels() []*AlertSlackChannel {
+	if c == nil {
+		return nil
+	}
+	return c.SlackChannels
 }
 
 func (c *CostAlert) GetSlackChannel() *string {
@@ -3672,6 +3795,13 @@ func (c *CostAlert) SetSourceID(sourceID string) {
 func (c *CostAlert) SetRecipients(recipients []*AlertRecipient) {
 	c.Recipients = recipients
 	c.require(costAlertFieldRecipients)
+}
+
+// SetSlackChannels sets the SlackChannels field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CostAlert) SetSlackChannels(slackChannels []*AlertSlackChannel) {
+	c.SlackChannels = slackChannels
+	c.require(costAlertFieldSlackChannels)
 }
 
 // SetSlackChannel sets the SlackChannel field and marks it as non-optional;
@@ -4777,19 +4907,25 @@ func (u *UpdateAlertRequestParams) validate() error {
 }
 
 var (
-	updateAlertRequestFieldName         = big.NewInt(1 << 0)
-	updateAlertRequestFieldParams       = big.NewInt(1 << 1)
-	updateAlertRequestFieldRecipients   = big.NewInt(1 << 2)
-	updateAlertRequestFieldSlackChannel = big.NewInt(1 << 3)
-	updateAlertRequestFieldEnabled      = big.NewInt(1 << 4)
+	updateAlertRequestFieldName            = big.NewInt(1 << 0)
+	updateAlertRequestFieldParams          = big.NewInt(1 << 1)
+	updateAlertRequestFieldSourceID        = big.NewInt(1 << 2)
+	updateAlertRequestFieldRecipients      = big.NewInt(1 << 3)
+	updateAlertRequestFieldSlackChannelIDs = big.NewInt(1 << 4)
+	updateAlertRequestFieldSlackChannel    = big.NewInt(1 << 5)
+	updateAlertRequestFieldEnabled         = big.NewInt(1 << 6)
 )
 
 type UpdateAlertRequest struct {
-	Name         *string                   `json:"name,omitempty" url:"-"`
-	Params       *UpdateAlertRequestParams `json:"params,omitempty" url:"-"`
-	Recipients   []*AlertRecipient         `json:"recipients,omitempty" url:"-"`
-	SlackChannel *string                   `json:"slack_channel,omitempty" url:"-"`
-	Enabled      *bool                     `json:"enabled,omitempty" url:"-"`
+	Name       *string                   `json:"name,omitempty" url:"-"`
+	Params     *UpdateAlertRequestParams `json:"params,omitempty" url:"-"`
+	SourceID   *string                   `json:"source_id,omitempty" url:"-"`
+	Recipients []*AlertRecipient         `json:"recipients,omitempty" url:"-"`
+	// Replaces the channels this alert posts in; an empty list takes them all off
+	SlackChannelIDs []string `json:"slack_channel_ids,omitempty" url:"-"`
+	// Deprecated and never read: use slack_channel_ids
+	SlackChannel *string `json:"slack_channel,omitempty" url:"-"`
+	Enabled      *bool   `json:"enabled,omitempty" url:"-"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -4816,11 +4952,25 @@ func (u *UpdateAlertRequest) SetParams(params *UpdateAlertRequestParams) {
 	u.require(updateAlertRequestFieldParams)
 }
 
+// SetSourceID sets the SourceID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UpdateAlertRequest) SetSourceID(sourceID *string) {
+	u.SourceID = sourceID
+	u.require(updateAlertRequestFieldSourceID)
+}
+
 // SetRecipients sets the Recipients field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (u *UpdateAlertRequest) SetRecipients(recipients []*AlertRecipient) {
 	u.Recipients = recipients
 	u.require(updateAlertRequestFieldRecipients)
+}
+
+// SetSlackChannelIDs sets the SlackChannelIDs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UpdateAlertRequest) SetSlackChannelIDs(slackChannelIDs []string) {
+	u.SlackChannelIDs = slackChannelIDs
+	u.require(updateAlertRequestFieldSlackChannelIDs)
 }
 
 // SetSlackChannel sets the SlackChannel field and marks it as non-optional;
