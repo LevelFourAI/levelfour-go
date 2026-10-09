@@ -11,6 +11,106 @@ import (
 )
 
 var (
+	purchaseRaiseFieldProfile          = big.NewInt(1 << 0)
+	purchaseRaiseFieldCommitmentHourly = big.NewInt(1 << 1)
+	purchaseRaiseFieldPlanType         = big.NewInt(1 << 2)
+	purchaseRaiseFieldPayerAccountID   = big.NewInt(1 << 3)
+)
+
+type PurchaseRaise struct {
+	Profile          *PurchaseRaiseProfile `json:"profile,omitempty" url:"-"`
+	CommitmentHourly *float64              `json:"commitment_hourly,omitempty" url:"-"`
+	PlanType         PurchaseRaisePlanType `json:"plan_type" url:"-"`
+	PayerAccountID   *string               `json:"payer_account_id,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (p *PurchaseRaise) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetProfile sets the Profile field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseRaise) SetProfile(profile *PurchaseRaiseProfile) {
+	p.Profile = profile
+	p.require(purchaseRaiseFieldProfile)
+}
+
+// SetCommitmentHourly sets the CommitmentHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseRaise) SetCommitmentHourly(commitmentHourly *float64) {
+	p.CommitmentHourly = commitmentHourly
+	p.require(purchaseRaiseFieldCommitmentHourly)
+}
+
+// SetPlanType sets the PlanType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseRaise) SetPlanType(planType PurchaseRaisePlanType) {
+	p.PlanType = planType
+	p.require(purchaseRaiseFieldPlanType)
+}
+
+// SetPayerAccountID sets the PayerAccountID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseRaise) SetPayerAccountID(payerAccountID *string) {
+	p.PayerAccountID = payerAccountID
+	p.require(purchaseRaiseFieldPayerAccountID)
+}
+
+func (p *PurchaseRaise) UnmarshalJSON(data []byte) error {
+	type unmarshaler PurchaseRaise
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*p = PurchaseRaise(body)
+	return nil
+}
+
+func (p *PurchaseRaise) MarshalJSON() ([]byte, error) {
+	type embed PurchaseRaise
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*p),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+type CreateRenewalCommitmentsRequest struct {
+	Body *RenewalChoice `json:"-" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (c *CreateRenewalCommitmentsRequest) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+func (c *CreateRenewalCommitmentsRequest) UnmarshalJSON(data []byte) error {
+	var body RenewalChoice
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	c.Body = &body
+	return nil
+}
+
+func (c *CreateRenewalCommitmentsRequest) MarshalJSON() ([]byte, error) {
+	return json.Marshal(c.Body)
+}
+
+var (
 	getByServiceAPIV1CommitmentsByServiceGetRequestFieldProvider = big.NewInt(1 << 0)
 )
 
@@ -105,10 +205,12 @@ func (g *GetCoverageFilterOptionsAPIV1CommitmentsCoverageFilterOptionsGetRequest
 
 var (
 	getCoverageRatesAPIV1CommitmentsCoverageRatesGetRequestFieldProvider = big.NewInt(1 << 0)
+	getCoverageRatesAPIV1CommitmentsCoverageRatesGetRequestFieldMonths   = big.NewInt(1 << 1)
 )
 
 type GetCoverageRatesAPIV1CommitmentsCoverageRatesGetRequest struct {
 	Provider *string `json:"-" url:"provider,omitempty"`
+	Months   *int    `json:"-" url:"months,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -128,14 +230,23 @@ func (g *GetCoverageRatesAPIV1CommitmentsCoverageRatesGetRequest) SetProvider(pr
 	g.require(getCoverageRatesAPIV1CommitmentsCoverageRatesGetRequestFieldProvider)
 }
 
+// SetMonths sets the Months field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetCoverageRatesAPIV1CommitmentsCoverageRatesGetRequest) SetMonths(months *int) {
+	g.Months = months
+	g.require(getCoverageRatesAPIV1CommitmentsCoverageRatesGetRequestFieldMonths)
+}
+
 var (
 	getEsrAPIV1CommitmentsEsrGetRequestFieldScope  = big.NewInt(1 << 0)
 	getEsrAPIV1CommitmentsEsrGetRequestFieldPeriod = big.NewInt(1 << 1)
+	getEsrAPIV1CommitmentsEsrGetRequestFieldMonths = big.NewInt(1 << 2)
 )
 
 type GetEsrAPIV1CommitmentsEsrGetRequest struct {
 	Scope  *string `json:"-" url:"scope,omitempty"`
 	Period *string `json:"-" url:"period,omitempty"`
+	Months *int    `json:"-" url:"months,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -160,6 +271,13 @@ func (g *GetEsrAPIV1CommitmentsEsrGetRequest) SetScope(scope *string) {
 func (g *GetEsrAPIV1CommitmentsEsrGetRequest) SetPeriod(period *string) {
 	g.Period = period
 	g.require(getEsrAPIV1CommitmentsEsrGetRequestFieldPeriod)
+}
+
+// SetMonths sets the Months field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetEsrAPIV1CommitmentsEsrGetRequest) SetMonths(months *int) {
+	g.Months = months
+	g.require(getEsrAPIV1CommitmentsEsrGetRequestFieldMonths)
 }
 
 var (
@@ -283,6 +401,85 @@ func (g *GetPortfolioAPIV1CommitmentsPortfolioGetRequest) SetBasis(basis *string
 }
 
 var (
+	getPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestFieldPlanType         = big.NewInt(1 << 0)
+	getPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestFieldCommitmentHourly = big.NewInt(1 << 1)
+	getPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestFieldTermMonths       = big.NewInt(1 << 2)
+	getPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestFieldPaymentOption    = big.NewInt(1 << 3)
+	getPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestFieldPayerAccountID   = big.NewInt(1 << 4)
+	getPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestFieldLookbackDays     = big.NewInt(1 << 5)
+	getPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestFieldCurve            = big.NewInt(1 << 6)
+)
+
+type GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequest struct {
+	PlanType         GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestPlanType `json:"-" url:"plan_type"`
+	CommitmentHourly float64                                                                   `json:"-" url:"commitment_hourly"`
+	TermMonths       *int                                                                      `json:"-" url:"term_months,omitempty"`
+	PaymentOption    *string                                                                   `json:"-" url:"payment_option,omitempty"`
+	PayerAccountID   *string                                                                   `json:"-" url:"payer_account_id,omitempty"`
+	LookbackDays     *int                                                                      `json:"-" url:"lookback_days,omitempty"`
+	Curve            *bool                                                                     `json:"-" url:"curve,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (g *GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequest) require(field *big.Int) {
+	if g.explicitFields == nil {
+		g.explicitFields = big.NewInt(0)
+	}
+	g.explicitFields.Or(g.explicitFields, field)
+}
+
+// SetPlanType sets the PlanType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequest) SetPlanType(planType GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestPlanType) {
+	g.PlanType = planType
+	g.require(getPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestFieldPlanType)
+}
+
+// SetCommitmentHourly sets the CommitmentHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequest) SetCommitmentHourly(commitmentHourly float64) {
+	g.CommitmentHourly = commitmentHourly
+	g.require(getPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestFieldCommitmentHourly)
+}
+
+// SetTermMonths sets the TermMonths field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequest) SetTermMonths(termMonths *int) {
+	g.TermMonths = termMonths
+	g.require(getPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestFieldTermMonths)
+}
+
+// SetPaymentOption sets the PaymentOption field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequest) SetPaymentOption(paymentOption *string) {
+	g.PaymentOption = paymentOption
+	g.require(getPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestFieldPaymentOption)
+}
+
+// SetPayerAccountID sets the PayerAccountID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequest) SetPayerAccountID(payerAccountID *string) {
+	g.PayerAccountID = payerAccountID
+	g.require(getPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestFieldPayerAccountID)
+}
+
+// SetLookbackDays sets the LookbackDays field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequest) SetLookbackDays(lookbackDays *int) {
+	g.LookbackDays = lookbackDays
+	g.require(getPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestFieldLookbackDays)
+}
+
+// SetCurve sets the Curve field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequest) SetCurve(curve *bool) {
+	g.Curve = curve
+	g.require(getPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestFieldCurve)
+}
+
+var (
 	getRecommendationsAPIV1CommitmentsRecommendationsGetRequestFieldProvider       = big.NewInt(1 << 0)
 	getRecommendationsAPIV1CommitmentsRecommendationsGetRequestFieldCommitmentType = big.NewInt(1 << 1)
 )
@@ -314,6 +511,42 @@ func (g *GetRecommendationsAPIV1CommitmentsRecommendationsGetRequest) SetProvide
 func (g *GetRecommendationsAPIV1CommitmentsRecommendationsGetRequest) SetCommitmentType(commitmentType *string) {
 	g.CommitmentType = commitmentType
 	g.require(getRecommendationsAPIV1CommitmentsRecommendationsGetRequestFieldCommitmentType)
+}
+
+var (
+	getRenewalOptionsAPIV1CommitmentsRenewalOptionsCommitmentIDGetRequestFieldQuantity = big.NewInt(1 << 0)
+	getRenewalOptionsAPIV1CommitmentsRenewalOptionsCommitmentIDGetRequestFieldResource = big.NewInt(1 << 1)
+)
+
+type GetRenewalOptionsAPIV1CommitmentsRenewalOptionsCommitmentIDGetRequest struct {
+	// Price every offering at exactly this quantity.
+	Quantity *float64 `json:"-" url:"quantity,omitempty"`
+	// Read the renewal as this class, one of classes. Defaults to the class recommended.
+	Resource *string `json:"-" url:"resource,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (g *GetRenewalOptionsAPIV1CommitmentsRenewalOptionsCommitmentIDGetRequest) require(field *big.Int) {
+	if g.explicitFields == nil {
+		g.explicitFields = big.NewInt(0)
+	}
+	g.explicitFields.Or(g.explicitFields, field)
+}
+
+// SetQuantity sets the Quantity field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetRenewalOptionsAPIV1CommitmentsRenewalOptionsCommitmentIDGetRequest) SetQuantity(quantity *float64) {
+	g.Quantity = quantity
+	g.require(getRenewalOptionsAPIV1CommitmentsRenewalOptionsCommitmentIDGetRequestFieldQuantity)
+}
+
+// SetResource sets the Resource field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetRenewalOptionsAPIV1CommitmentsRenewalOptionsCommitmentIDGetRequest) SetResource(resource *string) {
+	g.Resource = resource
+	g.require(getRenewalOptionsAPIV1CommitmentsRenewalOptionsCommitmentIDGetRequestFieldResource)
 }
 
 var (
@@ -601,6 +834,106 @@ func (a *AccountEsrSegment) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	boughtOutsideFieldPlanID    = big.NewInt(1 << 0)
+	boughtOutsideFieldStartedOn = big.NewInt(1 << 1)
+)
+
+type BoughtOutside struct {
+	PlanID    string  `json:"plan_id" url:"plan_id"`
+	StartedOn *string `json:"started_on,omitempty" url:"started_on,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (b *BoughtOutside) GetPlanID() string {
+	if b == nil {
+		return ""
+	}
+	return b.PlanID
+}
+
+func (b *BoughtOutside) GetStartedOn() *string {
+	if b == nil {
+		return nil
+	}
+	return b.StartedOn
+}
+
+func (b *BoughtOutside) GetExtraProperties() map[string]interface{} {
+	if b == nil {
+		return nil
+	}
+	return b.extraProperties
+}
+
+func (b *BoughtOutside) require(field *big.Int) {
+	if b.explicitFields == nil {
+		b.explicitFields = big.NewInt(0)
+	}
+	b.explicitFields.Or(b.explicitFields, field)
+}
+
+// SetPlanID sets the PlanID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BoughtOutside) SetPlanID(planID string) {
+	b.PlanID = planID
+	b.require(boughtOutsideFieldPlanID)
+}
+
+// SetStartedOn sets the StartedOn field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BoughtOutside) SetStartedOn(startedOn *string) {
+	b.StartedOn = startedOn
+	b.require(boughtOutsideFieldStartedOn)
+}
+
+func (b *BoughtOutside) UnmarshalJSON(data []byte) error {
+	type unmarshaler BoughtOutside
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*b = BoughtOutside(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *b)
+	if err != nil {
+		return err
+	}
+	b.extraProperties = extraProperties
+	b.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (b *BoughtOutside) MarshalJSON() ([]byte, error) {
+	type embed BoughtOutside
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*b),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, b.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (b *BoughtOutside) String() string {
+	if b == nil {
+		return "<nil>"
+	}
+	if len(b.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(b.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(b); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", b)
 }
 
 var (
@@ -973,8 +1306,8 @@ var (
 )
 
 type CommitmentCoveragePoint struct {
-	Date        string  `json:"date" url:"date"`
-	CoveragePct float64 `json:"coverage_pct" url:"coverage_pct"`
+	Date        string   `json:"date" url:"date"`
+	CoveragePct *float64 `json:"coverage_pct,omitempty" url:"coverage_pct,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -990,9 +1323,9 @@ func (c *CommitmentCoveragePoint) GetDate() string {
 	return c.Date
 }
 
-func (c *CommitmentCoveragePoint) GetCoveragePct() float64 {
+func (c *CommitmentCoveragePoint) GetCoveragePct() *float64 {
 	if c == nil {
-		return 0
+		return nil
 	}
 	return c.CoveragePct
 }
@@ -1020,7 +1353,7 @@ func (c *CommitmentCoveragePoint) SetDate(date string) {
 
 // SetCoveragePct sets the CoveragePct field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (c *CommitmentCoveragePoint) SetCoveragePct(coveragePct float64) {
+func (c *CommitmentCoveragePoint) SetCoveragePct(coveragePct *float64) {
 	c.CoveragePct = coveragePct
 	c.require(commitmentCoveragePointFieldCoveragePct)
 }
@@ -1068,75 +1401,79 @@ func (c *CommitmentCoveragePoint) String() string {
 }
 
 var (
-	commitmentDetailDataFieldID                    = big.NewInt(1 << 0)
-	commitmentDetailDataFieldProvider              = big.NewInt(1 << 1)
-	commitmentDetailDataFieldService               = big.NewInt(1 << 2)
-	commitmentDetailDataFieldServiceLabel          = big.NewInt(1 << 3)
-	commitmentDetailDataFieldAccountID             = big.NewInt(1 << 4)
-	commitmentDetailDataFieldAccountName           = big.NewInt(1 << 5)
-	commitmentDetailDataFieldRegion                = big.NewInt(1 << 6)
-	commitmentDetailDataFieldKind                  = big.NewInt(1 << 7)
-	commitmentDetailDataFieldStartDate             = big.NewInt(1 << 8)
-	commitmentDetailDataFieldEndDate               = big.NewInt(1 << 9)
-	commitmentDetailDataFieldTermMonths            = big.NewInt(1 << 10)
-	commitmentDetailDataFieldPaymentOption         = big.NewInt(1 << 11)
-	commitmentDetailDataFieldHourlyCommitmentUsd   = big.NewInt(1 << 12)
-	commitmentDetailDataFieldMonthlyCommitmentUsd  = big.NewInt(1 << 13)
-	commitmentDetailDataFieldStatus                = big.NewInt(1 << 14)
-	commitmentDetailDataFieldCurrentUtilizationPct = big.NewInt(1 << 15)
-	commitmentDetailDataFieldCurrentCoveragePct    = big.NewInt(1 << 16)
-	commitmentDetailDataFieldIsCommitable          = big.NewInt(1 << 17)
-	commitmentDetailDataFieldEndAt                 = big.NewInt(1 << 18)
-	commitmentDetailDataFieldHolderAccountID       = big.NewInt(1 << 19)
-	commitmentDetailDataFieldUnitCount             = big.NewInt(1 << 20)
-	commitmentDetailDataFieldFeeMonthlyList        = big.NewInt(1 << 21)
-	commitmentDetailDataFieldFeeMonthlyNet         = big.NewInt(1 << 22)
-	commitmentDetailDataFieldUtilizationSlopePp30D = big.NewInt(1 << 23)
-	commitmentDetailDataFieldProtectsMonthly       = big.NewInt(1 << 24)
-	commitmentDetailDataFieldRightsizingMonthly    = big.NewInt(1 << 25)
-	commitmentDetailDataFieldExchangeable          = big.NewInt(1 << 26)
-	commitmentDetailDataFieldCancellable           = big.NewInt(1 << 27)
-	commitmentDetailDataFieldUtilizationHistory    = big.NewInt(1 << 28)
-	commitmentDetailDataFieldCoverageHistory       = big.NewInt(1 << 29)
-	commitmentDetailDataFieldConsumers             = big.NewInt(1 << 30)
-	commitmentDetailDataFieldHistory               = big.NewInt(1 << 31)
-	commitmentDetailDataFieldRecommendations       = big.NewInt(1 << 32)
+	commitmentDetailDataFieldID                      = big.NewInt(1 << 0)
+	commitmentDetailDataFieldProvider                = big.NewInt(1 << 1)
+	commitmentDetailDataFieldService                 = big.NewInt(1 << 2)
+	commitmentDetailDataFieldServiceLabel            = big.NewInt(1 << 3)
+	commitmentDetailDataFieldAccountID               = big.NewInt(1 << 4)
+	commitmentDetailDataFieldAccountName             = big.NewInt(1 << 5)
+	commitmentDetailDataFieldRegion                  = big.NewInt(1 << 6)
+	commitmentDetailDataFieldKind                    = big.NewInt(1 << 7)
+	commitmentDetailDataFieldStartDate               = big.NewInt(1 << 8)
+	commitmentDetailDataFieldEndDate                 = big.NewInt(1 << 9)
+	commitmentDetailDataFieldTermMonths              = big.NewInt(1 << 10)
+	commitmentDetailDataFieldPaymentOption           = big.NewInt(1 << 11)
+	commitmentDetailDataFieldHourlyCommitmentUsd     = big.NewInt(1 << 12)
+	commitmentDetailDataFieldMonthlyCommitmentUsd    = big.NewInt(1 << 13)
+	commitmentDetailDataFieldStatus                  = big.NewInt(1 << 14)
+	commitmentDetailDataFieldCurrentUtilizationPct   = big.NewInt(1 << 15)
+	commitmentDetailDataFieldCurrentCoveragePct      = big.NewInt(1 << 16)
+	commitmentDetailDataFieldIsCommitable            = big.NewInt(1 << 17)
+	commitmentDetailDataFieldFiguresSource           = big.NewInt(1 << 18)
+	commitmentDetailDataFieldEndAt                   = big.NewInt(1 << 19)
+	commitmentDetailDataFieldHolderAccountID         = big.NewInt(1 << 20)
+	commitmentDetailDataFieldUnitCount               = big.NewInt(1 << 21)
+	commitmentDetailDataFieldFeeMonthlyList          = big.NewInt(1 << 22)
+	commitmentDetailDataFieldFeeMonthlyNet           = big.NewInt(1 << 23)
+	commitmentDetailDataFieldUtilizationSlopePp30D   = big.NewInt(1 << 24)
+	commitmentDetailDataFieldProtectsMonthly         = big.NewInt(1 << 25)
+	commitmentDetailDataFieldRightsizingMonthly      = big.NewInt(1 << 26)
+	commitmentDetailDataFieldExchangeable            = big.NewInt(1 << 27)
+	commitmentDetailDataFieldCancellable             = big.NewInt(1 << 28)
+	commitmentDetailDataFieldRenewalRecommendationID = big.NewInt(1 << 29)
+	commitmentDetailDataFieldUtilizationHistory      = big.NewInt(1 << 30)
+	commitmentDetailDataFieldCoverageHistory         = big.NewInt(1 << 31)
+	commitmentDetailDataFieldConsumers               = big.NewInt(1 << 32)
+	commitmentDetailDataFieldHistory                 = big.NewInt(1 << 33)
+	commitmentDetailDataFieldRecommendations         = big.NewInt(1 << 34)
 )
 
 type CommitmentDetailData struct {
-	ID                    string                             `json:"id" url:"id"`
-	Provider              string                             `json:"provider" url:"provider"`
-	Service               string                             `json:"service" url:"service"`
-	ServiceLabel          string                             `json:"service_label" url:"service_label"`
-	AccountID             string                             `json:"account_id" url:"account_id"`
-	AccountName           string                             `json:"account_name" url:"account_name"`
-	Region                string                             `json:"region" url:"region"`
-	Kind                  CommitmentDetailDataKind           `json:"kind" url:"kind"`
-	StartDate             string                             `json:"start_date" url:"start_date"`
-	EndDate               string                             `json:"end_date" url:"end_date"`
-	TermMonths            int                                `json:"term_months" url:"term_months"`
-	PaymentOption         *CommitmentDetailDataPaymentOption `json:"payment_option,omitempty" url:"payment_option,omitempty"`
-	HourlyCommitmentUsd   *float64                           `json:"hourly_commitment_usd,omitempty" url:"hourly_commitment_usd,omitempty"`
-	MonthlyCommitmentUsd  float64                            `json:"monthly_commitment_usd" url:"monthly_commitment_usd"`
-	Status                CommitmentDetailDataStatus         `json:"status" url:"status"`
-	CurrentUtilizationPct float64                            `json:"current_utilization_pct" url:"current_utilization_pct"`
-	CurrentCoveragePct    float64                            `json:"current_coverage_pct" url:"current_coverage_pct"`
-	IsCommitable          bool                               `json:"is_commitable" url:"is_commitable"`
-	EndAt                 *string                            `json:"end_at,omitempty" url:"end_at,omitempty"`
-	HolderAccountID       *string                            `json:"holder_account_id,omitempty" url:"holder_account_id,omitempty"`
-	UnitCount             *int                               `json:"unit_count,omitempty" url:"unit_count,omitempty"`
-	FeeMonthlyList        *float64                           `json:"fee_monthly_list,omitempty" url:"fee_monthly_list,omitempty"`
-	FeeMonthlyNet         *float64                           `json:"fee_monthly_net,omitempty" url:"fee_monthly_net,omitempty"`
-	UtilizationSlopePp30D *float64                           `json:"utilization_slope_pp_30d,omitempty" url:"utilization_slope_pp_30d,omitempty"`
-	ProtectsMonthly       *float64                           `json:"protects_monthly,omitempty" url:"protects_monthly,omitempty"`
-	RightsizingMonthly    *float64                           `json:"rightsizing_monthly,omitempty" url:"rightsizing_monthly,omitempty"`
-	Exchangeable          *bool                              `json:"exchangeable,omitempty" url:"exchangeable,omitempty"`
-	Cancellable           *bool                              `json:"cancellable,omitempty" url:"cancellable,omitempty"`
-	UtilizationHistory    []*CommitmentUtilizationPoint      `json:"utilization_history,omitempty" url:"utilization_history,omitempty"`
-	CoverageHistory       []*CommitmentCoveragePoint         `json:"coverage_history,omitempty" url:"coverage_history,omitempty"`
-	Consumers             []*CommitmentConsumer              `json:"consumers,omitempty" url:"consumers,omitempty"`
-	History               []*HistoryEvent                    `json:"history,omitempty" url:"history,omitempty"`
-	Recommendations       []*CommitmentDetailRecommendation  `json:"recommendations,omitempty" url:"recommendations,omitempty"`
+	ID                      string                             `json:"id" url:"id"`
+	Provider                string                             `json:"provider" url:"provider"`
+	Service                 string                             `json:"service" url:"service"`
+	ServiceLabel            string                             `json:"service_label" url:"service_label"`
+	AccountID               string                             `json:"account_id" url:"account_id"`
+	AccountName             string                             `json:"account_name" url:"account_name"`
+	Region                  string                             `json:"region" url:"region"`
+	Kind                    CommitmentDetailDataKind           `json:"kind" url:"kind"`
+	StartDate               string                             `json:"start_date" url:"start_date"`
+	EndDate                 string                             `json:"end_date" url:"end_date"`
+	TermMonths              int                                `json:"term_months" url:"term_months"`
+	PaymentOption           *CommitmentDetailDataPaymentOption `json:"payment_option,omitempty" url:"payment_option,omitempty"`
+	HourlyCommitmentUsd     *float64                           `json:"hourly_commitment_usd,omitempty" url:"hourly_commitment_usd,omitempty"`
+	MonthlyCommitmentUsd    float64                            `json:"monthly_commitment_usd" url:"monthly_commitment_usd"`
+	Status                  CommitmentDetailDataStatus         `json:"status" url:"status"`
+	CurrentUtilizationPct   float64                            `json:"current_utilization_pct" url:"current_utilization_pct"`
+	CurrentCoveragePct      *float64                           `json:"current_coverage_pct,omitempty" url:"current_coverage_pct,omitempty"`
+	IsCommitable            bool                               `json:"is_commitable" url:"is_commitable"`
+	FiguresSource           *CommitmentDetailDataFiguresSource `json:"figures_source,omitempty" url:"figures_source,omitempty"`
+	EndAt                   *string                            `json:"end_at,omitempty" url:"end_at,omitempty"`
+	HolderAccountID         *string                            `json:"holder_account_id,omitempty" url:"holder_account_id,omitempty"`
+	UnitCount               *int                               `json:"unit_count,omitempty" url:"unit_count,omitempty"`
+	FeeMonthlyList          *float64                           `json:"fee_monthly_list,omitempty" url:"fee_monthly_list,omitempty"`
+	FeeMonthlyNet           *float64                           `json:"fee_monthly_net,omitempty" url:"fee_monthly_net,omitempty"`
+	UtilizationSlopePp30D   *float64                           `json:"utilization_slope_pp_30d,omitempty" url:"utilization_slope_pp_30d,omitempty"`
+	ProtectsMonthly         *float64                           `json:"protects_monthly,omitempty" url:"protects_monthly,omitempty"`
+	RightsizingMonthly      *float64                           `json:"rightsizing_monthly,omitempty" url:"rightsizing_monthly,omitempty"`
+	Exchangeable            *bool                              `json:"exchangeable,omitempty" url:"exchangeable,omitempty"`
+	Cancellable             *bool                              `json:"cancellable,omitempty" url:"cancellable,omitempty"`
+	RenewalRecommendationID *string                            `json:"renewal_recommendation_id,omitempty" url:"renewal_recommendation_id,omitempty"`
+	UtilizationHistory      []*CommitmentUtilizationPoint      `json:"utilization_history,omitempty" url:"utilization_history,omitempty"`
+	CoverageHistory         []*CommitmentCoveragePoint         `json:"coverage_history,omitempty" url:"coverage_history,omitempty"`
+	Consumers               []*CommitmentConsumer              `json:"consumers,omitempty" url:"consumers,omitempty"`
+	History                 []*HistoryEvent                    `json:"history,omitempty" url:"history,omitempty"`
+	Recommendations         []*CommitmentDetailRecommendation  `json:"recommendations,omitempty" url:"recommendations,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -1257,9 +1594,9 @@ func (c *CommitmentDetailData) GetCurrentUtilizationPct() float64 {
 	return c.CurrentUtilizationPct
 }
 
-func (c *CommitmentDetailData) GetCurrentCoveragePct() float64 {
+func (c *CommitmentDetailData) GetCurrentCoveragePct() *float64 {
 	if c == nil {
-		return 0
+		return nil
 	}
 	return c.CurrentCoveragePct
 }
@@ -1269,6 +1606,13 @@ func (c *CommitmentDetailData) GetIsCommitable() bool {
 		return false
 	}
 	return c.IsCommitable
+}
+
+func (c *CommitmentDetailData) GetFiguresSource() *CommitmentDetailDataFiguresSource {
+	if c == nil {
+		return nil
+	}
+	return c.FiguresSource
 }
 
 func (c *CommitmentDetailData) GetEndAt() *string {
@@ -1339,6 +1683,13 @@ func (c *CommitmentDetailData) GetCancellable() *bool {
 		return nil
 	}
 	return c.Cancellable
+}
+
+func (c *CommitmentDetailData) GetRenewalRecommendationID() *string {
+	if c == nil {
+		return nil
+	}
+	return c.RenewalRecommendationID
 }
 
 func (c *CommitmentDetailData) GetUtilizationHistory() []*CommitmentUtilizationPoint {
@@ -1504,7 +1855,7 @@ func (c *CommitmentDetailData) SetCurrentUtilizationPct(currentUtilizationPct fl
 
 // SetCurrentCoveragePct sets the CurrentCoveragePct field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (c *CommitmentDetailData) SetCurrentCoveragePct(currentCoveragePct float64) {
+func (c *CommitmentDetailData) SetCurrentCoveragePct(currentCoveragePct *float64) {
 	c.CurrentCoveragePct = currentCoveragePct
 	c.require(commitmentDetailDataFieldCurrentCoveragePct)
 }
@@ -1514,6 +1865,13 @@ func (c *CommitmentDetailData) SetCurrentCoveragePct(currentCoveragePct float64)
 func (c *CommitmentDetailData) SetIsCommitable(isCommitable bool) {
 	c.IsCommitable = isCommitable
 	c.require(commitmentDetailDataFieldIsCommitable)
+}
+
+// SetFiguresSource sets the FiguresSource field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentDetailData) SetFiguresSource(figuresSource *CommitmentDetailDataFiguresSource) {
+	c.FiguresSource = figuresSource
+	c.require(commitmentDetailDataFieldFiguresSource)
 }
 
 // SetEndAt sets the EndAt field and marks it as non-optional;
@@ -1584,6 +1942,13 @@ func (c *CommitmentDetailData) SetExchangeable(exchangeable *bool) {
 func (c *CommitmentDetailData) SetCancellable(cancellable *bool) {
 	c.Cancellable = cancellable
 	c.require(commitmentDetailDataFieldCancellable)
+}
+
+// SetRenewalRecommendationID sets the RenewalRecommendationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentDetailData) SetRenewalRecommendationID(renewalRecommendationID *string) {
+	c.RenewalRecommendationID = renewalRecommendationID
+	c.require(commitmentDetailDataFieldRenewalRecommendationID)
 }
 
 // SetUtilizationHistory sets the UtilizationHistory field and marks it as non-optional;
@@ -1661,6 +2026,28 @@ func (c *CommitmentDetailData) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", c)
+}
+
+type CommitmentDetailDataFiguresSource string
+
+const (
+	CommitmentDetailDataFiguresSourceCur          CommitmentDetailDataFiguresSource = "cur"
+	CommitmentDetailDataFiguresSourceCostExplorer CommitmentDetailDataFiguresSource = "cost_explorer"
+)
+
+func NewCommitmentDetailDataFiguresSourceFromString(s string) (CommitmentDetailDataFiguresSource, error) {
+	switch s {
+	case "cur":
+		return CommitmentDetailDataFiguresSourceCur, nil
+	case "cost_explorer":
+		return CommitmentDetailDataFiguresSourceCostExplorer, nil
+	}
+	var t CommitmentDetailDataFiguresSource
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CommitmentDetailDataFiguresSource) Ptr() *CommitmentDetailDataFiguresSource {
+	return &c
 }
 
 type CommitmentDetailDataKind string
@@ -2052,6 +2439,315 @@ func (c *CommitmentDetailResponse) MarshalJSON() ([]byte, error) {
 }
 
 func (c *CommitmentDetailResponse) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	commitmentExecutionDataFieldCommitmentID   = big.NewInt(1 << 0)
+	commitmentExecutionDataFieldStatus         = big.NewInt(1 << 1)
+	commitmentExecutionDataFieldTriggerInfo    = big.NewInt(1 << 2)
+	commitmentExecutionDataFieldExecutionSteps = big.NewInt(1 << 3)
+	commitmentExecutionDataFieldExecutionLogs  = big.NewInt(1 << 4)
+)
+
+type CommitmentExecutionData struct {
+	CommitmentID   string                        `json:"commitment_id" url:"commitment_id"`
+	Status         CommitmentExecutionDataStatus `json:"status" url:"status"`
+	TriggerInfo    any                           `json:"trigger_info,omitempty" url:"trigger_info,omitempty"`
+	ExecutionSteps []*ExecutionStepSchema        `json:"execution_steps,omitempty" url:"execution_steps,omitempty"`
+	ExecutionLogs  []*ExecutionLogEntry          `json:"execution_logs,omitempty" url:"execution_logs,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CommitmentExecutionData) GetCommitmentID() string {
+	if c == nil {
+		return ""
+	}
+	return c.CommitmentID
+}
+
+func (c *CommitmentExecutionData) GetStatus() CommitmentExecutionDataStatus {
+	if c == nil {
+		return ""
+	}
+	return c.Status
+}
+
+func (c *CommitmentExecutionData) GetTriggerInfo() any {
+	if c == nil {
+		return nil
+	}
+	return c.TriggerInfo
+}
+
+func (c *CommitmentExecutionData) GetExecutionSteps() []*ExecutionStepSchema {
+	if c == nil {
+		return nil
+	}
+	return c.ExecutionSteps
+}
+
+func (c *CommitmentExecutionData) GetExecutionLogs() []*ExecutionLogEntry {
+	if c == nil {
+		return nil
+	}
+	return c.ExecutionLogs
+}
+
+func (c *CommitmentExecutionData) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CommitmentExecutionData) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetCommitmentID sets the CommitmentID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentExecutionData) SetCommitmentID(commitmentID string) {
+	c.CommitmentID = commitmentID
+	c.require(commitmentExecutionDataFieldCommitmentID)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentExecutionData) SetStatus(status CommitmentExecutionDataStatus) {
+	c.Status = status
+	c.require(commitmentExecutionDataFieldStatus)
+}
+
+// SetTriggerInfo sets the TriggerInfo field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentExecutionData) SetTriggerInfo(triggerInfo any) {
+	c.TriggerInfo = triggerInfo
+	c.require(commitmentExecutionDataFieldTriggerInfo)
+}
+
+// SetExecutionSteps sets the ExecutionSteps field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentExecutionData) SetExecutionSteps(executionSteps []*ExecutionStepSchema) {
+	c.ExecutionSteps = executionSteps
+	c.require(commitmentExecutionDataFieldExecutionSteps)
+}
+
+// SetExecutionLogs sets the ExecutionLogs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentExecutionData) SetExecutionLogs(executionLogs []*ExecutionLogEntry) {
+	c.ExecutionLogs = executionLogs
+	c.require(commitmentExecutionDataFieldExecutionLogs)
+}
+
+func (c *CommitmentExecutionData) UnmarshalJSON(data []byte) error {
+	type unmarshaler CommitmentExecutionData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CommitmentExecutionData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CommitmentExecutionData) MarshalJSON() ([]byte, error) {
+	type embed CommitmentExecutionData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CommitmentExecutionData) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type CommitmentExecutionDataStatus string
+
+const (
+	CommitmentExecutionDataStatusNotStarted    CommitmentExecutionDataStatus = "not_started"
+	CommitmentExecutionDataStatusInProgress    CommitmentExecutionDataStatus = "in_progress"
+	CommitmentExecutionDataStatusActive        CommitmentExecutionDataStatus = "active"
+	CommitmentExecutionDataStatusQueued        CommitmentExecutionDataStatus = "queued"
+	CommitmentExecutionDataStatusPaymentFailed CommitmentExecutionDataStatus = "payment_failed"
+	CommitmentExecutionDataStatusFailed        CommitmentExecutionDataStatus = "failed"
+	CommitmentExecutionDataStatusIndeterminate CommitmentExecutionDataStatus = "indeterminate"
+)
+
+func NewCommitmentExecutionDataStatusFromString(s string) (CommitmentExecutionDataStatus, error) {
+	switch s {
+	case "not_started":
+		return CommitmentExecutionDataStatusNotStarted, nil
+	case "in_progress":
+		return CommitmentExecutionDataStatusInProgress, nil
+	case "active":
+		return CommitmentExecutionDataStatusActive, nil
+	case "queued":
+		return CommitmentExecutionDataStatusQueued, nil
+	case "payment_failed":
+		return CommitmentExecutionDataStatusPaymentFailed, nil
+	case "failed":
+		return CommitmentExecutionDataStatusFailed, nil
+	case "indeterminate":
+		return CommitmentExecutionDataStatusIndeterminate, nil
+	}
+	var t CommitmentExecutionDataStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CommitmentExecutionDataStatus) Ptr() *CommitmentExecutionDataStatus {
+	return &c
+}
+
+var (
+	commitmentExecutionResponseFieldSuccess   = big.NewInt(1 << 0)
+	commitmentExecutionResponseFieldTimestamp = big.NewInt(1 << 1)
+	commitmentExecutionResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type CommitmentExecutionResponse struct {
+	Success   *bool                    `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time               `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *CommitmentExecutionData `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CommitmentExecutionResponse) GetSuccess() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Success
+}
+
+func (c *CommitmentExecutionResponse) GetTimestamp() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.Timestamp
+}
+
+func (c *CommitmentExecutionResponse) GetData() *CommitmentExecutionData {
+	if c == nil {
+		return nil
+	}
+	return c.Data
+}
+
+func (c *CommitmentExecutionResponse) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CommitmentExecutionResponse) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentExecutionResponse) SetSuccess(success *bool) {
+	c.Success = success
+	c.require(commitmentExecutionResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentExecutionResponse) SetTimestamp(timestamp *time.Time) {
+	c.Timestamp = timestamp
+	c.require(commitmentExecutionResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentExecutionResponse) SetData(data *CommitmentExecutionData) {
+	c.Data = data
+	c.require(commitmentExecutionResponseFieldData)
+}
+
+func (c *CommitmentExecutionResponse) UnmarshalJSON(data []byte) error {
+	type embed CommitmentExecutionResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = CommitmentExecutionResponse(unmarshaler.embed)
+	c.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CommitmentExecutionResponse) MarshalJSON() ([]byte, error) {
+	type embed CommitmentExecutionResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*c),
+		Timestamp: internal.NewOptionalDateTime(c.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CommitmentExecutionResponse) String() string {
 	if c == nil {
 		return "<nil>"
 	}
@@ -3329,6 +4025,190 @@ func (c *CommitmentListResponse) String() string {
 	return fmt.Sprintf("%#v", c)
 }
 
+// What the usage this commitment covered would have cost on demand.
+//
+// Both figures are read off the covered lines in the customer's own export, over the window
+// named here, so nothing in this block comes from a price list.
+var (
+	commitmentOnDemandFieldCurrency          = big.NewInt(1 << 0)
+	commitmentOnDemandFieldMeasuredFrom      = big.NewInt(1 << 1)
+	commitmentOnDemandFieldMeasuredTo        = big.NewInt(1 << 2)
+	commitmentOnDemandFieldOnDemandCost      = big.NewInt(1 << 3)
+	commitmentOnDemandFieldCoveredCost       = big.NewInt(1 << 4)
+	commitmentOnDemandFieldUnitHours         = big.NewInt(1 << 5)
+	commitmentOnDemandFieldDailyOnDemandCost = big.NewInt(1 << 6)
+)
+
+type CommitmentOnDemand struct {
+	Currency          string   `json:"currency" url:"currency"`
+	MeasuredFrom      string   `json:"measured_from" url:"measured_from"`
+	MeasuredTo        string   `json:"measured_to" url:"measured_to"`
+	OnDemandCost      float64  `json:"on_demand_cost" url:"on_demand_cost"`
+	CoveredCost       *float64 `json:"covered_cost,omitempty" url:"covered_cost,omitempty"`
+	UnitHours         *float64 `json:"unit_hours,omitempty" url:"unit_hours,omitempty"`
+	DailyOnDemandCost float64  `json:"daily_on_demand_cost" url:"daily_on_demand_cost"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CommitmentOnDemand) GetCurrency() string {
+	if c == nil {
+		return ""
+	}
+	return c.Currency
+}
+
+func (c *CommitmentOnDemand) GetMeasuredFrom() string {
+	if c == nil {
+		return ""
+	}
+	return c.MeasuredFrom
+}
+
+func (c *CommitmentOnDemand) GetMeasuredTo() string {
+	if c == nil {
+		return ""
+	}
+	return c.MeasuredTo
+}
+
+func (c *CommitmentOnDemand) GetOnDemandCost() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.OnDemandCost
+}
+
+func (c *CommitmentOnDemand) GetCoveredCost() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.CoveredCost
+}
+
+func (c *CommitmentOnDemand) GetUnitHours() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.UnitHours
+}
+
+func (c *CommitmentOnDemand) GetDailyOnDemandCost() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.DailyOnDemandCost
+}
+
+func (c *CommitmentOnDemand) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CommitmentOnDemand) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetCurrency sets the Currency field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentOnDemand) SetCurrency(currency string) {
+	c.Currency = currency
+	c.require(commitmentOnDemandFieldCurrency)
+}
+
+// SetMeasuredFrom sets the MeasuredFrom field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentOnDemand) SetMeasuredFrom(measuredFrom string) {
+	c.MeasuredFrom = measuredFrom
+	c.require(commitmentOnDemandFieldMeasuredFrom)
+}
+
+// SetMeasuredTo sets the MeasuredTo field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentOnDemand) SetMeasuredTo(measuredTo string) {
+	c.MeasuredTo = measuredTo
+	c.require(commitmentOnDemandFieldMeasuredTo)
+}
+
+// SetOnDemandCost sets the OnDemandCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentOnDemand) SetOnDemandCost(onDemandCost float64) {
+	c.OnDemandCost = onDemandCost
+	c.require(commitmentOnDemandFieldOnDemandCost)
+}
+
+// SetCoveredCost sets the CoveredCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentOnDemand) SetCoveredCost(coveredCost *float64) {
+	c.CoveredCost = coveredCost
+	c.require(commitmentOnDemandFieldCoveredCost)
+}
+
+// SetUnitHours sets the UnitHours field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentOnDemand) SetUnitHours(unitHours *float64) {
+	c.UnitHours = unitHours
+	c.require(commitmentOnDemandFieldUnitHours)
+}
+
+// SetDailyOnDemandCost sets the DailyOnDemandCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentOnDemand) SetDailyOnDemandCost(dailyOnDemandCost float64) {
+	c.DailyOnDemandCost = dailyOnDemandCost
+	c.require(commitmentOnDemandFieldDailyOnDemandCost)
+}
+
+func (c *CommitmentOnDemand) UnmarshalJSON(data []byte) error {
+	type unmarshaler CommitmentOnDemand
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CommitmentOnDemand(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CommitmentOnDemand) MarshalJSON() ([]byte, error) {
+	type embed CommitmentOnDemand
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CommitmentOnDemand) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
 var (
 	commitmentPortfolioDataFieldBasis  = big.NewInt(1 << 0)
 	commitmentPortfolioDataFieldTotals = big.NewInt(1 << 1)
@@ -4344,6 +5224,1378 @@ func (c *CommitmentPortfolioTotals) String() string {
 }
 
 var (
+	commitmentPurchaseDataFieldRecommendationID = big.NewInt(1 << 0)
+	commitmentPurchaseDataFieldPayerAccountID   = big.NewInt(1 << 1)
+	commitmentPurchaseDataFieldPlanType         = big.NewInt(1 << 2)
+	commitmentPurchaseDataFieldTermMonths       = big.NewInt(1 << 3)
+	commitmentPurchaseDataFieldPaymentOption    = big.NewInt(1 << 4)
+	commitmentPurchaseDataFieldCommitmentHourly = big.NewInt(1 << 5)
+	commitmentPurchaseDataFieldProfile          = big.NewInt(1 << 6)
+	commitmentPurchaseDataFieldCappedBy         = big.NewInt(1 << 7)
+	commitmentPurchaseDataFieldMonthlySavings   = big.NewInt(1 << 8)
+	commitmentPurchaseDataFieldCreatedBy        = big.NewInt(1 << 9)
+	commitmentPurchaseDataFieldCreatedAt        = big.NewInt(1 << 10)
+	commitmentPurchaseDataFieldRebindable       = big.NewInt(1 << 11)
+	commitmentPurchaseDataFieldCreated          = big.NewInt(1 << 12)
+	commitmentPurchaseDataFieldRebound          = big.NewInt(1 << 13)
+)
+
+type CommitmentPurchaseData struct {
+	RecommendationID string                              `json:"recommendation_id" url:"recommendation_id"`
+	PayerAccountID   string                              `json:"payer_account_id" url:"payer_account_id"`
+	PlanType         CommitmentPurchaseDataPlanType      `json:"plan_type" url:"plan_type"`
+	TermMonths       int                                 `json:"term_months" url:"term_months"`
+	PaymentOption    CommitmentPurchaseDataPaymentOption `json:"payment_option" url:"payment_option"`
+	CommitmentHourly float64                             `json:"commitment_hourly" url:"commitment_hourly"`
+	Profile          *CommitmentPurchaseDataProfile      `json:"profile,omitempty" url:"profile,omitempty"`
+	CappedBy         []string                            `json:"capped_by" url:"capped_by"`
+	MonthlySavings   float64                             `json:"monthly_savings" url:"monthly_savings"`
+	CreatedBy        *string                             `json:"created_by,omitempty" url:"created_by,omitempty"`
+	CreatedAt        string                              `json:"created_at" url:"created_at"`
+	Rebindable       *bool                               `json:"rebindable,omitempty" url:"rebindable,omitempty"`
+	Created          *bool                               `json:"created,omitempty" url:"created,omitempty"`
+	Rebound          *bool                               `json:"rebound,omitempty" url:"rebound,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+	grain          string
+	source         string
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CommitmentPurchaseData) GetRecommendationID() string {
+	if c == nil {
+		return ""
+	}
+	return c.RecommendationID
+}
+
+func (c *CommitmentPurchaseData) GetPayerAccountID() string {
+	if c == nil {
+		return ""
+	}
+	return c.PayerAccountID
+}
+
+func (c *CommitmentPurchaseData) GetPlanType() CommitmentPurchaseDataPlanType {
+	if c == nil {
+		return ""
+	}
+	return c.PlanType
+}
+
+func (c *CommitmentPurchaseData) GetTermMonths() int {
+	if c == nil {
+		return 0
+	}
+	return c.TermMonths
+}
+
+func (c *CommitmentPurchaseData) GetPaymentOption() CommitmentPurchaseDataPaymentOption {
+	if c == nil {
+		return ""
+	}
+	return c.PaymentOption
+}
+
+func (c *CommitmentPurchaseData) GetCommitmentHourly() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.CommitmentHourly
+}
+
+func (c *CommitmentPurchaseData) GetProfile() *CommitmentPurchaseDataProfile {
+	if c == nil {
+		return nil
+	}
+	return c.Profile
+}
+
+func (c *CommitmentPurchaseData) GetCappedBy() []string {
+	if c == nil {
+		return nil
+	}
+	return c.CappedBy
+}
+
+func (c *CommitmentPurchaseData) GetMonthlySavings() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.MonthlySavings
+}
+
+func (c *CommitmentPurchaseData) GetCreatedBy() *string {
+	if c == nil {
+		return nil
+	}
+	return c.CreatedBy
+}
+
+func (c *CommitmentPurchaseData) GetCreatedAt() string {
+	if c == nil {
+		return ""
+	}
+	return c.CreatedAt
+}
+
+func (c *CommitmentPurchaseData) GetRebindable() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Rebindable
+}
+
+func (c *CommitmentPurchaseData) GetCreated() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Created
+}
+
+func (c *CommitmentPurchaseData) GetRebound() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Rebound
+}
+
+func (c *CommitmentPurchaseData) Grain() string {
+	return c.grain
+}
+
+func (c *CommitmentPurchaseData) Source() string {
+	return c.source
+}
+
+func (c *CommitmentPurchaseData) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CommitmentPurchaseData) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetRecommendationID sets the RecommendationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseData) SetRecommendationID(recommendationID string) {
+	c.RecommendationID = recommendationID
+	c.require(commitmentPurchaseDataFieldRecommendationID)
+}
+
+// SetPayerAccountID sets the PayerAccountID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseData) SetPayerAccountID(payerAccountID string) {
+	c.PayerAccountID = payerAccountID
+	c.require(commitmentPurchaseDataFieldPayerAccountID)
+}
+
+// SetPlanType sets the PlanType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseData) SetPlanType(planType CommitmentPurchaseDataPlanType) {
+	c.PlanType = planType
+	c.require(commitmentPurchaseDataFieldPlanType)
+}
+
+// SetTermMonths sets the TermMonths field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseData) SetTermMonths(termMonths int) {
+	c.TermMonths = termMonths
+	c.require(commitmentPurchaseDataFieldTermMonths)
+}
+
+// SetPaymentOption sets the PaymentOption field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseData) SetPaymentOption(paymentOption CommitmentPurchaseDataPaymentOption) {
+	c.PaymentOption = paymentOption
+	c.require(commitmentPurchaseDataFieldPaymentOption)
+}
+
+// SetCommitmentHourly sets the CommitmentHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseData) SetCommitmentHourly(commitmentHourly float64) {
+	c.CommitmentHourly = commitmentHourly
+	c.require(commitmentPurchaseDataFieldCommitmentHourly)
+}
+
+// SetProfile sets the Profile field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseData) SetProfile(profile *CommitmentPurchaseDataProfile) {
+	c.Profile = profile
+	c.require(commitmentPurchaseDataFieldProfile)
+}
+
+// SetCappedBy sets the CappedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseData) SetCappedBy(cappedBy []string) {
+	c.CappedBy = cappedBy
+	c.require(commitmentPurchaseDataFieldCappedBy)
+}
+
+// SetMonthlySavings sets the MonthlySavings field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseData) SetMonthlySavings(monthlySavings float64) {
+	c.MonthlySavings = monthlySavings
+	c.require(commitmentPurchaseDataFieldMonthlySavings)
+}
+
+// SetCreatedBy sets the CreatedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseData) SetCreatedBy(createdBy *string) {
+	c.CreatedBy = createdBy
+	c.require(commitmentPurchaseDataFieldCreatedBy)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseData) SetCreatedAt(createdAt string) {
+	c.CreatedAt = createdAt
+	c.require(commitmentPurchaseDataFieldCreatedAt)
+}
+
+// SetRebindable sets the Rebindable field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseData) SetRebindable(rebindable *bool) {
+	c.Rebindable = rebindable
+	c.require(commitmentPurchaseDataFieldRebindable)
+}
+
+// SetCreated sets the Created field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseData) SetCreated(created *bool) {
+	c.Created = created
+	c.require(commitmentPurchaseDataFieldCreated)
+}
+
+// SetRebound sets the Rebound field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseData) SetRebound(rebound *bool) {
+	c.Rebound = rebound
+	c.require(commitmentPurchaseDataFieldRebound)
+}
+
+func (c *CommitmentPurchaseData) UnmarshalJSON(data []byte) error {
+	type embed CommitmentPurchaseData
+	var unmarshaler = struct {
+		embed
+		Grain  string `json:"grain"`
+		Source string `json:"source"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = CommitmentPurchaseData(unmarshaler.embed)
+	if unmarshaler.Grain != "daily" {
+		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", c, "daily", unmarshaler.Grain)
+	}
+	c.grain = unmarshaler.Grain
+	if unmarshaler.Source != "cur" {
+		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", c, "cur", unmarshaler.Source)
+	}
+	c.source = unmarshaler.Source
+	extraProperties, err := internal.ExtractExtraProperties(data, *c, "grain", "source")
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CommitmentPurchaseData) MarshalJSON() ([]byte, error) {
+	type embed CommitmentPurchaseData
+	var marshaler = struct {
+		embed
+		Grain  string `json:"grain"`
+		Source string `json:"source"`
+	}{
+		embed:  embed(*c),
+		Grain:  "daily",
+		Source: "cur",
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CommitmentPurchaseData) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type CommitmentPurchaseDataPaymentOption string
+
+const (
+	CommitmentPurchaseDataPaymentOptionAllUpfront     CommitmentPurchaseDataPaymentOption = "all_upfront"
+	CommitmentPurchaseDataPaymentOptionPartialUpfront CommitmentPurchaseDataPaymentOption = "partial_upfront"
+	CommitmentPurchaseDataPaymentOptionNoUpfront      CommitmentPurchaseDataPaymentOption = "no_upfront"
+)
+
+func NewCommitmentPurchaseDataPaymentOptionFromString(s string) (CommitmentPurchaseDataPaymentOption, error) {
+	switch s {
+	case "all_upfront":
+		return CommitmentPurchaseDataPaymentOptionAllUpfront, nil
+	case "partial_upfront":
+		return CommitmentPurchaseDataPaymentOptionPartialUpfront, nil
+	case "no_upfront":
+		return CommitmentPurchaseDataPaymentOptionNoUpfront, nil
+	}
+	var t CommitmentPurchaseDataPaymentOption
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CommitmentPurchaseDataPaymentOption) Ptr() *CommitmentPurchaseDataPaymentOption {
+	return &c
+}
+
+type CommitmentPurchaseDataPlanType string
+
+const (
+	CommitmentPurchaseDataPlanTypeCompute  CommitmentPurchaseDataPlanType = "compute"
+	CommitmentPurchaseDataPlanTypeDatabase CommitmentPurchaseDataPlanType = "database"
+)
+
+func NewCommitmentPurchaseDataPlanTypeFromString(s string) (CommitmentPurchaseDataPlanType, error) {
+	switch s {
+	case "compute":
+		return CommitmentPurchaseDataPlanTypeCompute, nil
+	case "database":
+		return CommitmentPurchaseDataPlanTypeDatabase, nil
+	}
+	var t CommitmentPurchaseDataPlanType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CommitmentPurchaseDataPlanType) Ptr() *CommitmentPurchaseDataPlanType {
+	return &c
+}
+
+type CommitmentPurchaseDataProfile string
+
+const (
+	CommitmentPurchaseDataProfileConservative CommitmentPurchaseDataProfile = "conservative"
+	CommitmentPurchaseDataProfileBalanced     CommitmentPurchaseDataProfile = "balanced"
+	CommitmentPurchaseDataProfileMaxSavings   CommitmentPurchaseDataProfile = "max_savings"
+)
+
+func NewCommitmentPurchaseDataProfileFromString(s string) (CommitmentPurchaseDataProfile, error) {
+	switch s {
+	case "conservative":
+		return CommitmentPurchaseDataProfileConservative, nil
+	case "balanced":
+		return CommitmentPurchaseDataProfileBalanced, nil
+	case "max_savings":
+		return CommitmentPurchaseDataProfileMaxSavings, nil
+	}
+	var t CommitmentPurchaseDataProfile
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CommitmentPurchaseDataProfile) Ptr() *CommitmentPurchaseDataProfile {
+	return &c
+}
+
+var (
+	commitmentPurchaseExecutionFieldStatus        = big.NewInt(1 << 0)
+	commitmentPurchaseExecutionFieldProviderState = big.NewInt(1 << 1)
+	commitmentPurchaseExecutionFieldPurchaseID    = big.NewInt(1 << 2)
+	commitmentPurchaseExecutionFieldError         = big.NewInt(1 << 3)
+	commitmentPurchaseExecutionFieldStartsAt      = big.NewInt(1 << 4)
+)
+
+type CommitmentPurchaseExecution struct {
+	Status CommitmentPurchaseExecutionStatus `json:"status" url:"status"`
+	// AWS's own state for the plan, once it was sent
+	ProviderState *string `json:"provider_state,omitempty" url:"provider_state,omitempty"`
+	// The Savings Plan id AWS answered with
+	PurchaseID *string `json:"purchase_id,omitempty" url:"purchase_id,omitempty"`
+	Error      *string `json:"error,omitempty" url:"error,omitempty"`
+	// When AWS starts a plan it queued, 00:00 UTC on the 1st of the next month
+	StartsAt *string `json:"starts_at,omitempty" url:"starts_at,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CommitmentPurchaseExecution) GetStatus() CommitmentPurchaseExecutionStatus {
+	if c == nil {
+		return ""
+	}
+	return c.Status
+}
+
+func (c *CommitmentPurchaseExecution) GetProviderState() *string {
+	if c == nil {
+		return nil
+	}
+	return c.ProviderState
+}
+
+func (c *CommitmentPurchaseExecution) GetPurchaseID() *string {
+	if c == nil {
+		return nil
+	}
+	return c.PurchaseID
+}
+
+func (c *CommitmentPurchaseExecution) GetError() *string {
+	if c == nil {
+		return nil
+	}
+	return c.Error
+}
+
+func (c *CommitmentPurchaseExecution) GetStartsAt() *string {
+	if c == nil {
+		return nil
+	}
+	return c.StartsAt
+}
+
+func (c *CommitmentPurchaseExecution) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CommitmentPurchaseExecution) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseExecution) SetStatus(status CommitmentPurchaseExecutionStatus) {
+	c.Status = status
+	c.require(commitmentPurchaseExecutionFieldStatus)
+}
+
+// SetProviderState sets the ProviderState field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseExecution) SetProviderState(providerState *string) {
+	c.ProviderState = providerState
+	c.require(commitmentPurchaseExecutionFieldProviderState)
+}
+
+// SetPurchaseID sets the PurchaseID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseExecution) SetPurchaseID(purchaseID *string) {
+	c.PurchaseID = purchaseID
+	c.require(commitmentPurchaseExecutionFieldPurchaseID)
+}
+
+// SetError sets the Error field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseExecution) SetError(error_ *string) {
+	c.Error = error_
+	c.require(commitmentPurchaseExecutionFieldError)
+}
+
+// SetStartsAt sets the StartsAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseExecution) SetStartsAt(startsAt *string) {
+	c.StartsAt = startsAt
+	c.require(commitmentPurchaseExecutionFieldStartsAt)
+}
+
+func (c *CommitmentPurchaseExecution) UnmarshalJSON(data []byte) error {
+	type unmarshaler CommitmentPurchaseExecution
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CommitmentPurchaseExecution(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CommitmentPurchaseExecution) MarshalJSON() ([]byte, error) {
+	type embed CommitmentPurchaseExecution
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CommitmentPurchaseExecution) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type CommitmentPurchaseExecutionStatus string
+
+const (
+	CommitmentPurchaseExecutionStatusNotStarted    CommitmentPurchaseExecutionStatus = "not_started"
+	CommitmentPurchaseExecutionStatusInProgress    CommitmentPurchaseExecutionStatus = "in_progress"
+	CommitmentPurchaseExecutionStatusActive        CommitmentPurchaseExecutionStatus = "active"
+	CommitmentPurchaseExecutionStatusQueued        CommitmentPurchaseExecutionStatus = "queued"
+	CommitmentPurchaseExecutionStatusPaymentFailed CommitmentPurchaseExecutionStatus = "payment_failed"
+	CommitmentPurchaseExecutionStatusFailed        CommitmentPurchaseExecutionStatus = "failed"
+	CommitmentPurchaseExecutionStatusIndeterminate CommitmentPurchaseExecutionStatus = "indeterminate"
+	CommitmentPurchaseExecutionStatusReturned      CommitmentPurchaseExecutionStatus = "returned"
+	CommitmentPurchaseExecutionStatusCancelled     CommitmentPurchaseExecutionStatus = "cancelled"
+)
+
+func NewCommitmentPurchaseExecutionStatusFromString(s string) (CommitmentPurchaseExecutionStatus, error) {
+	switch s {
+	case "not_started":
+		return CommitmentPurchaseExecutionStatusNotStarted, nil
+	case "in_progress":
+		return CommitmentPurchaseExecutionStatusInProgress, nil
+	case "active":
+		return CommitmentPurchaseExecutionStatusActive, nil
+	case "queued":
+		return CommitmentPurchaseExecutionStatusQueued, nil
+	case "payment_failed":
+		return CommitmentPurchaseExecutionStatusPaymentFailed, nil
+	case "failed":
+		return CommitmentPurchaseExecutionStatusFailed, nil
+	case "indeterminate":
+		return CommitmentPurchaseExecutionStatusIndeterminate, nil
+	case "returned":
+		return CommitmentPurchaseExecutionStatusReturned, nil
+	case "cancelled":
+		return CommitmentPurchaseExecutionStatusCancelled, nil
+	}
+	var t CommitmentPurchaseExecutionStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CommitmentPurchaseExecutionStatus) Ptr() *CommitmentPurchaseExecutionStatus {
+	return &c
+}
+
+var (
+	commitmentPurchaseResponseFieldSuccess   = big.NewInt(1 << 0)
+	commitmentPurchaseResponseFieldTimestamp = big.NewInt(1 << 1)
+	commitmentPurchaseResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type CommitmentPurchaseResponse struct {
+	Success   *bool                   `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time              `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *CommitmentPurchaseData `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CommitmentPurchaseResponse) GetSuccess() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Success
+}
+
+func (c *CommitmentPurchaseResponse) GetTimestamp() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.Timestamp
+}
+
+func (c *CommitmentPurchaseResponse) GetData() *CommitmentPurchaseData {
+	if c == nil {
+		return nil
+	}
+	return c.Data
+}
+
+func (c *CommitmentPurchaseResponse) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CommitmentPurchaseResponse) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseResponse) SetSuccess(success *bool) {
+	c.Success = success
+	c.require(commitmentPurchaseResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseResponse) SetTimestamp(timestamp *time.Time) {
+	c.Timestamp = timestamp
+	c.require(commitmentPurchaseResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseResponse) SetData(data *CommitmentPurchaseData) {
+	c.Data = data
+	c.require(commitmentPurchaseResponseFieldData)
+}
+
+func (c *CommitmentPurchaseResponse) UnmarshalJSON(data []byte) error {
+	type embed CommitmentPurchaseResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = CommitmentPurchaseResponse(unmarshaler.embed)
+	c.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CommitmentPurchaseResponse) MarshalJSON() ([]byte, error) {
+	type embed CommitmentPurchaseResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*c),
+		Timestamp: internal.NewOptionalDateTime(c.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CommitmentPurchaseResponse) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	commitmentPurchaseStatusDataFieldRecommendationID = big.NewInt(1 << 0)
+	commitmentPurchaseStatusDataFieldPayerAccountID   = big.NewInt(1 << 1)
+	commitmentPurchaseStatusDataFieldPlanType         = big.NewInt(1 << 2)
+	commitmentPurchaseStatusDataFieldTermMonths       = big.NewInt(1 << 3)
+	commitmentPurchaseStatusDataFieldPaymentOption    = big.NewInt(1 << 4)
+	commitmentPurchaseStatusDataFieldCommitmentHourly = big.NewInt(1 << 5)
+	commitmentPurchaseStatusDataFieldProfile          = big.NewInt(1 << 6)
+	commitmentPurchaseStatusDataFieldCappedBy         = big.NewInt(1 << 7)
+	commitmentPurchaseStatusDataFieldMonthlySavings   = big.NewInt(1 << 8)
+	commitmentPurchaseStatusDataFieldCreatedBy        = big.NewInt(1 << 9)
+	commitmentPurchaseStatusDataFieldCreatedAt        = big.NewInt(1 << 10)
+	commitmentPurchaseStatusDataFieldRebindable       = big.NewInt(1 << 11)
+	commitmentPurchaseStatusDataFieldBuyingAccountID  = big.NewInt(1 << 12)
+	commitmentPurchaseStatusDataFieldScheduleID       = big.NewInt(1 << 13)
+	commitmentPurchaseStatusDataFieldTrancheNumber    = big.NewInt(1 << 14)
+	commitmentPurchaseStatusDataFieldTranchesTotal    = big.NewInt(1 << 15)
+	commitmentPurchaseStatusDataFieldBuyAfterUtc      = big.NewInt(1 << 16)
+	commitmentPurchaseStatusDataFieldVerifiedActiveAt = big.NewInt(1 << 17)
+	commitmentPurchaseStatusDataFieldExecution        = big.NewInt(1 << 18)
+	commitmentPurchaseStatusDataFieldBoughtOutside    = big.NewInt(1 << 19)
+	commitmentPurchaseStatusDataFieldTriggerInfo      = big.NewInt(1 << 20)
+	commitmentPurchaseStatusDataFieldExecutionSteps   = big.NewInt(1 << 21)
+	commitmentPurchaseStatusDataFieldExecutionLogs    = big.NewInt(1 << 22)
+)
+
+type CommitmentPurchaseStatusData struct {
+	RecommendationID string                                    `json:"recommendation_id" url:"recommendation_id"`
+	PayerAccountID   string                                    `json:"payer_account_id" url:"payer_account_id"`
+	PlanType         CommitmentPurchaseStatusDataPlanType      `json:"plan_type" url:"plan_type"`
+	TermMonths       int                                       `json:"term_months" url:"term_months"`
+	PaymentOption    CommitmentPurchaseStatusDataPaymentOption `json:"payment_option" url:"payment_option"`
+	CommitmentHourly float64                                   `json:"commitment_hourly" url:"commitment_hourly"`
+	Profile          *CommitmentPurchaseStatusDataProfile      `json:"profile,omitempty" url:"profile,omitempty"`
+	CappedBy         []string                                  `json:"capped_by" url:"capped_by"`
+	MonthlySavings   float64                                   `json:"monthly_savings" url:"monthly_savings"`
+	CreatedBy        *string                                   `json:"created_by,omitempty" url:"created_by,omitempty"`
+	CreatedAt        string                                    `json:"created_at" url:"created_at"`
+	Rebindable       *bool                                     `json:"rebindable,omitempty" url:"rebindable,omitempty"`
+	BuyingAccountID  string                                    `json:"buying_account_id" url:"buying_account_id"`
+	ScheduleID       *string                                   `json:"schedule_id,omitempty" url:"schedule_id,omitempty"`
+	TrancheNumber    *int                                      `json:"tranche_number,omitempty" url:"tranche_number,omitempty"`
+	TranchesTotal    *int                                      `json:"tranches_total,omitempty" url:"tranches_total,omitempty"`
+	BuyAfterUtc      *string                                   `json:"buy_after_utc,omitempty" url:"buy_after_utc,omitempty"`
+	// When the executor saw AWS report the plan active
+	VerifiedActiveAt *string                      `json:"verified_active_at,omitempty" url:"verified_active_at,omitempty"`
+	Execution        *CommitmentPurchaseExecution `json:"execution" url:"execution"`
+	// The plan of the same type and term bought outside LevelFour that stopped this one
+	BoughtOutside  *BoughtOutside         `json:"bought_outside,omitempty" url:"bought_outside,omitempty"`
+	TriggerInfo    any                    `json:"trigger_info,omitempty" url:"trigger_info,omitempty"`
+	ExecutionSteps []*ExecutionStepSchema `json:"execution_steps,omitempty" url:"execution_steps,omitempty"`
+	ExecutionLogs  []*ExecutionLogEntry   `json:"execution_logs,omitempty" url:"execution_logs,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+	grain          string
+	source         string
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CommitmentPurchaseStatusData) GetRecommendationID() string {
+	if c == nil {
+		return ""
+	}
+	return c.RecommendationID
+}
+
+func (c *CommitmentPurchaseStatusData) GetPayerAccountID() string {
+	if c == nil {
+		return ""
+	}
+	return c.PayerAccountID
+}
+
+func (c *CommitmentPurchaseStatusData) GetPlanType() CommitmentPurchaseStatusDataPlanType {
+	if c == nil {
+		return ""
+	}
+	return c.PlanType
+}
+
+func (c *CommitmentPurchaseStatusData) GetTermMonths() int {
+	if c == nil {
+		return 0
+	}
+	return c.TermMonths
+}
+
+func (c *CommitmentPurchaseStatusData) GetPaymentOption() CommitmentPurchaseStatusDataPaymentOption {
+	if c == nil {
+		return ""
+	}
+	return c.PaymentOption
+}
+
+func (c *CommitmentPurchaseStatusData) GetCommitmentHourly() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.CommitmentHourly
+}
+
+func (c *CommitmentPurchaseStatusData) GetProfile() *CommitmentPurchaseStatusDataProfile {
+	if c == nil {
+		return nil
+	}
+	return c.Profile
+}
+
+func (c *CommitmentPurchaseStatusData) GetCappedBy() []string {
+	if c == nil {
+		return nil
+	}
+	return c.CappedBy
+}
+
+func (c *CommitmentPurchaseStatusData) GetMonthlySavings() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.MonthlySavings
+}
+
+func (c *CommitmentPurchaseStatusData) GetCreatedBy() *string {
+	if c == nil {
+		return nil
+	}
+	return c.CreatedBy
+}
+
+func (c *CommitmentPurchaseStatusData) GetCreatedAt() string {
+	if c == nil {
+		return ""
+	}
+	return c.CreatedAt
+}
+
+func (c *CommitmentPurchaseStatusData) GetRebindable() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Rebindable
+}
+
+func (c *CommitmentPurchaseStatusData) GetBuyingAccountID() string {
+	if c == nil {
+		return ""
+	}
+	return c.BuyingAccountID
+}
+
+func (c *CommitmentPurchaseStatusData) GetScheduleID() *string {
+	if c == nil {
+		return nil
+	}
+	return c.ScheduleID
+}
+
+func (c *CommitmentPurchaseStatusData) GetTrancheNumber() *int {
+	if c == nil {
+		return nil
+	}
+	return c.TrancheNumber
+}
+
+func (c *CommitmentPurchaseStatusData) GetTranchesTotal() *int {
+	if c == nil {
+		return nil
+	}
+	return c.TranchesTotal
+}
+
+func (c *CommitmentPurchaseStatusData) GetBuyAfterUtc() *string {
+	if c == nil {
+		return nil
+	}
+	return c.BuyAfterUtc
+}
+
+func (c *CommitmentPurchaseStatusData) GetVerifiedActiveAt() *string {
+	if c == nil {
+		return nil
+	}
+	return c.VerifiedActiveAt
+}
+
+func (c *CommitmentPurchaseStatusData) GetExecution() *CommitmentPurchaseExecution {
+	if c == nil {
+		return nil
+	}
+	return c.Execution
+}
+
+func (c *CommitmentPurchaseStatusData) GetBoughtOutside() *BoughtOutside {
+	if c == nil {
+		return nil
+	}
+	return c.BoughtOutside
+}
+
+func (c *CommitmentPurchaseStatusData) GetTriggerInfo() any {
+	if c == nil {
+		return nil
+	}
+	return c.TriggerInfo
+}
+
+func (c *CommitmentPurchaseStatusData) GetExecutionSteps() []*ExecutionStepSchema {
+	if c == nil {
+		return nil
+	}
+	return c.ExecutionSteps
+}
+
+func (c *CommitmentPurchaseStatusData) GetExecutionLogs() []*ExecutionLogEntry {
+	if c == nil {
+		return nil
+	}
+	return c.ExecutionLogs
+}
+
+func (c *CommitmentPurchaseStatusData) Grain() string {
+	return c.grain
+}
+
+func (c *CommitmentPurchaseStatusData) Source() string {
+	return c.source
+}
+
+func (c *CommitmentPurchaseStatusData) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CommitmentPurchaseStatusData) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetRecommendationID sets the RecommendationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetRecommendationID(recommendationID string) {
+	c.RecommendationID = recommendationID
+	c.require(commitmentPurchaseStatusDataFieldRecommendationID)
+}
+
+// SetPayerAccountID sets the PayerAccountID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetPayerAccountID(payerAccountID string) {
+	c.PayerAccountID = payerAccountID
+	c.require(commitmentPurchaseStatusDataFieldPayerAccountID)
+}
+
+// SetPlanType sets the PlanType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetPlanType(planType CommitmentPurchaseStatusDataPlanType) {
+	c.PlanType = planType
+	c.require(commitmentPurchaseStatusDataFieldPlanType)
+}
+
+// SetTermMonths sets the TermMonths field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetTermMonths(termMonths int) {
+	c.TermMonths = termMonths
+	c.require(commitmentPurchaseStatusDataFieldTermMonths)
+}
+
+// SetPaymentOption sets the PaymentOption field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetPaymentOption(paymentOption CommitmentPurchaseStatusDataPaymentOption) {
+	c.PaymentOption = paymentOption
+	c.require(commitmentPurchaseStatusDataFieldPaymentOption)
+}
+
+// SetCommitmentHourly sets the CommitmentHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetCommitmentHourly(commitmentHourly float64) {
+	c.CommitmentHourly = commitmentHourly
+	c.require(commitmentPurchaseStatusDataFieldCommitmentHourly)
+}
+
+// SetProfile sets the Profile field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetProfile(profile *CommitmentPurchaseStatusDataProfile) {
+	c.Profile = profile
+	c.require(commitmentPurchaseStatusDataFieldProfile)
+}
+
+// SetCappedBy sets the CappedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetCappedBy(cappedBy []string) {
+	c.CappedBy = cappedBy
+	c.require(commitmentPurchaseStatusDataFieldCappedBy)
+}
+
+// SetMonthlySavings sets the MonthlySavings field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetMonthlySavings(monthlySavings float64) {
+	c.MonthlySavings = monthlySavings
+	c.require(commitmentPurchaseStatusDataFieldMonthlySavings)
+}
+
+// SetCreatedBy sets the CreatedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetCreatedBy(createdBy *string) {
+	c.CreatedBy = createdBy
+	c.require(commitmentPurchaseStatusDataFieldCreatedBy)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetCreatedAt(createdAt string) {
+	c.CreatedAt = createdAt
+	c.require(commitmentPurchaseStatusDataFieldCreatedAt)
+}
+
+// SetRebindable sets the Rebindable field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetRebindable(rebindable *bool) {
+	c.Rebindable = rebindable
+	c.require(commitmentPurchaseStatusDataFieldRebindable)
+}
+
+// SetBuyingAccountID sets the BuyingAccountID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetBuyingAccountID(buyingAccountID string) {
+	c.BuyingAccountID = buyingAccountID
+	c.require(commitmentPurchaseStatusDataFieldBuyingAccountID)
+}
+
+// SetScheduleID sets the ScheduleID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetScheduleID(scheduleID *string) {
+	c.ScheduleID = scheduleID
+	c.require(commitmentPurchaseStatusDataFieldScheduleID)
+}
+
+// SetTrancheNumber sets the TrancheNumber field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetTrancheNumber(trancheNumber *int) {
+	c.TrancheNumber = trancheNumber
+	c.require(commitmentPurchaseStatusDataFieldTrancheNumber)
+}
+
+// SetTranchesTotal sets the TranchesTotal field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetTranchesTotal(tranchesTotal *int) {
+	c.TranchesTotal = tranchesTotal
+	c.require(commitmentPurchaseStatusDataFieldTranchesTotal)
+}
+
+// SetBuyAfterUtc sets the BuyAfterUtc field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetBuyAfterUtc(buyAfterUtc *string) {
+	c.BuyAfterUtc = buyAfterUtc
+	c.require(commitmentPurchaseStatusDataFieldBuyAfterUtc)
+}
+
+// SetVerifiedActiveAt sets the VerifiedActiveAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetVerifiedActiveAt(verifiedActiveAt *string) {
+	c.VerifiedActiveAt = verifiedActiveAt
+	c.require(commitmentPurchaseStatusDataFieldVerifiedActiveAt)
+}
+
+// SetExecution sets the Execution field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetExecution(execution *CommitmentPurchaseExecution) {
+	c.Execution = execution
+	c.require(commitmentPurchaseStatusDataFieldExecution)
+}
+
+// SetBoughtOutside sets the BoughtOutside field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetBoughtOutside(boughtOutside *BoughtOutside) {
+	c.BoughtOutside = boughtOutside
+	c.require(commitmentPurchaseStatusDataFieldBoughtOutside)
+}
+
+// SetTriggerInfo sets the TriggerInfo field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetTriggerInfo(triggerInfo any) {
+	c.TriggerInfo = triggerInfo
+	c.require(commitmentPurchaseStatusDataFieldTriggerInfo)
+}
+
+// SetExecutionSteps sets the ExecutionSteps field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetExecutionSteps(executionSteps []*ExecutionStepSchema) {
+	c.ExecutionSteps = executionSteps
+	c.require(commitmentPurchaseStatusDataFieldExecutionSteps)
+}
+
+// SetExecutionLogs sets the ExecutionLogs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusData) SetExecutionLogs(executionLogs []*ExecutionLogEntry) {
+	c.ExecutionLogs = executionLogs
+	c.require(commitmentPurchaseStatusDataFieldExecutionLogs)
+}
+
+func (c *CommitmentPurchaseStatusData) UnmarshalJSON(data []byte) error {
+	type embed CommitmentPurchaseStatusData
+	var unmarshaler = struct {
+		embed
+		Grain  string `json:"grain"`
+		Source string `json:"source"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = CommitmentPurchaseStatusData(unmarshaler.embed)
+	if unmarshaler.Grain != "daily" {
+		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", c, "daily", unmarshaler.Grain)
+	}
+	c.grain = unmarshaler.Grain
+	if unmarshaler.Source != "cur" {
+		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", c, "cur", unmarshaler.Source)
+	}
+	c.source = unmarshaler.Source
+	extraProperties, err := internal.ExtractExtraProperties(data, *c, "grain", "source")
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CommitmentPurchaseStatusData) MarshalJSON() ([]byte, error) {
+	type embed CommitmentPurchaseStatusData
+	var marshaler = struct {
+		embed
+		Grain  string `json:"grain"`
+		Source string `json:"source"`
+	}{
+		embed:  embed(*c),
+		Grain:  "daily",
+		Source: "cur",
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CommitmentPurchaseStatusData) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type CommitmentPurchaseStatusDataPaymentOption string
+
+const (
+	CommitmentPurchaseStatusDataPaymentOptionAllUpfront     CommitmentPurchaseStatusDataPaymentOption = "all_upfront"
+	CommitmentPurchaseStatusDataPaymentOptionPartialUpfront CommitmentPurchaseStatusDataPaymentOption = "partial_upfront"
+	CommitmentPurchaseStatusDataPaymentOptionNoUpfront      CommitmentPurchaseStatusDataPaymentOption = "no_upfront"
+)
+
+func NewCommitmentPurchaseStatusDataPaymentOptionFromString(s string) (CommitmentPurchaseStatusDataPaymentOption, error) {
+	switch s {
+	case "all_upfront":
+		return CommitmentPurchaseStatusDataPaymentOptionAllUpfront, nil
+	case "partial_upfront":
+		return CommitmentPurchaseStatusDataPaymentOptionPartialUpfront, nil
+	case "no_upfront":
+		return CommitmentPurchaseStatusDataPaymentOptionNoUpfront, nil
+	}
+	var t CommitmentPurchaseStatusDataPaymentOption
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CommitmentPurchaseStatusDataPaymentOption) Ptr() *CommitmentPurchaseStatusDataPaymentOption {
+	return &c
+}
+
+type CommitmentPurchaseStatusDataPlanType string
+
+const (
+	CommitmentPurchaseStatusDataPlanTypeCompute  CommitmentPurchaseStatusDataPlanType = "compute"
+	CommitmentPurchaseStatusDataPlanTypeDatabase CommitmentPurchaseStatusDataPlanType = "database"
+)
+
+func NewCommitmentPurchaseStatusDataPlanTypeFromString(s string) (CommitmentPurchaseStatusDataPlanType, error) {
+	switch s {
+	case "compute":
+		return CommitmentPurchaseStatusDataPlanTypeCompute, nil
+	case "database":
+		return CommitmentPurchaseStatusDataPlanTypeDatabase, nil
+	}
+	var t CommitmentPurchaseStatusDataPlanType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CommitmentPurchaseStatusDataPlanType) Ptr() *CommitmentPurchaseStatusDataPlanType {
+	return &c
+}
+
+type CommitmentPurchaseStatusDataProfile string
+
+const (
+	CommitmentPurchaseStatusDataProfileConservative CommitmentPurchaseStatusDataProfile = "conservative"
+	CommitmentPurchaseStatusDataProfileBalanced     CommitmentPurchaseStatusDataProfile = "balanced"
+	CommitmentPurchaseStatusDataProfileMaxSavings   CommitmentPurchaseStatusDataProfile = "max_savings"
+)
+
+func NewCommitmentPurchaseStatusDataProfileFromString(s string) (CommitmentPurchaseStatusDataProfile, error) {
+	switch s {
+	case "conservative":
+		return CommitmentPurchaseStatusDataProfileConservative, nil
+	case "balanced":
+		return CommitmentPurchaseStatusDataProfileBalanced, nil
+	case "max_savings":
+		return CommitmentPurchaseStatusDataProfileMaxSavings, nil
+	}
+	var t CommitmentPurchaseStatusDataProfile
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CommitmentPurchaseStatusDataProfile) Ptr() *CommitmentPurchaseStatusDataProfile {
+	return &c
+}
+
+var (
+	commitmentPurchaseStatusResponseFieldSuccess   = big.NewInt(1 << 0)
+	commitmentPurchaseStatusResponseFieldTimestamp = big.NewInt(1 << 1)
+	commitmentPurchaseStatusResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type CommitmentPurchaseStatusResponse struct {
+	Success   *bool                         `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time                    `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *CommitmentPurchaseStatusData `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CommitmentPurchaseStatusResponse) GetSuccess() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Success
+}
+
+func (c *CommitmentPurchaseStatusResponse) GetTimestamp() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.Timestamp
+}
+
+func (c *CommitmentPurchaseStatusResponse) GetData() *CommitmentPurchaseStatusData {
+	if c == nil {
+		return nil
+	}
+	return c.Data
+}
+
+func (c *CommitmentPurchaseStatusResponse) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CommitmentPurchaseStatusResponse) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusResponse) SetSuccess(success *bool) {
+	c.Success = success
+	c.require(commitmentPurchaseStatusResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusResponse) SetTimestamp(timestamp *time.Time) {
+	c.Timestamp = timestamp
+	c.require(commitmentPurchaseStatusResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentPurchaseStatusResponse) SetData(data *CommitmentPurchaseStatusData) {
+	c.Data = data
+	c.require(commitmentPurchaseStatusResponseFieldData)
+}
+
+func (c *CommitmentPurchaseStatusResponse) UnmarshalJSON(data []byte) error {
+	type embed CommitmentPurchaseStatusResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = CommitmentPurchaseStatusResponse(unmarshaler.embed)
+	c.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CommitmentPurchaseStatusResponse) MarshalJSON() ([]byte, error) {
+	type embed CommitmentPurchaseStatusResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*c),
+		Timestamp: internal.NewOptionalDateTime(c.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CommitmentPurchaseStatusResponse) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
 	commitmentRecommendationFieldID             = big.NewInt(1 << 0)
 	commitmentRecommendationFieldKind           = big.NewInt(1 << 1)
 	commitmentRecommendationFieldTitle          = big.NewInt(1 << 2)
@@ -4357,7 +6609,7 @@ type CommitmentRecommendation struct {
 	Kind           CommitmentRecommendationKind       `json:"kind" url:"kind"`
 	Title          string                             `json:"title" url:"title"`
 	Detail         string                             `json:"detail" url:"detail"`
-	MonthlySavings float64                            `json:"monthly_savings" url:"monthly_savings"`
+	MonthlySavings *float64                           `json:"monthly_savings,omitempty" url:"monthly_savings,omitempty"`
 	Confidence     CommitmentRecommendationConfidence `json:"confidence" url:"confidence"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
@@ -4395,9 +6647,9 @@ func (c *CommitmentRecommendation) GetDetail() string {
 	return c.Detail
 }
 
-func (c *CommitmentRecommendation) GetMonthlySavings() float64 {
+func (c *CommitmentRecommendation) GetMonthlySavings() *float64 {
 	if c == nil {
-		return 0
+		return nil
 	}
 	return c.MonthlySavings
 }
@@ -4453,7 +6705,7 @@ func (c *CommitmentRecommendation) SetDetail(detail string) {
 
 // SetMonthlySavings sets the MonthlySavings field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (c *CommitmentRecommendation) SetMonthlySavings(monthlySavings float64) {
+func (c *CommitmentRecommendation) SetMonthlySavings(monthlySavings *float64) {
 	c.MonthlySavings = monthlySavings
 	c.require(commitmentRecommendationFieldMonthlySavings)
 }
@@ -4673,6 +6925,526 @@ func (c *CommitmentRecommendationsResponse) MarshalJSON() ([]byte, error) {
 }
 
 func (c *CommitmentRecommendationsResponse) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	commitmentRenewalDataFieldCommitmentID     = big.NewInt(1 << 0)
+	commitmentRenewalDataFieldRecommendationID = big.NewInt(1 << 1)
+	commitmentRenewalDataFieldCreatedBy        = big.NewInt(1 << 2)
+	commitmentRenewalDataFieldCreatedAt        = big.NewInt(1 << 3)
+	commitmentRenewalDataFieldCreated          = big.NewInt(1 << 4)
+	commitmentRenewalDataFieldRebound          = big.NewInt(1 << 5)
+	commitmentRenewalDataFieldRebindable       = big.NewInt(1 << 6)
+	commitmentRenewalDataFieldClosed           = big.NewInt(1 << 7)
+	commitmentRenewalDataFieldOfferingID       = big.NewInt(1 << 8)
+	commitmentRenewalDataFieldQuantity         = big.NewInt(1 << 9)
+	commitmentRenewalDataFieldBlockingChanges  = big.NewInt(1 << 10)
+)
+
+type CommitmentRenewalData struct {
+	CommitmentID     string                  `json:"commitment_id" url:"commitment_id"`
+	RecommendationID string                  `json:"recommendation_id" url:"recommendation_id"`
+	CreatedBy        *string                 `json:"created_by,omitempty" url:"created_by,omitempty"`
+	CreatedAt        *string                 `json:"created_at,omitempty" url:"created_at,omitempty"`
+	Created          *bool                   `json:"created,omitempty" url:"created,omitempty"`
+	Rebound          *bool                   `json:"rebound,omitempty" url:"rebound,omitempty"`
+	Rebindable       *bool                   `json:"rebindable,omitempty" url:"rebindable,omitempty"`
+	Closed           *bool                   `json:"closed,omitempty" url:"closed,omitempty"`
+	OfferingID       *string                 `json:"offering_id,omitempty" url:"offering_id,omitempty"`
+	Quantity         *float64                `json:"quantity,omitempty" url:"quantity,omitempty"`
+	BlockingChanges  []*RenewalPendingChange `json:"blocking_changes,omitempty" url:"blocking_changes,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CommitmentRenewalData) GetCommitmentID() string {
+	if c == nil {
+		return ""
+	}
+	return c.CommitmentID
+}
+
+func (c *CommitmentRenewalData) GetRecommendationID() string {
+	if c == nil {
+		return ""
+	}
+	return c.RecommendationID
+}
+
+func (c *CommitmentRenewalData) GetCreatedBy() *string {
+	if c == nil {
+		return nil
+	}
+	return c.CreatedBy
+}
+
+func (c *CommitmentRenewalData) GetCreatedAt() *string {
+	if c == nil {
+		return nil
+	}
+	return c.CreatedAt
+}
+
+func (c *CommitmentRenewalData) GetCreated() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Created
+}
+
+func (c *CommitmentRenewalData) GetRebound() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Rebound
+}
+
+func (c *CommitmentRenewalData) GetRebindable() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Rebindable
+}
+
+func (c *CommitmentRenewalData) GetClosed() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Closed
+}
+
+func (c *CommitmentRenewalData) GetOfferingID() *string {
+	if c == nil {
+		return nil
+	}
+	return c.OfferingID
+}
+
+func (c *CommitmentRenewalData) GetQuantity() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.Quantity
+}
+
+func (c *CommitmentRenewalData) GetBlockingChanges() []*RenewalPendingChange {
+	if c == nil {
+		return nil
+	}
+	return c.BlockingChanges
+}
+
+func (c *CommitmentRenewalData) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CommitmentRenewalData) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetCommitmentID sets the CommitmentID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalData) SetCommitmentID(commitmentID string) {
+	c.CommitmentID = commitmentID
+	c.require(commitmentRenewalDataFieldCommitmentID)
+}
+
+// SetRecommendationID sets the RecommendationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalData) SetRecommendationID(recommendationID string) {
+	c.RecommendationID = recommendationID
+	c.require(commitmentRenewalDataFieldRecommendationID)
+}
+
+// SetCreatedBy sets the CreatedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalData) SetCreatedBy(createdBy *string) {
+	c.CreatedBy = createdBy
+	c.require(commitmentRenewalDataFieldCreatedBy)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalData) SetCreatedAt(createdAt *string) {
+	c.CreatedAt = createdAt
+	c.require(commitmentRenewalDataFieldCreatedAt)
+}
+
+// SetCreated sets the Created field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalData) SetCreated(created *bool) {
+	c.Created = created
+	c.require(commitmentRenewalDataFieldCreated)
+}
+
+// SetRebound sets the Rebound field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalData) SetRebound(rebound *bool) {
+	c.Rebound = rebound
+	c.require(commitmentRenewalDataFieldRebound)
+}
+
+// SetRebindable sets the Rebindable field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalData) SetRebindable(rebindable *bool) {
+	c.Rebindable = rebindable
+	c.require(commitmentRenewalDataFieldRebindable)
+}
+
+// SetClosed sets the Closed field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalData) SetClosed(closed *bool) {
+	c.Closed = closed
+	c.require(commitmentRenewalDataFieldClosed)
+}
+
+// SetOfferingID sets the OfferingID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalData) SetOfferingID(offeringID *string) {
+	c.OfferingID = offeringID
+	c.require(commitmentRenewalDataFieldOfferingID)
+}
+
+// SetQuantity sets the Quantity field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalData) SetQuantity(quantity *float64) {
+	c.Quantity = quantity
+	c.require(commitmentRenewalDataFieldQuantity)
+}
+
+// SetBlockingChanges sets the BlockingChanges field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalData) SetBlockingChanges(blockingChanges []*RenewalPendingChange) {
+	c.BlockingChanges = blockingChanges
+	c.require(commitmentRenewalDataFieldBlockingChanges)
+}
+
+func (c *CommitmentRenewalData) UnmarshalJSON(data []byte) error {
+	type unmarshaler CommitmentRenewalData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CommitmentRenewalData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CommitmentRenewalData) MarshalJSON() ([]byte, error) {
+	type embed CommitmentRenewalData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CommitmentRenewalData) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	commitmentRenewalResponseFieldSuccess   = big.NewInt(1 << 0)
+	commitmentRenewalResponseFieldTimestamp = big.NewInt(1 << 1)
+	commitmentRenewalResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type CommitmentRenewalResponse struct {
+	Success   *bool                  `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time             `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *CommitmentRenewalData `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CommitmentRenewalResponse) GetSuccess() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Success
+}
+
+func (c *CommitmentRenewalResponse) GetTimestamp() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.Timestamp
+}
+
+func (c *CommitmentRenewalResponse) GetData() *CommitmentRenewalData {
+	if c == nil {
+		return nil
+	}
+	return c.Data
+}
+
+func (c *CommitmentRenewalResponse) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CommitmentRenewalResponse) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalResponse) SetSuccess(success *bool) {
+	c.Success = success
+	c.require(commitmentRenewalResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalResponse) SetTimestamp(timestamp *time.Time) {
+	c.Timestamp = timestamp
+	c.require(commitmentRenewalResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentRenewalResponse) SetData(data *CommitmentRenewalData) {
+	c.Data = data
+	c.require(commitmentRenewalResponseFieldData)
+}
+
+func (c *CommitmentRenewalResponse) UnmarshalJSON(data []byte) error {
+	type embed CommitmentRenewalResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = CommitmentRenewalResponse(unmarshaler.embed)
+	c.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CommitmentRenewalResponse) MarshalJSON() ([]byte, error) {
+	type embed CommitmentRenewalResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*c),
+		Timestamp: internal.NewOptionalDateTime(c.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CommitmentRenewalResponse) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+// What the whole term costs, with the per unit arithmetic already done.
+//
+// A reservation is priced per unit and a plan whole, so these totals are the only figures on
+// this payload that can be compared or summed without knowing which.
+var (
+	commitmentTermPricingFieldCurrency             = big.NewInt(1 << 0)
+	commitmentTermPricingFieldTermHours            = big.NewInt(1 << 1)
+	commitmentTermPricingFieldUpfrontTotal         = big.NewInt(1 << 2)
+	commitmentTermPricingFieldRecurringHourlyTotal = big.NewInt(1 << 3)
+	commitmentTermPricingFieldTermTotal            = big.NewInt(1 << 4)
+)
+
+type CommitmentTermPricing struct {
+	Currency             string  `json:"currency" url:"currency"`
+	TermHours            int     `json:"term_hours" url:"term_hours"`
+	UpfrontTotal         float64 `json:"upfront_total" url:"upfront_total"`
+	RecurringHourlyTotal float64 `json:"recurring_hourly_total" url:"recurring_hourly_total"`
+	TermTotal            float64 `json:"term_total" url:"term_total"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CommitmentTermPricing) GetCurrency() string {
+	if c == nil {
+		return ""
+	}
+	return c.Currency
+}
+
+func (c *CommitmentTermPricing) GetTermHours() int {
+	if c == nil {
+		return 0
+	}
+	return c.TermHours
+}
+
+func (c *CommitmentTermPricing) GetUpfrontTotal() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.UpfrontTotal
+}
+
+func (c *CommitmentTermPricing) GetRecurringHourlyTotal() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.RecurringHourlyTotal
+}
+
+func (c *CommitmentTermPricing) GetTermTotal() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.TermTotal
+}
+
+func (c *CommitmentTermPricing) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CommitmentTermPricing) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetCurrency sets the Currency field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentTermPricing) SetCurrency(currency string) {
+	c.Currency = currency
+	c.require(commitmentTermPricingFieldCurrency)
+}
+
+// SetTermHours sets the TermHours field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentTermPricing) SetTermHours(termHours int) {
+	c.TermHours = termHours
+	c.require(commitmentTermPricingFieldTermHours)
+}
+
+// SetUpfrontTotal sets the UpfrontTotal field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentTermPricing) SetUpfrontTotal(upfrontTotal float64) {
+	c.UpfrontTotal = upfrontTotal
+	c.require(commitmentTermPricingFieldUpfrontTotal)
+}
+
+// SetRecurringHourlyTotal sets the RecurringHourlyTotal field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentTermPricing) SetRecurringHourlyTotal(recurringHourlyTotal float64) {
+	c.RecurringHourlyTotal = recurringHourlyTotal
+	c.require(commitmentTermPricingFieldRecurringHourlyTotal)
+}
+
+// SetTermTotal sets the TermTotal field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CommitmentTermPricing) SetTermTotal(termTotal float64) {
+	c.TermTotal = termTotal
+	c.require(commitmentTermPricingFieldTermTotal)
+}
+
+func (c *CommitmentTermPricing) UnmarshalJSON(data []byte) error {
+	type unmarshaler CommitmentTermPricing
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CommitmentTermPricing(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CommitmentTermPricing) MarshalJSON() ([]byte, error) {
+	type embed CommitmentTermPricing
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CommitmentTermPricing) String() string {
 	if c == nil {
 		return "<nil>"
 	}
@@ -6446,6 +9218,398 @@ func (c *ContractsResponse) String() string {
 }
 
 var (
+	coverageAccountMonthFieldPeriod                = big.NewInt(1 << 0)
+	coverageAccountMonthFieldComplete              = big.NewInt(1 << 1)
+	coverageAccountMonthFieldEligibleOnDemand      = big.NewInt(1 << 2)
+	coverageAccountMonthFieldCoveredOnDemand       = big.NewInt(1 << 3)
+	coverageAccountMonthFieldUncoveredOnDemand     = big.NewInt(1 << 4)
+	coverageAccountMonthFieldCoveragePct           = big.NewInt(1 << 5)
+	coverageAccountMonthFieldCoveredCost           = big.NewInt(1 << 6)
+	coverageAccountMonthFieldUtilizationPct        = big.NewInt(1 << 7)
+	coverageAccountMonthFieldSharedInCost          = big.NewInt(1 << 8)
+	coverageAccountMonthFieldSharedOutCost         = big.NewInt(1 << 9)
+	coverageAccountMonthFieldHeldUnusedCost        = big.NewInt(1 << 10)
+	coverageAccountMonthFieldBenefitingCommitments = big.NewInt(1 << 11)
+)
+
+type CoverageAccountMonth struct {
+	Period                string   `json:"period" url:"period"`
+	Complete              bool     `json:"complete" url:"complete"`
+	EligibleOnDemand      float64  `json:"eligible_on_demand" url:"eligible_on_demand"`
+	CoveredOnDemand       float64  `json:"covered_on_demand" url:"covered_on_demand"`
+	UncoveredOnDemand     float64  `json:"uncovered_on_demand" url:"uncovered_on_demand"`
+	CoveragePct           *float64 `json:"coverage_pct,omitempty" url:"coverage_pct,omitempty"`
+	CoveredCost           float64  `json:"covered_cost" url:"covered_cost"`
+	UtilizationPct        *float64 `json:"utilization_pct,omitempty" url:"utilization_pct,omitempty"`
+	SharedInCost          float64  `json:"shared_in_cost" url:"shared_in_cost"`
+	SharedOutCost         float64  `json:"shared_out_cost" url:"shared_out_cost"`
+	HeldUnusedCost        *float64 `json:"held_unused_cost,omitempty" url:"held_unused_cost,omitempty"`
+	BenefitingCommitments int      `json:"benefiting_commitments" url:"benefiting_commitments"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CoverageAccountMonth) GetPeriod() string {
+	if c == nil {
+		return ""
+	}
+	return c.Period
+}
+
+func (c *CoverageAccountMonth) GetComplete() bool {
+	if c == nil {
+		return false
+	}
+	return c.Complete
+}
+
+func (c *CoverageAccountMonth) GetEligibleOnDemand() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.EligibleOnDemand
+}
+
+func (c *CoverageAccountMonth) GetCoveredOnDemand() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.CoveredOnDemand
+}
+
+func (c *CoverageAccountMonth) GetUncoveredOnDemand() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.UncoveredOnDemand
+}
+
+func (c *CoverageAccountMonth) GetCoveragePct() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.CoveragePct
+}
+
+func (c *CoverageAccountMonth) GetCoveredCost() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.CoveredCost
+}
+
+func (c *CoverageAccountMonth) GetUtilizationPct() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.UtilizationPct
+}
+
+func (c *CoverageAccountMonth) GetSharedInCost() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.SharedInCost
+}
+
+func (c *CoverageAccountMonth) GetSharedOutCost() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.SharedOutCost
+}
+
+func (c *CoverageAccountMonth) GetHeldUnusedCost() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.HeldUnusedCost
+}
+
+func (c *CoverageAccountMonth) GetBenefitingCommitments() int {
+	if c == nil {
+		return 0
+	}
+	return c.BenefitingCommitments
+}
+
+func (c *CoverageAccountMonth) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CoverageAccountMonth) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetPeriod sets the Period field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageAccountMonth) SetPeriod(period string) {
+	c.Period = period
+	c.require(coverageAccountMonthFieldPeriod)
+}
+
+// SetComplete sets the Complete field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageAccountMonth) SetComplete(complete bool) {
+	c.Complete = complete
+	c.require(coverageAccountMonthFieldComplete)
+}
+
+// SetEligibleOnDemand sets the EligibleOnDemand field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageAccountMonth) SetEligibleOnDemand(eligibleOnDemand float64) {
+	c.EligibleOnDemand = eligibleOnDemand
+	c.require(coverageAccountMonthFieldEligibleOnDemand)
+}
+
+// SetCoveredOnDemand sets the CoveredOnDemand field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageAccountMonth) SetCoveredOnDemand(coveredOnDemand float64) {
+	c.CoveredOnDemand = coveredOnDemand
+	c.require(coverageAccountMonthFieldCoveredOnDemand)
+}
+
+// SetUncoveredOnDemand sets the UncoveredOnDemand field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageAccountMonth) SetUncoveredOnDemand(uncoveredOnDemand float64) {
+	c.UncoveredOnDemand = uncoveredOnDemand
+	c.require(coverageAccountMonthFieldUncoveredOnDemand)
+}
+
+// SetCoveragePct sets the CoveragePct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageAccountMonth) SetCoveragePct(coveragePct *float64) {
+	c.CoveragePct = coveragePct
+	c.require(coverageAccountMonthFieldCoveragePct)
+}
+
+// SetCoveredCost sets the CoveredCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageAccountMonth) SetCoveredCost(coveredCost float64) {
+	c.CoveredCost = coveredCost
+	c.require(coverageAccountMonthFieldCoveredCost)
+}
+
+// SetUtilizationPct sets the UtilizationPct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageAccountMonth) SetUtilizationPct(utilizationPct *float64) {
+	c.UtilizationPct = utilizationPct
+	c.require(coverageAccountMonthFieldUtilizationPct)
+}
+
+// SetSharedInCost sets the SharedInCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageAccountMonth) SetSharedInCost(sharedInCost float64) {
+	c.SharedInCost = sharedInCost
+	c.require(coverageAccountMonthFieldSharedInCost)
+}
+
+// SetSharedOutCost sets the SharedOutCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageAccountMonth) SetSharedOutCost(sharedOutCost float64) {
+	c.SharedOutCost = sharedOutCost
+	c.require(coverageAccountMonthFieldSharedOutCost)
+}
+
+// SetHeldUnusedCost sets the HeldUnusedCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageAccountMonth) SetHeldUnusedCost(heldUnusedCost *float64) {
+	c.HeldUnusedCost = heldUnusedCost
+	c.require(coverageAccountMonthFieldHeldUnusedCost)
+}
+
+// SetBenefitingCommitments sets the BenefitingCommitments field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageAccountMonth) SetBenefitingCommitments(benefitingCommitments int) {
+	c.BenefitingCommitments = benefitingCommitments
+	c.require(coverageAccountMonthFieldBenefitingCommitments)
+}
+
+func (c *CoverageAccountMonth) UnmarshalJSON(data []byte) error {
+	type unmarshaler CoverageAccountMonth
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CoverageAccountMonth(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CoverageAccountMonth) MarshalJSON() ([]byte, error) {
+	type embed CoverageAccountMonth
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CoverageAccountMonth) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	coverageAccountSeriesFieldAccountID      = big.NewInt(1 << 0)
+	coverageAccountSeriesFieldAccountName    = big.NewInt(1 << 1)
+	coverageAccountSeriesFieldOrganizationID = big.NewInt(1 << 2)
+	coverageAccountSeriesFieldMonths         = big.NewInt(1 << 3)
+)
+
+type CoverageAccountSeries struct {
+	AccountID      string                  `json:"account_id" url:"account_id"`
+	AccountName    string                  `json:"account_name" url:"account_name"`
+	OrganizationID *string                 `json:"organization_id,omitempty" url:"organization_id,omitempty"`
+	Months         []*CoverageAccountMonth `json:"months" url:"months"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CoverageAccountSeries) GetAccountID() string {
+	if c == nil {
+		return ""
+	}
+	return c.AccountID
+}
+
+func (c *CoverageAccountSeries) GetAccountName() string {
+	if c == nil {
+		return ""
+	}
+	return c.AccountName
+}
+
+func (c *CoverageAccountSeries) GetOrganizationID() *string {
+	if c == nil {
+		return nil
+	}
+	return c.OrganizationID
+}
+
+func (c *CoverageAccountSeries) GetMonths() []*CoverageAccountMonth {
+	if c == nil {
+		return nil
+	}
+	return c.Months
+}
+
+func (c *CoverageAccountSeries) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CoverageAccountSeries) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetAccountID sets the AccountID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageAccountSeries) SetAccountID(accountID string) {
+	c.AccountID = accountID
+	c.require(coverageAccountSeriesFieldAccountID)
+}
+
+// SetAccountName sets the AccountName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageAccountSeries) SetAccountName(accountName string) {
+	c.AccountName = accountName
+	c.require(coverageAccountSeriesFieldAccountName)
+}
+
+// SetOrganizationID sets the OrganizationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageAccountSeries) SetOrganizationID(organizationID *string) {
+	c.OrganizationID = organizationID
+	c.require(coverageAccountSeriesFieldOrganizationID)
+}
+
+// SetMonths sets the Months field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageAccountSeries) SetMonths(months []*CoverageAccountMonth) {
+	c.Months = months
+	c.require(coverageAccountSeriesFieldMonths)
+}
+
+func (c *CoverageAccountSeries) UnmarshalJSON(data []byte) error {
+	type unmarshaler CoverageAccountSeries
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CoverageAccountSeries(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CoverageAccountSeries) MarshalJSON() ([]byte, error) {
+	type embed CoverageAccountSeries
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CoverageAccountSeries) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
 	coverageFilterOptionsDataFieldProviders = big.NewInt(1 << 0)
 	coverageFilterOptionsDataFieldAccounts  = big.NewInt(1 << 1)
 	coverageFilterOptionsDataFieldServices  = big.NewInt(1 << 2)
@@ -6834,6 +9998,350 @@ func (c *CoverageMetadata) String() string {
 }
 
 var (
+	coverageMonthFieldPeriod            = big.NewInt(1 << 0)
+	coverageMonthFieldComplete          = big.NewInt(1 << 1)
+	coverageMonthFieldEligibleOnDemand  = big.NewInt(1 << 2)
+	coverageMonthFieldCoveredOnDemand   = big.NewInt(1 << 3)
+	coverageMonthFieldUncoveredOnDemand = big.NewInt(1 << 4)
+	coverageMonthFieldCoveragePct       = big.NewInt(1 << 5)
+	coverageMonthFieldCoveredCost       = big.NewInt(1 << 6)
+	coverageMonthFieldUtilizationPct    = big.NewInt(1 << 7)
+	coverageMonthFieldSharedCost        = big.NewInt(1 << 8)
+	coverageMonthFieldUnusedCost        = big.NewInt(1 << 9)
+)
+
+type CoverageMonth struct {
+	Period            string   `json:"period" url:"period"`
+	Complete          bool     `json:"complete" url:"complete"`
+	EligibleOnDemand  float64  `json:"eligible_on_demand" url:"eligible_on_demand"`
+	CoveredOnDemand   float64  `json:"covered_on_demand" url:"covered_on_demand"`
+	UncoveredOnDemand float64  `json:"uncovered_on_demand" url:"uncovered_on_demand"`
+	CoveragePct       *float64 `json:"coverage_pct,omitempty" url:"coverage_pct,omitempty"`
+	CoveredCost       float64  `json:"covered_cost" url:"covered_cost"`
+	UtilizationPct    *float64 `json:"utilization_pct,omitempty" url:"utilization_pct,omitempty"`
+	SharedCost        float64  `json:"shared_cost" url:"shared_cost"`
+	UnusedCost        *float64 `json:"unused_cost,omitempty" url:"unused_cost,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CoverageMonth) GetPeriod() string {
+	if c == nil {
+		return ""
+	}
+	return c.Period
+}
+
+func (c *CoverageMonth) GetComplete() bool {
+	if c == nil {
+		return false
+	}
+	return c.Complete
+}
+
+func (c *CoverageMonth) GetEligibleOnDemand() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.EligibleOnDemand
+}
+
+func (c *CoverageMonth) GetCoveredOnDemand() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.CoveredOnDemand
+}
+
+func (c *CoverageMonth) GetUncoveredOnDemand() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.UncoveredOnDemand
+}
+
+func (c *CoverageMonth) GetCoveragePct() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.CoveragePct
+}
+
+func (c *CoverageMonth) GetCoveredCost() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.CoveredCost
+}
+
+func (c *CoverageMonth) GetUtilizationPct() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.UtilizationPct
+}
+
+func (c *CoverageMonth) GetSharedCost() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.SharedCost
+}
+
+func (c *CoverageMonth) GetUnusedCost() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.UnusedCost
+}
+
+func (c *CoverageMonth) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CoverageMonth) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetPeriod sets the Period field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageMonth) SetPeriod(period string) {
+	c.Period = period
+	c.require(coverageMonthFieldPeriod)
+}
+
+// SetComplete sets the Complete field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageMonth) SetComplete(complete bool) {
+	c.Complete = complete
+	c.require(coverageMonthFieldComplete)
+}
+
+// SetEligibleOnDemand sets the EligibleOnDemand field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageMonth) SetEligibleOnDemand(eligibleOnDemand float64) {
+	c.EligibleOnDemand = eligibleOnDemand
+	c.require(coverageMonthFieldEligibleOnDemand)
+}
+
+// SetCoveredOnDemand sets the CoveredOnDemand field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageMonth) SetCoveredOnDemand(coveredOnDemand float64) {
+	c.CoveredOnDemand = coveredOnDemand
+	c.require(coverageMonthFieldCoveredOnDemand)
+}
+
+// SetUncoveredOnDemand sets the UncoveredOnDemand field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageMonth) SetUncoveredOnDemand(uncoveredOnDemand float64) {
+	c.UncoveredOnDemand = uncoveredOnDemand
+	c.require(coverageMonthFieldUncoveredOnDemand)
+}
+
+// SetCoveragePct sets the CoveragePct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageMonth) SetCoveragePct(coveragePct *float64) {
+	c.CoveragePct = coveragePct
+	c.require(coverageMonthFieldCoveragePct)
+}
+
+// SetCoveredCost sets the CoveredCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageMonth) SetCoveredCost(coveredCost float64) {
+	c.CoveredCost = coveredCost
+	c.require(coverageMonthFieldCoveredCost)
+}
+
+// SetUtilizationPct sets the UtilizationPct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageMonth) SetUtilizationPct(utilizationPct *float64) {
+	c.UtilizationPct = utilizationPct
+	c.require(coverageMonthFieldUtilizationPct)
+}
+
+// SetSharedCost sets the SharedCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageMonth) SetSharedCost(sharedCost float64) {
+	c.SharedCost = sharedCost
+	c.require(coverageMonthFieldSharedCost)
+}
+
+// SetUnusedCost sets the UnusedCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageMonth) SetUnusedCost(unusedCost *float64) {
+	c.UnusedCost = unusedCost
+	c.require(coverageMonthFieldUnusedCost)
+}
+
+func (c *CoverageMonth) UnmarshalJSON(data []byte) error {
+	type unmarshaler CoverageMonth
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CoverageMonth(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CoverageMonth) MarshalJSON() ([]byte, error) {
+	type embed CoverageMonth
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CoverageMonth) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	coverageOrganizationFieldOrganizationID       = big.NewInt(1 << 0)
+	coverageOrganizationFieldCrossAccountSharePct = big.NewInt(1 << 1)
+	coverageOrganizationFieldSeries               = big.NewInt(1 << 2)
+)
+
+type CoverageOrganization struct {
+	OrganizationID       *string          `json:"organization_id,omitempty" url:"organization_id,omitempty"`
+	CrossAccountSharePct *float64         `json:"cross_account_share_pct,omitempty" url:"cross_account_share_pct,omitempty"`
+	Series               []*CoverageMonth `json:"series" url:"series"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CoverageOrganization) GetOrganizationID() *string {
+	if c == nil {
+		return nil
+	}
+	return c.OrganizationID
+}
+
+func (c *CoverageOrganization) GetCrossAccountSharePct() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.CrossAccountSharePct
+}
+
+func (c *CoverageOrganization) GetSeries() []*CoverageMonth {
+	if c == nil {
+		return nil
+	}
+	return c.Series
+}
+
+func (c *CoverageOrganization) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CoverageOrganization) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetOrganizationID sets the OrganizationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageOrganization) SetOrganizationID(organizationID *string) {
+	c.OrganizationID = organizationID
+	c.require(coverageOrganizationFieldOrganizationID)
+}
+
+// SetCrossAccountSharePct sets the CrossAccountSharePct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageOrganization) SetCrossAccountSharePct(crossAccountSharePct *float64) {
+	c.CrossAccountSharePct = crossAccountSharePct
+	c.require(coverageOrganizationFieldCrossAccountSharePct)
+}
+
+// SetSeries sets the Series field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageOrganization) SetSeries(series []*CoverageMonth) {
+	c.Series = series
+	c.require(coverageOrganizationFieldSeries)
+}
+
+func (c *CoverageOrganization) UnmarshalJSON(data []byte) error {
+	type unmarshaler CoverageOrganization
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CoverageOrganization(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CoverageOrganization) MarshalJSON() ([]byte, error) {
+	type embed CoverageOrganization
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CoverageOrganization) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
 	coveragePaginationFieldPage     = big.NewInt(1 << 0)
 	coveragePaginationFieldPageSize = big.NewInt(1 << 1)
 	coveragePaginationFieldTotal    = big.NewInt(1 << 2)
@@ -7066,17 +10574,19 @@ func (c *CoverageRateAccount) String() string {
 }
 
 var (
-	coverageRateServiceFieldInstrument  = big.NewInt(1 << 0)
-	coverageRateServiceFieldDimension   = big.NewInt(1 << 1)
-	coverageRateServiceFieldCoveragePct = big.NewInt(1 << 2)
-	coverageRateServiceFieldMeasuredOn  = big.NewInt(1 << 3)
+	coverageRateServiceFieldInstrument     = big.NewInt(1 << 0)
+	coverageRateServiceFieldDimension      = big.NewInt(1 << 1)
+	coverageRateServiceFieldDimensionLabel = big.NewInt(1 << 2)
+	coverageRateServiceFieldCoveragePct    = big.NewInt(1 << 3)
+	coverageRateServiceFieldMeasuredOn     = big.NewInt(1 << 4)
 )
 
 type CoverageRateService struct {
-	Instrument  string  `json:"instrument" url:"instrument"`
-	Dimension   string  `json:"dimension" url:"dimension"`
-	CoveragePct float64 `json:"coverage_pct" url:"coverage_pct"`
-	MeasuredOn  *string `json:"measured_on,omitempty" url:"measured_on,omitempty"`
+	Instrument     string  `json:"instrument" url:"instrument"`
+	Dimension      string  `json:"dimension" url:"dimension"`
+	DimensionLabel string  `json:"dimension_label" url:"dimension_label"`
+	CoveragePct    float64 `json:"coverage_pct" url:"coverage_pct"`
+	MeasuredOn     *string `json:"measured_on,omitempty" url:"measured_on,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -7097,6 +10607,13 @@ func (c *CoverageRateService) GetDimension() string {
 		return ""
 	}
 	return c.Dimension
+}
+
+func (c *CoverageRateService) GetDimensionLabel() string {
+	if c == nil {
+		return ""
+	}
+	return c.DimensionLabel
 }
 
 func (c *CoverageRateService) GetCoveragePct() float64 {
@@ -7139,6 +10656,13 @@ func (c *CoverageRateService) SetInstrument(instrument string) {
 func (c *CoverageRateService) SetDimension(dimension string) {
 	c.Dimension = dimension
 	c.require(coverageRateServiceFieldDimension)
+}
+
+// SetDimensionLabel sets the DimensionLabel field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageRateService) SetDimensionLabel(dimensionLabel string) {
+	c.DimensionLabel = dimensionLabel
+	c.require(coverageRateServiceFieldDimensionLabel)
 }
 
 // SetCoveragePct sets the CoveragePct field and marks it as non-optional;
@@ -7200,17 +10724,29 @@ func (c *CoverageRateService) String() string {
 // covered_monthly is absent where a provider stores no measurement of it.
 //
 // Google Cloud stores the commitment fee, which is the utilization denominator, and reporting
-// it here would claim more covered spend than there was bill to cover.
+// it here would claim more covered spend than there was bill to cover. utilization_pct,
+// unused_monthly, committed_monthly, period and complete are set on Google Cloud only, whose
+// totals are month to date.
 var (
 	coverageRateTotalsFieldCoveredMonthly   = big.NewInt(1 << 0)
 	coverageRateTotalsFieldUncoveredMonthly = big.NewInt(1 << 1)
 	coverageRateTotalsFieldCoveragePct      = big.NewInt(1 << 2)
+	coverageRateTotalsFieldUtilizationPct   = big.NewInt(1 << 3)
+	coverageRateTotalsFieldUnusedMonthly    = big.NewInt(1 << 4)
+	coverageRateTotalsFieldCommittedMonthly = big.NewInt(1 << 5)
+	coverageRateTotalsFieldPeriod           = big.NewInt(1 << 6)
+	coverageRateTotalsFieldComplete         = big.NewInt(1 << 7)
 )
 
 type CoverageRateTotals struct {
 	CoveredMonthly   *float64 `json:"covered_monthly,omitempty" url:"covered_monthly,omitempty"`
 	UncoveredMonthly float64  `json:"uncovered_monthly" url:"uncovered_monthly"`
 	CoveragePct      *float64 `json:"coverage_pct,omitempty" url:"coverage_pct,omitempty"`
+	UtilizationPct   *float64 `json:"utilization_pct,omitempty" url:"utilization_pct,omitempty"`
+	UnusedMonthly    *float64 `json:"unused_monthly,omitempty" url:"unused_monthly,omitempty"`
+	CommittedMonthly *float64 `json:"committed_monthly,omitempty" url:"committed_monthly,omitempty"`
+	Period           *string  `json:"period,omitempty" url:"period,omitempty"`
+	Complete         *bool    `json:"complete,omitempty" url:"complete,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -7238,6 +10774,41 @@ func (c *CoverageRateTotals) GetCoveragePct() *float64 {
 		return nil
 	}
 	return c.CoveragePct
+}
+
+func (c *CoverageRateTotals) GetUtilizationPct() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.UtilizationPct
+}
+
+func (c *CoverageRateTotals) GetUnusedMonthly() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.UnusedMonthly
+}
+
+func (c *CoverageRateTotals) GetCommittedMonthly() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.CommittedMonthly
+}
+
+func (c *CoverageRateTotals) GetPeriod() *string {
+	if c == nil {
+		return nil
+	}
+	return c.Period
+}
+
+func (c *CoverageRateTotals) GetComplete() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Complete
 }
 
 func (c *CoverageRateTotals) GetExtraProperties() map[string]interface{} {
@@ -7273,6 +10844,41 @@ func (c *CoverageRateTotals) SetUncoveredMonthly(uncoveredMonthly float64) {
 func (c *CoverageRateTotals) SetCoveragePct(coveragePct *float64) {
 	c.CoveragePct = coveragePct
 	c.require(coverageRateTotalsFieldCoveragePct)
+}
+
+// SetUtilizationPct sets the UtilizationPct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageRateTotals) SetUtilizationPct(utilizationPct *float64) {
+	c.UtilizationPct = utilizationPct
+	c.require(coverageRateTotalsFieldUtilizationPct)
+}
+
+// SetUnusedMonthly sets the UnusedMonthly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageRateTotals) SetUnusedMonthly(unusedMonthly *float64) {
+	c.UnusedMonthly = unusedMonthly
+	c.require(coverageRateTotalsFieldUnusedMonthly)
+}
+
+// SetCommittedMonthly sets the CommittedMonthly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageRateTotals) SetCommittedMonthly(committedMonthly *float64) {
+	c.CommittedMonthly = committedMonthly
+	c.require(coverageRateTotalsFieldCommittedMonthly)
+}
+
+// SetPeriod sets the Period field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageRateTotals) SetPeriod(period *string) {
+	c.Period = period
+	c.require(coverageRateTotalsFieldPeriod)
+}
+
+// SetComplete sets the Complete field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageRateTotals) SetComplete(complete *bool) {
+	c.Complete = complete
+	c.require(coverageRateTotalsFieldComplete)
 }
 
 func (c *CoverageRateTotals) UnmarshalJSON(data []byte) error {
@@ -7418,21 +11024,33 @@ func (c *CoverageRateUncovered) String() string {
 }
 
 var (
-	coverageRatesDataFieldProvider           = big.NewInt(1 << 0)
-	coverageRatesDataFieldMeasured           = big.NewInt(1 << 1)
-	coverageRatesDataFieldServices           = big.NewInt(1 << 2)
-	coverageRatesDataFieldAccounts           = big.NewInt(1 << 3)
-	coverageRatesDataFieldUncoveredByService = big.NewInt(1 << 4)
-	coverageRatesDataFieldTotals             = big.NewInt(1 << 5)
+	coverageRatesDataFieldProvider            = big.NewInt(1 << 0)
+	coverageRatesDataFieldMeasured            = big.NewInt(1 << 1)
+	coverageRatesDataFieldServices            = big.NewInt(1 << 2)
+	coverageRatesDataFieldAccounts            = big.NewInt(1 << 3)
+	coverageRatesDataFieldUncoveredByService  = big.NewInt(1 << 4)
+	coverageRatesDataFieldTotals              = big.NewInt(1 << 5)
+	coverageRatesDataFieldSeries              = big.NewInt(1 << 6)
+	coverageRatesDataFieldAccountSeries       = big.NewInt(1 << 7)
+	coverageRatesDataFieldOrganizations       = big.NewInt(1 << 8)
+	coverageRatesDataFieldProjects            = big.NewInt(1 << 9)
+	coverageRatesDataFieldCostExportCudStatus = big.NewInt(1 << 10)
+	coverageRatesDataFieldCudExportStatus     = big.NewInt(1 << 11)
 )
 
 type CoverageRatesData struct {
-	Provider           string                   `json:"provider" url:"provider"`
-	Measured           bool                     `json:"measured" url:"measured"`
-	Services           []*CoverageRateService   `json:"services,omitempty" url:"services,omitempty"`
-	Accounts           []*CoverageRateAccount   `json:"accounts,omitempty" url:"accounts,omitempty"`
-	UncoveredByService []*CoverageRateUncovered `json:"uncovered_by_service,omitempty" url:"uncovered_by_service,omitempty"`
-	Totals             *CoverageRateTotals      `json:"totals,omitempty" url:"totals,omitempty"`
+	Provider            string                                `json:"provider" url:"provider"`
+	Measured            bool                                  `json:"measured" url:"measured"`
+	Services            []*CoverageRateService                `json:"services,omitempty" url:"services,omitempty"`
+	Accounts            []*CoverageRateAccount                `json:"accounts,omitempty" url:"accounts,omitempty"`
+	UncoveredByService  []*CoverageRateUncovered              `json:"uncovered_by_service,omitempty" url:"uncovered_by_service,omitempty"`
+	Totals              *CoverageRateTotals                   `json:"totals,omitempty" url:"totals,omitempty"`
+	Series              []*CoverageMonth                      `json:"series,omitempty" url:"series,omitempty"`
+	AccountSeries       []*CoverageAccountSeries              `json:"account_series,omitempty" url:"account_series,omitempty"`
+	Organizations       []*CoverageOrganization               `json:"organizations,omitempty" url:"organizations,omitempty"`
+	Projects            []*GcpProjectCommitment               `json:"projects,omitempty" url:"projects,omitempty"`
+	CostExportCudStatus *CoverageRatesDataCostExportCudStatus `json:"cost_export_cud_status,omitempty" url:"cost_export_cud_status,omitempty"`
+	CudExportStatus     *CoverageRatesDataCudExportStatus     `json:"cud_export_status,omitempty" url:"cud_export_status,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -7481,6 +11099,48 @@ func (c *CoverageRatesData) GetTotals() *CoverageRateTotals {
 		return nil
 	}
 	return c.Totals
+}
+
+func (c *CoverageRatesData) GetSeries() []*CoverageMonth {
+	if c == nil {
+		return nil
+	}
+	return c.Series
+}
+
+func (c *CoverageRatesData) GetAccountSeries() []*CoverageAccountSeries {
+	if c == nil {
+		return nil
+	}
+	return c.AccountSeries
+}
+
+func (c *CoverageRatesData) GetOrganizations() []*CoverageOrganization {
+	if c == nil {
+		return nil
+	}
+	return c.Organizations
+}
+
+func (c *CoverageRatesData) GetProjects() []*GcpProjectCommitment {
+	if c == nil {
+		return nil
+	}
+	return c.Projects
+}
+
+func (c *CoverageRatesData) GetCostExportCudStatus() *CoverageRatesDataCostExportCudStatus {
+	if c == nil {
+		return nil
+	}
+	return c.CostExportCudStatus
+}
+
+func (c *CoverageRatesData) GetCudExportStatus() *CoverageRatesDataCudExportStatus {
+	if c == nil {
+		return nil
+	}
+	return c.CudExportStatus
 }
 
 func (c *CoverageRatesData) GetExtraProperties() map[string]interface{} {
@@ -7539,6 +11199,48 @@ func (c *CoverageRatesData) SetTotals(totals *CoverageRateTotals) {
 	c.require(coverageRatesDataFieldTotals)
 }
 
+// SetSeries sets the Series field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageRatesData) SetSeries(series []*CoverageMonth) {
+	c.Series = series
+	c.require(coverageRatesDataFieldSeries)
+}
+
+// SetAccountSeries sets the AccountSeries field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageRatesData) SetAccountSeries(accountSeries []*CoverageAccountSeries) {
+	c.AccountSeries = accountSeries
+	c.require(coverageRatesDataFieldAccountSeries)
+}
+
+// SetOrganizations sets the Organizations field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageRatesData) SetOrganizations(organizations []*CoverageOrganization) {
+	c.Organizations = organizations
+	c.require(coverageRatesDataFieldOrganizations)
+}
+
+// SetProjects sets the Projects field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageRatesData) SetProjects(projects []*GcpProjectCommitment) {
+	c.Projects = projects
+	c.require(coverageRatesDataFieldProjects)
+}
+
+// SetCostExportCudStatus sets the CostExportCudStatus field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageRatesData) SetCostExportCudStatus(costExportCudStatus *CoverageRatesDataCostExportCudStatus) {
+	c.CostExportCudStatus = costExportCudStatus
+	c.require(coverageRatesDataFieldCostExportCudStatus)
+}
+
+// SetCudExportStatus sets the CudExportStatus field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CoverageRatesData) SetCudExportStatus(cudExportStatus *CoverageRatesDataCudExportStatus) {
+	c.CudExportStatus = cudExportStatus
+	c.require(coverageRatesDataFieldCudExportStatus)
+}
+
 func (c *CoverageRatesData) UnmarshalJSON(data []byte) error {
 	type unmarshaler CoverageRatesData
 	var value unmarshaler
@@ -7579,6 +11281,65 @@ func (c *CoverageRatesData) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", c)
+}
+
+type CoverageRatesDataCostExportCudStatus string
+
+const (
+	CoverageRatesDataCostExportCudStatusNotEnabled CoverageRatesDataCostExportCudStatus = "not_enabled"
+	CoverageRatesDataCostExportCudStatusPending    CoverageRatesDataCostExportCudStatus = "pending"
+	CoverageRatesDataCostExportCudStatusError      CoverageRatesDataCostExportCudStatus = "error"
+	CoverageRatesDataCostExportCudStatusActive     CoverageRatesDataCostExportCudStatus = "active"
+)
+
+func NewCoverageRatesDataCostExportCudStatusFromString(s string) (CoverageRatesDataCostExportCudStatus, error) {
+	switch s {
+	case "not_enabled":
+		return CoverageRatesDataCostExportCudStatusNotEnabled, nil
+	case "pending":
+		return CoverageRatesDataCostExportCudStatusPending, nil
+	case "error":
+		return CoverageRatesDataCostExportCudStatusError, nil
+	case "active":
+		return CoverageRatesDataCostExportCudStatusActive, nil
+	}
+	var t CoverageRatesDataCostExportCudStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CoverageRatesDataCostExportCudStatus) Ptr() *CoverageRatesDataCostExportCudStatus {
+	return &c
+}
+
+type CoverageRatesDataCudExportStatus string
+
+const (
+	CoverageRatesDataCudExportStatusNotEnabled   CoverageRatesDataCudExportStatus = "not_enabled"
+	CoverageRatesDataCudExportStatusProvisioning CoverageRatesDataCudExportStatus = "provisioning"
+	CoverageRatesDataCudExportStatusActive       CoverageRatesDataCudExportStatus = "active"
+	CoverageRatesDataCudExportStatusActionNeeded CoverageRatesDataCudExportStatus = "action_needed"
+	CoverageRatesDataCudExportStatusError        CoverageRatesDataCudExportStatus = "error"
+)
+
+func NewCoverageRatesDataCudExportStatusFromString(s string) (CoverageRatesDataCudExportStatus, error) {
+	switch s {
+	case "not_enabled":
+		return CoverageRatesDataCudExportStatusNotEnabled, nil
+	case "provisioning":
+		return CoverageRatesDataCudExportStatusProvisioning, nil
+	case "active":
+		return CoverageRatesDataCudExportStatusActive, nil
+	case "action_needed":
+		return CoverageRatesDataCudExportStatusActionNeeded, nil
+	case "error":
+		return CoverageRatesDataCudExportStatusError, nil
+	}
+	var t CoverageRatesDataCudExportStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CoverageRatesDataCudExportStatus) Ptr() *CoverageRatesDataCudExportStatus {
+	return &c
 }
 
 var (
@@ -7982,31 +11743,37 @@ func (c *CoverageRow) String() string {
 }
 
 var (
-	esrAccountRowFieldMeasured           = big.NewInt(1 << 0)
-	esrAccountRowFieldOnDemandEquivalent = big.NewInt(1 << 1)
-	esrAccountRowFieldEffectiveCost      = big.NewInt(1 << 2)
-	esrAccountRowFieldCommitmentSaved    = big.NewInt(1 << 3)
-	esrAccountRowFieldNegotiatedSaved    = big.NewInt(1 << 4)
-	esrAccountRowFieldTotalSaved         = big.NewInt(1 << 5)
-	esrAccountRowFieldCommitmentRatePct  = big.NewInt(1 << 6)
-	esrAccountRowFieldNegotiatedRatePct  = big.NewInt(1 << 7)
-	esrAccountRowFieldTotalRatePct       = big.NewInt(1 << 8)
-	esrAccountRowFieldAccountID          = big.NewInt(1 << 9)
-	esrAccountRowFieldAccountName        = big.NewInt(1 << 10)
+	esrAccountRowFieldMeasured             = big.NewInt(1 << 0)
+	esrAccountRowFieldOnDemandEquivalent   = big.NewInt(1 << 1)
+	esrAccountRowFieldEffectiveCost        = big.NewInt(1 << 2)
+	esrAccountRowFieldCommitmentSaved      = big.NewInt(1 << 3)
+	esrAccountRowFieldNegotiatedSaved      = big.NewInt(1 << 4)
+	esrAccountRowFieldTotalSaved           = big.NewInt(1 << 5)
+	esrAccountRowFieldCommitmentRatePct    = big.NewInt(1 << 6)
+	esrAccountRowFieldNegotiatedRatePct    = big.NewInt(1 << 7)
+	esrAccountRowFieldTotalRatePct         = big.NewInt(1 << 8)
+	esrAccountRowFieldUnusedCommitmentCost = big.NewInt(1 << 9)
+	esrAccountRowFieldUnusedRatePct        = big.NewInt(1 << 10)
+	esrAccountRowFieldEsrPct               = big.NewInt(1 << 11)
+	esrAccountRowFieldAccountID            = big.NewInt(1 << 12)
+	esrAccountRowFieldAccountName          = big.NewInt(1 << 13)
 )
 
 type EsrAccountRow struct {
-	Measured           bool     `json:"measured" url:"measured"`
-	OnDemandEquivalent float64  `json:"on_demand_equivalent" url:"on_demand_equivalent"`
-	EffectiveCost      float64  `json:"effective_cost" url:"effective_cost"`
-	CommitmentSaved    float64  `json:"commitment_saved" url:"commitment_saved"`
-	NegotiatedSaved    float64  `json:"negotiated_saved" url:"negotiated_saved"`
-	TotalSaved         float64  `json:"total_saved" url:"total_saved"`
-	CommitmentRatePct  *float64 `json:"commitment_rate_pct,omitempty" url:"commitment_rate_pct,omitempty"`
-	NegotiatedRatePct  *float64 `json:"negotiated_rate_pct,omitempty" url:"negotiated_rate_pct,omitempty"`
-	TotalRatePct       *float64 `json:"total_rate_pct,omitempty" url:"total_rate_pct,omitempty"`
-	AccountID          string   `json:"account_id" url:"account_id"`
-	AccountName        string   `json:"account_name" url:"account_name"`
+	Measured             bool     `json:"measured" url:"measured"`
+	OnDemandEquivalent   float64  `json:"on_demand_equivalent" url:"on_demand_equivalent"`
+	EffectiveCost        float64  `json:"effective_cost" url:"effective_cost"`
+	CommitmentSaved      float64  `json:"commitment_saved" url:"commitment_saved"`
+	NegotiatedSaved      float64  `json:"negotiated_saved" url:"negotiated_saved"`
+	TotalSaved           float64  `json:"total_saved" url:"total_saved"`
+	CommitmentRatePct    *float64 `json:"commitment_rate_pct,omitempty" url:"commitment_rate_pct,omitempty"`
+	NegotiatedRatePct    *float64 `json:"negotiated_rate_pct,omitempty" url:"negotiated_rate_pct,omitempty"`
+	TotalRatePct         *float64 `json:"total_rate_pct,omitempty" url:"total_rate_pct,omitempty"`
+	UnusedCommitmentCost *float64 `json:"unused_commitment_cost,omitempty" url:"unused_commitment_cost,omitempty"`
+	UnusedRatePct        *float64 `json:"unused_rate_pct,omitempty" url:"unused_rate_pct,omitempty"`
+	EsrPct               *float64 `json:"esr_pct,omitempty" url:"esr_pct,omitempty"`
+	AccountID            string   `json:"account_id" url:"account_id"`
+	AccountName          string   `json:"account_name" url:"account_name"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -8076,6 +11843,27 @@ func (e *EsrAccountRow) GetTotalRatePct() *float64 {
 		return nil
 	}
 	return e.TotalRatePct
+}
+
+func (e *EsrAccountRow) GetUnusedCommitmentCost() *float64 {
+	if e == nil {
+		return nil
+	}
+	return e.UnusedCommitmentCost
+}
+
+func (e *EsrAccountRow) GetUnusedRatePct() *float64 {
+	if e == nil {
+		return nil
+	}
+	return e.UnusedRatePct
+}
+
+func (e *EsrAccountRow) GetEsrPct() *float64 {
+	if e == nil {
+		return nil
+	}
+	return e.EsrPct
 }
 
 func (e *EsrAccountRow) GetAccountID() string {
@@ -8169,6 +11957,27 @@ func (e *EsrAccountRow) SetTotalRatePct(totalRatePct *float64) {
 	e.require(esrAccountRowFieldTotalRatePct)
 }
 
+// SetUnusedCommitmentCost sets the UnusedCommitmentCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrAccountRow) SetUnusedCommitmentCost(unusedCommitmentCost *float64) {
+	e.UnusedCommitmentCost = unusedCommitmentCost
+	e.require(esrAccountRowFieldUnusedCommitmentCost)
+}
+
+// SetUnusedRatePct sets the UnusedRatePct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrAccountRow) SetUnusedRatePct(unusedRatePct *float64) {
+	e.UnusedRatePct = unusedRatePct
+	e.require(esrAccountRowFieldUnusedRatePct)
+}
+
+// SetEsrPct sets the EsrPct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrAccountRow) SetEsrPct(esrPct *float64) {
+	e.EsrPct = esrPct
+	e.require(esrAccountRowFieldEsrPct)
+}
+
 // SetAccountID sets the AccountID field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (e *EsrAccountRow) SetAccountID(accountID string) {
@@ -8226,19 +12035,161 @@ func (e *EsrAccountRow) String() string {
 }
 
 var (
-	esrDataFieldPeriod           = big.NewInt(1 << 0)
-	esrDataFieldScope            = big.NewInt(1 << 1)
-	esrDataFieldMeasuredSharePct = big.NewInt(1 << 2)
-	esrDataFieldTotals           = big.NewInt(1 << 3)
-	esrDataFieldAccounts         = big.NewInt(1 << 4)
+	esrAccountSeriesFieldAccountID      = big.NewInt(1 << 0)
+	esrAccountSeriesFieldAccountName    = big.NewInt(1 << 1)
+	esrAccountSeriesFieldOrganizationID = big.NewInt(1 << 2)
+	esrAccountSeriesFieldMonths         = big.NewInt(1 << 3)
+)
+
+type EsrAccountSeries struct {
+	AccountID      string      `json:"account_id" url:"account_id"`
+	AccountName    string      `json:"account_name" url:"account_name"`
+	OrganizationID *string     `json:"organization_id,omitempty" url:"organization_id,omitempty"`
+	Months         []*EsrPoint `json:"months" url:"months"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (e *EsrAccountSeries) GetAccountID() string {
+	if e == nil {
+		return ""
+	}
+	return e.AccountID
+}
+
+func (e *EsrAccountSeries) GetAccountName() string {
+	if e == nil {
+		return ""
+	}
+	return e.AccountName
+}
+
+func (e *EsrAccountSeries) GetOrganizationID() *string {
+	if e == nil {
+		return nil
+	}
+	return e.OrganizationID
+}
+
+func (e *EsrAccountSeries) GetMonths() []*EsrPoint {
+	if e == nil {
+		return nil
+	}
+	return e.Months
+}
+
+func (e *EsrAccountSeries) GetExtraProperties() map[string]interface{} {
+	if e == nil {
+		return nil
+	}
+	return e.extraProperties
+}
+
+func (e *EsrAccountSeries) require(field *big.Int) {
+	if e.explicitFields == nil {
+		e.explicitFields = big.NewInt(0)
+	}
+	e.explicitFields.Or(e.explicitFields, field)
+}
+
+// SetAccountID sets the AccountID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrAccountSeries) SetAccountID(accountID string) {
+	e.AccountID = accountID
+	e.require(esrAccountSeriesFieldAccountID)
+}
+
+// SetAccountName sets the AccountName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrAccountSeries) SetAccountName(accountName string) {
+	e.AccountName = accountName
+	e.require(esrAccountSeriesFieldAccountName)
+}
+
+// SetOrganizationID sets the OrganizationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrAccountSeries) SetOrganizationID(organizationID *string) {
+	e.OrganizationID = organizationID
+	e.require(esrAccountSeriesFieldOrganizationID)
+}
+
+// SetMonths sets the Months field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrAccountSeries) SetMonths(months []*EsrPoint) {
+	e.Months = months
+	e.require(esrAccountSeriesFieldMonths)
+}
+
+func (e *EsrAccountSeries) UnmarshalJSON(data []byte) error {
+	type unmarshaler EsrAccountSeries
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*e = EsrAccountSeries(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *e)
+	if err != nil {
+		return err
+	}
+	e.extraProperties = extraProperties
+	e.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (e *EsrAccountSeries) MarshalJSON() ([]byte, error) {
+	type embed EsrAccountSeries
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*e),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, e.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (e *EsrAccountSeries) String() string {
+	if e == nil {
+		return "<nil>"
+	}
+	if len(e.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(e); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", e)
+}
+
+var (
+	esrDataFieldPeriod               = big.NewInt(1 << 0)
+	esrDataFieldScope                = big.NewInt(1 << 1)
+	esrDataFieldMeasuredSharePct     = big.NewInt(1 << 2)
+	esrDataFieldTotals               = big.NewInt(1 << 3)
+	esrDataFieldAccounts             = big.NewInt(1 << 4)
+	esrDataFieldLatestCompletePeriod = big.NewInt(1 << 5)
+	esrDataFieldExcludedNonUsdCost   = big.NewInt(1 << 6)
+	esrDataFieldSeries               = big.NewInt(1 << 7)
+	esrDataFieldAccountSeries        = big.NewInt(1 << 8)
+	esrDataFieldOrganizations        = big.NewInt(1 << 9)
 )
 
 type EsrData struct {
-	Period           *string          `json:"period,omitempty" url:"period,omitempty"`
-	Scope            string           `json:"scope" url:"scope"`
-	MeasuredSharePct float64          `json:"measured_share_pct" url:"measured_share_pct"`
-	Totals           *EsrRates        `json:"totals,omitempty" url:"totals,omitempty"`
-	Accounts         []*EsrAccountRow `json:"accounts" url:"accounts"`
+	Period               *string             `json:"period,omitempty" url:"period,omitempty"`
+	Scope                string              `json:"scope" url:"scope"`
+	MeasuredSharePct     float64             `json:"measured_share_pct" url:"measured_share_pct"`
+	Totals               *EsrRates           `json:"totals,omitempty" url:"totals,omitempty"`
+	Accounts             []*EsrAccountRow    `json:"accounts" url:"accounts"`
+	LatestCompletePeriod *string             `json:"latest_complete_period,omitempty" url:"latest_complete_period,omitempty"`
+	ExcludedNonUsdCost   *float64            `json:"excluded_non_usd_cost,omitempty" url:"excluded_non_usd_cost,omitempty"`
+	Series               []*EsrMonth         `json:"series,omitempty" url:"series,omitempty"`
+	AccountSeries        []*EsrAccountSeries `json:"account_series,omitempty" url:"account_series,omitempty"`
+	Organizations        []*EsrOrganization  `json:"organizations,omitempty" url:"organizations,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -8280,6 +12231,41 @@ func (e *EsrData) GetAccounts() []*EsrAccountRow {
 		return nil
 	}
 	return e.Accounts
+}
+
+func (e *EsrData) GetLatestCompletePeriod() *string {
+	if e == nil {
+		return nil
+	}
+	return e.LatestCompletePeriod
+}
+
+func (e *EsrData) GetExcludedNonUsdCost() *float64 {
+	if e == nil {
+		return nil
+	}
+	return e.ExcludedNonUsdCost
+}
+
+func (e *EsrData) GetSeries() []*EsrMonth {
+	if e == nil {
+		return nil
+	}
+	return e.Series
+}
+
+func (e *EsrData) GetAccountSeries() []*EsrAccountSeries {
+	if e == nil {
+		return nil
+	}
+	return e.AccountSeries
+}
+
+func (e *EsrData) GetOrganizations() []*EsrOrganization {
+	if e == nil {
+		return nil
+	}
+	return e.Organizations
 }
 
 func (e *EsrData) GetExtraProperties() map[string]interface{} {
@@ -8331,6 +12317,41 @@ func (e *EsrData) SetAccounts(accounts []*EsrAccountRow) {
 	e.require(esrDataFieldAccounts)
 }
 
+// SetLatestCompletePeriod sets the LatestCompletePeriod field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrData) SetLatestCompletePeriod(latestCompletePeriod *string) {
+	e.LatestCompletePeriod = latestCompletePeriod
+	e.require(esrDataFieldLatestCompletePeriod)
+}
+
+// SetExcludedNonUsdCost sets the ExcludedNonUsdCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrData) SetExcludedNonUsdCost(excludedNonUsdCost *float64) {
+	e.ExcludedNonUsdCost = excludedNonUsdCost
+	e.require(esrDataFieldExcludedNonUsdCost)
+}
+
+// SetSeries sets the Series field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrData) SetSeries(series []*EsrMonth) {
+	e.Series = series
+	e.require(esrDataFieldSeries)
+}
+
+// SetAccountSeries sets the AccountSeries field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrData) SetAccountSeries(accountSeries []*EsrAccountSeries) {
+	e.AccountSeries = accountSeries
+	e.require(esrDataFieldAccountSeries)
+}
+
+// SetOrganizations sets the Organizations field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrData) SetOrganizations(organizations []*EsrOrganization) {
+	e.Organizations = organizations
+	e.require(esrDataFieldOrganizations)
+}
+
 func (e *EsrData) UnmarshalJSON(data []byte) error {
 	type unmarshaler EsrData
 	var value unmarshaler
@@ -8374,27 +12395,733 @@ func (e *EsrData) String() string {
 }
 
 var (
-	esrRatesFieldMeasured           = big.NewInt(1 << 0)
-	esrRatesFieldOnDemandEquivalent = big.NewInt(1 << 1)
-	esrRatesFieldEffectiveCost      = big.NewInt(1 << 2)
-	esrRatesFieldCommitmentSaved    = big.NewInt(1 << 3)
-	esrRatesFieldNegotiatedSaved    = big.NewInt(1 << 4)
-	esrRatesFieldTotalSaved         = big.NewInt(1 << 5)
-	esrRatesFieldCommitmentRatePct  = big.NewInt(1 << 6)
-	esrRatesFieldNegotiatedRatePct  = big.NewInt(1 << 7)
-	esrRatesFieldTotalRatePct       = big.NewInt(1 << 8)
+	esrMonthFieldMeasured             = big.NewInt(1 << 0)
+	esrMonthFieldOnDemandEquivalent   = big.NewInt(1 << 1)
+	esrMonthFieldEffectiveCost        = big.NewInt(1 << 2)
+	esrMonthFieldCommitmentSaved      = big.NewInt(1 << 3)
+	esrMonthFieldNegotiatedSaved      = big.NewInt(1 << 4)
+	esrMonthFieldTotalSaved           = big.NewInt(1 << 5)
+	esrMonthFieldCommitmentRatePct    = big.NewInt(1 << 6)
+	esrMonthFieldNegotiatedRatePct    = big.NewInt(1 << 7)
+	esrMonthFieldTotalRatePct         = big.NewInt(1 << 8)
+	esrMonthFieldUnusedCommitmentCost = big.NewInt(1 << 9)
+	esrMonthFieldUnusedRatePct        = big.NewInt(1 << 10)
+	esrMonthFieldEsrPct               = big.NewInt(1 << 11)
+	esrMonthFieldPeriod               = big.NewInt(1 << 12)
+	esrMonthFieldComplete             = big.NewInt(1 << 13)
+	esrMonthFieldMeasuredSharePct     = big.NewInt(1 << 14)
+)
+
+type EsrMonth struct {
+	Measured             bool     `json:"measured" url:"measured"`
+	OnDemandEquivalent   float64  `json:"on_demand_equivalent" url:"on_demand_equivalent"`
+	EffectiveCost        float64  `json:"effective_cost" url:"effective_cost"`
+	CommitmentSaved      float64  `json:"commitment_saved" url:"commitment_saved"`
+	NegotiatedSaved      float64  `json:"negotiated_saved" url:"negotiated_saved"`
+	TotalSaved           float64  `json:"total_saved" url:"total_saved"`
+	CommitmentRatePct    *float64 `json:"commitment_rate_pct,omitempty" url:"commitment_rate_pct,omitempty"`
+	NegotiatedRatePct    *float64 `json:"negotiated_rate_pct,omitempty" url:"negotiated_rate_pct,omitempty"`
+	TotalRatePct         *float64 `json:"total_rate_pct,omitempty" url:"total_rate_pct,omitempty"`
+	UnusedCommitmentCost *float64 `json:"unused_commitment_cost,omitempty" url:"unused_commitment_cost,omitempty"`
+	UnusedRatePct        *float64 `json:"unused_rate_pct,omitempty" url:"unused_rate_pct,omitempty"`
+	EsrPct               *float64 `json:"esr_pct,omitempty" url:"esr_pct,omitempty"`
+	Period               string   `json:"period" url:"period"`
+	Complete             bool     `json:"complete" url:"complete"`
+	MeasuredSharePct     float64  `json:"measured_share_pct" url:"measured_share_pct"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (e *EsrMonth) GetMeasured() bool {
+	if e == nil {
+		return false
+	}
+	return e.Measured
+}
+
+func (e *EsrMonth) GetOnDemandEquivalent() float64 {
+	if e == nil {
+		return 0
+	}
+	return e.OnDemandEquivalent
+}
+
+func (e *EsrMonth) GetEffectiveCost() float64 {
+	if e == nil {
+		return 0
+	}
+	return e.EffectiveCost
+}
+
+func (e *EsrMonth) GetCommitmentSaved() float64 {
+	if e == nil {
+		return 0
+	}
+	return e.CommitmentSaved
+}
+
+func (e *EsrMonth) GetNegotiatedSaved() float64 {
+	if e == nil {
+		return 0
+	}
+	return e.NegotiatedSaved
+}
+
+func (e *EsrMonth) GetTotalSaved() float64 {
+	if e == nil {
+		return 0
+	}
+	return e.TotalSaved
+}
+
+func (e *EsrMonth) GetCommitmentRatePct() *float64 {
+	if e == nil {
+		return nil
+	}
+	return e.CommitmentRatePct
+}
+
+func (e *EsrMonth) GetNegotiatedRatePct() *float64 {
+	if e == nil {
+		return nil
+	}
+	return e.NegotiatedRatePct
+}
+
+func (e *EsrMonth) GetTotalRatePct() *float64 {
+	if e == nil {
+		return nil
+	}
+	return e.TotalRatePct
+}
+
+func (e *EsrMonth) GetUnusedCommitmentCost() *float64 {
+	if e == nil {
+		return nil
+	}
+	return e.UnusedCommitmentCost
+}
+
+func (e *EsrMonth) GetUnusedRatePct() *float64 {
+	if e == nil {
+		return nil
+	}
+	return e.UnusedRatePct
+}
+
+func (e *EsrMonth) GetEsrPct() *float64 {
+	if e == nil {
+		return nil
+	}
+	return e.EsrPct
+}
+
+func (e *EsrMonth) GetPeriod() string {
+	if e == nil {
+		return ""
+	}
+	return e.Period
+}
+
+func (e *EsrMonth) GetComplete() bool {
+	if e == nil {
+		return false
+	}
+	return e.Complete
+}
+
+func (e *EsrMonth) GetMeasuredSharePct() float64 {
+	if e == nil {
+		return 0
+	}
+	return e.MeasuredSharePct
+}
+
+func (e *EsrMonth) GetExtraProperties() map[string]interface{} {
+	if e == nil {
+		return nil
+	}
+	return e.extraProperties
+}
+
+func (e *EsrMonth) require(field *big.Int) {
+	if e.explicitFields == nil {
+		e.explicitFields = big.NewInt(0)
+	}
+	e.explicitFields.Or(e.explicitFields, field)
+}
+
+// SetMeasured sets the Measured field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrMonth) SetMeasured(measured bool) {
+	e.Measured = measured
+	e.require(esrMonthFieldMeasured)
+}
+
+// SetOnDemandEquivalent sets the OnDemandEquivalent field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrMonth) SetOnDemandEquivalent(onDemandEquivalent float64) {
+	e.OnDemandEquivalent = onDemandEquivalent
+	e.require(esrMonthFieldOnDemandEquivalent)
+}
+
+// SetEffectiveCost sets the EffectiveCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrMonth) SetEffectiveCost(effectiveCost float64) {
+	e.EffectiveCost = effectiveCost
+	e.require(esrMonthFieldEffectiveCost)
+}
+
+// SetCommitmentSaved sets the CommitmentSaved field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrMonth) SetCommitmentSaved(commitmentSaved float64) {
+	e.CommitmentSaved = commitmentSaved
+	e.require(esrMonthFieldCommitmentSaved)
+}
+
+// SetNegotiatedSaved sets the NegotiatedSaved field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrMonth) SetNegotiatedSaved(negotiatedSaved float64) {
+	e.NegotiatedSaved = negotiatedSaved
+	e.require(esrMonthFieldNegotiatedSaved)
+}
+
+// SetTotalSaved sets the TotalSaved field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrMonth) SetTotalSaved(totalSaved float64) {
+	e.TotalSaved = totalSaved
+	e.require(esrMonthFieldTotalSaved)
+}
+
+// SetCommitmentRatePct sets the CommitmentRatePct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrMonth) SetCommitmentRatePct(commitmentRatePct *float64) {
+	e.CommitmentRatePct = commitmentRatePct
+	e.require(esrMonthFieldCommitmentRatePct)
+}
+
+// SetNegotiatedRatePct sets the NegotiatedRatePct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrMonth) SetNegotiatedRatePct(negotiatedRatePct *float64) {
+	e.NegotiatedRatePct = negotiatedRatePct
+	e.require(esrMonthFieldNegotiatedRatePct)
+}
+
+// SetTotalRatePct sets the TotalRatePct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrMonth) SetTotalRatePct(totalRatePct *float64) {
+	e.TotalRatePct = totalRatePct
+	e.require(esrMonthFieldTotalRatePct)
+}
+
+// SetUnusedCommitmentCost sets the UnusedCommitmentCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrMonth) SetUnusedCommitmentCost(unusedCommitmentCost *float64) {
+	e.UnusedCommitmentCost = unusedCommitmentCost
+	e.require(esrMonthFieldUnusedCommitmentCost)
+}
+
+// SetUnusedRatePct sets the UnusedRatePct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrMonth) SetUnusedRatePct(unusedRatePct *float64) {
+	e.UnusedRatePct = unusedRatePct
+	e.require(esrMonthFieldUnusedRatePct)
+}
+
+// SetEsrPct sets the EsrPct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrMonth) SetEsrPct(esrPct *float64) {
+	e.EsrPct = esrPct
+	e.require(esrMonthFieldEsrPct)
+}
+
+// SetPeriod sets the Period field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrMonth) SetPeriod(period string) {
+	e.Period = period
+	e.require(esrMonthFieldPeriod)
+}
+
+// SetComplete sets the Complete field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrMonth) SetComplete(complete bool) {
+	e.Complete = complete
+	e.require(esrMonthFieldComplete)
+}
+
+// SetMeasuredSharePct sets the MeasuredSharePct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrMonth) SetMeasuredSharePct(measuredSharePct float64) {
+	e.MeasuredSharePct = measuredSharePct
+	e.require(esrMonthFieldMeasuredSharePct)
+}
+
+func (e *EsrMonth) UnmarshalJSON(data []byte) error {
+	type unmarshaler EsrMonth
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*e = EsrMonth(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *e)
+	if err != nil {
+		return err
+	}
+	e.extraProperties = extraProperties
+	e.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (e *EsrMonth) MarshalJSON() ([]byte, error) {
+	type embed EsrMonth
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*e),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, e.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (e *EsrMonth) String() string {
+	if e == nil {
+		return "<nil>"
+	}
+	if len(e.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(e); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", e)
+}
+
+var (
+	esrOrganizationFieldOrganizationID = big.NewInt(1 << 0)
+	esrOrganizationFieldSeries         = big.NewInt(1 << 1)
+)
+
+type EsrOrganization struct {
+	OrganizationID *string     `json:"organization_id,omitempty" url:"organization_id,omitempty"`
+	Series         []*EsrMonth `json:"series" url:"series"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (e *EsrOrganization) GetOrganizationID() *string {
+	if e == nil {
+		return nil
+	}
+	return e.OrganizationID
+}
+
+func (e *EsrOrganization) GetSeries() []*EsrMonth {
+	if e == nil {
+		return nil
+	}
+	return e.Series
+}
+
+func (e *EsrOrganization) GetExtraProperties() map[string]interface{} {
+	if e == nil {
+		return nil
+	}
+	return e.extraProperties
+}
+
+func (e *EsrOrganization) require(field *big.Int) {
+	if e.explicitFields == nil {
+		e.explicitFields = big.NewInt(0)
+	}
+	e.explicitFields.Or(e.explicitFields, field)
+}
+
+// SetOrganizationID sets the OrganizationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrOrganization) SetOrganizationID(organizationID *string) {
+	e.OrganizationID = organizationID
+	e.require(esrOrganizationFieldOrganizationID)
+}
+
+// SetSeries sets the Series field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrOrganization) SetSeries(series []*EsrMonth) {
+	e.Series = series
+	e.require(esrOrganizationFieldSeries)
+}
+
+func (e *EsrOrganization) UnmarshalJSON(data []byte) error {
+	type unmarshaler EsrOrganization
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*e = EsrOrganization(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *e)
+	if err != nil {
+		return err
+	}
+	e.extraProperties = extraProperties
+	e.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (e *EsrOrganization) MarshalJSON() ([]byte, error) {
+	type embed EsrOrganization
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*e),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, e.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (e *EsrOrganization) String() string {
+	if e == nil {
+		return "<nil>"
+	}
+	if len(e.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(e); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", e)
+}
+
+var (
+	esrPointFieldMeasured             = big.NewInt(1 << 0)
+	esrPointFieldOnDemandEquivalent   = big.NewInt(1 << 1)
+	esrPointFieldEffectiveCost        = big.NewInt(1 << 2)
+	esrPointFieldCommitmentSaved      = big.NewInt(1 << 3)
+	esrPointFieldNegotiatedSaved      = big.NewInt(1 << 4)
+	esrPointFieldTotalSaved           = big.NewInt(1 << 5)
+	esrPointFieldCommitmentRatePct    = big.NewInt(1 << 6)
+	esrPointFieldNegotiatedRatePct    = big.NewInt(1 << 7)
+	esrPointFieldTotalRatePct         = big.NewInt(1 << 8)
+	esrPointFieldUnusedCommitmentCost = big.NewInt(1 << 9)
+	esrPointFieldUnusedRatePct        = big.NewInt(1 << 10)
+	esrPointFieldEsrPct               = big.NewInt(1 << 11)
+	esrPointFieldPeriod               = big.NewInt(1 << 12)
+	esrPointFieldComplete             = big.NewInt(1 << 13)
+)
+
+type EsrPoint struct {
+	Measured             bool     `json:"measured" url:"measured"`
+	OnDemandEquivalent   float64  `json:"on_demand_equivalent" url:"on_demand_equivalent"`
+	EffectiveCost        float64  `json:"effective_cost" url:"effective_cost"`
+	CommitmentSaved      float64  `json:"commitment_saved" url:"commitment_saved"`
+	NegotiatedSaved      float64  `json:"negotiated_saved" url:"negotiated_saved"`
+	TotalSaved           float64  `json:"total_saved" url:"total_saved"`
+	CommitmentRatePct    *float64 `json:"commitment_rate_pct,omitempty" url:"commitment_rate_pct,omitempty"`
+	NegotiatedRatePct    *float64 `json:"negotiated_rate_pct,omitempty" url:"negotiated_rate_pct,omitempty"`
+	TotalRatePct         *float64 `json:"total_rate_pct,omitempty" url:"total_rate_pct,omitempty"`
+	UnusedCommitmentCost *float64 `json:"unused_commitment_cost,omitempty" url:"unused_commitment_cost,omitempty"`
+	UnusedRatePct        *float64 `json:"unused_rate_pct,omitempty" url:"unused_rate_pct,omitempty"`
+	EsrPct               *float64 `json:"esr_pct,omitempty" url:"esr_pct,omitempty"`
+	Period               string   `json:"period" url:"period"`
+	Complete             bool     `json:"complete" url:"complete"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (e *EsrPoint) GetMeasured() bool {
+	if e == nil {
+		return false
+	}
+	return e.Measured
+}
+
+func (e *EsrPoint) GetOnDemandEquivalent() float64 {
+	if e == nil {
+		return 0
+	}
+	return e.OnDemandEquivalent
+}
+
+func (e *EsrPoint) GetEffectiveCost() float64 {
+	if e == nil {
+		return 0
+	}
+	return e.EffectiveCost
+}
+
+func (e *EsrPoint) GetCommitmentSaved() float64 {
+	if e == nil {
+		return 0
+	}
+	return e.CommitmentSaved
+}
+
+func (e *EsrPoint) GetNegotiatedSaved() float64 {
+	if e == nil {
+		return 0
+	}
+	return e.NegotiatedSaved
+}
+
+func (e *EsrPoint) GetTotalSaved() float64 {
+	if e == nil {
+		return 0
+	}
+	return e.TotalSaved
+}
+
+func (e *EsrPoint) GetCommitmentRatePct() *float64 {
+	if e == nil {
+		return nil
+	}
+	return e.CommitmentRatePct
+}
+
+func (e *EsrPoint) GetNegotiatedRatePct() *float64 {
+	if e == nil {
+		return nil
+	}
+	return e.NegotiatedRatePct
+}
+
+func (e *EsrPoint) GetTotalRatePct() *float64 {
+	if e == nil {
+		return nil
+	}
+	return e.TotalRatePct
+}
+
+func (e *EsrPoint) GetUnusedCommitmentCost() *float64 {
+	if e == nil {
+		return nil
+	}
+	return e.UnusedCommitmentCost
+}
+
+func (e *EsrPoint) GetUnusedRatePct() *float64 {
+	if e == nil {
+		return nil
+	}
+	return e.UnusedRatePct
+}
+
+func (e *EsrPoint) GetEsrPct() *float64 {
+	if e == nil {
+		return nil
+	}
+	return e.EsrPct
+}
+
+func (e *EsrPoint) GetPeriod() string {
+	if e == nil {
+		return ""
+	}
+	return e.Period
+}
+
+func (e *EsrPoint) GetComplete() bool {
+	if e == nil {
+		return false
+	}
+	return e.Complete
+}
+
+func (e *EsrPoint) GetExtraProperties() map[string]interface{} {
+	if e == nil {
+		return nil
+	}
+	return e.extraProperties
+}
+
+func (e *EsrPoint) require(field *big.Int) {
+	if e.explicitFields == nil {
+		e.explicitFields = big.NewInt(0)
+	}
+	e.explicitFields.Or(e.explicitFields, field)
+}
+
+// SetMeasured sets the Measured field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrPoint) SetMeasured(measured bool) {
+	e.Measured = measured
+	e.require(esrPointFieldMeasured)
+}
+
+// SetOnDemandEquivalent sets the OnDemandEquivalent field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrPoint) SetOnDemandEquivalent(onDemandEquivalent float64) {
+	e.OnDemandEquivalent = onDemandEquivalent
+	e.require(esrPointFieldOnDemandEquivalent)
+}
+
+// SetEffectiveCost sets the EffectiveCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrPoint) SetEffectiveCost(effectiveCost float64) {
+	e.EffectiveCost = effectiveCost
+	e.require(esrPointFieldEffectiveCost)
+}
+
+// SetCommitmentSaved sets the CommitmentSaved field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrPoint) SetCommitmentSaved(commitmentSaved float64) {
+	e.CommitmentSaved = commitmentSaved
+	e.require(esrPointFieldCommitmentSaved)
+}
+
+// SetNegotiatedSaved sets the NegotiatedSaved field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrPoint) SetNegotiatedSaved(negotiatedSaved float64) {
+	e.NegotiatedSaved = negotiatedSaved
+	e.require(esrPointFieldNegotiatedSaved)
+}
+
+// SetTotalSaved sets the TotalSaved field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrPoint) SetTotalSaved(totalSaved float64) {
+	e.TotalSaved = totalSaved
+	e.require(esrPointFieldTotalSaved)
+}
+
+// SetCommitmentRatePct sets the CommitmentRatePct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrPoint) SetCommitmentRatePct(commitmentRatePct *float64) {
+	e.CommitmentRatePct = commitmentRatePct
+	e.require(esrPointFieldCommitmentRatePct)
+}
+
+// SetNegotiatedRatePct sets the NegotiatedRatePct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrPoint) SetNegotiatedRatePct(negotiatedRatePct *float64) {
+	e.NegotiatedRatePct = negotiatedRatePct
+	e.require(esrPointFieldNegotiatedRatePct)
+}
+
+// SetTotalRatePct sets the TotalRatePct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrPoint) SetTotalRatePct(totalRatePct *float64) {
+	e.TotalRatePct = totalRatePct
+	e.require(esrPointFieldTotalRatePct)
+}
+
+// SetUnusedCommitmentCost sets the UnusedCommitmentCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrPoint) SetUnusedCommitmentCost(unusedCommitmentCost *float64) {
+	e.UnusedCommitmentCost = unusedCommitmentCost
+	e.require(esrPointFieldUnusedCommitmentCost)
+}
+
+// SetUnusedRatePct sets the UnusedRatePct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrPoint) SetUnusedRatePct(unusedRatePct *float64) {
+	e.UnusedRatePct = unusedRatePct
+	e.require(esrPointFieldUnusedRatePct)
+}
+
+// SetEsrPct sets the EsrPct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrPoint) SetEsrPct(esrPct *float64) {
+	e.EsrPct = esrPct
+	e.require(esrPointFieldEsrPct)
+}
+
+// SetPeriod sets the Period field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrPoint) SetPeriod(period string) {
+	e.Period = period
+	e.require(esrPointFieldPeriod)
+}
+
+// SetComplete sets the Complete field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrPoint) SetComplete(complete bool) {
+	e.Complete = complete
+	e.require(esrPointFieldComplete)
+}
+
+func (e *EsrPoint) UnmarshalJSON(data []byte) error {
+	type unmarshaler EsrPoint
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*e = EsrPoint(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *e)
+	if err != nil {
+		return err
+	}
+	e.extraProperties = extraProperties
+	e.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (e *EsrPoint) MarshalJSON() ([]byte, error) {
+	type embed EsrPoint
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*e),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, e.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (e *EsrPoint) String() string {
+	if e == nil {
+		return "<nil>"
+	}
+	if len(e.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(e); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", e)
+}
+
+var (
+	esrRatesFieldMeasured             = big.NewInt(1 << 0)
+	esrRatesFieldOnDemandEquivalent   = big.NewInt(1 << 1)
+	esrRatesFieldEffectiveCost        = big.NewInt(1 << 2)
+	esrRatesFieldCommitmentSaved      = big.NewInt(1 << 3)
+	esrRatesFieldNegotiatedSaved      = big.NewInt(1 << 4)
+	esrRatesFieldTotalSaved           = big.NewInt(1 << 5)
+	esrRatesFieldCommitmentRatePct    = big.NewInt(1 << 6)
+	esrRatesFieldNegotiatedRatePct    = big.NewInt(1 << 7)
+	esrRatesFieldTotalRatePct         = big.NewInt(1 << 8)
+	esrRatesFieldUnusedCommitmentCost = big.NewInt(1 << 9)
+	esrRatesFieldUnusedRatePct        = big.NewInt(1 << 10)
+	esrRatesFieldEsrPct               = big.NewInt(1 << 11)
 )
 
 type EsrRates struct {
-	Measured           bool     `json:"measured" url:"measured"`
-	OnDemandEquivalent float64  `json:"on_demand_equivalent" url:"on_demand_equivalent"`
-	EffectiveCost      float64  `json:"effective_cost" url:"effective_cost"`
-	CommitmentSaved    float64  `json:"commitment_saved" url:"commitment_saved"`
-	NegotiatedSaved    float64  `json:"negotiated_saved" url:"negotiated_saved"`
-	TotalSaved         float64  `json:"total_saved" url:"total_saved"`
-	CommitmentRatePct  *float64 `json:"commitment_rate_pct,omitempty" url:"commitment_rate_pct,omitempty"`
-	NegotiatedRatePct  *float64 `json:"negotiated_rate_pct,omitempty" url:"negotiated_rate_pct,omitempty"`
-	TotalRatePct       *float64 `json:"total_rate_pct,omitempty" url:"total_rate_pct,omitempty"`
+	Measured             bool     `json:"measured" url:"measured"`
+	OnDemandEquivalent   float64  `json:"on_demand_equivalent" url:"on_demand_equivalent"`
+	EffectiveCost        float64  `json:"effective_cost" url:"effective_cost"`
+	CommitmentSaved      float64  `json:"commitment_saved" url:"commitment_saved"`
+	NegotiatedSaved      float64  `json:"negotiated_saved" url:"negotiated_saved"`
+	TotalSaved           float64  `json:"total_saved" url:"total_saved"`
+	CommitmentRatePct    *float64 `json:"commitment_rate_pct,omitempty" url:"commitment_rate_pct,omitempty"`
+	NegotiatedRatePct    *float64 `json:"negotiated_rate_pct,omitempty" url:"negotiated_rate_pct,omitempty"`
+	TotalRatePct         *float64 `json:"total_rate_pct,omitempty" url:"total_rate_pct,omitempty"`
+	UnusedCommitmentCost *float64 `json:"unused_commitment_cost,omitempty" url:"unused_commitment_cost,omitempty"`
+	UnusedRatePct        *float64 `json:"unused_rate_pct,omitempty" url:"unused_rate_pct,omitempty"`
+	EsrPct               *float64 `json:"esr_pct,omitempty" url:"esr_pct,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -8464,6 +13191,27 @@ func (e *EsrRates) GetTotalRatePct() *float64 {
 		return nil
 	}
 	return e.TotalRatePct
+}
+
+func (e *EsrRates) GetUnusedCommitmentCost() *float64 {
+	if e == nil {
+		return nil
+	}
+	return e.UnusedCommitmentCost
+}
+
+func (e *EsrRates) GetUnusedRatePct() *float64 {
+	if e == nil {
+		return nil
+	}
+	return e.UnusedRatePct
+}
+
+func (e *EsrRates) GetEsrPct() *float64 {
+	if e == nil {
+		return nil
+	}
+	return e.EsrPct
 }
 
 func (e *EsrRates) GetExtraProperties() map[string]interface{} {
@@ -8541,6 +13289,27 @@ func (e *EsrRates) SetNegotiatedRatePct(negotiatedRatePct *float64) {
 func (e *EsrRates) SetTotalRatePct(totalRatePct *float64) {
 	e.TotalRatePct = totalRatePct
 	e.require(esrRatesFieldTotalRatePct)
+}
+
+// SetUnusedCommitmentCost sets the UnusedCommitmentCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrRates) SetUnusedCommitmentCost(unusedCommitmentCost *float64) {
+	e.UnusedCommitmentCost = unusedCommitmentCost
+	e.require(esrRatesFieldUnusedCommitmentCost)
+}
+
+// SetUnusedRatePct sets the UnusedRatePct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrRates) SetUnusedRatePct(unusedRatePct *float64) {
+	e.UnusedRatePct = unusedRatePct
+	e.require(esrRatesFieldUnusedRatePct)
+}
+
+// SetEsrPct sets the EsrPct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *EsrRates) SetEsrPct(esrPct *float64) {
+	e.EsrPct = esrPct
+	e.require(esrRatesFieldEsrPct)
 }
 
 func (e *EsrRates) UnmarshalJSON(data []byte) error {
@@ -8707,6 +13476,758 @@ func (e *EsrResponse) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", e)
+}
+
+var (
+	executionLogCommandFieldOrder   = big.NewInt(1 << 0)
+	executionLogCommandFieldCommand = big.NewInt(1 << 1)
+	executionLogCommandFieldOutput  = big.NewInt(1 << 2)
+)
+
+type ExecutionLogCommand struct {
+	Order   int     `json:"order" url:"order"`
+	Command string  `json:"command" url:"command"`
+	Output  *string `json:"output,omitempty" url:"output,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (e *ExecutionLogCommand) GetOrder() int {
+	if e == nil {
+		return 0
+	}
+	return e.Order
+}
+
+func (e *ExecutionLogCommand) GetCommand() string {
+	if e == nil {
+		return ""
+	}
+	return e.Command
+}
+
+func (e *ExecutionLogCommand) GetOutput() *string {
+	if e == nil {
+		return nil
+	}
+	return e.Output
+}
+
+func (e *ExecutionLogCommand) GetExtraProperties() map[string]interface{} {
+	if e == nil {
+		return nil
+	}
+	return e.extraProperties
+}
+
+func (e *ExecutionLogCommand) require(field *big.Int) {
+	if e.explicitFields == nil {
+		e.explicitFields = big.NewInt(0)
+	}
+	e.explicitFields.Or(e.explicitFields, field)
+}
+
+// SetOrder sets the Order field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExecutionLogCommand) SetOrder(order int) {
+	e.Order = order
+	e.require(executionLogCommandFieldOrder)
+}
+
+// SetCommand sets the Command field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExecutionLogCommand) SetCommand(command string) {
+	e.Command = command
+	e.require(executionLogCommandFieldCommand)
+}
+
+// SetOutput sets the Output field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExecutionLogCommand) SetOutput(output *string) {
+	e.Output = output
+	e.require(executionLogCommandFieldOutput)
+}
+
+func (e *ExecutionLogCommand) UnmarshalJSON(data []byte) error {
+	type unmarshaler ExecutionLogCommand
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*e = ExecutionLogCommand(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *e)
+	if err != nil {
+		return err
+	}
+	e.extraProperties = extraProperties
+	e.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (e *ExecutionLogCommand) MarshalJSON() ([]byte, error) {
+	type embed ExecutionLogCommand
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*e),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, e.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (e *ExecutionLogCommand) String() string {
+	if e == nil {
+		return "<nil>"
+	}
+	if len(e.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(e); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", e)
+}
+
+var (
+	executionLogEntryFieldStepID   = big.NewInt(1 << 0)
+	executionLogEntryFieldLabel    = big.NewInt(1 << 1)
+	executionLogEntryFieldStatus   = big.NewInt(1 << 2)
+	executionLogEntryFieldCommands = big.NewInt(1 << 3)
+)
+
+type ExecutionLogEntry struct {
+	StepID   string                  `json:"step_id" url:"step_id"`
+	Label    string                  `json:"label" url:"label"`
+	Status   ExecutionLogEntryStatus `json:"status" url:"status"`
+	Commands []*ExecutionLogCommand  `json:"commands,omitempty" url:"commands,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (e *ExecutionLogEntry) GetStepID() string {
+	if e == nil {
+		return ""
+	}
+	return e.StepID
+}
+
+func (e *ExecutionLogEntry) GetLabel() string {
+	if e == nil {
+		return ""
+	}
+	return e.Label
+}
+
+func (e *ExecutionLogEntry) GetStatus() ExecutionLogEntryStatus {
+	if e == nil {
+		return ""
+	}
+	return e.Status
+}
+
+func (e *ExecutionLogEntry) GetCommands() []*ExecutionLogCommand {
+	if e == nil {
+		return nil
+	}
+	return e.Commands
+}
+
+func (e *ExecutionLogEntry) GetExtraProperties() map[string]interface{} {
+	if e == nil {
+		return nil
+	}
+	return e.extraProperties
+}
+
+func (e *ExecutionLogEntry) require(field *big.Int) {
+	if e.explicitFields == nil {
+		e.explicitFields = big.NewInt(0)
+	}
+	e.explicitFields.Or(e.explicitFields, field)
+}
+
+// SetStepID sets the StepID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExecutionLogEntry) SetStepID(stepID string) {
+	e.StepID = stepID
+	e.require(executionLogEntryFieldStepID)
+}
+
+// SetLabel sets the Label field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExecutionLogEntry) SetLabel(label string) {
+	e.Label = label
+	e.require(executionLogEntryFieldLabel)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExecutionLogEntry) SetStatus(status ExecutionLogEntryStatus) {
+	e.Status = status
+	e.require(executionLogEntryFieldStatus)
+}
+
+// SetCommands sets the Commands field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExecutionLogEntry) SetCommands(commands []*ExecutionLogCommand) {
+	e.Commands = commands
+	e.require(executionLogEntryFieldCommands)
+}
+
+func (e *ExecutionLogEntry) UnmarshalJSON(data []byte) error {
+	type unmarshaler ExecutionLogEntry
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*e = ExecutionLogEntry(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *e)
+	if err != nil {
+		return err
+	}
+	e.extraProperties = extraProperties
+	e.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (e *ExecutionLogEntry) MarshalJSON() ([]byte, error) {
+	type embed ExecutionLogEntry
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*e),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, e.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (e *ExecutionLogEntry) String() string {
+	if e == nil {
+		return "<nil>"
+	}
+	if len(e.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(e); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", e)
+}
+
+type ExecutionLogEntryStatus string
+
+const (
+	ExecutionLogEntryStatusDone       ExecutionLogEntryStatus = "done"
+	ExecutionLogEntryStatusPending    ExecutionLogEntryStatus = "pending"
+	ExecutionLogEntryStatusWarning    ExecutionLogEntryStatus = "warning"
+	ExecutionLogEntryStatusInProgress ExecutionLogEntryStatus = "in_progress"
+	ExecutionLogEntryStatusFailed     ExecutionLogEntryStatus = "failed"
+)
+
+func NewExecutionLogEntryStatusFromString(s string) (ExecutionLogEntryStatus, error) {
+	switch s {
+	case "done":
+		return ExecutionLogEntryStatusDone, nil
+	case "pending":
+		return ExecutionLogEntryStatusPending, nil
+	case "warning":
+		return ExecutionLogEntryStatusWarning, nil
+	case "in_progress":
+		return ExecutionLogEntryStatusInProgress, nil
+	case "failed":
+		return ExecutionLogEntryStatusFailed, nil
+	}
+	var t ExecutionLogEntryStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (e ExecutionLogEntryStatus) Ptr() *ExecutionLogEntryStatus {
+	return &e
+}
+
+var (
+	executionStepSchemaFieldStepID          = big.NewInt(1 << 0)
+	executionStepSchemaFieldLabel           = big.NewInt(1 << 1)
+	executionStepSchemaFieldStatus          = big.NewInt(1 << 2)
+	executionStepSchemaFieldDurationSeconds = big.NewInt(1 << 3)
+	executionStepSchemaFieldParentStepID    = big.NewInt(1 << 4)
+)
+
+type ExecutionStepSchema struct {
+	StepID          string                    `json:"step_id" url:"step_id"`
+	Label           string                    `json:"label" url:"label"`
+	Status          ExecutionStepSchemaStatus `json:"status" url:"status"`
+	DurationSeconds *int                      `json:"duration_seconds,omitempty" url:"duration_seconds,omitempty"`
+	ParentStepID    *string                   `json:"parent_step_id,omitempty" url:"parent_step_id,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (e *ExecutionStepSchema) GetStepID() string {
+	if e == nil {
+		return ""
+	}
+	return e.StepID
+}
+
+func (e *ExecutionStepSchema) GetLabel() string {
+	if e == nil {
+		return ""
+	}
+	return e.Label
+}
+
+func (e *ExecutionStepSchema) GetStatus() ExecutionStepSchemaStatus {
+	if e == nil {
+		return ""
+	}
+	return e.Status
+}
+
+func (e *ExecutionStepSchema) GetDurationSeconds() *int {
+	if e == nil {
+		return nil
+	}
+	return e.DurationSeconds
+}
+
+func (e *ExecutionStepSchema) GetParentStepID() *string {
+	if e == nil {
+		return nil
+	}
+	return e.ParentStepID
+}
+
+func (e *ExecutionStepSchema) GetExtraProperties() map[string]interface{} {
+	if e == nil {
+		return nil
+	}
+	return e.extraProperties
+}
+
+func (e *ExecutionStepSchema) require(field *big.Int) {
+	if e.explicitFields == nil {
+		e.explicitFields = big.NewInt(0)
+	}
+	e.explicitFields.Or(e.explicitFields, field)
+}
+
+// SetStepID sets the StepID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExecutionStepSchema) SetStepID(stepID string) {
+	e.StepID = stepID
+	e.require(executionStepSchemaFieldStepID)
+}
+
+// SetLabel sets the Label field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExecutionStepSchema) SetLabel(label string) {
+	e.Label = label
+	e.require(executionStepSchemaFieldLabel)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExecutionStepSchema) SetStatus(status ExecutionStepSchemaStatus) {
+	e.Status = status
+	e.require(executionStepSchemaFieldStatus)
+}
+
+// SetDurationSeconds sets the DurationSeconds field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExecutionStepSchema) SetDurationSeconds(durationSeconds *int) {
+	e.DurationSeconds = durationSeconds
+	e.require(executionStepSchemaFieldDurationSeconds)
+}
+
+// SetParentStepID sets the ParentStepID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExecutionStepSchema) SetParentStepID(parentStepID *string) {
+	e.ParentStepID = parentStepID
+	e.require(executionStepSchemaFieldParentStepID)
+}
+
+func (e *ExecutionStepSchema) UnmarshalJSON(data []byte) error {
+	type unmarshaler ExecutionStepSchema
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*e = ExecutionStepSchema(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *e)
+	if err != nil {
+		return err
+	}
+	e.extraProperties = extraProperties
+	e.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (e *ExecutionStepSchema) MarshalJSON() ([]byte, error) {
+	type embed ExecutionStepSchema
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*e),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, e.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (e *ExecutionStepSchema) String() string {
+	if e == nil {
+		return "<nil>"
+	}
+	if len(e.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(e); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", e)
+}
+
+type ExecutionStepSchemaStatus string
+
+const (
+	ExecutionStepSchemaStatusDone       ExecutionStepSchemaStatus = "done"
+	ExecutionStepSchemaStatusPending    ExecutionStepSchemaStatus = "pending"
+	ExecutionStepSchemaStatusWarning    ExecutionStepSchemaStatus = "warning"
+	ExecutionStepSchemaStatusInProgress ExecutionStepSchemaStatus = "in_progress"
+	ExecutionStepSchemaStatusFailed     ExecutionStepSchemaStatus = "failed"
+)
+
+func NewExecutionStepSchemaStatusFromString(s string) (ExecutionStepSchemaStatus, error) {
+	switch s {
+	case "done":
+		return ExecutionStepSchemaStatusDone, nil
+	case "pending":
+		return ExecutionStepSchemaStatusPending, nil
+	case "warning":
+		return ExecutionStepSchemaStatusWarning, nil
+	case "in_progress":
+		return ExecutionStepSchemaStatusInProgress, nil
+	case "failed":
+		return ExecutionStepSchemaStatusFailed, nil
+	}
+	var t ExecutionStepSchemaStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (e ExecutionStepSchemaStatus) Ptr() *ExecutionStepSchemaStatus {
+	return &e
+}
+
+var (
+	gcpProjectCommitmentFieldProjectID                = big.NewInt(1 << 0)
+	gcpProjectCommitmentFieldProjectName              = big.NewInt(1 << 1)
+	gcpProjectCommitmentFieldBillingAccountID         = big.NewInt(1 << 2)
+	gcpProjectCommitmentFieldScope                    = big.NewInt(1 << 3)
+	gcpProjectCommitmentFieldService                  = big.NewInt(1 << 4)
+	gcpProjectCommitmentFieldRegion                   = big.NewInt(1 << 5)
+	gcpProjectCommitmentFieldKind                     = big.NewInt(1 << 6)
+	gcpProjectCommitmentFieldCommitmentFeeMonthToDate = big.NewInt(1 << 7)
+	gcpProjectCommitmentFieldCoveragePct              = big.NewInt(1 << 8)
+	gcpProjectCommitmentFieldUtilizationPct           = big.NewInt(1 << 9)
+	gcpProjectCommitmentFieldAsOf                     = big.NewInt(1 << 10)
+)
+
+type GcpProjectCommitment struct {
+	ProjectID                string                    `json:"project_id" url:"project_id"`
+	ProjectName              string                    `json:"project_name" url:"project_name"`
+	BillingAccountID         *string                   `json:"billing_account_id,omitempty" url:"billing_account_id,omitempty"`
+	Scope                    GcpProjectCommitmentScope `json:"scope" url:"scope"`
+	Service                  string                    `json:"service" url:"service"`
+	Region                   string                    `json:"region" url:"region"`
+	Kind                     GcpProjectCommitmentKind  `json:"kind" url:"kind"`
+	CommitmentFeeMonthToDate float64                   `json:"commitment_fee_month_to_date" url:"commitment_fee_month_to_date"`
+	CoveragePct              *float64                  `json:"coverage_pct,omitempty" url:"coverage_pct,omitempty"`
+	UtilizationPct           *float64                  `json:"utilization_pct,omitempty" url:"utilization_pct,omitempty"`
+	AsOf                     string                    `json:"as_of" url:"as_of"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (g *GcpProjectCommitment) GetProjectID() string {
+	if g == nil {
+		return ""
+	}
+	return g.ProjectID
+}
+
+func (g *GcpProjectCommitment) GetProjectName() string {
+	if g == nil {
+		return ""
+	}
+	return g.ProjectName
+}
+
+func (g *GcpProjectCommitment) GetBillingAccountID() *string {
+	if g == nil {
+		return nil
+	}
+	return g.BillingAccountID
+}
+
+func (g *GcpProjectCommitment) GetScope() GcpProjectCommitmentScope {
+	if g == nil {
+		return ""
+	}
+	return g.Scope
+}
+
+func (g *GcpProjectCommitment) GetService() string {
+	if g == nil {
+		return ""
+	}
+	return g.Service
+}
+
+func (g *GcpProjectCommitment) GetRegion() string {
+	if g == nil {
+		return ""
+	}
+	return g.Region
+}
+
+func (g *GcpProjectCommitment) GetKind() GcpProjectCommitmentKind {
+	if g == nil {
+		return ""
+	}
+	return g.Kind
+}
+
+func (g *GcpProjectCommitment) GetCommitmentFeeMonthToDate() float64 {
+	if g == nil {
+		return 0
+	}
+	return g.CommitmentFeeMonthToDate
+}
+
+func (g *GcpProjectCommitment) GetCoveragePct() *float64 {
+	if g == nil {
+		return nil
+	}
+	return g.CoveragePct
+}
+
+func (g *GcpProjectCommitment) GetUtilizationPct() *float64 {
+	if g == nil {
+		return nil
+	}
+	return g.UtilizationPct
+}
+
+func (g *GcpProjectCommitment) GetAsOf() string {
+	if g == nil {
+		return ""
+	}
+	return g.AsOf
+}
+
+func (g *GcpProjectCommitment) GetExtraProperties() map[string]interface{} {
+	if g == nil {
+		return nil
+	}
+	return g.extraProperties
+}
+
+func (g *GcpProjectCommitment) require(field *big.Int) {
+	if g.explicitFields == nil {
+		g.explicitFields = big.NewInt(0)
+	}
+	g.explicitFields.Or(g.explicitFields, field)
+}
+
+// SetProjectID sets the ProjectID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GcpProjectCommitment) SetProjectID(projectID string) {
+	g.ProjectID = projectID
+	g.require(gcpProjectCommitmentFieldProjectID)
+}
+
+// SetProjectName sets the ProjectName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GcpProjectCommitment) SetProjectName(projectName string) {
+	g.ProjectName = projectName
+	g.require(gcpProjectCommitmentFieldProjectName)
+}
+
+// SetBillingAccountID sets the BillingAccountID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GcpProjectCommitment) SetBillingAccountID(billingAccountID *string) {
+	g.BillingAccountID = billingAccountID
+	g.require(gcpProjectCommitmentFieldBillingAccountID)
+}
+
+// SetScope sets the Scope field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GcpProjectCommitment) SetScope(scope GcpProjectCommitmentScope) {
+	g.Scope = scope
+	g.require(gcpProjectCommitmentFieldScope)
+}
+
+// SetService sets the Service field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GcpProjectCommitment) SetService(service string) {
+	g.Service = service
+	g.require(gcpProjectCommitmentFieldService)
+}
+
+// SetRegion sets the Region field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GcpProjectCommitment) SetRegion(region string) {
+	g.Region = region
+	g.require(gcpProjectCommitmentFieldRegion)
+}
+
+// SetKind sets the Kind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GcpProjectCommitment) SetKind(kind GcpProjectCommitmentKind) {
+	g.Kind = kind
+	g.require(gcpProjectCommitmentFieldKind)
+}
+
+// SetCommitmentFeeMonthToDate sets the CommitmentFeeMonthToDate field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GcpProjectCommitment) SetCommitmentFeeMonthToDate(commitmentFeeMonthToDate float64) {
+	g.CommitmentFeeMonthToDate = commitmentFeeMonthToDate
+	g.require(gcpProjectCommitmentFieldCommitmentFeeMonthToDate)
+}
+
+// SetCoveragePct sets the CoveragePct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GcpProjectCommitment) SetCoveragePct(coveragePct *float64) {
+	g.CoveragePct = coveragePct
+	g.require(gcpProjectCommitmentFieldCoveragePct)
+}
+
+// SetUtilizationPct sets the UtilizationPct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GcpProjectCommitment) SetUtilizationPct(utilizationPct *float64) {
+	g.UtilizationPct = utilizationPct
+	g.require(gcpProjectCommitmentFieldUtilizationPct)
+}
+
+// SetAsOf sets the AsOf field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GcpProjectCommitment) SetAsOf(asOf string) {
+	g.AsOf = asOf
+	g.require(gcpProjectCommitmentFieldAsOf)
+}
+
+func (g *GcpProjectCommitment) UnmarshalJSON(data []byte) error {
+	type unmarshaler GcpProjectCommitment
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*g = GcpProjectCommitment(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *g)
+	if err != nil {
+		return err
+	}
+	g.extraProperties = extraProperties
+	g.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (g *GcpProjectCommitment) MarshalJSON() ([]byte, error) {
+	type embed GcpProjectCommitment
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*g),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, g.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (g *GcpProjectCommitment) String() string {
+	if g == nil {
+		return "<nil>"
+	}
+	if len(g.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(g.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(g); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", g)
+}
+
+type GcpProjectCommitmentKind string
+
+const (
+	GcpProjectCommitmentKindReservedInstance     GcpProjectCommitmentKind = "reserved_instance"
+	GcpProjectCommitmentKindSavingsPlan          GcpProjectCommitmentKind = "savings_plan"
+	GcpProjectCommitmentKindCommittedUseDiscount GcpProjectCommitmentKind = "committed_use_discount"
+	GcpProjectCommitmentKindSpendCommitment      GcpProjectCommitmentKind = "spend_commitment"
+)
+
+func NewGcpProjectCommitmentKindFromString(s string) (GcpProjectCommitmentKind, error) {
+	switch s {
+	case "reserved_instance":
+		return GcpProjectCommitmentKindReservedInstance, nil
+	case "savings_plan":
+		return GcpProjectCommitmentKindSavingsPlan, nil
+	case "committed_use_discount":
+		return GcpProjectCommitmentKindCommittedUseDiscount, nil
+	case "spend_commitment":
+		return GcpProjectCommitmentKindSpendCommitment, nil
+	}
+	var t GcpProjectCommitmentKind
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GcpProjectCommitmentKind) Ptr() *GcpProjectCommitmentKind {
+	return &g
+}
+
+type GcpProjectCommitmentScope string
+
+const (
+	GcpProjectCommitmentScopeProject        GcpProjectCommitmentScope = "project"
+	GcpProjectCommitmentScopeBillingAccount GcpProjectCommitmentScope = "billing_account"
+)
+
+func NewGcpProjectCommitmentScopeFromString(s string) (GcpProjectCommitmentScope, error) {
+	switch s {
+	case "project":
+		return GcpProjectCommitmentScopeProject, nil
+	case "billing_account":
+		return GcpProjectCommitmentScopeBillingAccount, nil
+	}
+	var t GcpProjectCommitmentScope
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GcpProjectCommitmentScope) Ptr() *GcpProjectCommitmentScope {
+	return &g
 }
 
 var (
@@ -8990,23 +14511,27 @@ var (
 	inventoryPlanRowFieldPaymentOption      = big.NewInt(1 << 4)
 	inventoryPlanRowFieldStart              = big.NewInt(1 << 5)
 	inventoryPlanRowFieldEnd                = big.NewInt(1 << 6)
-	inventoryPlanRowFieldEndIsDerived       = big.NewInt(1 << 7)
-	inventoryPlanRowFieldTermMonths         = big.NewInt(1 << 8)
-	inventoryPlanRowFieldCurrency           = big.NewInt(1 << 9)
-	inventoryPlanRowFieldArn                = big.NewInt(1 << 10)
-	inventoryPlanRowFieldTags               = big.NewInt(1 << 11)
-	inventoryPlanRowFieldProductDescription = big.NewInt(1 << 12)
-	inventoryPlanRowFieldCommittedMonthly   = big.NewInt(1 << 13)
-	inventoryPlanRowFieldSavedMonthly       = big.NewInt(1 << 14)
-	inventoryPlanRowFieldUnusedMonthly      = big.NewInt(1 << 15)
-	inventoryPlanRowFieldPlanType           = big.NewInt(1 << 16)
-	inventoryPlanRowFieldCommitmentHourly   = big.NewInt(1 << 17)
-	inventoryPlanRowFieldRegion             = big.NewInt(1 << 18)
-	inventoryPlanRowFieldInstanceFamily     = big.NewInt(1 << 19)
-	inventoryPlanRowFieldProductTypes       = big.NewInt(1 << 20)
-	inventoryPlanRowFieldUpfront            = big.NewInt(1 << 21)
-	inventoryPlanRowFieldRecurringMonthly   = big.NewInt(1 << 22)
-	inventoryPlanRowFieldReturnableUntil    = big.NewInt(1 << 23)
+	inventoryPlanRowFieldEndAt              = big.NewInt(1 << 7)
+	inventoryPlanRowFieldEndIsDerived       = big.NewInt(1 << 8)
+	inventoryPlanRowFieldTermMonths         = big.NewInt(1 << 9)
+	inventoryPlanRowFieldCurrency           = big.NewInt(1 << 10)
+	inventoryPlanRowFieldArn                = big.NewInt(1 << 11)
+	inventoryPlanRowFieldTags               = big.NewInt(1 << 12)
+	inventoryPlanRowFieldTag                = big.NewInt(1 << 13)
+	inventoryPlanRowFieldProductDescription = big.NewInt(1 << 14)
+	inventoryPlanRowFieldCommittedMonthly   = big.NewInt(1 << 15)
+	inventoryPlanRowFieldSavedMonthly       = big.NewInt(1 << 16)
+	inventoryPlanRowFieldUnusedMonthly      = big.NewInt(1 << 17)
+	inventoryPlanRowFieldOnDemand           = big.NewInt(1 << 18)
+	inventoryPlanRowFieldPlanType           = big.NewInt(1 << 19)
+	inventoryPlanRowFieldCommitmentHourly   = big.NewInt(1 << 20)
+	inventoryPlanRowFieldRegion             = big.NewInt(1 << 21)
+	inventoryPlanRowFieldInstanceFamily     = big.NewInt(1 << 22)
+	inventoryPlanRowFieldProductTypes       = big.NewInt(1 << 23)
+	inventoryPlanRowFieldUpfront            = big.NewInt(1 << 24)
+	inventoryPlanRowFieldRecurringHourly    = big.NewInt(1 << 25)
+	inventoryPlanRowFieldRecurringMonthly   = big.NewInt(1 << 26)
+	inventoryPlanRowFieldReturnableUntil    = big.NewInt(1 << 27)
 )
 
 type InventoryPlanRow struct {
@@ -9017,21 +14542,25 @@ type InventoryPlanRow struct {
 	PaymentOption      string                `json:"payment_option" url:"payment_option"`
 	Start              string                `json:"start" url:"start"`
 	End                string                `json:"end" url:"end"`
+	EndAt              *string               `json:"end_at,omitempty" url:"end_at,omitempty"`
 	EndIsDerived       bool                  `json:"end_is_derived" url:"end_is_derived"`
 	TermMonths         int                   `json:"term_months" url:"term_months"`
 	Currency           *string               `json:"currency,omitempty" url:"currency,omitempty"`
 	Arn                *string               `json:"arn,omitempty" url:"arn,omitempty"`
 	Tags               map[string]*string    `json:"tags,omitempty" url:"tags,omitempty"`
+	Tag                *string               `json:"tag,omitempty" url:"tag,omitempty"`
 	ProductDescription *string               `json:"product_description,omitempty" url:"product_description,omitempty"`
 	CommittedMonthly   float64               `json:"committed_monthly" url:"committed_monthly"`
 	SavedMonthly       *float64              `json:"saved_monthly,omitempty" url:"saved_monthly,omitempty"`
 	UnusedMonthly      *float64              `json:"unused_monthly,omitempty" url:"unused_monthly,omitempty"`
+	OnDemand           *CommitmentOnDemand   `json:"on_demand,omitempty" url:"on_demand,omitempty"`
 	PlanType           string                `json:"plan_type" url:"plan_type"`
 	CommitmentHourly   float64               `json:"commitment_hourly" url:"commitment_hourly"`
 	Region             *string               `json:"region,omitempty" url:"region,omitempty"`
 	InstanceFamily     *string               `json:"instance_family,omitempty" url:"instance_family,omitempty"`
 	ProductTypes       []string              `json:"product_types" url:"product_types"`
 	Upfront            *float64              `json:"upfront,omitempty" url:"upfront,omitempty"`
+	RecurringHourly    *float64              `json:"recurring_hourly,omitempty" url:"recurring_hourly,omitempty"`
 	RecurringMonthly   *float64              `json:"recurring_monthly,omitempty" url:"recurring_monthly,omitempty"`
 	ReturnableUntil    *string               `json:"returnable_until,omitempty" url:"returnable_until,omitempty"`
 
@@ -9091,6 +14620,13 @@ func (i *InventoryPlanRow) GetEnd() string {
 	return i.End
 }
 
+func (i *InventoryPlanRow) GetEndAt() *string {
+	if i == nil {
+		return nil
+	}
+	return i.EndAt
+}
+
 func (i *InventoryPlanRow) GetEndIsDerived() bool {
 	if i == nil {
 		return false
@@ -9126,6 +14662,13 @@ func (i *InventoryPlanRow) GetTags() map[string]*string {
 	return i.Tags
 }
 
+func (i *InventoryPlanRow) GetTag() *string {
+	if i == nil {
+		return nil
+	}
+	return i.Tag
+}
+
 func (i *InventoryPlanRow) GetProductDescription() *string {
 	if i == nil {
 		return nil
@@ -9152,6 +14695,13 @@ func (i *InventoryPlanRow) GetUnusedMonthly() *float64 {
 		return nil
 	}
 	return i.UnusedMonthly
+}
+
+func (i *InventoryPlanRow) GetOnDemand() *CommitmentOnDemand {
+	if i == nil {
+		return nil
+	}
+	return i.OnDemand
 }
 
 func (i *InventoryPlanRow) GetPlanType() string {
@@ -9194,6 +14744,13 @@ func (i *InventoryPlanRow) GetUpfront() *float64 {
 		return nil
 	}
 	return i.Upfront
+}
+
+func (i *InventoryPlanRow) GetRecurringHourly() *float64 {
+	if i == nil {
+		return nil
+	}
+	return i.RecurringHourly
 }
 
 func (i *InventoryPlanRow) GetRecurringMonthly() *float64 {
@@ -9273,6 +14830,13 @@ func (i *InventoryPlanRow) SetEnd(end string) {
 	i.require(inventoryPlanRowFieldEnd)
 }
 
+// SetEndAt sets the EndAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InventoryPlanRow) SetEndAt(endAt *string) {
+	i.EndAt = endAt
+	i.require(inventoryPlanRowFieldEndAt)
+}
+
 // SetEndIsDerived sets the EndIsDerived field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (i *InventoryPlanRow) SetEndIsDerived(endIsDerived bool) {
@@ -9308,6 +14872,13 @@ func (i *InventoryPlanRow) SetTags(tags map[string]*string) {
 	i.require(inventoryPlanRowFieldTags)
 }
 
+// SetTag sets the Tag field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InventoryPlanRow) SetTag(tag *string) {
+	i.Tag = tag
+	i.require(inventoryPlanRowFieldTag)
+}
+
 // SetProductDescription sets the ProductDescription field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (i *InventoryPlanRow) SetProductDescription(productDescription *string) {
@@ -9334,6 +14905,13 @@ func (i *InventoryPlanRow) SetSavedMonthly(savedMonthly *float64) {
 func (i *InventoryPlanRow) SetUnusedMonthly(unusedMonthly *float64) {
 	i.UnusedMonthly = unusedMonthly
 	i.require(inventoryPlanRowFieldUnusedMonthly)
+}
+
+// SetOnDemand sets the OnDemand field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InventoryPlanRow) SetOnDemand(onDemand *CommitmentOnDemand) {
+	i.OnDemand = onDemand
+	i.require(inventoryPlanRowFieldOnDemand)
 }
 
 // SetPlanType sets the PlanType field and marks it as non-optional;
@@ -9376,6 +14954,13 @@ func (i *InventoryPlanRow) SetProductTypes(productTypes []string) {
 func (i *InventoryPlanRow) SetUpfront(upfront *float64) {
 	i.Upfront = upfront
 	i.require(inventoryPlanRowFieldUpfront)
+}
+
+// SetRecurringHourly sets the RecurringHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InventoryPlanRow) SetRecurringHourly(recurringHourly *float64) {
+	i.RecurringHourly = recurringHourly
+	i.require(inventoryPlanRowFieldRecurringHourly)
 }
 
 // SetRecurringMonthly sets the RecurringMonthly field and marks it as non-optional;
@@ -9473,29 +15058,33 @@ var (
 	inventoryReservationRowFieldPaymentOption      = big.NewInt(1 << 4)
 	inventoryReservationRowFieldStart              = big.NewInt(1 << 5)
 	inventoryReservationRowFieldEnd                = big.NewInt(1 << 6)
-	inventoryReservationRowFieldEndIsDerived       = big.NewInt(1 << 7)
-	inventoryReservationRowFieldTermMonths         = big.NewInt(1 << 8)
-	inventoryReservationRowFieldCurrency           = big.NewInt(1 << 9)
-	inventoryReservationRowFieldArn                = big.NewInt(1 << 10)
-	inventoryReservationRowFieldTags               = big.NewInt(1 << 11)
-	inventoryReservationRowFieldProductDescription = big.NewInt(1 << 12)
-	inventoryReservationRowFieldCommittedMonthly   = big.NewInt(1 << 13)
-	inventoryReservationRowFieldSavedMonthly       = big.NewInt(1 << 14)
-	inventoryReservationRowFieldUnusedMonthly      = big.NewInt(1 << 15)
-	inventoryReservationRowFieldService            = big.NewInt(1 << 16)
-	inventoryReservationRowFieldServiceLabel       = big.NewInt(1 << 17)
-	inventoryReservationRowFieldResource           = big.NewInt(1 << 18)
-	inventoryReservationRowFieldQty                = big.NewInt(1 << 19)
-	inventoryReservationRowFieldRegion             = big.NewInt(1 << 20)
-	inventoryReservationRowFieldFixedPrice         = big.NewInt(1 << 21)
-	inventoryReservationRowFieldRecurringHourly    = big.NewInt(1 << 22)
-	inventoryReservationRowFieldUsageHourly        = big.NewInt(1 << 23)
-	inventoryReservationRowFieldOfferingClass      = big.NewInt(1 << 24)
-	inventoryReservationRowFieldScope              = big.NewInt(1 << 25)
-	inventoryReservationRowFieldTenancy            = big.NewInt(1 << 26)
-	inventoryReservationRowFieldMultiAz            = big.NewInt(1 << 27)
-	inventoryReservationRowFieldNodeOffering       = big.NewInt(1 << 28)
-	inventoryReservationRowFieldReservationName    = big.NewInt(1 << 29)
+	inventoryReservationRowFieldEndAt              = big.NewInt(1 << 7)
+	inventoryReservationRowFieldEndIsDerived       = big.NewInt(1 << 8)
+	inventoryReservationRowFieldTermMonths         = big.NewInt(1 << 9)
+	inventoryReservationRowFieldCurrency           = big.NewInt(1 << 10)
+	inventoryReservationRowFieldArn                = big.NewInt(1 << 11)
+	inventoryReservationRowFieldTags               = big.NewInt(1 << 12)
+	inventoryReservationRowFieldTag                = big.NewInt(1 << 13)
+	inventoryReservationRowFieldProductDescription = big.NewInt(1 << 14)
+	inventoryReservationRowFieldCommittedMonthly   = big.NewInt(1 << 15)
+	inventoryReservationRowFieldSavedMonthly       = big.NewInt(1 << 16)
+	inventoryReservationRowFieldUnusedMonthly      = big.NewInt(1 << 17)
+	inventoryReservationRowFieldOnDemand           = big.NewInt(1 << 18)
+	inventoryReservationRowFieldService            = big.NewInt(1 << 19)
+	inventoryReservationRowFieldServiceLabel       = big.NewInt(1 << 20)
+	inventoryReservationRowFieldResource           = big.NewInt(1 << 21)
+	inventoryReservationRowFieldQty                = big.NewInt(1 << 22)
+	inventoryReservationRowFieldRegion             = big.NewInt(1 << 23)
+	inventoryReservationRowFieldFixedPrice         = big.NewInt(1 << 24)
+	inventoryReservationRowFieldRecurringHourly    = big.NewInt(1 << 25)
+	inventoryReservationRowFieldUsageHourly        = big.NewInt(1 << 26)
+	inventoryReservationRowFieldOfferingClass      = big.NewInt(1 << 27)
+	inventoryReservationRowFieldScope              = big.NewInt(1 << 28)
+	inventoryReservationRowFieldAvailabilityZone   = big.NewInt(1 << 29)
+	inventoryReservationRowFieldTenancy            = big.NewInt(1 << 30)
+	inventoryReservationRowFieldMultiAz            = big.NewInt(1 << 31)
+	inventoryReservationRowFieldNodeOffering       = big.NewInt(1 << 32)
+	inventoryReservationRowFieldReservationName    = big.NewInt(1 << 33)
 )
 
 type InventoryReservationRow struct {
@@ -9506,15 +15095,18 @@ type InventoryReservationRow struct {
 	PaymentOption      string                       `json:"payment_option" url:"payment_option"`
 	Start              string                       `json:"start" url:"start"`
 	End                string                       `json:"end" url:"end"`
+	EndAt              *string                      `json:"end_at,omitempty" url:"end_at,omitempty"`
 	EndIsDerived       bool                         `json:"end_is_derived" url:"end_is_derived"`
 	TermMonths         int                          `json:"term_months" url:"term_months"`
 	Currency           *string                      `json:"currency,omitempty" url:"currency,omitempty"`
 	Arn                *string                      `json:"arn,omitempty" url:"arn,omitempty"`
 	Tags               map[string]*string           `json:"tags,omitempty" url:"tags,omitempty"`
+	Tag                *string                      `json:"tag,omitempty" url:"tag,omitempty"`
 	ProductDescription *string                      `json:"product_description,omitempty" url:"product_description,omitempty"`
 	CommittedMonthly   float64                      `json:"committed_monthly" url:"committed_monthly"`
 	SavedMonthly       *float64                     `json:"saved_monthly,omitempty" url:"saved_monthly,omitempty"`
 	UnusedMonthly      *float64                     `json:"unused_monthly,omitempty" url:"unused_monthly,omitempty"`
+	OnDemand           *CommitmentOnDemand          `json:"on_demand,omitempty" url:"on_demand,omitempty"`
 	Service            string                       `json:"service" url:"service"`
 	ServiceLabel       string                       `json:"service_label" url:"service_label"`
 	Resource           string                       `json:"resource" url:"resource"`
@@ -9525,6 +15117,7 @@ type InventoryReservationRow struct {
 	UsageHourly        *float64                     `json:"usage_hourly,omitempty" url:"usage_hourly,omitempty"`
 	OfferingClass      *string                      `json:"offering_class,omitempty" url:"offering_class,omitempty"`
 	Scope              *string                      `json:"scope,omitempty" url:"scope,omitempty"`
+	AvailabilityZone   *string                      `json:"availability_zone,omitempty" url:"availability_zone,omitempty"`
 	Tenancy            *string                      `json:"tenancy,omitempty" url:"tenancy,omitempty"`
 	MultiAz            *bool                        `json:"multi_az,omitempty" url:"multi_az,omitempty"`
 	NodeOffering       *string                      `json:"node_offering,omitempty" url:"node_offering,omitempty"`
@@ -9586,6 +15179,13 @@ func (i *InventoryReservationRow) GetEnd() string {
 	return i.End
 }
 
+func (i *InventoryReservationRow) GetEndAt() *string {
+	if i == nil {
+		return nil
+	}
+	return i.EndAt
+}
+
 func (i *InventoryReservationRow) GetEndIsDerived() bool {
 	if i == nil {
 		return false
@@ -9621,6 +15221,13 @@ func (i *InventoryReservationRow) GetTags() map[string]*string {
 	return i.Tags
 }
 
+func (i *InventoryReservationRow) GetTag() *string {
+	if i == nil {
+		return nil
+	}
+	return i.Tag
+}
+
 func (i *InventoryReservationRow) GetProductDescription() *string {
 	if i == nil {
 		return nil
@@ -9647,6 +15254,13 @@ func (i *InventoryReservationRow) GetUnusedMonthly() *float64 {
 		return nil
 	}
 	return i.UnusedMonthly
+}
+
+func (i *InventoryReservationRow) GetOnDemand() *CommitmentOnDemand {
+	if i == nil {
+		return nil
+	}
+	return i.OnDemand
 }
 
 func (i *InventoryReservationRow) GetService() string {
@@ -9717,6 +15331,13 @@ func (i *InventoryReservationRow) GetScope() *string {
 		return nil
 	}
 	return i.Scope
+}
+
+func (i *InventoryReservationRow) GetAvailabilityZone() *string {
+	if i == nil {
+		return nil
+	}
+	return i.AvailabilityZone
 }
 
 func (i *InventoryReservationRow) GetTenancy() *string {
@@ -9810,6 +15431,13 @@ func (i *InventoryReservationRow) SetEnd(end string) {
 	i.require(inventoryReservationRowFieldEnd)
 }
 
+// SetEndAt sets the EndAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InventoryReservationRow) SetEndAt(endAt *string) {
+	i.EndAt = endAt
+	i.require(inventoryReservationRowFieldEndAt)
+}
+
 // SetEndIsDerived sets the EndIsDerived field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (i *InventoryReservationRow) SetEndIsDerived(endIsDerived bool) {
@@ -9845,6 +15473,13 @@ func (i *InventoryReservationRow) SetTags(tags map[string]*string) {
 	i.require(inventoryReservationRowFieldTags)
 }
 
+// SetTag sets the Tag field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InventoryReservationRow) SetTag(tag *string) {
+	i.Tag = tag
+	i.require(inventoryReservationRowFieldTag)
+}
+
 // SetProductDescription sets the ProductDescription field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (i *InventoryReservationRow) SetProductDescription(productDescription *string) {
@@ -9871,6 +15506,13 @@ func (i *InventoryReservationRow) SetSavedMonthly(savedMonthly *float64) {
 func (i *InventoryReservationRow) SetUnusedMonthly(unusedMonthly *float64) {
 	i.UnusedMonthly = unusedMonthly
 	i.require(inventoryReservationRowFieldUnusedMonthly)
+}
+
+// SetOnDemand sets the OnDemand field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InventoryReservationRow) SetOnDemand(onDemand *CommitmentOnDemand) {
+	i.OnDemand = onDemand
+	i.require(inventoryReservationRowFieldOnDemand)
 }
 
 // SetService sets the Service field and marks it as non-optional;
@@ -9941,6 +15583,13 @@ func (i *InventoryReservationRow) SetOfferingClass(offeringClass *string) {
 func (i *InventoryReservationRow) SetScope(scope *string) {
 	i.Scope = scope
 	i.require(inventoryReservationRowFieldScope)
+}
+
+// SetAvailabilityZone sets the AvailabilityZone field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InventoryReservationRow) SetAvailabilityZone(availabilityZone *string) {
+	i.AvailabilityZone = availabilityZone
+	i.require(inventoryReservationRowFieldAvailabilityZone)
 }
 
 // SetTenancy sets the Tenancy field and marks it as non-optional;
@@ -10042,6 +15691,5757 @@ func NewInventoryReservationRowStateFromString(s string) (InventoryReservationRo
 
 func (i InventoryReservationRowState) Ptr() *InventoryReservationRowState {
 	return &i
+}
+
+var (
+	purchaseAwsBenchmarkFieldHourlyCommitmentToPurchase = big.NewInt(1 << 0)
+	purchaseAwsBenchmarkFieldCap                        = big.NewInt(1 << 1)
+	purchaseAwsBenchmarkFieldCapBasis                   = big.NewInt(1 << 2)
+	purchaseAwsBenchmarkFieldCapApplied                 = big.NewInt(1 << 3)
+	purchaseAwsBenchmarkFieldLookbackDays               = big.NewInt(1 << 4)
+	purchaseAwsBenchmarkFieldFetchedOn                  = big.NewInt(1 << 5)
+	purchaseAwsBenchmarkFieldGeneratedAt                = big.NewInt(1 << 6)
+	purchaseAwsBenchmarkFieldMinHourlyOnDemand          = big.NewInt(1 << 7)
+	purchaseAwsBenchmarkFieldAvgHourlyOnDemand          = big.NewInt(1 << 8)
+	purchaseAwsBenchmarkFieldEstimatedUtilizationPct    = big.NewInt(1 << 9)
+	purchaseAwsBenchmarkFieldEstimatedMonthlySavings    = big.NewInt(1 << 10)
+	purchaseAwsBenchmarkFieldBasisCheckPct              = big.NewInt(1 << 11)
+	purchaseAwsBenchmarkFieldBasisCheckFlagged          = big.NewInt(1 << 12)
+	purchaseAwsBenchmarkFieldGap                        = big.NewInt(1 << 13)
+)
+
+type PurchaseAwsBenchmark struct {
+	HourlyCommitmentToPurchase float64                      `json:"hourly_commitment_to_purchase" url:"hourly_commitment_to_purchase"`
+	Cap                        float64                      `json:"cap" url:"cap"`
+	CapBasis                   PurchaseAwsBenchmarkCapBasis `json:"cap_basis" url:"cap_basis"`
+	CapApplied                 bool                         `json:"cap_applied" url:"cap_applied"`
+	LookbackDays               int                          `json:"lookback_days" url:"lookback_days"`
+	FetchedOn                  time.Time                    `json:"fetched_on" url:"fetched_on" format:"date"`
+	GeneratedAt                time.Time                    `json:"generated_at" url:"generated_at"`
+	MinHourlyOnDemand          *float64                     `json:"min_hourly_on_demand,omitempty" url:"min_hourly_on_demand,omitempty"`
+	AvgHourlyOnDemand          *float64                     `json:"avg_hourly_on_demand,omitempty" url:"avg_hourly_on_demand,omitempty"`
+	EstimatedUtilizationPct    *float64                     `json:"estimated_utilization_pct,omitempty" url:"estimated_utilization_pct,omitempty"`
+	EstimatedMonthlySavings    *float64                     `json:"estimated_monthly_savings,omitempty" url:"estimated_monthly_savings,omitempty"`
+	BasisCheckPct              *float64                     `json:"basis_check_pct,omitempty" url:"basis_check_pct,omitempty"`
+	BasisCheckFlagged          bool                         `json:"basis_check_flagged" url:"basis_check_flagged"`
+	Gap                        []*PurchaseGap               `json:"gap" url:"gap"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchaseAwsBenchmark) GetHourlyCommitmentToPurchase() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.HourlyCommitmentToPurchase
+}
+
+func (p *PurchaseAwsBenchmark) GetCap() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.Cap
+}
+
+func (p *PurchaseAwsBenchmark) GetCapBasis() PurchaseAwsBenchmarkCapBasis {
+	if p == nil {
+		return ""
+	}
+	return p.CapBasis
+}
+
+func (p *PurchaseAwsBenchmark) GetCapApplied() bool {
+	if p == nil {
+		return false
+	}
+	return p.CapApplied
+}
+
+func (p *PurchaseAwsBenchmark) GetLookbackDays() int {
+	if p == nil {
+		return 0
+	}
+	return p.LookbackDays
+}
+
+func (p *PurchaseAwsBenchmark) GetFetchedOn() time.Time {
+	if p == nil {
+		return time.Time{}
+	}
+	return p.FetchedOn
+}
+
+func (p *PurchaseAwsBenchmark) GetGeneratedAt() time.Time {
+	if p == nil {
+		return time.Time{}
+	}
+	return p.GeneratedAt
+}
+
+func (p *PurchaseAwsBenchmark) GetMinHourlyOnDemand() *float64 {
+	if p == nil {
+		return nil
+	}
+	return p.MinHourlyOnDemand
+}
+
+func (p *PurchaseAwsBenchmark) GetAvgHourlyOnDemand() *float64 {
+	if p == nil {
+		return nil
+	}
+	return p.AvgHourlyOnDemand
+}
+
+func (p *PurchaseAwsBenchmark) GetEstimatedUtilizationPct() *float64 {
+	if p == nil {
+		return nil
+	}
+	return p.EstimatedUtilizationPct
+}
+
+func (p *PurchaseAwsBenchmark) GetEstimatedMonthlySavings() *float64 {
+	if p == nil {
+		return nil
+	}
+	return p.EstimatedMonthlySavings
+}
+
+func (p *PurchaseAwsBenchmark) GetBasisCheckPct() *float64 {
+	if p == nil {
+		return nil
+	}
+	return p.BasisCheckPct
+}
+
+func (p *PurchaseAwsBenchmark) GetBasisCheckFlagged() bool {
+	if p == nil {
+		return false
+	}
+	return p.BasisCheckFlagged
+}
+
+func (p *PurchaseAwsBenchmark) GetGap() []*PurchaseGap {
+	if p == nil {
+		return nil
+	}
+	return p.Gap
+}
+
+func (p *PurchaseAwsBenchmark) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchaseAwsBenchmark) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetHourlyCommitmentToPurchase sets the HourlyCommitmentToPurchase field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseAwsBenchmark) SetHourlyCommitmentToPurchase(hourlyCommitmentToPurchase float64) {
+	p.HourlyCommitmentToPurchase = hourlyCommitmentToPurchase
+	p.require(purchaseAwsBenchmarkFieldHourlyCommitmentToPurchase)
+}
+
+// SetCap sets the Cap field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseAwsBenchmark) SetCap(cap float64) {
+	p.Cap = cap
+	p.require(purchaseAwsBenchmarkFieldCap)
+}
+
+// SetCapBasis sets the CapBasis field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseAwsBenchmark) SetCapBasis(capBasis PurchaseAwsBenchmarkCapBasis) {
+	p.CapBasis = capBasis
+	p.require(purchaseAwsBenchmarkFieldCapBasis)
+}
+
+// SetCapApplied sets the CapApplied field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseAwsBenchmark) SetCapApplied(capApplied bool) {
+	p.CapApplied = capApplied
+	p.require(purchaseAwsBenchmarkFieldCapApplied)
+}
+
+// SetLookbackDays sets the LookbackDays field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseAwsBenchmark) SetLookbackDays(lookbackDays int) {
+	p.LookbackDays = lookbackDays
+	p.require(purchaseAwsBenchmarkFieldLookbackDays)
+}
+
+// SetFetchedOn sets the FetchedOn field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseAwsBenchmark) SetFetchedOn(fetchedOn time.Time) {
+	p.FetchedOn = fetchedOn
+	p.require(purchaseAwsBenchmarkFieldFetchedOn)
+}
+
+// SetGeneratedAt sets the GeneratedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseAwsBenchmark) SetGeneratedAt(generatedAt time.Time) {
+	p.GeneratedAt = generatedAt
+	p.require(purchaseAwsBenchmarkFieldGeneratedAt)
+}
+
+// SetMinHourlyOnDemand sets the MinHourlyOnDemand field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseAwsBenchmark) SetMinHourlyOnDemand(minHourlyOnDemand *float64) {
+	p.MinHourlyOnDemand = minHourlyOnDemand
+	p.require(purchaseAwsBenchmarkFieldMinHourlyOnDemand)
+}
+
+// SetAvgHourlyOnDemand sets the AvgHourlyOnDemand field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseAwsBenchmark) SetAvgHourlyOnDemand(avgHourlyOnDemand *float64) {
+	p.AvgHourlyOnDemand = avgHourlyOnDemand
+	p.require(purchaseAwsBenchmarkFieldAvgHourlyOnDemand)
+}
+
+// SetEstimatedUtilizationPct sets the EstimatedUtilizationPct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseAwsBenchmark) SetEstimatedUtilizationPct(estimatedUtilizationPct *float64) {
+	p.EstimatedUtilizationPct = estimatedUtilizationPct
+	p.require(purchaseAwsBenchmarkFieldEstimatedUtilizationPct)
+}
+
+// SetEstimatedMonthlySavings sets the EstimatedMonthlySavings field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseAwsBenchmark) SetEstimatedMonthlySavings(estimatedMonthlySavings *float64) {
+	p.EstimatedMonthlySavings = estimatedMonthlySavings
+	p.require(purchaseAwsBenchmarkFieldEstimatedMonthlySavings)
+}
+
+// SetBasisCheckPct sets the BasisCheckPct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseAwsBenchmark) SetBasisCheckPct(basisCheckPct *float64) {
+	p.BasisCheckPct = basisCheckPct
+	p.require(purchaseAwsBenchmarkFieldBasisCheckPct)
+}
+
+// SetBasisCheckFlagged sets the BasisCheckFlagged field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseAwsBenchmark) SetBasisCheckFlagged(basisCheckFlagged bool) {
+	p.BasisCheckFlagged = basisCheckFlagged
+	p.require(purchaseAwsBenchmarkFieldBasisCheckFlagged)
+}
+
+// SetGap sets the Gap field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseAwsBenchmark) SetGap(gap []*PurchaseGap) {
+	p.Gap = gap
+	p.require(purchaseAwsBenchmarkFieldGap)
+}
+
+func (p *PurchaseAwsBenchmark) UnmarshalJSON(data []byte) error {
+	type embed PurchaseAwsBenchmark
+	var unmarshaler = struct {
+		embed
+		FetchedOn   *internal.Date     `json:"fetched_on"`
+		GeneratedAt *internal.DateTime `json:"generated_at"`
+	}{
+		embed: embed(*p),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*p = PurchaseAwsBenchmark(unmarshaler.embed)
+	p.FetchedOn = unmarshaler.FetchedOn.Time()
+	p.GeneratedAt = unmarshaler.GeneratedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchaseAwsBenchmark) MarshalJSON() ([]byte, error) {
+	type embed PurchaseAwsBenchmark
+	var marshaler = struct {
+		embed
+		FetchedOn   *internal.Date     `json:"fetched_on"`
+		GeneratedAt *internal.DateTime `json:"generated_at"`
+	}{
+		embed:       embed(*p),
+		FetchedOn:   internal.NewDate(p.FetchedOn),
+		GeneratedAt: internal.NewDateTime(p.GeneratedAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchaseAwsBenchmark) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+type PurchaseAwsBenchmarkCapBasis string
+
+const (
+	PurchaseAwsBenchmarkCapBasisDirect                   PurchaseAwsBenchmarkCapBasis = "direct"
+	PurchaseAwsBenchmarkCapBasisConvertedFrom12NoUpfront PurchaseAwsBenchmarkCapBasis = "converted_from_12_no_upfront"
+)
+
+func NewPurchaseAwsBenchmarkCapBasisFromString(s string) (PurchaseAwsBenchmarkCapBasis, error) {
+	switch s {
+	case "direct":
+		return PurchaseAwsBenchmarkCapBasisDirect, nil
+	case "converted_from_12_no_upfront":
+		return PurchaseAwsBenchmarkCapBasisConvertedFrom12NoUpfront, nil
+	}
+	var t PurchaseAwsBenchmarkCapBasis
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (p PurchaseAwsBenchmarkCapBasis) Ptr() *PurchaseAwsBenchmarkCapBasis {
+	return &p
+}
+
+var (
+	purchaseCandidateFieldCommitmentHourly = big.NewInt(1 << 0)
+)
+
+type PurchaseCandidate struct {
+	CommitmentHourly float64 `json:"commitment_hourly" url:"commitment_hourly"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchaseCandidate) GetCommitmentHourly() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.CommitmentHourly
+}
+
+func (p *PurchaseCandidate) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchaseCandidate) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetCommitmentHourly sets the CommitmentHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseCandidate) SetCommitmentHourly(commitmentHourly float64) {
+	p.CommitmentHourly = commitmentHourly
+	p.require(purchaseCandidateFieldCommitmentHourly)
+}
+
+func (p *PurchaseCandidate) UnmarshalJSON(data []byte) error {
+	type unmarshaler PurchaseCandidate
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*p = PurchaseCandidate(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchaseCandidate) MarshalJSON() ([]byte, error) {
+	type embed PurchaseCandidate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*p),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchaseCandidate) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+var (
+	purchaseClaimFieldSource           = big.NewInt(1 << 0)
+	purchaseClaimFieldReference        = big.NewInt(1 << 1)
+	purchaseClaimFieldCommitmentHourly = big.NewInt(1 << 2)
+	purchaseClaimFieldOnDemandHourly   = big.NewInt(1 << 3)
+	purchaseClaimFieldScope            = big.NewInt(1 << 4)
+	purchaseClaimFieldEffectiveFrom    = big.NewInt(1 << 5)
+)
+
+type PurchaseClaim struct {
+	Source           PurchaseClaimSource `json:"source" url:"source"`
+	Reference        string              `json:"reference" url:"reference"`
+	CommitmentHourly *float64            `json:"commitment_hourly,omitempty" url:"commitment_hourly,omitempty"`
+	OnDemandHourly   *float64            `json:"on_demand_hourly,omitempty" url:"on_demand_hourly,omitempty"`
+	Scope            *PurchaseClaimScope `json:"scope,omitempty" url:"scope,omitempty"`
+	EffectiveFrom    *time.Time          `json:"effective_from,omitempty" url:"effective_from,omitempty" format:"date"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchaseClaim) GetSource() PurchaseClaimSource {
+	if p == nil {
+		return ""
+	}
+	return p.Source
+}
+
+func (p *PurchaseClaim) GetReference() string {
+	if p == nil {
+		return ""
+	}
+	return p.Reference
+}
+
+func (p *PurchaseClaim) GetCommitmentHourly() *float64 {
+	if p == nil {
+		return nil
+	}
+	return p.CommitmentHourly
+}
+
+func (p *PurchaseClaim) GetOnDemandHourly() *float64 {
+	if p == nil {
+		return nil
+	}
+	return p.OnDemandHourly
+}
+
+func (p *PurchaseClaim) GetScope() *PurchaseClaimScope {
+	if p == nil {
+		return nil
+	}
+	return p.Scope
+}
+
+func (p *PurchaseClaim) GetEffectiveFrom() *time.Time {
+	if p == nil {
+		return nil
+	}
+	return p.EffectiveFrom
+}
+
+func (p *PurchaseClaim) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchaseClaim) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetSource sets the Source field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseClaim) SetSource(source PurchaseClaimSource) {
+	p.Source = source
+	p.require(purchaseClaimFieldSource)
+}
+
+// SetReference sets the Reference field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseClaim) SetReference(reference string) {
+	p.Reference = reference
+	p.require(purchaseClaimFieldReference)
+}
+
+// SetCommitmentHourly sets the CommitmentHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseClaim) SetCommitmentHourly(commitmentHourly *float64) {
+	p.CommitmentHourly = commitmentHourly
+	p.require(purchaseClaimFieldCommitmentHourly)
+}
+
+// SetOnDemandHourly sets the OnDemandHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseClaim) SetOnDemandHourly(onDemandHourly *float64) {
+	p.OnDemandHourly = onDemandHourly
+	p.require(purchaseClaimFieldOnDemandHourly)
+}
+
+// SetScope sets the Scope field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseClaim) SetScope(scope *PurchaseClaimScope) {
+	p.Scope = scope
+	p.require(purchaseClaimFieldScope)
+}
+
+// SetEffectiveFrom sets the EffectiveFrom field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseClaim) SetEffectiveFrom(effectiveFrom *time.Time) {
+	p.EffectiveFrom = effectiveFrom
+	p.require(purchaseClaimFieldEffectiveFrom)
+}
+
+func (p *PurchaseClaim) UnmarshalJSON(data []byte) error {
+	type embed PurchaseClaim
+	var unmarshaler = struct {
+		embed
+		EffectiveFrom *internal.Date `json:"effective_from,omitempty"`
+	}{
+		embed: embed(*p),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*p = PurchaseClaim(unmarshaler.embed)
+	p.EffectiveFrom = unmarshaler.EffectiveFrom.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchaseClaim) MarshalJSON() ([]byte, error) {
+	type embed PurchaseClaim
+	var marshaler = struct {
+		embed
+		EffectiveFrom *internal.Date `json:"effective_from,omitempty"`
+	}{
+		embed:         embed(*p),
+		EffectiveFrom: internal.NewOptionalDate(p.EffectiveFrom),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchaseClaim) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+var (
+	purchaseClaimScopeFieldFamily = big.NewInt(1 << 0)
+	purchaseClaimScopeFieldRegion = big.NewInt(1 << 1)
+)
+
+type PurchaseClaimScope struct {
+	Family string `json:"family" url:"family"`
+	Region string `json:"region" url:"region"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchaseClaimScope) GetFamily() string {
+	if p == nil {
+		return ""
+	}
+	return p.Family
+}
+
+func (p *PurchaseClaimScope) GetRegion() string {
+	if p == nil {
+		return ""
+	}
+	return p.Region
+}
+
+func (p *PurchaseClaimScope) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchaseClaimScope) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetFamily sets the Family field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseClaimScope) SetFamily(family string) {
+	p.Family = family
+	p.require(purchaseClaimScopeFieldFamily)
+}
+
+// SetRegion sets the Region field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseClaimScope) SetRegion(region string) {
+	p.Region = region
+	p.require(purchaseClaimScopeFieldRegion)
+}
+
+func (p *PurchaseClaimScope) UnmarshalJSON(data []byte) error {
+	type unmarshaler PurchaseClaimScope
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*p = PurchaseClaimScope(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchaseClaimScope) MarshalJSON() ([]byte, error) {
+	type embed PurchaseClaimScope
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*p),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchaseClaimScope) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+type PurchaseClaimSource string
+
+const (
+	PurchaseClaimSourceQueuedPlan        PurchaseClaimSource = "queued_plan"
+	PurchaseClaimSourceRecentPlan        PurchaseClaimSource = "recent_plan"
+	PurchaseClaimSourceAcceptedPurchase  PurchaseClaimSource = "accepted_purchase"
+	PurchaseClaimSourceRecentReservation PurchaseClaimSource = "recent_reservation"
+	PurchaseClaimSourceRenewalGrowth     PurchaseClaimSource = "renewal_growth"
+)
+
+func NewPurchaseClaimSourceFromString(s string) (PurchaseClaimSource, error) {
+	switch s {
+	case "queued_plan":
+		return PurchaseClaimSourceQueuedPlan, nil
+	case "recent_plan":
+		return PurchaseClaimSourceRecentPlan, nil
+	case "accepted_purchase":
+		return PurchaseClaimSourceAcceptedPurchase, nil
+	case "recent_reservation":
+		return PurchaseClaimSourceRecentReservation, nil
+	case "renewal_growth":
+		return PurchaseClaimSourceRenewalGrowth, nil
+	}
+	var t PurchaseClaimSource
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (p PurchaseClaimSource) Ptr() *PurchaseClaimSource {
+	return &p
+}
+
+var (
+	purchaseCurvePointFieldCommitmentHourly  = big.NewInt(1 << 0)
+	purchaseCurvePointFieldNetSavingsMonthly = big.NewInt(1 << 1)
+	purchaseCurvePointFieldUtilizationPct    = big.NewInt(1 << 2)
+)
+
+type PurchaseCurvePoint struct {
+	CommitmentHourly  float64  `json:"commitment_hourly" url:"commitment_hourly"`
+	NetSavingsMonthly float64  `json:"net_savings_monthly" url:"net_savings_monthly"`
+	UtilizationPct    *float64 `json:"utilization_pct,omitempty" url:"utilization_pct,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchaseCurvePoint) GetCommitmentHourly() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.CommitmentHourly
+}
+
+func (p *PurchaseCurvePoint) GetNetSavingsMonthly() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.NetSavingsMonthly
+}
+
+func (p *PurchaseCurvePoint) GetUtilizationPct() *float64 {
+	if p == nil {
+		return nil
+	}
+	return p.UtilizationPct
+}
+
+func (p *PurchaseCurvePoint) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchaseCurvePoint) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetCommitmentHourly sets the CommitmentHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseCurvePoint) SetCommitmentHourly(commitmentHourly float64) {
+	p.CommitmentHourly = commitmentHourly
+	p.require(purchaseCurvePointFieldCommitmentHourly)
+}
+
+// SetNetSavingsMonthly sets the NetSavingsMonthly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseCurvePoint) SetNetSavingsMonthly(netSavingsMonthly float64) {
+	p.NetSavingsMonthly = netSavingsMonthly
+	p.require(purchaseCurvePointFieldNetSavingsMonthly)
+}
+
+// SetUtilizationPct sets the UtilizationPct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseCurvePoint) SetUtilizationPct(utilizationPct *float64) {
+	p.UtilizationPct = utilizationPct
+	p.require(purchaseCurvePointFieldUtilizationPct)
+}
+
+func (p *PurchaseCurvePoint) UnmarshalJSON(data []byte) error {
+	type unmarshaler PurchaseCurvePoint
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*p = PurchaseCurvePoint(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchaseCurvePoint) MarshalJSON() ([]byte, error) {
+	type embed PurchaseCurvePoint
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*p),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchaseCurvePoint) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+var (
+	purchaseDayFieldDay                        = big.NewInt(1 << 0)
+	purchaseDayFieldEligibleOnDemand           = big.NewInt(1 << 1)
+	purchaseDayFieldCoveredOnDemand            = big.NewInt(1 << 2)
+	purchaseDayFieldUncoveredOnDemand          = big.NewInt(1 << 3)
+	purchaseDayFieldUsedCommitment             = big.NewInt(1 << 4)
+	purchaseDayFieldWastedCommitment           = big.NewInt(1 << 5)
+	purchaseDayFieldCommitmentEquivalentHourly = big.NewInt(1 << 6)
+)
+
+type PurchaseDay struct {
+	Day                        time.Time `json:"day" url:"day" format:"date"`
+	EligibleOnDemand           float64   `json:"eligible_on_demand" url:"eligible_on_demand"`
+	CoveredOnDemand            float64   `json:"covered_on_demand" url:"covered_on_demand"`
+	UncoveredOnDemand          float64   `json:"uncovered_on_demand" url:"uncovered_on_demand"`
+	UsedCommitment             float64   `json:"used_commitment" url:"used_commitment"`
+	WastedCommitment           float64   `json:"wasted_commitment" url:"wasted_commitment"`
+	CommitmentEquivalentHourly float64   `json:"commitment_equivalent_hourly" url:"commitment_equivalent_hourly"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchaseDay) GetDay() time.Time {
+	if p == nil {
+		return time.Time{}
+	}
+	return p.Day
+}
+
+func (p *PurchaseDay) GetEligibleOnDemand() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.EligibleOnDemand
+}
+
+func (p *PurchaseDay) GetCoveredOnDemand() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.CoveredOnDemand
+}
+
+func (p *PurchaseDay) GetUncoveredOnDemand() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.UncoveredOnDemand
+}
+
+func (p *PurchaseDay) GetUsedCommitment() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.UsedCommitment
+}
+
+func (p *PurchaseDay) GetWastedCommitment() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.WastedCommitment
+}
+
+func (p *PurchaseDay) GetCommitmentEquivalentHourly() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.CommitmentEquivalentHourly
+}
+
+func (p *PurchaseDay) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchaseDay) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetDay sets the Day field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseDay) SetDay(day time.Time) {
+	p.Day = day
+	p.require(purchaseDayFieldDay)
+}
+
+// SetEligibleOnDemand sets the EligibleOnDemand field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseDay) SetEligibleOnDemand(eligibleOnDemand float64) {
+	p.EligibleOnDemand = eligibleOnDemand
+	p.require(purchaseDayFieldEligibleOnDemand)
+}
+
+// SetCoveredOnDemand sets the CoveredOnDemand field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseDay) SetCoveredOnDemand(coveredOnDemand float64) {
+	p.CoveredOnDemand = coveredOnDemand
+	p.require(purchaseDayFieldCoveredOnDemand)
+}
+
+// SetUncoveredOnDemand sets the UncoveredOnDemand field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseDay) SetUncoveredOnDemand(uncoveredOnDemand float64) {
+	p.UncoveredOnDemand = uncoveredOnDemand
+	p.require(purchaseDayFieldUncoveredOnDemand)
+}
+
+// SetUsedCommitment sets the UsedCommitment field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseDay) SetUsedCommitment(usedCommitment float64) {
+	p.UsedCommitment = usedCommitment
+	p.require(purchaseDayFieldUsedCommitment)
+}
+
+// SetWastedCommitment sets the WastedCommitment field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseDay) SetWastedCommitment(wastedCommitment float64) {
+	p.WastedCommitment = wastedCommitment
+	p.require(purchaseDayFieldWastedCommitment)
+}
+
+// SetCommitmentEquivalentHourly sets the CommitmentEquivalentHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseDay) SetCommitmentEquivalentHourly(commitmentEquivalentHourly float64) {
+	p.CommitmentEquivalentHourly = commitmentEquivalentHourly
+	p.require(purchaseDayFieldCommitmentEquivalentHourly)
+}
+
+func (p *PurchaseDay) UnmarshalJSON(data []byte) error {
+	type embed PurchaseDay
+	var unmarshaler = struct {
+		embed
+		Day *internal.Date `json:"day"`
+	}{
+		embed: embed(*p),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*p = PurchaseDay(unmarshaler.embed)
+	p.Day = unmarshaler.Day.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchaseDay) MarshalJSON() ([]byte, error) {
+	type embed PurchaseDay
+	var marshaler = struct {
+		embed
+		Day *internal.Date `json:"day"`
+	}{
+		embed: embed(*p),
+		Day:   internal.NewDate(p.Day),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchaseDay) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+var (
+	purchaseExclusionFieldReason        = big.NewInt(1 << 0)
+	purchaseExclusionFieldOnDemandDaily = big.NewInt(1 << 1)
+)
+
+type PurchaseExclusion struct {
+	Reason        string  `json:"reason" url:"reason"`
+	OnDemandDaily float64 `json:"on_demand_daily" url:"on_demand_daily"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchaseExclusion) GetReason() string {
+	if p == nil {
+		return ""
+	}
+	return p.Reason
+}
+
+func (p *PurchaseExclusion) GetOnDemandDaily() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.OnDemandDaily
+}
+
+func (p *PurchaseExclusion) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchaseExclusion) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetReason sets the Reason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseExclusion) SetReason(reason string) {
+	p.Reason = reason
+	p.require(purchaseExclusionFieldReason)
+}
+
+// SetOnDemandDaily sets the OnDemandDaily field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseExclusion) SetOnDemandDaily(onDemandDaily float64) {
+	p.OnDemandDaily = onDemandDaily
+	p.require(purchaseExclusionFieldOnDemandDaily)
+}
+
+func (p *PurchaseExclusion) UnmarshalJSON(data []byte) error {
+	type unmarshaler PurchaseExclusion
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*p = PurchaseExclusion(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchaseExclusion) MarshalJSON() ([]byte, error) {
+	type embed PurchaseExclusion
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*p),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchaseExclusion) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+var (
+	purchaseGapFieldCode             = big.NewInt(1 << 0)
+	purchaseGapFieldCommitmentHourly = big.NewInt(1 << 1)
+)
+
+type PurchaseGap struct {
+	Code             PurchaseGapCode `json:"code" url:"code"`
+	CommitmentHourly *float64        `json:"commitment_hourly,omitempty" url:"commitment_hourly,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchaseGap) GetCode() PurchaseGapCode {
+	if p == nil {
+		return ""
+	}
+	return p.Code
+}
+
+func (p *PurchaseGap) GetCommitmentHourly() *float64 {
+	if p == nil {
+		return nil
+	}
+	return p.CommitmentHourly
+}
+
+func (p *PurchaseGap) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchaseGap) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetCode sets the Code field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseGap) SetCode(code PurchaseGapCode) {
+	p.Code = code
+	p.require(purchaseGapFieldCode)
+}
+
+// SetCommitmentHourly sets the CommitmentHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseGap) SetCommitmentHourly(commitmentHourly *float64) {
+	p.CommitmentHourly = commitmentHourly
+	p.require(purchaseGapFieldCommitmentHourly)
+}
+
+func (p *PurchaseGap) UnmarshalJSON(data []byte) error {
+	type unmarshaler PurchaseGap
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*p = PurchaseGap(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchaseGap) MarshalJSON() ([]byte, error) {
+	type embed PurchaseGap
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*p),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchaseGap) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+type PurchaseGapCode string
+
+const (
+	PurchaseGapCodeLedgerClaims     PurchaseGapCode = "ledger_claims"
+	PurchaseGapCodeEligibilityScope PurchaseGapCode = "eligibility_scope"
+	PurchaseGapCodeDailyGrain       PurchaseGapCode = "daily_grain"
+	PurchaseGapCodeLookbackEdge     PurchaseGapCode = "lookback_edge"
+)
+
+func NewPurchaseGapCodeFromString(s string) (PurchaseGapCode, error) {
+	switch s {
+	case "ledger_claims":
+		return PurchaseGapCodeLedgerClaims, nil
+	case "eligibility_scope":
+		return PurchaseGapCodeEligibilityScope, nil
+	case "daily_grain":
+		return PurchaseGapCodeDailyGrain, nil
+	case "lookback_edge":
+		return PurchaseGapCodeLookbackEdge, nil
+	}
+	var t PurchaseGapCode
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (p PurchaseGapCode) Ptr() *PurchaseGapCode {
+	return &p
+}
+
+var (
+	purchaseGuardFieldName    = big.NewInt(1 << 0)
+	purchaseGuardFieldLimit   = big.NewInt(1 << 1)
+	purchaseGuardFieldApplied = big.NewInt(1 << 2)
+	purchaseGuardFieldBasis   = big.NewInt(1 << 3)
+)
+
+type PurchaseGuard struct {
+	Name    string  `json:"name" url:"name"`
+	Limit   float64 `json:"limit" url:"limit"`
+	Applied bool    `json:"applied" url:"applied"`
+	Basis   string  `json:"basis" url:"basis"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchaseGuard) GetName() string {
+	if p == nil {
+		return ""
+	}
+	return p.Name
+}
+
+func (p *PurchaseGuard) GetLimit() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.Limit
+}
+
+func (p *PurchaseGuard) GetApplied() bool {
+	if p == nil {
+		return false
+	}
+	return p.Applied
+}
+
+func (p *PurchaseGuard) GetBasis() string {
+	if p == nil {
+		return ""
+	}
+	return p.Basis
+}
+
+func (p *PurchaseGuard) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchaseGuard) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseGuard) SetName(name string) {
+	p.Name = name
+	p.require(purchaseGuardFieldName)
+}
+
+// SetLimit sets the Limit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseGuard) SetLimit(limit float64) {
+	p.Limit = limit
+	p.require(purchaseGuardFieldLimit)
+}
+
+// SetApplied sets the Applied field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseGuard) SetApplied(applied bool) {
+	p.Applied = applied
+	p.require(purchaseGuardFieldApplied)
+}
+
+// SetBasis sets the Basis field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseGuard) SetBasis(basis string) {
+	p.Basis = basis
+	p.require(purchaseGuardFieldBasis)
+}
+
+func (p *PurchaseGuard) UnmarshalJSON(data []byte) error {
+	type unmarshaler PurchaseGuard
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*p = PurchaseGuard(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchaseGuard) MarshalJSON() ([]byte, error) {
+	type embed PurchaseGuard
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*p),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchaseGuard) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+var (
+	purchasePlanDataFieldUncovered = big.NewInt(1 << 0)
+	purchasePlanDataFieldProposals = big.NewInt(1 << 1)
+	purchasePlanDataFieldSchedule  = big.NewInt(1 << 2)
+)
+
+type PurchasePlanData struct {
+	Uncovered []*UncoveredSliceRow `json:"uncovered" url:"uncovered"`
+	Proposals []*PurchaseProposal  `json:"proposals" url:"proposals"`
+	Schedule  []*PurchaseTranche   `json:"schedule,omitempty" url:"schedule,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+	provider       string
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchasePlanData) GetUncovered() []*UncoveredSliceRow {
+	if p == nil {
+		return nil
+	}
+	return p.Uncovered
+}
+
+func (p *PurchasePlanData) GetProposals() []*PurchaseProposal {
+	if p == nil {
+		return nil
+	}
+	return p.Proposals
+}
+
+func (p *PurchasePlanData) GetSchedule() []*PurchaseTranche {
+	if p == nil {
+		return nil
+	}
+	return p.Schedule
+}
+
+func (p *PurchasePlanData) Provider() string {
+	return p.provider
+}
+
+func (p *PurchasePlanData) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchasePlanData) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetUncovered sets the Uncovered field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchasePlanData) SetUncovered(uncovered []*UncoveredSliceRow) {
+	p.Uncovered = uncovered
+	p.require(purchasePlanDataFieldUncovered)
+}
+
+// SetProposals sets the Proposals field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchasePlanData) SetProposals(proposals []*PurchaseProposal) {
+	p.Proposals = proposals
+	p.require(purchasePlanDataFieldProposals)
+}
+
+// SetSchedule sets the Schedule field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchasePlanData) SetSchedule(schedule []*PurchaseTranche) {
+	p.Schedule = schedule
+	p.require(purchasePlanDataFieldSchedule)
+}
+
+func (p *PurchasePlanData) UnmarshalJSON(data []byte) error {
+	type embed PurchasePlanData
+	var unmarshaler = struct {
+		embed
+		Provider string `json:"provider"`
+	}{
+		embed: embed(*p),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*p = PurchasePlanData(unmarshaler.embed)
+	if unmarshaler.Provider != "aws" {
+		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", p, "aws", unmarshaler.Provider)
+	}
+	p.provider = unmarshaler.Provider
+	extraProperties, err := internal.ExtractExtraProperties(data, *p, "provider")
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchasePlanData) MarshalJSON() ([]byte, error) {
+	type embed PurchasePlanData
+	var marshaler = struct {
+		embed
+		Provider string `json:"provider"`
+	}{
+		embed:    embed(*p),
+		Provider: "aws",
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchasePlanData) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+var (
+	purchasePlanResponseFieldSuccess   = big.NewInt(1 << 0)
+	purchasePlanResponseFieldTimestamp = big.NewInt(1 << 1)
+	purchasePlanResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type PurchasePlanResponse struct {
+	Success   *bool             `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time        `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *PurchasePlanData `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchasePlanResponse) GetSuccess() *bool {
+	if p == nil {
+		return nil
+	}
+	return p.Success
+}
+
+func (p *PurchasePlanResponse) GetTimestamp() *time.Time {
+	if p == nil {
+		return nil
+	}
+	return p.Timestamp
+}
+
+func (p *PurchasePlanResponse) GetData() *PurchasePlanData {
+	if p == nil {
+		return nil
+	}
+	return p.Data
+}
+
+func (p *PurchasePlanResponse) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchasePlanResponse) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchasePlanResponse) SetSuccess(success *bool) {
+	p.Success = success
+	p.require(purchasePlanResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchasePlanResponse) SetTimestamp(timestamp *time.Time) {
+	p.Timestamp = timestamp
+	p.require(purchasePlanResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchasePlanResponse) SetData(data *PurchasePlanData) {
+	p.Data = data
+	p.require(purchasePlanResponseFieldData)
+}
+
+func (p *PurchasePlanResponse) UnmarshalJSON(data []byte) error {
+	type embed PurchasePlanResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*p),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*p = PurchasePlanResponse(unmarshaler.embed)
+	p.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchasePlanResponse) MarshalJSON() ([]byte, error) {
+	type embed PurchasePlanResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*p),
+		Timestamp: internal.NewOptionalDateTime(p.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchasePlanResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+var (
+	purchaseProfileFieldCommitmentHourly             = big.NewInt(1 << 0)
+	purchaseProfileFieldUncappedHourly               = big.NewInt(1 << 1)
+	purchaseProfileFieldPercentile                   = big.NewInt(1 << 2)
+	purchaseProfileFieldCappedBy                     = big.NewInt(1 << 3)
+	purchaseProfileFieldUtilizationPct               = big.NewInt(1 << 4)
+	purchaseProfileFieldCoveragePct                  = big.NewInt(1 << 5)
+	purchaseProfileFieldNetSavingsMonthly            = big.NewInt(1 << 6)
+	purchaseProfileFieldNetSavingsMonthlyAtYourRates = big.NewInt(1 << 7)
+)
+
+type PurchaseProfile struct {
+	CommitmentHourly             float64  `json:"commitment_hourly" url:"commitment_hourly"`
+	UncappedHourly               float64  `json:"uncapped_hourly" url:"uncapped_hourly"`
+	Percentile                   float64  `json:"percentile" url:"percentile"`
+	CappedBy                     []string `json:"capped_by" url:"capped_by"`
+	UtilizationPct               *float64 `json:"utilization_pct,omitempty" url:"utilization_pct,omitempty"`
+	CoveragePct                  *float64 `json:"coverage_pct,omitempty" url:"coverage_pct,omitempty"`
+	NetSavingsMonthly            float64  `json:"net_savings_monthly" url:"net_savings_monthly"`
+	NetSavingsMonthlyAtYourRates float64  `json:"net_savings_monthly_at_your_rates" url:"net_savings_monthly_at_your_rates"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchaseProfile) GetCommitmentHourly() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.CommitmentHourly
+}
+
+func (p *PurchaseProfile) GetUncappedHourly() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.UncappedHourly
+}
+
+func (p *PurchaseProfile) GetPercentile() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.Percentile
+}
+
+func (p *PurchaseProfile) GetCappedBy() []string {
+	if p == nil {
+		return nil
+	}
+	return p.CappedBy
+}
+
+func (p *PurchaseProfile) GetUtilizationPct() *float64 {
+	if p == nil {
+		return nil
+	}
+	return p.UtilizationPct
+}
+
+func (p *PurchaseProfile) GetCoveragePct() *float64 {
+	if p == nil {
+		return nil
+	}
+	return p.CoveragePct
+}
+
+func (p *PurchaseProfile) GetNetSavingsMonthly() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.NetSavingsMonthly
+}
+
+func (p *PurchaseProfile) GetNetSavingsMonthlyAtYourRates() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.NetSavingsMonthlyAtYourRates
+}
+
+func (p *PurchaseProfile) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchaseProfile) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetCommitmentHourly sets the CommitmentHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProfile) SetCommitmentHourly(commitmentHourly float64) {
+	p.CommitmentHourly = commitmentHourly
+	p.require(purchaseProfileFieldCommitmentHourly)
+}
+
+// SetUncappedHourly sets the UncappedHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProfile) SetUncappedHourly(uncappedHourly float64) {
+	p.UncappedHourly = uncappedHourly
+	p.require(purchaseProfileFieldUncappedHourly)
+}
+
+// SetPercentile sets the Percentile field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProfile) SetPercentile(percentile float64) {
+	p.Percentile = percentile
+	p.require(purchaseProfileFieldPercentile)
+}
+
+// SetCappedBy sets the CappedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProfile) SetCappedBy(cappedBy []string) {
+	p.CappedBy = cappedBy
+	p.require(purchaseProfileFieldCappedBy)
+}
+
+// SetUtilizationPct sets the UtilizationPct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProfile) SetUtilizationPct(utilizationPct *float64) {
+	p.UtilizationPct = utilizationPct
+	p.require(purchaseProfileFieldUtilizationPct)
+}
+
+// SetCoveragePct sets the CoveragePct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProfile) SetCoveragePct(coveragePct *float64) {
+	p.CoveragePct = coveragePct
+	p.require(purchaseProfileFieldCoveragePct)
+}
+
+// SetNetSavingsMonthly sets the NetSavingsMonthly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProfile) SetNetSavingsMonthly(netSavingsMonthly float64) {
+	p.NetSavingsMonthly = netSavingsMonthly
+	p.require(purchaseProfileFieldNetSavingsMonthly)
+}
+
+// SetNetSavingsMonthlyAtYourRates sets the NetSavingsMonthlyAtYourRates field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProfile) SetNetSavingsMonthlyAtYourRates(netSavingsMonthlyAtYourRates float64) {
+	p.NetSavingsMonthlyAtYourRates = netSavingsMonthlyAtYourRates
+	p.require(purchaseProfileFieldNetSavingsMonthlyAtYourRates)
+}
+
+func (p *PurchaseProfile) UnmarshalJSON(data []byte) error {
+	type unmarshaler PurchaseProfile
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*p = PurchaseProfile(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchaseProfile) MarshalJSON() ([]byte, error) {
+	type embed PurchaseProfile
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*p),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchaseProfile) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+var (
+	purchaseProfilesFieldConservative = big.NewInt(1 << 0)
+	purchaseProfilesFieldBalanced     = big.NewInt(1 << 1)
+	purchaseProfilesFieldMaxSavings   = big.NewInt(1 << 2)
+)
+
+type PurchaseProfiles struct {
+	Conservative *PurchaseProfile `json:"conservative" url:"conservative"`
+	Balanced     *PurchaseProfile `json:"balanced" url:"balanced"`
+	MaxSavings   *PurchaseProfile `json:"max_savings" url:"max_savings"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchaseProfiles) GetConservative() *PurchaseProfile {
+	if p == nil {
+		return nil
+	}
+	return p.Conservative
+}
+
+func (p *PurchaseProfiles) GetBalanced() *PurchaseProfile {
+	if p == nil {
+		return nil
+	}
+	return p.Balanced
+}
+
+func (p *PurchaseProfiles) GetMaxSavings() *PurchaseProfile {
+	if p == nil {
+		return nil
+	}
+	return p.MaxSavings
+}
+
+func (p *PurchaseProfiles) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchaseProfiles) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetConservative sets the Conservative field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProfiles) SetConservative(conservative *PurchaseProfile) {
+	p.Conservative = conservative
+	p.require(purchaseProfilesFieldConservative)
+}
+
+// SetBalanced sets the Balanced field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProfiles) SetBalanced(balanced *PurchaseProfile) {
+	p.Balanced = balanced
+	p.require(purchaseProfilesFieldBalanced)
+}
+
+// SetMaxSavings sets the MaxSavings field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProfiles) SetMaxSavings(maxSavings *PurchaseProfile) {
+	p.MaxSavings = maxSavings
+	p.require(purchaseProfilesFieldMaxSavings)
+}
+
+func (p *PurchaseProfiles) UnmarshalJSON(data []byte) error {
+	type unmarshaler PurchaseProfiles
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*p = PurchaseProfiles(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchaseProfiles) MarshalJSON() ([]byte, error) {
+	type embed PurchaseProfiles
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*p),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchaseProfiles) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+var (
+	purchaseProposalFieldGrain              = big.NewInt(1 << 0)
+	purchaseProposalFieldSource             = big.NewInt(1 << 1)
+	purchaseProposalFieldBasis              = big.NewInt(1 << 2)
+	purchaseProposalFieldCurrency           = big.NewInt(1 << 3)
+	purchaseProposalFieldPayerAccountID     = big.NewInt(1 << 4)
+	purchaseProposalFieldPlanType           = big.NewInt(1 << 5)
+	purchaseProposalFieldTermMonths         = big.NewInt(1 << 6)
+	purchaseProposalFieldPaymentOption      = big.NewInt(1 << 7)
+	purchaseProposalFieldUnavailableReason  = big.NewInt(1 << 8)
+	purchaseProposalFieldWindow             = big.NewInt(1 << 9)
+	purchaseProposalFieldCaveats            = big.NewInt(1 << 10)
+	purchaseProposalFieldProfiles           = big.NewInt(1 << 11)
+	purchaseProposalFieldProfilesInverted   = big.NewInt(1 << 12)
+	purchaseProposalFieldGuards             = big.NewInt(1 << 13)
+	purchaseProposalFieldAws                = big.NewInt(1 << 14)
+	purchaseProposalFieldLedger             = big.NewInt(1 << 15)
+	purchaseProposalFieldLedgerHourly       = big.NewInt(1 << 16)
+	purchaseProposalFieldStaleClaims        = big.NewInt(1 << 17)
+	purchaseProposalFieldUnmappedHolders    = big.NewInt(1 << 18)
+	purchaseProposalFieldWindowChanges      = big.NewInt(1 << 19)
+	purchaseProposalFieldExcluded           = big.NewInt(1 << 20)
+	purchaseProposalFieldRecommendedProfile = big.NewInt(1 << 21)
+	purchaseProposalFieldRaised             = big.NewInt(1 << 22)
+)
+
+type PurchaseProposal struct {
+	Grain              *string                            `json:"grain,omitempty" url:"grain,omitempty"`
+	Source             *string                            `json:"source,omitempty" url:"source,omitempty"`
+	Basis              *string                            `json:"basis,omitempty" url:"basis,omitempty"`
+	Currency           *string                            `json:"currency,omitempty" url:"currency,omitempty"`
+	PayerAccountID     *string                            `json:"payer_account_id,omitempty" url:"payer_account_id,omitempty"`
+	PlanType           PurchaseProposalPlanType           `json:"plan_type" url:"plan_type"`
+	TermMonths         int                                `json:"term_months" url:"term_months"`
+	PaymentOption      PurchaseProposalPaymentOption      `json:"payment_option" url:"payment_option"`
+	UnavailableReason  *PurchaseProposalUnavailableReason `json:"unavailable_reason,omitempty" url:"unavailable_reason,omitempty"`
+	Window             *PurchaseWindow                    `json:"window,omitempty" url:"window,omitempty"`
+	Caveats            []string                           `json:"caveats" url:"caveats"`
+	Profiles           *PurchaseProfiles                  `json:"profiles,omitempty" url:"profiles,omitempty"`
+	ProfilesInverted   *bool                              `json:"profiles_inverted,omitempty" url:"profiles_inverted,omitempty"`
+	Guards             []*PurchaseGuard                   `json:"guards,omitempty" url:"guards,omitempty"`
+	Aws                *PurchaseAwsBenchmark              `json:"aws,omitempty" url:"aws,omitempty"`
+	Ledger             []*PurchaseClaim                   `json:"ledger,omitempty" url:"ledger,omitempty"`
+	LedgerHourly       *float64                           `json:"ledger_hourly,omitempty" url:"ledger_hourly,omitempty"`
+	StaleClaims        []*PurchaseStaleClaim              `json:"stale_claims,omitempty" url:"stale_claims,omitempty"`
+	UnmappedHolders    []string                           `json:"unmapped_holders,omitempty" url:"unmapped_holders,omitempty"`
+	WindowChanges      []*PurchaseWindowChange            `json:"window_changes,omitempty" url:"window_changes,omitempty"`
+	Excluded           []*PurchaseExclusion               `json:"excluded,omitempty" url:"excluded,omitempty"`
+	RecommendedProfile *string                            `json:"recommended_profile,omitempty" url:"recommended_profile,omitempty"`
+	Raised             *PurchaseRaised                    `json:"raised,omitempty" url:"raised,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchaseProposal) GetPayerAccountID() *string {
+	if p == nil {
+		return nil
+	}
+	return p.PayerAccountID
+}
+
+func (p *PurchaseProposal) GetPlanType() PurchaseProposalPlanType {
+	if p == nil {
+		return ""
+	}
+	return p.PlanType
+}
+
+func (p *PurchaseProposal) GetTermMonths() int {
+	if p == nil {
+		return 0
+	}
+	return p.TermMonths
+}
+
+func (p *PurchaseProposal) GetPaymentOption() PurchaseProposalPaymentOption {
+	if p == nil {
+		return ""
+	}
+	return p.PaymentOption
+}
+
+func (p *PurchaseProposal) GetUnavailableReason() *PurchaseProposalUnavailableReason {
+	if p == nil {
+		return nil
+	}
+	return p.UnavailableReason
+}
+
+func (p *PurchaseProposal) GetWindow() *PurchaseWindow {
+	if p == nil {
+		return nil
+	}
+	return p.Window
+}
+
+func (p *PurchaseProposal) GetCaveats() []string {
+	if p == nil {
+		return nil
+	}
+	return p.Caveats
+}
+
+func (p *PurchaseProposal) GetProfiles() *PurchaseProfiles {
+	if p == nil {
+		return nil
+	}
+	return p.Profiles
+}
+
+func (p *PurchaseProposal) GetProfilesInverted() *bool {
+	if p == nil {
+		return nil
+	}
+	return p.ProfilesInverted
+}
+
+func (p *PurchaseProposal) GetGuards() []*PurchaseGuard {
+	if p == nil {
+		return nil
+	}
+	return p.Guards
+}
+
+func (p *PurchaseProposal) GetAws() *PurchaseAwsBenchmark {
+	if p == nil {
+		return nil
+	}
+	return p.Aws
+}
+
+func (p *PurchaseProposal) GetLedger() []*PurchaseClaim {
+	if p == nil {
+		return nil
+	}
+	return p.Ledger
+}
+
+func (p *PurchaseProposal) GetLedgerHourly() *float64 {
+	if p == nil {
+		return nil
+	}
+	return p.LedgerHourly
+}
+
+func (p *PurchaseProposal) GetStaleClaims() []*PurchaseStaleClaim {
+	if p == nil {
+		return nil
+	}
+	return p.StaleClaims
+}
+
+func (p *PurchaseProposal) GetUnmappedHolders() []string {
+	if p == nil {
+		return nil
+	}
+	return p.UnmappedHolders
+}
+
+func (p *PurchaseProposal) GetWindowChanges() []*PurchaseWindowChange {
+	if p == nil {
+		return nil
+	}
+	return p.WindowChanges
+}
+
+func (p *PurchaseProposal) GetExcluded() []*PurchaseExclusion {
+	if p == nil {
+		return nil
+	}
+	return p.Excluded
+}
+
+func (p *PurchaseProposal) GetRaised() *PurchaseRaised {
+	if p == nil {
+		return nil
+	}
+	return p.Raised
+}
+
+func (p *PurchaseProposal) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchaseProposal) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetGrain sets the Grain field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetGrain(grain *string) {
+	p.Grain = grain
+	p.require(purchaseProposalFieldGrain)
+}
+
+// SetSource sets the Source field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetSource(source *string) {
+	p.Source = source
+	p.require(purchaseProposalFieldSource)
+}
+
+// SetBasis sets the Basis field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetBasis(basis *string) {
+	p.Basis = basis
+	p.require(purchaseProposalFieldBasis)
+}
+
+// SetCurrency sets the Currency field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetCurrency(currency *string) {
+	p.Currency = currency
+	p.require(purchaseProposalFieldCurrency)
+}
+
+// SetPayerAccountID sets the PayerAccountID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetPayerAccountID(payerAccountID *string) {
+	p.PayerAccountID = payerAccountID
+	p.require(purchaseProposalFieldPayerAccountID)
+}
+
+// SetPlanType sets the PlanType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetPlanType(planType PurchaseProposalPlanType) {
+	p.PlanType = planType
+	p.require(purchaseProposalFieldPlanType)
+}
+
+// SetTermMonths sets the TermMonths field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetTermMonths(termMonths int) {
+	p.TermMonths = termMonths
+	p.require(purchaseProposalFieldTermMonths)
+}
+
+// SetPaymentOption sets the PaymentOption field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetPaymentOption(paymentOption PurchaseProposalPaymentOption) {
+	p.PaymentOption = paymentOption
+	p.require(purchaseProposalFieldPaymentOption)
+}
+
+// SetUnavailableReason sets the UnavailableReason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetUnavailableReason(unavailableReason *PurchaseProposalUnavailableReason) {
+	p.UnavailableReason = unavailableReason
+	p.require(purchaseProposalFieldUnavailableReason)
+}
+
+// SetWindow sets the Window field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetWindow(window *PurchaseWindow) {
+	p.Window = window
+	p.require(purchaseProposalFieldWindow)
+}
+
+// SetCaveats sets the Caveats field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetCaveats(caveats []string) {
+	p.Caveats = caveats
+	p.require(purchaseProposalFieldCaveats)
+}
+
+// SetProfiles sets the Profiles field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetProfiles(profiles *PurchaseProfiles) {
+	p.Profiles = profiles
+	p.require(purchaseProposalFieldProfiles)
+}
+
+// SetProfilesInverted sets the ProfilesInverted field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetProfilesInverted(profilesInverted *bool) {
+	p.ProfilesInverted = profilesInverted
+	p.require(purchaseProposalFieldProfilesInverted)
+}
+
+// SetGuards sets the Guards field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetGuards(guards []*PurchaseGuard) {
+	p.Guards = guards
+	p.require(purchaseProposalFieldGuards)
+}
+
+// SetAws sets the Aws field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetAws(aws *PurchaseAwsBenchmark) {
+	p.Aws = aws
+	p.require(purchaseProposalFieldAws)
+}
+
+// SetLedger sets the Ledger field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetLedger(ledger []*PurchaseClaim) {
+	p.Ledger = ledger
+	p.require(purchaseProposalFieldLedger)
+}
+
+// SetLedgerHourly sets the LedgerHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetLedgerHourly(ledgerHourly *float64) {
+	p.LedgerHourly = ledgerHourly
+	p.require(purchaseProposalFieldLedgerHourly)
+}
+
+// SetStaleClaims sets the StaleClaims field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetStaleClaims(staleClaims []*PurchaseStaleClaim) {
+	p.StaleClaims = staleClaims
+	p.require(purchaseProposalFieldStaleClaims)
+}
+
+// SetUnmappedHolders sets the UnmappedHolders field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetUnmappedHolders(unmappedHolders []string) {
+	p.UnmappedHolders = unmappedHolders
+	p.require(purchaseProposalFieldUnmappedHolders)
+}
+
+// SetWindowChanges sets the WindowChanges field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetWindowChanges(windowChanges []*PurchaseWindowChange) {
+	p.WindowChanges = windowChanges
+	p.require(purchaseProposalFieldWindowChanges)
+}
+
+// SetExcluded sets the Excluded field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetExcluded(excluded []*PurchaseExclusion) {
+	p.Excluded = excluded
+	p.require(purchaseProposalFieldExcluded)
+}
+
+// SetRecommendedProfile sets the RecommendedProfile field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetRecommendedProfile(recommendedProfile *string) {
+	p.RecommendedProfile = recommendedProfile
+	p.require(purchaseProposalFieldRecommendedProfile)
+}
+
+// SetRaised sets the Raised field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseProposal) SetRaised(raised *PurchaseRaised) {
+	p.Raised = raised
+	p.require(purchaseProposalFieldRaised)
+}
+
+func (p *PurchaseProposal) UnmarshalJSON(data []byte) error {
+	type unmarshaler PurchaseProposal
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*p = PurchaseProposal(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchaseProposal) MarshalJSON() ([]byte, error) {
+	type embed PurchaseProposal
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*p),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchaseProposal) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+type PurchaseProposalPaymentOption string
+
+const (
+	PurchaseProposalPaymentOptionAllUpfront     PurchaseProposalPaymentOption = "all_upfront"
+	PurchaseProposalPaymentOptionPartialUpfront PurchaseProposalPaymentOption = "partial_upfront"
+	PurchaseProposalPaymentOptionNoUpfront      PurchaseProposalPaymentOption = "no_upfront"
+)
+
+func NewPurchaseProposalPaymentOptionFromString(s string) (PurchaseProposalPaymentOption, error) {
+	switch s {
+	case "all_upfront":
+		return PurchaseProposalPaymentOptionAllUpfront, nil
+	case "partial_upfront":
+		return PurchaseProposalPaymentOptionPartialUpfront, nil
+	case "no_upfront":
+		return PurchaseProposalPaymentOptionNoUpfront, nil
+	}
+	var t PurchaseProposalPaymentOption
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (p PurchaseProposalPaymentOption) Ptr() *PurchaseProposalPaymentOption {
+	return &p
+}
+
+type PurchaseProposalPlanType string
+
+const (
+	PurchaseProposalPlanTypeCompute  PurchaseProposalPlanType = "compute"
+	PurchaseProposalPlanTypeDatabase PurchaseProposalPlanType = "database"
+)
+
+func NewPurchaseProposalPlanTypeFromString(s string) (PurchaseProposalPlanType, error) {
+	switch s {
+	case "compute":
+		return PurchaseProposalPlanTypeCompute, nil
+	case "database":
+		return PurchaseProposalPlanTypeDatabase, nil
+	}
+	var t PurchaseProposalPlanType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (p PurchaseProposalPlanType) Ptr() *PurchaseProposalPlanType {
+	return &p
+}
+
+type PurchaseProposalUnavailableReason string
+
+const (
+	PurchaseProposalUnavailableReasonSchemaPending        PurchaseProposalUnavailableReason = "schema_pending"
+	PurchaseProposalUnavailableReasonNoCur                PurchaseProposalUnavailableReason = "no_cur"
+	PurchaseProposalUnavailableReasonInsufficientHistory  PurchaseProposalUnavailableReason = "insufficient_history"
+	PurchaseProposalUnavailableReasonRatesPending         PurchaseProposalUnavailableReason = "rates_pending"
+	PurchaseProposalUnavailableReasonPayerNotConnected    PurchaseProposalUnavailableReason = "payer_not_connected"
+	PurchaseProposalUnavailableReasonNoOnDemandEquivalent PurchaseProposalUnavailableReason = "no_on_demand_equivalent"
+)
+
+func NewPurchaseProposalUnavailableReasonFromString(s string) (PurchaseProposalUnavailableReason, error) {
+	switch s {
+	case "schema_pending":
+		return PurchaseProposalUnavailableReasonSchemaPending, nil
+	case "no_cur":
+		return PurchaseProposalUnavailableReasonNoCur, nil
+	case "insufficient_history":
+		return PurchaseProposalUnavailableReasonInsufficientHistory, nil
+	case "rates_pending":
+		return PurchaseProposalUnavailableReasonRatesPending, nil
+	case "payer_not_connected":
+		return PurchaseProposalUnavailableReasonPayerNotConnected, nil
+	case "no_on_demand_equivalent":
+		return PurchaseProposalUnavailableReasonNoOnDemandEquivalent, nil
+	}
+	var t PurchaseProposalUnavailableReason
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (p PurchaseProposalUnavailableReason) Ptr() *PurchaseProposalUnavailableReason {
+	return &p
+}
+
+var (
+	purchaseRaisedFieldRecommendationID = big.NewInt(1 << 0)
+	purchaseRaisedFieldCommitmentHourly = big.NewInt(1 << 1)
+	purchaseRaisedFieldProfile          = big.NewInt(1 << 2)
+	purchaseRaisedFieldCreatedAt        = big.NewInt(1 << 3)
+)
+
+type PurchaseRaised struct {
+	RecommendationID string                 `json:"recommendation_id" url:"recommendation_id"`
+	CommitmentHourly float64                `json:"commitment_hourly" url:"commitment_hourly"`
+	Profile          *PurchaseRaisedProfile `json:"profile,omitempty" url:"profile,omitempty"`
+	CreatedAt        time.Time              `json:"created_at" url:"created_at"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchaseRaised) GetRecommendationID() string {
+	if p == nil {
+		return ""
+	}
+	return p.RecommendationID
+}
+
+func (p *PurchaseRaised) GetCommitmentHourly() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.CommitmentHourly
+}
+
+func (p *PurchaseRaised) GetProfile() *PurchaseRaisedProfile {
+	if p == nil {
+		return nil
+	}
+	return p.Profile
+}
+
+func (p *PurchaseRaised) GetCreatedAt() time.Time {
+	if p == nil {
+		return time.Time{}
+	}
+	return p.CreatedAt
+}
+
+func (p *PurchaseRaised) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchaseRaised) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetRecommendationID sets the RecommendationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseRaised) SetRecommendationID(recommendationID string) {
+	p.RecommendationID = recommendationID
+	p.require(purchaseRaisedFieldRecommendationID)
+}
+
+// SetCommitmentHourly sets the CommitmentHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseRaised) SetCommitmentHourly(commitmentHourly float64) {
+	p.CommitmentHourly = commitmentHourly
+	p.require(purchaseRaisedFieldCommitmentHourly)
+}
+
+// SetProfile sets the Profile field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseRaised) SetProfile(profile *PurchaseRaisedProfile) {
+	p.Profile = profile
+	p.require(purchaseRaisedFieldProfile)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseRaised) SetCreatedAt(createdAt time.Time) {
+	p.CreatedAt = createdAt
+	p.require(purchaseRaisedFieldCreatedAt)
+}
+
+func (p *PurchaseRaised) UnmarshalJSON(data []byte) error {
+	type embed PurchaseRaised
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"created_at"`
+	}{
+		embed: embed(*p),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*p = PurchaseRaised(unmarshaler.embed)
+	p.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchaseRaised) MarshalJSON() ([]byte, error) {
+	type embed PurchaseRaised
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"created_at"`
+	}{
+		embed:     embed(*p),
+		CreatedAt: internal.NewDateTime(p.CreatedAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchaseRaised) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+type PurchaseRaisedProfile string
+
+const (
+	PurchaseRaisedProfileConservative PurchaseRaisedProfile = "conservative"
+	PurchaseRaisedProfileBalanced     PurchaseRaisedProfile = "balanced"
+	PurchaseRaisedProfileMaxSavings   PurchaseRaisedProfile = "max_savings"
+)
+
+func NewPurchaseRaisedProfileFromString(s string) (PurchaseRaisedProfile, error) {
+	switch s {
+	case "conservative":
+		return PurchaseRaisedProfileConservative, nil
+	case "balanced":
+		return PurchaseRaisedProfileBalanced, nil
+	case "max_savings":
+		return PurchaseRaisedProfileMaxSavings, nil
+	}
+	var t PurchaseRaisedProfile
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (p PurchaseRaisedProfile) Ptr() *PurchaseRaisedProfile {
+	return &p
+}
+
+var (
+	purchaseSimulationDataFieldGrain             = big.NewInt(1 << 0)
+	purchaseSimulationDataFieldSource            = big.NewInt(1 << 1)
+	purchaseSimulationDataFieldBasis             = big.NewInt(1 << 2)
+	purchaseSimulationDataFieldCurrency          = big.NewInt(1 << 3)
+	purchaseSimulationDataFieldPayerAccountID    = big.NewInt(1 << 4)
+	purchaseSimulationDataFieldPlanType          = big.NewInt(1 << 5)
+	purchaseSimulationDataFieldTermMonths        = big.NewInt(1 << 6)
+	purchaseSimulationDataFieldPaymentOption     = big.NewInt(1 << 7)
+	purchaseSimulationDataFieldUnavailableReason = big.NewInt(1 << 8)
+	purchaseSimulationDataFieldWindow            = big.NewInt(1 << 9)
+	purchaseSimulationDataFieldCaveats           = big.NewInt(1 << 10)
+	purchaseSimulationDataFieldProfiles          = big.NewInt(1 << 11)
+	purchaseSimulationDataFieldProfilesInverted  = big.NewInt(1 << 12)
+	purchaseSimulationDataFieldGuards            = big.NewInt(1 << 13)
+	purchaseSimulationDataFieldAws               = big.NewInt(1 << 14)
+	purchaseSimulationDataFieldLedger            = big.NewInt(1 << 15)
+	purchaseSimulationDataFieldLedgerHourly      = big.NewInt(1 << 16)
+	purchaseSimulationDataFieldStaleClaims       = big.NewInt(1 << 17)
+	purchaseSimulationDataFieldUnmappedHolders   = big.NewInt(1 << 18)
+	purchaseSimulationDataFieldWindowChanges     = big.NewInt(1 << 19)
+	purchaseSimulationDataFieldExcluded          = big.NewInt(1 << 20)
+	purchaseSimulationDataFieldCandidate         = big.NewInt(1 << 21)
+	purchaseSimulationDataFieldTotals            = big.NewInt(1 << 22)
+	purchaseSimulationDataFieldSeries            = big.NewInt(1 << 23)
+	purchaseSimulationDataFieldCurve             = big.NewInt(1 << 24)
+)
+
+type PurchaseSimulationData struct {
+	Grain             *string                                  `json:"grain,omitempty" url:"grain,omitempty"`
+	Source            *string                                  `json:"source,omitempty" url:"source,omitempty"`
+	Basis             *string                                  `json:"basis,omitempty" url:"basis,omitempty"`
+	Currency          *string                                  `json:"currency,omitempty" url:"currency,omitempty"`
+	PayerAccountID    *string                                  `json:"payer_account_id,omitempty" url:"payer_account_id,omitempty"`
+	PlanType          PurchaseSimulationDataPlanType           `json:"plan_type" url:"plan_type"`
+	TermMonths        int                                      `json:"term_months" url:"term_months"`
+	PaymentOption     PurchaseSimulationDataPaymentOption      `json:"payment_option" url:"payment_option"`
+	UnavailableReason *PurchaseSimulationDataUnavailableReason `json:"unavailable_reason,omitempty" url:"unavailable_reason,omitempty"`
+	Window            *PurchaseWindow                          `json:"window,omitempty" url:"window,omitempty"`
+	Caveats           []string                                 `json:"caveats" url:"caveats"`
+	Profiles          *PurchaseProfiles                        `json:"profiles,omitempty" url:"profiles,omitempty"`
+	ProfilesInverted  *bool                                    `json:"profiles_inverted,omitempty" url:"profiles_inverted,omitempty"`
+	Guards            []*PurchaseGuard                         `json:"guards,omitempty" url:"guards,omitempty"`
+	Aws               *PurchaseAwsBenchmark                    `json:"aws,omitempty" url:"aws,omitempty"`
+	Ledger            []*PurchaseClaim                         `json:"ledger,omitempty" url:"ledger,omitempty"`
+	LedgerHourly      *float64                                 `json:"ledger_hourly,omitempty" url:"ledger_hourly,omitempty"`
+	StaleClaims       []*PurchaseStaleClaim                    `json:"stale_claims,omitempty" url:"stale_claims,omitempty"`
+	UnmappedHolders   []string                                 `json:"unmapped_holders,omitempty" url:"unmapped_holders,omitempty"`
+	WindowChanges     []*PurchaseWindowChange                  `json:"window_changes,omitempty" url:"window_changes,omitempty"`
+	Excluded          []*PurchaseExclusion                     `json:"excluded,omitempty" url:"excluded,omitempty"`
+	Candidate         *PurchaseCandidate                       `json:"candidate" url:"candidate"`
+	Totals            *PurchaseTotals                          `json:"totals,omitempty" url:"totals,omitempty"`
+	Series            []*PurchaseDay                           `json:"series,omitempty" url:"series,omitempty"`
+	Curve             []*PurchaseCurvePoint                    `json:"curve,omitempty" url:"curve,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchaseSimulationData) GetPayerAccountID() *string {
+	if p == nil {
+		return nil
+	}
+	return p.PayerAccountID
+}
+
+func (p *PurchaseSimulationData) GetPlanType() PurchaseSimulationDataPlanType {
+	if p == nil {
+		return ""
+	}
+	return p.PlanType
+}
+
+func (p *PurchaseSimulationData) GetTermMonths() int {
+	if p == nil {
+		return 0
+	}
+	return p.TermMonths
+}
+
+func (p *PurchaseSimulationData) GetPaymentOption() PurchaseSimulationDataPaymentOption {
+	if p == nil {
+		return ""
+	}
+	return p.PaymentOption
+}
+
+func (p *PurchaseSimulationData) GetUnavailableReason() *PurchaseSimulationDataUnavailableReason {
+	if p == nil {
+		return nil
+	}
+	return p.UnavailableReason
+}
+
+func (p *PurchaseSimulationData) GetWindow() *PurchaseWindow {
+	if p == nil {
+		return nil
+	}
+	return p.Window
+}
+
+func (p *PurchaseSimulationData) GetCaveats() []string {
+	if p == nil {
+		return nil
+	}
+	return p.Caveats
+}
+
+func (p *PurchaseSimulationData) GetProfiles() *PurchaseProfiles {
+	if p == nil {
+		return nil
+	}
+	return p.Profiles
+}
+
+func (p *PurchaseSimulationData) GetProfilesInverted() *bool {
+	if p == nil {
+		return nil
+	}
+	return p.ProfilesInverted
+}
+
+func (p *PurchaseSimulationData) GetGuards() []*PurchaseGuard {
+	if p == nil {
+		return nil
+	}
+	return p.Guards
+}
+
+func (p *PurchaseSimulationData) GetAws() *PurchaseAwsBenchmark {
+	if p == nil {
+		return nil
+	}
+	return p.Aws
+}
+
+func (p *PurchaseSimulationData) GetLedger() []*PurchaseClaim {
+	if p == nil {
+		return nil
+	}
+	return p.Ledger
+}
+
+func (p *PurchaseSimulationData) GetLedgerHourly() *float64 {
+	if p == nil {
+		return nil
+	}
+	return p.LedgerHourly
+}
+
+func (p *PurchaseSimulationData) GetStaleClaims() []*PurchaseStaleClaim {
+	if p == nil {
+		return nil
+	}
+	return p.StaleClaims
+}
+
+func (p *PurchaseSimulationData) GetUnmappedHolders() []string {
+	if p == nil {
+		return nil
+	}
+	return p.UnmappedHolders
+}
+
+func (p *PurchaseSimulationData) GetWindowChanges() []*PurchaseWindowChange {
+	if p == nil {
+		return nil
+	}
+	return p.WindowChanges
+}
+
+func (p *PurchaseSimulationData) GetExcluded() []*PurchaseExclusion {
+	if p == nil {
+		return nil
+	}
+	return p.Excluded
+}
+
+func (p *PurchaseSimulationData) GetCandidate() *PurchaseCandidate {
+	if p == nil {
+		return nil
+	}
+	return p.Candidate
+}
+
+func (p *PurchaseSimulationData) GetTotals() *PurchaseTotals {
+	if p == nil {
+		return nil
+	}
+	return p.Totals
+}
+
+func (p *PurchaseSimulationData) GetSeries() []*PurchaseDay {
+	if p == nil {
+		return nil
+	}
+	return p.Series
+}
+
+func (p *PurchaseSimulationData) GetCurve() []*PurchaseCurvePoint {
+	if p == nil {
+		return nil
+	}
+	return p.Curve
+}
+
+func (p *PurchaseSimulationData) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchaseSimulationData) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetGrain sets the Grain field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetGrain(grain *string) {
+	p.Grain = grain
+	p.require(purchaseSimulationDataFieldGrain)
+}
+
+// SetSource sets the Source field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetSource(source *string) {
+	p.Source = source
+	p.require(purchaseSimulationDataFieldSource)
+}
+
+// SetBasis sets the Basis field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetBasis(basis *string) {
+	p.Basis = basis
+	p.require(purchaseSimulationDataFieldBasis)
+}
+
+// SetCurrency sets the Currency field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetCurrency(currency *string) {
+	p.Currency = currency
+	p.require(purchaseSimulationDataFieldCurrency)
+}
+
+// SetPayerAccountID sets the PayerAccountID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetPayerAccountID(payerAccountID *string) {
+	p.PayerAccountID = payerAccountID
+	p.require(purchaseSimulationDataFieldPayerAccountID)
+}
+
+// SetPlanType sets the PlanType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetPlanType(planType PurchaseSimulationDataPlanType) {
+	p.PlanType = planType
+	p.require(purchaseSimulationDataFieldPlanType)
+}
+
+// SetTermMonths sets the TermMonths field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetTermMonths(termMonths int) {
+	p.TermMonths = termMonths
+	p.require(purchaseSimulationDataFieldTermMonths)
+}
+
+// SetPaymentOption sets the PaymentOption field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetPaymentOption(paymentOption PurchaseSimulationDataPaymentOption) {
+	p.PaymentOption = paymentOption
+	p.require(purchaseSimulationDataFieldPaymentOption)
+}
+
+// SetUnavailableReason sets the UnavailableReason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetUnavailableReason(unavailableReason *PurchaseSimulationDataUnavailableReason) {
+	p.UnavailableReason = unavailableReason
+	p.require(purchaseSimulationDataFieldUnavailableReason)
+}
+
+// SetWindow sets the Window field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetWindow(window *PurchaseWindow) {
+	p.Window = window
+	p.require(purchaseSimulationDataFieldWindow)
+}
+
+// SetCaveats sets the Caveats field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetCaveats(caveats []string) {
+	p.Caveats = caveats
+	p.require(purchaseSimulationDataFieldCaveats)
+}
+
+// SetProfiles sets the Profiles field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetProfiles(profiles *PurchaseProfiles) {
+	p.Profiles = profiles
+	p.require(purchaseSimulationDataFieldProfiles)
+}
+
+// SetProfilesInverted sets the ProfilesInverted field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetProfilesInverted(profilesInverted *bool) {
+	p.ProfilesInverted = profilesInverted
+	p.require(purchaseSimulationDataFieldProfilesInverted)
+}
+
+// SetGuards sets the Guards field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetGuards(guards []*PurchaseGuard) {
+	p.Guards = guards
+	p.require(purchaseSimulationDataFieldGuards)
+}
+
+// SetAws sets the Aws field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetAws(aws *PurchaseAwsBenchmark) {
+	p.Aws = aws
+	p.require(purchaseSimulationDataFieldAws)
+}
+
+// SetLedger sets the Ledger field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetLedger(ledger []*PurchaseClaim) {
+	p.Ledger = ledger
+	p.require(purchaseSimulationDataFieldLedger)
+}
+
+// SetLedgerHourly sets the LedgerHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetLedgerHourly(ledgerHourly *float64) {
+	p.LedgerHourly = ledgerHourly
+	p.require(purchaseSimulationDataFieldLedgerHourly)
+}
+
+// SetStaleClaims sets the StaleClaims field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetStaleClaims(staleClaims []*PurchaseStaleClaim) {
+	p.StaleClaims = staleClaims
+	p.require(purchaseSimulationDataFieldStaleClaims)
+}
+
+// SetUnmappedHolders sets the UnmappedHolders field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetUnmappedHolders(unmappedHolders []string) {
+	p.UnmappedHolders = unmappedHolders
+	p.require(purchaseSimulationDataFieldUnmappedHolders)
+}
+
+// SetWindowChanges sets the WindowChanges field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetWindowChanges(windowChanges []*PurchaseWindowChange) {
+	p.WindowChanges = windowChanges
+	p.require(purchaseSimulationDataFieldWindowChanges)
+}
+
+// SetExcluded sets the Excluded field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetExcluded(excluded []*PurchaseExclusion) {
+	p.Excluded = excluded
+	p.require(purchaseSimulationDataFieldExcluded)
+}
+
+// SetCandidate sets the Candidate field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetCandidate(candidate *PurchaseCandidate) {
+	p.Candidate = candidate
+	p.require(purchaseSimulationDataFieldCandidate)
+}
+
+// SetTotals sets the Totals field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetTotals(totals *PurchaseTotals) {
+	p.Totals = totals
+	p.require(purchaseSimulationDataFieldTotals)
+}
+
+// SetSeries sets the Series field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetSeries(series []*PurchaseDay) {
+	p.Series = series
+	p.require(purchaseSimulationDataFieldSeries)
+}
+
+// SetCurve sets the Curve field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationData) SetCurve(curve []*PurchaseCurvePoint) {
+	p.Curve = curve
+	p.require(purchaseSimulationDataFieldCurve)
+}
+
+func (p *PurchaseSimulationData) UnmarshalJSON(data []byte) error {
+	type unmarshaler PurchaseSimulationData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*p = PurchaseSimulationData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchaseSimulationData) MarshalJSON() ([]byte, error) {
+	type embed PurchaseSimulationData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*p),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchaseSimulationData) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+type PurchaseSimulationDataPaymentOption string
+
+const (
+	PurchaseSimulationDataPaymentOptionAllUpfront     PurchaseSimulationDataPaymentOption = "all_upfront"
+	PurchaseSimulationDataPaymentOptionPartialUpfront PurchaseSimulationDataPaymentOption = "partial_upfront"
+	PurchaseSimulationDataPaymentOptionNoUpfront      PurchaseSimulationDataPaymentOption = "no_upfront"
+)
+
+func NewPurchaseSimulationDataPaymentOptionFromString(s string) (PurchaseSimulationDataPaymentOption, error) {
+	switch s {
+	case "all_upfront":
+		return PurchaseSimulationDataPaymentOptionAllUpfront, nil
+	case "partial_upfront":
+		return PurchaseSimulationDataPaymentOptionPartialUpfront, nil
+	case "no_upfront":
+		return PurchaseSimulationDataPaymentOptionNoUpfront, nil
+	}
+	var t PurchaseSimulationDataPaymentOption
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (p PurchaseSimulationDataPaymentOption) Ptr() *PurchaseSimulationDataPaymentOption {
+	return &p
+}
+
+type PurchaseSimulationDataPlanType string
+
+const (
+	PurchaseSimulationDataPlanTypeCompute  PurchaseSimulationDataPlanType = "compute"
+	PurchaseSimulationDataPlanTypeDatabase PurchaseSimulationDataPlanType = "database"
+)
+
+func NewPurchaseSimulationDataPlanTypeFromString(s string) (PurchaseSimulationDataPlanType, error) {
+	switch s {
+	case "compute":
+		return PurchaseSimulationDataPlanTypeCompute, nil
+	case "database":
+		return PurchaseSimulationDataPlanTypeDatabase, nil
+	}
+	var t PurchaseSimulationDataPlanType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (p PurchaseSimulationDataPlanType) Ptr() *PurchaseSimulationDataPlanType {
+	return &p
+}
+
+type PurchaseSimulationDataUnavailableReason string
+
+const (
+	PurchaseSimulationDataUnavailableReasonSchemaPending        PurchaseSimulationDataUnavailableReason = "schema_pending"
+	PurchaseSimulationDataUnavailableReasonNoCur                PurchaseSimulationDataUnavailableReason = "no_cur"
+	PurchaseSimulationDataUnavailableReasonInsufficientHistory  PurchaseSimulationDataUnavailableReason = "insufficient_history"
+	PurchaseSimulationDataUnavailableReasonRatesPending         PurchaseSimulationDataUnavailableReason = "rates_pending"
+	PurchaseSimulationDataUnavailableReasonPayerNotConnected    PurchaseSimulationDataUnavailableReason = "payer_not_connected"
+	PurchaseSimulationDataUnavailableReasonNoOnDemandEquivalent PurchaseSimulationDataUnavailableReason = "no_on_demand_equivalent"
+)
+
+func NewPurchaseSimulationDataUnavailableReasonFromString(s string) (PurchaseSimulationDataUnavailableReason, error) {
+	switch s {
+	case "schema_pending":
+		return PurchaseSimulationDataUnavailableReasonSchemaPending, nil
+	case "no_cur":
+		return PurchaseSimulationDataUnavailableReasonNoCur, nil
+	case "insufficient_history":
+		return PurchaseSimulationDataUnavailableReasonInsufficientHistory, nil
+	case "rates_pending":
+		return PurchaseSimulationDataUnavailableReasonRatesPending, nil
+	case "payer_not_connected":
+		return PurchaseSimulationDataUnavailableReasonPayerNotConnected, nil
+	case "no_on_demand_equivalent":
+		return PurchaseSimulationDataUnavailableReasonNoOnDemandEquivalent, nil
+	}
+	var t PurchaseSimulationDataUnavailableReason
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (p PurchaseSimulationDataUnavailableReason) Ptr() *PurchaseSimulationDataUnavailableReason {
+	return &p
+}
+
+var (
+	purchaseSimulationResponseFieldSuccess   = big.NewInt(1 << 0)
+	purchaseSimulationResponseFieldTimestamp = big.NewInt(1 << 1)
+	purchaseSimulationResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type PurchaseSimulationResponse struct {
+	Success   *bool                   `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time              `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *PurchaseSimulationData `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchaseSimulationResponse) GetSuccess() *bool {
+	if p == nil {
+		return nil
+	}
+	return p.Success
+}
+
+func (p *PurchaseSimulationResponse) GetTimestamp() *time.Time {
+	if p == nil {
+		return nil
+	}
+	return p.Timestamp
+}
+
+func (p *PurchaseSimulationResponse) GetData() *PurchaseSimulationData {
+	if p == nil {
+		return nil
+	}
+	return p.Data
+}
+
+func (p *PurchaseSimulationResponse) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchaseSimulationResponse) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationResponse) SetSuccess(success *bool) {
+	p.Success = success
+	p.require(purchaseSimulationResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationResponse) SetTimestamp(timestamp *time.Time) {
+	p.Timestamp = timestamp
+	p.require(purchaseSimulationResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSimulationResponse) SetData(data *PurchaseSimulationData) {
+	p.Data = data
+	p.require(purchaseSimulationResponseFieldData)
+}
+
+func (p *PurchaseSimulationResponse) UnmarshalJSON(data []byte) error {
+	type embed PurchaseSimulationResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*p),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*p = PurchaseSimulationResponse(unmarshaler.embed)
+	p.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchaseSimulationResponse) MarshalJSON() ([]byte, error) {
+	type embed PurchaseSimulationResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*p),
+		Timestamp: internal.NewOptionalDateTime(p.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchaseSimulationResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+var (
+	purchaseStaleClaimFieldReference        = big.NewInt(1 << 0)
+	purchaseStaleClaimFieldCommitmentHourly = big.NewInt(1 << 1)
+	purchaseStaleClaimFieldAcceptedDaysAgo  = big.NewInt(1 << 2)
+)
+
+type PurchaseStaleClaim struct {
+	Reference        string  `json:"reference" url:"reference"`
+	CommitmentHourly float64 `json:"commitment_hourly" url:"commitment_hourly"`
+	AcceptedDaysAgo  int     `json:"accepted_days_ago" url:"accepted_days_ago"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchaseStaleClaim) GetReference() string {
+	if p == nil {
+		return ""
+	}
+	return p.Reference
+}
+
+func (p *PurchaseStaleClaim) GetCommitmentHourly() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.CommitmentHourly
+}
+
+func (p *PurchaseStaleClaim) GetAcceptedDaysAgo() int {
+	if p == nil {
+		return 0
+	}
+	return p.AcceptedDaysAgo
+}
+
+func (p *PurchaseStaleClaim) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchaseStaleClaim) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetReference sets the Reference field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseStaleClaim) SetReference(reference string) {
+	p.Reference = reference
+	p.require(purchaseStaleClaimFieldReference)
+}
+
+// SetCommitmentHourly sets the CommitmentHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseStaleClaim) SetCommitmentHourly(commitmentHourly float64) {
+	p.CommitmentHourly = commitmentHourly
+	p.require(purchaseStaleClaimFieldCommitmentHourly)
+}
+
+// SetAcceptedDaysAgo sets the AcceptedDaysAgo field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseStaleClaim) SetAcceptedDaysAgo(acceptedDaysAgo int) {
+	p.AcceptedDaysAgo = acceptedDaysAgo
+	p.require(purchaseStaleClaimFieldAcceptedDaysAgo)
+}
+
+func (p *PurchaseStaleClaim) UnmarshalJSON(data []byte) error {
+	type unmarshaler PurchaseStaleClaim
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*p = PurchaseStaleClaim(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchaseStaleClaim) MarshalJSON() ([]byte, error) {
+	type embed PurchaseStaleClaim
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*p),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchaseStaleClaim) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+var (
+	purchaseTotalsFieldEligibleOnDemand             = big.NewInt(1 << 0)
+	purchaseTotalsFieldCoveredOnDemand              = big.NewInt(1 << 1)
+	purchaseTotalsFieldUncoveredOnDemand            = big.NewInt(1 << 2)
+	purchaseTotalsFieldCommitmentCost               = big.NewInt(1 << 3)
+	purchaseTotalsFieldUsedCommitment               = big.NewInt(1 << 4)
+	purchaseTotalsFieldWastedCommitment             = big.NewInt(1 << 5)
+	purchaseTotalsFieldUtilizationPct               = big.NewInt(1 << 6)
+	purchaseTotalsFieldCoveragePct                  = big.NewInt(1 << 7)
+	purchaseTotalsFieldNetSavingsMonthly            = big.NewInt(1 << 8)
+	purchaseTotalsFieldNetSavingsMonthlyAtYourRates = big.NewInt(1 << 9)
+)
+
+type PurchaseTotals struct {
+	EligibleOnDemand             float64  `json:"eligible_on_demand" url:"eligible_on_demand"`
+	CoveredOnDemand              float64  `json:"covered_on_demand" url:"covered_on_demand"`
+	UncoveredOnDemand            float64  `json:"uncovered_on_demand" url:"uncovered_on_demand"`
+	CommitmentCost               float64  `json:"commitment_cost" url:"commitment_cost"`
+	UsedCommitment               float64  `json:"used_commitment" url:"used_commitment"`
+	WastedCommitment             float64  `json:"wasted_commitment" url:"wasted_commitment"`
+	UtilizationPct               *float64 `json:"utilization_pct,omitempty" url:"utilization_pct,omitempty"`
+	CoveragePct                  *float64 `json:"coverage_pct,omitempty" url:"coverage_pct,omitempty"`
+	NetSavingsMonthly            float64  `json:"net_savings_monthly" url:"net_savings_monthly"`
+	NetSavingsMonthlyAtYourRates float64  `json:"net_savings_monthly_at_your_rates" url:"net_savings_monthly_at_your_rates"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchaseTotals) GetEligibleOnDemand() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.EligibleOnDemand
+}
+
+func (p *PurchaseTotals) GetCoveredOnDemand() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.CoveredOnDemand
+}
+
+func (p *PurchaseTotals) GetUncoveredOnDemand() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.UncoveredOnDemand
+}
+
+func (p *PurchaseTotals) GetCommitmentCost() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.CommitmentCost
+}
+
+func (p *PurchaseTotals) GetUsedCommitment() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.UsedCommitment
+}
+
+func (p *PurchaseTotals) GetWastedCommitment() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.WastedCommitment
+}
+
+func (p *PurchaseTotals) GetUtilizationPct() *float64 {
+	if p == nil {
+		return nil
+	}
+	return p.UtilizationPct
+}
+
+func (p *PurchaseTotals) GetCoveragePct() *float64 {
+	if p == nil {
+		return nil
+	}
+	return p.CoveragePct
+}
+
+func (p *PurchaseTotals) GetNetSavingsMonthly() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.NetSavingsMonthly
+}
+
+func (p *PurchaseTotals) GetNetSavingsMonthlyAtYourRates() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.NetSavingsMonthlyAtYourRates
+}
+
+func (p *PurchaseTotals) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchaseTotals) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetEligibleOnDemand sets the EligibleOnDemand field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTotals) SetEligibleOnDemand(eligibleOnDemand float64) {
+	p.EligibleOnDemand = eligibleOnDemand
+	p.require(purchaseTotalsFieldEligibleOnDemand)
+}
+
+// SetCoveredOnDemand sets the CoveredOnDemand field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTotals) SetCoveredOnDemand(coveredOnDemand float64) {
+	p.CoveredOnDemand = coveredOnDemand
+	p.require(purchaseTotalsFieldCoveredOnDemand)
+}
+
+// SetUncoveredOnDemand sets the UncoveredOnDemand field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTotals) SetUncoveredOnDemand(uncoveredOnDemand float64) {
+	p.UncoveredOnDemand = uncoveredOnDemand
+	p.require(purchaseTotalsFieldUncoveredOnDemand)
+}
+
+// SetCommitmentCost sets the CommitmentCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTotals) SetCommitmentCost(commitmentCost float64) {
+	p.CommitmentCost = commitmentCost
+	p.require(purchaseTotalsFieldCommitmentCost)
+}
+
+// SetUsedCommitment sets the UsedCommitment field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTotals) SetUsedCommitment(usedCommitment float64) {
+	p.UsedCommitment = usedCommitment
+	p.require(purchaseTotalsFieldUsedCommitment)
+}
+
+// SetWastedCommitment sets the WastedCommitment field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTotals) SetWastedCommitment(wastedCommitment float64) {
+	p.WastedCommitment = wastedCommitment
+	p.require(purchaseTotalsFieldWastedCommitment)
+}
+
+// SetUtilizationPct sets the UtilizationPct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTotals) SetUtilizationPct(utilizationPct *float64) {
+	p.UtilizationPct = utilizationPct
+	p.require(purchaseTotalsFieldUtilizationPct)
+}
+
+// SetCoveragePct sets the CoveragePct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTotals) SetCoveragePct(coveragePct *float64) {
+	p.CoveragePct = coveragePct
+	p.require(purchaseTotalsFieldCoveragePct)
+}
+
+// SetNetSavingsMonthly sets the NetSavingsMonthly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTotals) SetNetSavingsMonthly(netSavingsMonthly float64) {
+	p.NetSavingsMonthly = netSavingsMonthly
+	p.require(purchaseTotalsFieldNetSavingsMonthly)
+}
+
+// SetNetSavingsMonthlyAtYourRates sets the NetSavingsMonthlyAtYourRates field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTotals) SetNetSavingsMonthlyAtYourRates(netSavingsMonthlyAtYourRates float64) {
+	p.NetSavingsMonthlyAtYourRates = netSavingsMonthlyAtYourRates
+	p.require(purchaseTotalsFieldNetSavingsMonthlyAtYourRates)
+}
+
+func (p *PurchaseTotals) UnmarshalJSON(data []byte) error {
+	type unmarshaler PurchaseTotals
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*p = PurchaseTotals(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchaseTotals) MarshalJSON() ([]byte, error) {
+	type embed PurchaseTotals
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*p),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchaseTotals) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+var (
+	purchaseTrancheFieldID               = big.NewInt(1 << 0)
+	purchaseTrancheFieldScheduleID       = big.NewInt(1 << 1)
+	purchaseTrancheFieldPayerAccountID   = big.NewInt(1 << 2)
+	purchaseTrancheFieldPlanType         = big.NewInt(1 << 3)
+	purchaseTrancheFieldProfile          = big.NewInt(1 << 4)
+	purchaseTrancheFieldTrancheNumber    = big.NewInt(1 << 5)
+	purchaseTrancheFieldTranchesTotal    = big.NewInt(1 << 6)
+	purchaseTrancheFieldTrancheMonth     = big.NewInt(1 << 7)
+	purchaseTrancheFieldScheduledFor     = big.NewInt(1 << 8)
+	purchaseTrancheFieldCommitmentHourly = big.NewInt(1 << 9)
+	purchaseTrancheFieldStatus           = big.NewInt(1 << 10)
+	purchaseTrancheFieldReason           = big.NewInt(1 << 11)
+	purchaseTrancheFieldReasonDetail     = big.NewInt(1 << 12)
+	purchaseTrancheFieldRecommendationID = big.NewInt(1 << 13)
+	purchaseTrancheFieldResizedAt        = big.NewInt(1 << 14)
+)
+
+type PurchaseTranche struct {
+	ID               string                  `json:"id" url:"id"`
+	ScheduleID       string                  `json:"schedule_id" url:"schedule_id"`
+	PayerAccountID   string                  `json:"payer_account_id" url:"payer_account_id"`
+	PlanType         PurchaseTranchePlanType `json:"plan_type" url:"plan_type"`
+	Profile          PurchaseTrancheProfile  `json:"profile" url:"profile"`
+	TrancheNumber    int                     `json:"tranche_number" url:"tranche_number"`
+	TranchesTotal    int                     `json:"tranches_total" url:"tranches_total"`
+	TrancheMonth     time.Time               `json:"tranche_month" url:"tranche_month" format:"date"`
+	ScheduledFor     time.Time               `json:"scheduled_for" url:"scheduled_for" format:"date"`
+	CommitmentHourly float64                 `json:"commitment_hourly" url:"commitment_hourly"`
+	Status           PurchaseTrancheStatus   `json:"status" url:"status"`
+	Reason           string                  `json:"reason" url:"reason"`
+	ReasonDetail     map[string]any          `json:"reason_detail" url:"reason_detail"`
+	RecommendationID *string                 `json:"recommendation_id,omitempty" url:"recommendation_id,omitempty"`
+	ResizedAt        *time.Time              `json:"resized_at,omitempty" url:"resized_at,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchaseTranche) GetID() string {
+	if p == nil {
+		return ""
+	}
+	return p.ID
+}
+
+func (p *PurchaseTranche) GetScheduleID() string {
+	if p == nil {
+		return ""
+	}
+	return p.ScheduleID
+}
+
+func (p *PurchaseTranche) GetPayerAccountID() string {
+	if p == nil {
+		return ""
+	}
+	return p.PayerAccountID
+}
+
+func (p *PurchaseTranche) GetPlanType() PurchaseTranchePlanType {
+	if p == nil {
+		return ""
+	}
+	return p.PlanType
+}
+
+func (p *PurchaseTranche) GetProfile() PurchaseTrancheProfile {
+	if p == nil {
+		return ""
+	}
+	return p.Profile
+}
+
+func (p *PurchaseTranche) GetTrancheNumber() int {
+	if p == nil {
+		return 0
+	}
+	return p.TrancheNumber
+}
+
+func (p *PurchaseTranche) GetTranchesTotal() int {
+	if p == nil {
+		return 0
+	}
+	return p.TranchesTotal
+}
+
+func (p *PurchaseTranche) GetTrancheMonth() time.Time {
+	if p == nil {
+		return time.Time{}
+	}
+	return p.TrancheMonth
+}
+
+func (p *PurchaseTranche) GetScheduledFor() time.Time {
+	if p == nil {
+		return time.Time{}
+	}
+	return p.ScheduledFor
+}
+
+func (p *PurchaseTranche) GetCommitmentHourly() float64 {
+	if p == nil {
+		return 0
+	}
+	return p.CommitmentHourly
+}
+
+func (p *PurchaseTranche) GetStatus() PurchaseTrancheStatus {
+	if p == nil {
+		return ""
+	}
+	return p.Status
+}
+
+func (p *PurchaseTranche) GetReason() string {
+	if p == nil {
+		return ""
+	}
+	return p.Reason
+}
+
+func (p *PurchaseTranche) GetReasonDetail() map[string]any {
+	if p == nil {
+		return nil
+	}
+	return p.ReasonDetail
+}
+
+func (p *PurchaseTranche) GetRecommendationID() *string {
+	if p == nil {
+		return nil
+	}
+	return p.RecommendationID
+}
+
+func (p *PurchaseTranche) GetResizedAt() *time.Time {
+	if p == nil {
+		return nil
+	}
+	return p.ResizedAt
+}
+
+func (p *PurchaseTranche) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchaseTranche) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTranche) SetID(id string) {
+	p.ID = id
+	p.require(purchaseTrancheFieldID)
+}
+
+// SetScheduleID sets the ScheduleID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTranche) SetScheduleID(scheduleID string) {
+	p.ScheduleID = scheduleID
+	p.require(purchaseTrancheFieldScheduleID)
+}
+
+// SetPayerAccountID sets the PayerAccountID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTranche) SetPayerAccountID(payerAccountID string) {
+	p.PayerAccountID = payerAccountID
+	p.require(purchaseTrancheFieldPayerAccountID)
+}
+
+// SetPlanType sets the PlanType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTranche) SetPlanType(planType PurchaseTranchePlanType) {
+	p.PlanType = planType
+	p.require(purchaseTrancheFieldPlanType)
+}
+
+// SetProfile sets the Profile field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTranche) SetProfile(profile PurchaseTrancheProfile) {
+	p.Profile = profile
+	p.require(purchaseTrancheFieldProfile)
+}
+
+// SetTrancheNumber sets the TrancheNumber field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTranche) SetTrancheNumber(trancheNumber int) {
+	p.TrancheNumber = trancheNumber
+	p.require(purchaseTrancheFieldTrancheNumber)
+}
+
+// SetTranchesTotal sets the TranchesTotal field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTranche) SetTranchesTotal(tranchesTotal int) {
+	p.TranchesTotal = tranchesTotal
+	p.require(purchaseTrancheFieldTranchesTotal)
+}
+
+// SetTrancheMonth sets the TrancheMonth field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTranche) SetTrancheMonth(trancheMonth time.Time) {
+	p.TrancheMonth = trancheMonth
+	p.require(purchaseTrancheFieldTrancheMonth)
+}
+
+// SetScheduledFor sets the ScheduledFor field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTranche) SetScheduledFor(scheduledFor time.Time) {
+	p.ScheduledFor = scheduledFor
+	p.require(purchaseTrancheFieldScheduledFor)
+}
+
+// SetCommitmentHourly sets the CommitmentHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTranche) SetCommitmentHourly(commitmentHourly float64) {
+	p.CommitmentHourly = commitmentHourly
+	p.require(purchaseTrancheFieldCommitmentHourly)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTranche) SetStatus(status PurchaseTrancheStatus) {
+	p.Status = status
+	p.require(purchaseTrancheFieldStatus)
+}
+
+// SetReason sets the Reason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTranche) SetReason(reason string) {
+	p.Reason = reason
+	p.require(purchaseTrancheFieldReason)
+}
+
+// SetReasonDetail sets the ReasonDetail field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTranche) SetReasonDetail(reasonDetail map[string]any) {
+	p.ReasonDetail = reasonDetail
+	p.require(purchaseTrancheFieldReasonDetail)
+}
+
+// SetRecommendationID sets the RecommendationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTranche) SetRecommendationID(recommendationID *string) {
+	p.RecommendationID = recommendationID
+	p.require(purchaseTrancheFieldRecommendationID)
+}
+
+// SetResizedAt sets the ResizedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseTranche) SetResizedAt(resizedAt *time.Time) {
+	p.ResizedAt = resizedAt
+	p.require(purchaseTrancheFieldResizedAt)
+}
+
+func (p *PurchaseTranche) UnmarshalJSON(data []byte) error {
+	type embed PurchaseTranche
+	var unmarshaler = struct {
+		embed
+		TrancheMonth *internal.Date     `json:"tranche_month"`
+		ScheduledFor *internal.Date     `json:"scheduled_for"`
+		ResizedAt    *internal.DateTime `json:"resized_at,omitempty"`
+	}{
+		embed: embed(*p),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*p = PurchaseTranche(unmarshaler.embed)
+	p.TrancheMonth = unmarshaler.TrancheMonth.Time()
+	p.ScheduledFor = unmarshaler.ScheduledFor.Time()
+	p.ResizedAt = unmarshaler.ResizedAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchaseTranche) MarshalJSON() ([]byte, error) {
+	type embed PurchaseTranche
+	var marshaler = struct {
+		embed
+		TrancheMonth *internal.Date     `json:"tranche_month"`
+		ScheduledFor *internal.Date     `json:"scheduled_for"`
+		ResizedAt    *internal.DateTime `json:"resized_at,omitempty"`
+	}{
+		embed:        embed(*p),
+		TrancheMonth: internal.NewDate(p.TrancheMonth),
+		ScheduledFor: internal.NewDate(p.ScheduledFor),
+		ResizedAt:    internal.NewOptionalDateTime(p.ResizedAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchaseTranche) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+type PurchaseTranchePlanType string
+
+const (
+	PurchaseTranchePlanTypeCompute  PurchaseTranchePlanType = "compute"
+	PurchaseTranchePlanTypeDatabase PurchaseTranchePlanType = "database"
+)
+
+func NewPurchaseTranchePlanTypeFromString(s string) (PurchaseTranchePlanType, error) {
+	switch s {
+	case "compute":
+		return PurchaseTranchePlanTypeCompute, nil
+	case "database":
+		return PurchaseTranchePlanTypeDatabase, nil
+	}
+	var t PurchaseTranchePlanType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (p PurchaseTranchePlanType) Ptr() *PurchaseTranchePlanType {
+	return &p
+}
+
+type PurchaseTrancheProfile string
+
+const (
+	PurchaseTrancheProfileConservative PurchaseTrancheProfile = "conservative"
+	PurchaseTrancheProfileBalanced     PurchaseTrancheProfile = "balanced"
+	PurchaseTrancheProfileMaxSavings   PurchaseTrancheProfile = "max_savings"
+)
+
+func NewPurchaseTrancheProfileFromString(s string) (PurchaseTrancheProfile, error) {
+	switch s {
+	case "conservative":
+		return PurchaseTrancheProfileConservative, nil
+	case "balanced":
+		return PurchaseTrancheProfileBalanced, nil
+	case "max_savings":
+		return PurchaseTrancheProfileMaxSavings, nil
+	}
+	var t PurchaseTrancheProfile
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (p PurchaseTrancheProfile) Ptr() *PurchaseTrancheProfile {
+	return &p
+}
+
+type PurchaseTrancheStatus string
+
+const (
+	PurchaseTrancheStatusPlanned          PurchaseTrancheStatus = "planned"
+	PurchaseTrancheStatusAwaitingDecision PurchaseTrancheStatus = "awaiting_decision"
+	PurchaseTrancheStatusAccepted         PurchaseTrancheStatus = "accepted"
+	PurchaseTrancheStatusReleased         PurchaseTrancheStatus = "released"
+	PurchaseTrancheStatusBuying           PurchaseTrancheStatus = "buying"
+	PurchaseTrancheStatusActive           PurchaseTrancheStatus = "active"
+	PurchaseTrancheStatusFailed           PurchaseTrancheStatus = "failed"
+	PurchaseTrancheStatusRejected         PurchaseTrancheStatus = "rejected"
+	PurchaseTrancheStatusSkipped          PurchaseTrancheStatus = "skipped"
+	PurchaseTrancheStatusCancelled        PurchaseTrancheStatus = "cancelled"
+)
+
+func NewPurchaseTrancheStatusFromString(s string) (PurchaseTrancheStatus, error) {
+	switch s {
+	case "planned":
+		return PurchaseTrancheStatusPlanned, nil
+	case "awaiting_decision":
+		return PurchaseTrancheStatusAwaitingDecision, nil
+	case "accepted":
+		return PurchaseTrancheStatusAccepted, nil
+	case "released":
+		return PurchaseTrancheStatusReleased, nil
+	case "buying":
+		return PurchaseTrancheStatusBuying, nil
+	case "active":
+		return PurchaseTrancheStatusActive, nil
+	case "failed":
+		return PurchaseTrancheStatusFailed, nil
+	case "rejected":
+		return PurchaseTrancheStatusRejected, nil
+	case "skipped":
+		return PurchaseTrancheStatusSkipped, nil
+	case "cancelled":
+		return PurchaseTrancheStatusCancelled, nil
+	}
+	var t PurchaseTrancheStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (p PurchaseTrancheStatus) Ptr() *PurchaseTrancheStatus {
+	return &p
+}
+
+var (
+	purchaseWindowFieldFirstDay    = big.NewInt(1 << 0)
+	purchaseWindowFieldLastDay     = big.NewInt(1 << 1)
+	purchaseWindowFieldDays        = big.NewInt(1 << 2)
+	purchaseWindowFieldMissingDays = big.NewInt(1 << 3)
+	purchaseWindowFieldLastLoaded  = big.NewInt(1 << 4)
+)
+
+type PurchaseWindow struct {
+	FirstDay    time.Time `json:"first_day" url:"first_day" format:"date"`
+	LastDay     time.Time `json:"last_day" url:"last_day" format:"date"`
+	Days        int       `json:"days" url:"days"`
+	MissingDays int       `json:"missing_days" url:"missing_days"`
+	LastLoaded  time.Time `json:"last_loaded" url:"last_loaded" format:"date"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchaseWindow) GetFirstDay() time.Time {
+	if p == nil {
+		return time.Time{}
+	}
+	return p.FirstDay
+}
+
+func (p *PurchaseWindow) GetLastDay() time.Time {
+	if p == nil {
+		return time.Time{}
+	}
+	return p.LastDay
+}
+
+func (p *PurchaseWindow) GetDays() int {
+	if p == nil {
+		return 0
+	}
+	return p.Days
+}
+
+func (p *PurchaseWindow) GetMissingDays() int {
+	if p == nil {
+		return 0
+	}
+	return p.MissingDays
+}
+
+func (p *PurchaseWindow) GetLastLoaded() time.Time {
+	if p == nil {
+		return time.Time{}
+	}
+	return p.LastLoaded
+}
+
+func (p *PurchaseWindow) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchaseWindow) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetFirstDay sets the FirstDay field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseWindow) SetFirstDay(firstDay time.Time) {
+	p.FirstDay = firstDay
+	p.require(purchaseWindowFieldFirstDay)
+}
+
+// SetLastDay sets the LastDay field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseWindow) SetLastDay(lastDay time.Time) {
+	p.LastDay = lastDay
+	p.require(purchaseWindowFieldLastDay)
+}
+
+// SetDays sets the Days field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseWindow) SetDays(days int) {
+	p.Days = days
+	p.require(purchaseWindowFieldDays)
+}
+
+// SetMissingDays sets the MissingDays field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseWindow) SetMissingDays(missingDays int) {
+	p.MissingDays = missingDays
+	p.require(purchaseWindowFieldMissingDays)
+}
+
+// SetLastLoaded sets the LastLoaded field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseWindow) SetLastLoaded(lastLoaded time.Time) {
+	p.LastLoaded = lastLoaded
+	p.require(purchaseWindowFieldLastLoaded)
+}
+
+func (p *PurchaseWindow) UnmarshalJSON(data []byte) error {
+	type embed PurchaseWindow
+	var unmarshaler = struct {
+		embed
+		FirstDay   *internal.Date `json:"first_day"`
+		LastDay    *internal.Date `json:"last_day"`
+		LastLoaded *internal.Date `json:"last_loaded"`
+	}{
+		embed: embed(*p),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*p = PurchaseWindow(unmarshaler.embed)
+	p.FirstDay = unmarshaler.FirstDay.Time()
+	p.LastDay = unmarshaler.LastDay.Time()
+	p.LastLoaded = unmarshaler.LastLoaded.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchaseWindow) MarshalJSON() ([]byte, error) {
+	type embed PurchaseWindow
+	var marshaler = struct {
+		embed
+		FirstDay   *internal.Date `json:"first_day"`
+		LastDay    *internal.Date `json:"last_day"`
+		LastLoaded *internal.Date `json:"last_loaded"`
+	}{
+		embed:      embed(*p),
+		FirstDay:   internal.NewDate(p.FirstDay),
+		LastDay:    internal.NewDate(p.LastDay),
+		LastLoaded: internal.NewDate(p.LastLoaded),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchaseWindow) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+var (
+	purchaseWindowChangeFieldReference = big.NewInt(1 << 0)
+	purchaseWindowChangeFieldKind      = big.NewInt(1 << 1)
+	purchaseWindowChangeFieldChange    = big.NewInt(1 << 2)
+	purchaseWindowChangeFieldDay       = big.NewInt(1 << 3)
+)
+
+type PurchaseWindowChange struct {
+	Reference string                     `json:"reference" url:"reference"`
+	Kind      string                     `json:"kind" url:"kind"`
+	Change    PurchaseWindowChangeChange `json:"change" url:"change"`
+	Day       time.Time                  `json:"day" url:"day" format:"date"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *PurchaseWindowChange) GetReference() string {
+	if p == nil {
+		return ""
+	}
+	return p.Reference
+}
+
+func (p *PurchaseWindowChange) GetKind() string {
+	if p == nil {
+		return ""
+	}
+	return p.Kind
+}
+
+func (p *PurchaseWindowChange) GetChange() PurchaseWindowChangeChange {
+	if p == nil {
+		return ""
+	}
+	return p.Change
+}
+
+func (p *PurchaseWindowChange) GetDay() time.Time {
+	if p == nil {
+		return time.Time{}
+	}
+	return p.Day
+}
+
+func (p *PurchaseWindowChange) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *PurchaseWindowChange) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetReference sets the Reference field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseWindowChange) SetReference(reference string) {
+	p.Reference = reference
+	p.require(purchaseWindowChangeFieldReference)
+}
+
+// SetKind sets the Kind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseWindowChange) SetKind(kind string) {
+	p.Kind = kind
+	p.require(purchaseWindowChangeFieldKind)
+}
+
+// SetChange sets the Change field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseWindowChange) SetChange(change PurchaseWindowChangeChange) {
+	p.Change = change
+	p.require(purchaseWindowChangeFieldChange)
+}
+
+// SetDay sets the Day field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseWindowChange) SetDay(day time.Time) {
+	p.Day = day
+	p.require(purchaseWindowChangeFieldDay)
+}
+
+func (p *PurchaseWindowChange) UnmarshalJSON(data []byte) error {
+	type embed PurchaseWindowChange
+	var unmarshaler = struct {
+		embed
+		Day *internal.Date `json:"day"`
+	}{
+		embed: embed(*p),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*p = PurchaseWindowChange(unmarshaler.embed)
+	p.Day = unmarshaler.Day.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *PurchaseWindowChange) MarshalJSON() ([]byte, error) {
+	type embed PurchaseWindowChange
+	var marshaler = struct {
+		embed
+		Day *internal.Date `json:"day"`
+	}{
+		embed: embed(*p),
+		Day:   internal.NewDate(p.Day),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *PurchaseWindowChange) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+type PurchaseWindowChangeChange string
+
+const (
+	PurchaseWindowChangeChangeStarted PurchaseWindowChangeChange = "started"
+	PurchaseWindowChangeChangeEnded   PurchaseWindowChangeChange = "ended"
+)
+
+func NewPurchaseWindowChangeChangeFromString(s string) (PurchaseWindowChangeChange, error) {
+	switch s {
+	case "started":
+		return PurchaseWindowChangeChangeStarted, nil
+	case "ended":
+		return PurchaseWindowChangeChangeEnded, nil
+	}
+	var t PurchaseWindowChangeChange
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (p PurchaseWindowChangeChange) Ptr() *PurchaseWindowChangeChange {
+	return &p
+}
+
+// Which priced option to raise the purchase for. Absent, the recommended one is taken.
+var (
+	renewalChoiceFieldOfferingID = big.NewInt(1 << 0)
+	renewalChoiceFieldQuantity   = big.NewInt(1 << 1)
+)
+
+type RenewalChoice struct {
+	OfferingID *string  `json:"offering_id,omitempty" url:"offering_id,omitempty"`
+	Quantity   *float64 `json:"quantity,omitempty" url:"quantity,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RenewalChoice) GetOfferingID() *string {
+	if r == nil {
+		return nil
+	}
+	return r.OfferingID
+}
+
+func (r *RenewalChoice) GetQuantity() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.Quantity
+}
+
+func (r *RenewalChoice) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RenewalChoice) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetOfferingID sets the OfferingID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalChoice) SetOfferingID(offeringID *string) {
+	r.OfferingID = offeringID
+	r.require(renewalChoiceFieldOfferingID)
+}
+
+// SetQuantity sets the Quantity field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalChoice) SetQuantity(quantity *float64) {
+	r.Quantity = quantity
+	r.require(renewalChoiceFieldQuantity)
+}
+
+func (r *RenewalChoice) UnmarshalJSON(data []byte) error {
+	type unmarshaler RenewalChoice
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = RenewalChoice(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RenewalChoice) MarshalJSON() ([]byte, error) {
+	type embed RenewalChoice
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RenewalChoice) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+// One class a renewal was priced in. A size-flexible reservation can be renewed as any larger size.
+var (
+	renewalClassFieldResource        = big.NewInt(1 << 0)
+	renewalClassFieldHeldUnitsPerOne = big.NewInt(1 << 1)
+	renewalClassFieldRecommended     = big.NewInt(1 << 2)
+	renewalClassFieldOffered         = big.NewInt(1 << 3)
+)
+
+type RenewalClass struct {
+	Resource        *string              `json:"resource,omitempty" url:"resource,omitempty"`
+	HeldUnitsPerOne float64              `json:"held_units_per_one" url:"held_units_per_one"`
+	Recommended     *bool                `json:"recommended,omitempty" url:"recommended,omitempty"`
+	Offered         []*RenewalClassOffer `json:"offered,omitempty" url:"offered,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RenewalClass) GetResource() *string {
+	if r == nil {
+		return nil
+	}
+	return r.Resource
+}
+
+func (r *RenewalClass) GetHeldUnitsPerOne() float64 {
+	if r == nil {
+		return 0
+	}
+	return r.HeldUnitsPerOne
+}
+
+func (r *RenewalClass) GetRecommended() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.Recommended
+}
+
+func (r *RenewalClass) GetOffered() []*RenewalClassOffer {
+	if r == nil {
+		return nil
+	}
+	return r.Offered
+}
+
+func (r *RenewalClass) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RenewalClass) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetResource sets the Resource field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalClass) SetResource(resource *string) {
+	r.Resource = resource
+	r.require(renewalClassFieldResource)
+}
+
+// SetHeldUnitsPerOne sets the HeldUnitsPerOne field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalClass) SetHeldUnitsPerOne(heldUnitsPerOne float64) {
+	r.HeldUnitsPerOne = heldUnitsPerOne
+	r.require(renewalClassFieldHeldUnitsPerOne)
+}
+
+// SetRecommended sets the Recommended field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalClass) SetRecommended(recommended *bool) {
+	r.Recommended = recommended
+	r.require(renewalClassFieldRecommended)
+}
+
+// SetOffered sets the Offered field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalClass) SetOffered(offered []*RenewalClassOffer) {
+	r.Offered = offered
+	r.require(renewalClassFieldOffered)
+}
+
+func (r *RenewalClass) UnmarshalJSON(data []byte) error {
+	type unmarshaler RenewalClass
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = RenewalClass(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RenewalClass) MarshalJSON() ([]byte, error) {
+	type embed RenewalClass
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RenewalClass) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+// One term and payment option a class is sold on, and the offering that buys it.
+var (
+	renewalClassOfferFieldOfferingID    = big.NewInt(1 << 0)
+	renewalClassOfferFieldTermMonths    = big.NewInt(1 << 1)
+	renewalClassOfferFieldPaymentOption = big.NewInt(1 << 2)
+)
+
+type RenewalClassOffer struct {
+	OfferingID    string  `json:"offering_id" url:"offering_id"`
+	TermMonths    int     `json:"term_months" url:"term_months"`
+	PaymentOption *string `json:"payment_option,omitempty" url:"payment_option,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RenewalClassOffer) GetOfferingID() string {
+	if r == nil {
+		return ""
+	}
+	return r.OfferingID
+}
+
+func (r *RenewalClassOffer) GetTermMonths() int {
+	if r == nil {
+		return 0
+	}
+	return r.TermMonths
+}
+
+func (r *RenewalClassOffer) GetPaymentOption() *string {
+	if r == nil {
+		return nil
+	}
+	return r.PaymentOption
+}
+
+func (r *RenewalClassOffer) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RenewalClassOffer) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetOfferingID sets the OfferingID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalClassOffer) SetOfferingID(offeringID string) {
+	r.OfferingID = offeringID
+	r.require(renewalClassOfferFieldOfferingID)
+}
+
+// SetTermMonths sets the TermMonths field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalClassOffer) SetTermMonths(termMonths int) {
+	r.TermMonths = termMonths
+	r.require(renewalClassOfferFieldTermMonths)
+}
+
+// SetPaymentOption sets the PaymentOption field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalClassOffer) SetPaymentOption(paymentOption *string) {
+	r.PaymentOption = paymentOption
+	r.require(renewalClassOfferFieldPaymentOption)
+}
+
+func (r *RenewalClassOffer) UnmarshalJSON(data []byte) error {
+	type unmarshaler RenewalClassOffer
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = RenewalClassOffer(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RenewalClassOffer) MarshalJSON() ([]byte, error) {
+	type embed RenewalClassOffer
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RenewalClassOffer) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+// The series a renewal was sized on, and where it runs across the longest term on offer.
+var (
+	renewalDemandFieldBasis         = big.NewInt(1 << 0)
+	renewalDemandFieldPoints        = big.NewInt(1 << 1)
+	renewalDemandFieldUnitsPerMonth = big.NewInt(1 << 2)
+	renewalDemandFieldOnDemandRate  = big.NewInt(1 << 3)
+	renewalDemandFieldOnDemandFloor = big.NewInt(1 << 4)
+	renewalDemandFieldProjection    = big.NewInt(1 << 5)
+)
+
+type RenewalDemand struct {
+	Basis         string                `json:"basis" url:"basis"`
+	Points        []*RenewalDemandPoint `json:"points,omitempty" url:"points,omitempty"`
+	UnitsPerMonth float64               `json:"units_per_month" url:"units_per_month"`
+	OnDemandRate  *float64              `json:"on_demand_rate,omitempty" url:"on_demand_rate,omitempty"`
+	OnDemandFloor *float64              `json:"on_demand_floor,omitempty" url:"on_demand_floor,omitempty"`
+	Projection    []*RenewalDemandPoint `json:"projection,omitempty" url:"projection,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RenewalDemand) GetBasis() string {
+	if r == nil {
+		return ""
+	}
+	return r.Basis
+}
+
+func (r *RenewalDemand) GetPoints() []*RenewalDemandPoint {
+	if r == nil {
+		return nil
+	}
+	return r.Points
+}
+
+func (r *RenewalDemand) GetUnitsPerMonth() float64 {
+	if r == nil {
+		return 0
+	}
+	return r.UnitsPerMonth
+}
+
+func (r *RenewalDemand) GetOnDemandRate() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.OnDemandRate
+}
+
+func (r *RenewalDemand) GetOnDemandFloor() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.OnDemandFloor
+}
+
+func (r *RenewalDemand) GetProjection() []*RenewalDemandPoint {
+	if r == nil {
+		return nil
+	}
+	return r.Projection
+}
+
+func (r *RenewalDemand) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RenewalDemand) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetBasis sets the Basis field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalDemand) SetBasis(basis string) {
+	r.Basis = basis
+	r.require(renewalDemandFieldBasis)
+}
+
+// SetPoints sets the Points field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalDemand) SetPoints(points []*RenewalDemandPoint) {
+	r.Points = points
+	r.require(renewalDemandFieldPoints)
+}
+
+// SetUnitsPerMonth sets the UnitsPerMonth field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalDemand) SetUnitsPerMonth(unitsPerMonth float64) {
+	r.UnitsPerMonth = unitsPerMonth
+	r.require(renewalDemandFieldUnitsPerMonth)
+}
+
+// SetOnDemandRate sets the OnDemandRate field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalDemand) SetOnDemandRate(onDemandRate *float64) {
+	r.OnDemandRate = onDemandRate
+	r.require(renewalDemandFieldOnDemandRate)
+}
+
+// SetOnDemandFloor sets the OnDemandFloor field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalDemand) SetOnDemandFloor(onDemandFloor *float64) {
+	r.OnDemandFloor = onDemandFloor
+	r.require(renewalDemandFieldOnDemandFloor)
+}
+
+// SetProjection sets the Projection field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalDemand) SetProjection(projection []*RenewalDemandPoint) {
+	r.Projection = projection
+	r.require(renewalDemandFieldProjection)
+}
+
+func (r *RenewalDemand) UnmarshalJSON(data []byte) error {
+	type unmarshaler RenewalDemand
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = RenewalDemand(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RenewalDemand) MarshalJSON() ([]byte, error) {
+	type embed RenewalDemand
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RenewalDemand) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	renewalDemandPointFieldDate  = big.NewInt(1 << 0)
+	renewalDemandPointFieldUnits = big.NewInt(1 << 1)
+)
+
+type RenewalDemandPoint struct {
+	Date  string  `json:"date" url:"date"`
+	Units float64 `json:"units" url:"units"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RenewalDemandPoint) GetDate() string {
+	if r == nil {
+		return ""
+	}
+	return r.Date
+}
+
+func (r *RenewalDemandPoint) GetUnits() float64 {
+	if r == nil {
+		return 0
+	}
+	return r.Units
+}
+
+func (r *RenewalDemandPoint) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RenewalDemandPoint) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetDate sets the Date field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalDemandPoint) SetDate(date string) {
+	r.Date = date
+	r.require(renewalDemandPointFieldDate)
+}
+
+// SetUnits sets the Units field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalDemandPoint) SetUnits(units float64) {
+	r.Units = units
+	r.require(renewalDemandPointFieldUnits)
+}
+
+func (r *RenewalDemandPoint) UnmarshalJSON(data []byte) error {
+	type unmarshaler RenewalDemandPoint
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = RenewalDemandPoint(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RenewalDemandPoint) MarshalJSON() ([]byte, error) {
+	type embed RenewalDemandPoint
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RenewalDemandPoint) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+// One term this commitment could be replaced with, priced and sized.
+var (
+	renewalOptionFieldOfferingID          = big.NewInt(1 << 0)
+	renewalOptionFieldResource            = big.NewInt(1 << 1)
+	renewalOptionFieldTermMonths          = big.NewInt(1 << 2)
+	renewalOptionFieldPaymentOption       = big.NewInt(1 << 3)
+	renewalOptionFieldOfferingClass       = big.NewInt(1 << 4)
+	renewalOptionFieldReservationScope    = big.NewInt(1 << 5)
+	renewalOptionFieldCurrency            = big.NewInt(1 << 6)
+	renewalOptionFieldUpfront             = big.NewInt(1 << 7)
+	renewalOptionFieldRecurringHourly     = big.NewInt(1 << 8)
+	renewalOptionFieldQuantity            = big.NewInt(1 << 9)
+	renewalOptionFieldTermTotal           = big.NewInt(1 << 10)
+	renewalOptionFieldAllIn               = big.NewInt(1 << 11)
+	renewalOptionFieldPerYear             = big.NewInt(1 << 12)
+	renewalOptionFieldIdleUnits           = big.NewInt(1 << 13)
+	renewalOptionFieldSpillUnits          = big.NewInt(1 << 14)
+	renewalOptionFieldSpillCost           = big.NewInt(1 << 15)
+	renewalOptionFieldRecommended         = big.NewInt(1 << 16)
+	renewalOptionFieldHeldUnitsEquivalent = big.NewInt(1 << 17)
+	renewalOptionFieldQuotaBlocked        = big.NewInt(1 << 18)
+)
+
+type RenewalOption struct {
+	OfferingID          string   `json:"offering_id" url:"offering_id"`
+	Resource            *string  `json:"resource,omitempty" url:"resource,omitempty"`
+	TermMonths          int      `json:"term_months" url:"term_months"`
+	PaymentOption       *string  `json:"payment_option,omitempty" url:"payment_option,omitempty"`
+	OfferingClass       *string  `json:"offering_class,omitempty" url:"offering_class,omitempty"`
+	ReservationScope    *string  `json:"reservation_scope,omitempty" url:"reservation_scope,omitempty"`
+	Currency            *string  `json:"currency,omitempty" url:"currency,omitempty"`
+	Upfront             *float64 `json:"upfront,omitempty" url:"upfront,omitempty"`
+	RecurringHourly     *float64 `json:"recurring_hourly,omitempty" url:"recurring_hourly,omitempty"`
+	Quantity            *float64 `json:"quantity,omitempty" url:"quantity,omitempty"`
+	TermTotal           *float64 `json:"term_total,omitempty" url:"term_total,omitempty"`
+	AllIn               *float64 `json:"all_in,omitempty" url:"all_in,omitempty"`
+	PerYear             *float64 `json:"per_year,omitempty" url:"per_year,omitempty"`
+	IdleUnits           *float64 `json:"idle_units,omitempty" url:"idle_units,omitempty"`
+	SpillUnits          *float64 `json:"spill_units,omitempty" url:"spill_units,omitempty"`
+	SpillCost           *float64 `json:"spill_cost,omitempty" url:"spill_cost,omitempty"`
+	Recommended         *bool    `json:"recommended,omitempty" url:"recommended,omitempty"`
+	HeldUnitsEquivalent *float64 `json:"held_units_equivalent,omitempty" url:"held_units_equivalent,omitempty"`
+	QuotaBlocked        *bool    `json:"quota_blocked,omitempty" url:"quota_blocked,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RenewalOption) GetOfferingID() string {
+	if r == nil {
+		return ""
+	}
+	return r.OfferingID
+}
+
+func (r *RenewalOption) GetResource() *string {
+	if r == nil {
+		return nil
+	}
+	return r.Resource
+}
+
+func (r *RenewalOption) GetTermMonths() int {
+	if r == nil {
+		return 0
+	}
+	return r.TermMonths
+}
+
+func (r *RenewalOption) GetPaymentOption() *string {
+	if r == nil {
+		return nil
+	}
+	return r.PaymentOption
+}
+
+func (r *RenewalOption) GetOfferingClass() *string {
+	if r == nil {
+		return nil
+	}
+	return r.OfferingClass
+}
+
+func (r *RenewalOption) GetReservationScope() *string {
+	if r == nil {
+		return nil
+	}
+	return r.ReservationScope
+}
+
+func (r *RenewalOption) GetCurrency() *string {
+	if r == nil {
+		return nil
+	}
+	return r.Currency
+}
+
+func (r *RenewalOption) GetUpfront() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.Upfront
+}
+
+func (r *RenewalOption) GetRecurringHourly() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.RecurringHourly
+}
+
+func (r *RenewalOption) GetQuantity() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.Quantity
+}
+
+func (r *RenewalOption) GetTermTotal() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.TermTotal
+}
+
+func (r *RenewalOption) GetAllIn() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.AllIn
+}
+
+func (r *RenewalOption) GetPerYear() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.PerYear
+}
+
+func (r *RenewalOption) GetIdleUnits() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.IdleUnits
+}
+
+func (r *RenewalOption) GetSpillUnits() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.SpillUnits
+}
+
+func (r *RenewalOption) GetSpillCost() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.SpillCost
+}
+
+func (r *RenewalOption) GetRecommended() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.Recommended
+}
+
+func (r *RenewalOption) GetHeldUnitsEquivalent() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.HeldUnitsEquivalent
+}
+
+func (r *RenewalOption) GetQuotaBlocked() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.QuotaBlocked
+}
+
+func (r *RenewalOption) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RenewalOption) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetOfferingID sets the OfferingID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOption) SetOfferingID(offeringID string) {
+	r.OfferingID = offeringID
+	r.require(renewalOptionFieldOfferingID)
+}
+
+// SetResource sets the Resource field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOption) SetResource(resource *string) {
+	r.Resource = resource
+	r.require(renewalOptionFieldResource)
+}
+
+// SetTermMonths sets the TermMonths field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOption) SetTermMonths(termMonths int) {
+	r.TermMonths = termMonths
+	r.require(renewalOptionFieldTermMonths)
+}
+
+// SetPaymentOption sets the PaymentOption field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOption) SetPaymentOption(paymentOption *string) {
+	r.PaymentOption = paymentOption
+	r.require(renewalOptionFieldPaymentOption)
+}
+
+// SetOfferingClass sets the OfferingClass field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOption) SetOfferingClass(offeringClass *string) {
+	r.OfferingClass = offeringClass
+	r.require(renewalOptionFieldOfferingClass)
+}
+
+// SetReservationScope sets the ReservationScope field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOption) SetReservationScope(reservationScope *string) {
+	r.ReservationScope = reservationScope
+	r.require(renewalOptionFieldReservationScope)
+}
+
+// SetCurrency sets the Currency field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOption) SetCurrency(currency *string) {
+	r.Currency = currency
+	r.require(renewalOptionFieldCurrency)
+}
+
+// SetUpfront sets the Upfront field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOption) SetUpfront(upfront *float64) {
+	r.Upfront = upfront
+	r.require(renewalOptionFieldUpfront)
+}
+
+// SetRecurringHourly sets the RecurringHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOption) SetRecurringHourly(recurringHourly *float64) {
+	r.RecurringHourly = recurringHourly
+	r.require(renewalOptionFieldRecurringHourly)
+}
+
+// SetQuantity sets the Quantity field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOption) SetQuantity(quantity *float64) {
+	r.Quantity = quantity
+	r.require(renewalOptionFieldQuantity)
+}
+
+// SetTermTotal sets the TermTotal field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOption) SetTermTotal(termTotal *float64) {
+	r.TermTotal = termTotal
+	r.require(renewalOptionFieldTermTotal)
+}
+
+// SetAllIn sets the AllIn field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOption) SetAllIn(allIn *float64) {
+	r.AllIn = allIn
+	r.require(renewalOptionFieldAllIn)
+}
+
+// SetPerYear sets the PerYear field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOption) SetPerYear(perYear *float64) {
+	r.PerYear = perYear
+	r.require(renewalOptionFieldPerYear)
+}
+
+// SetIdleUnits sets the IdleUnits field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOption) SetIdleUnits(idleUnits *float64) {
+	r.IdleUnits = idleUnits
+	r.require(renewalOptionFieldIdleUnits)
+}
+
+// SetSpillUnits sets the SpillUnits field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOption) SetSpillUnits(spillUnits *float64) {
+	r.SpillUnits = spillUnits
+	r.require(renewalOptionFieldSpillUnits)
+}
+
+// SetSpillCost sets the SpillCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOption) SetSpillCost(spillCost *float64) {
+	r.SpillCost = spillCost
+	r.require(renewalOptionFieldSpillCost)
+}
+
+// SetRecommended sets the Recommended field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOption) SetRecommended(recommended *bool) {
+	r.Recommended = recommended
+	r.require(renewalOptionFieldRecommended)
+}
+
+// SetHeldUnitsEquivalent sets the HeldUnitsEquivalent field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOption) SetHeldUnitsEquivalent(heldUnitsEquivalent *float64) {
+	r.HeldUnitsEquivalent = heldUnitsEquivalent
+	r.require(renewalOptionFieldHeldUnitsEquivalent)
+}
+
+// SetQuotaBlocked sets the QuotaBlocked field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOption) SetQuotaBlocked(quotaBlocked *bool) {
+	r.QuotaBlocked = quotaBlocked
+	r.require(renewalOptionFieldQuotaBlocked)
+}
+
+func (r *RenewalOption) UnmarshalJSON(data []byte) error {
+	type unmarshaler RenewalOption
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = RenewalOption(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RenewalOption) MarshalJSON() ([]byte, error) {
+	type embed RenewalOption
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RenewalOption) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	renewalOptionsDataFieldCommitmentID         = big.NewInt(1 << 0)
+	renewalOptionsDataFieldSizingBasis          = big.NewInt(1 << 1)
+	renewalOptionsDataFieldDecision             = big.NewInt(1 << 2)
+	renewalOptionsDataFieldQuotedAt             = big.NewInt(1 << 3)
+	renewalOptionsDataFieldHeldQuantity         = big.NewInt(1 << 4)
+	renewalOptionsDataFieldHeldResource         = big.NewInt(1 << 5)
+	renewalOptionsDataFieldHeldQuantityAsBought = big.NewInt(1 << 6)
+	renewalOptionsDataFieldClasses              = big.NewInt(1 << 7)
+	renewalOptionsDataFieldContract             = big.NewInt(1 << 8)
+	renewalOptionsDataFieldOptions              = big.NewInt(1 << 9)
+	renewalOptionsDataFieldQuantityStep         = big.NewInt(1 << 10)
+	renewalOptionsDataFieldDemand               = big.NewInt(1 << 11)
+	renewalOptionsDataFieldQuota                = big.NewInt(1 << 12)
+	renewalOptionsDataFieldSizeMix              = big.NewInt(1 << 13)
+)
+
+type RenewalOptionsData struct {
+	CommitmentID         string                      `json:"commitment_id" url:"commitment_id"`
+	SizingBasis          string                      `json:"sizing_basis" url:"sizing_basis"`
+	Decision             *RenewalOptionsDataDecision `json:"decision,omitempty" url:"decision,omitempty"`
+	QuotedAt             *string                     `json:"quoted_at,omitempty" url:"quoted_at,omitempty"`
+	HeldQuantity         float64                     `json:"held_quantity" url:"held_quantity"`
+	HeldResource         *string                     `json:"held_resource,omitempty" url:"held_resource,omitempty"`
+	HeldQuantityAsBought *float64                    `json:"held_quantity_as_bought,omitempty" url:"held_quantity_as_bought,omitempty"`
+	Classes              []*RenewalClass             `json:"classes,omitempty" url:"classes,omitempty"`
+	Contract             *RenewalOption              `json:"contract,omitempty" url:"contract,omitempty"`
+	Options              []*RenewalOption            `json:"options,omitempty" url:"options,omitempty"`
+	QuantityStep         float64                     `json:"quantity_step" url:"quantity_step"`
+	Demand               *RenewalDemand              `json:"demand,omitempty" url:"demand,omitempty"`
+	Quota                *RenewalQuota               `json:"quota,omitempty" url:"quota,omitempty"`
+	SizeMix              []*RenewalRunningSize       `json:"size_mix,omitempty" url:"size_mix,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RenewalOptionsData) GetCommitmentID() string {
+	if r == nil {
+		return ""
+	}
+	return r.CommitmentID
+}
+
+func (r *RenewalOptionsData) GetSizingBasis() string {
+	if r == nil {
+		return ""
+	}
+	return r.SizingBasis
+}
+
+func (r *RenewalOptionsData) GetDecision() *RenewalOptionsDataDecision {
+	if r == nil {
+		return nil
+	}
+	return r.Decision
+}
+
+func (r *RenewalOptionsData) GetQuotedAt() *string {
+	if r == nil {
+		return nil
+	}
+	return r.QuotedAt
+}
+
+func (r *RenewalOptionsData) GetHeldQuantity() float64 {
+	if r == nil {
+		return 0
+	}
+	return r.HeldQuantity
+}
+
+func (r *RenewalOptionsData) GetHeldResource() *string {
+	if r == nil {
+		return nil
+	}
+	return r.HeldResource
+}
+
+func (r *RenewalOptionsData) GetHeldQuantityAsBought() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.HeldQuantityAsBought
+}
+
+func (r *RenewalOptionsData) GetClasses() []*RenewalClass {
+	if r == nil {
+		return nil
+	}
+	return r.Classes
+}
+
+func (r *RenewalOptionsData) GetContract() *RenewalOption {
+	if r == nil {
+		return nil
+	}
+	return r.Contract
+}
+
+func (r *RenewalOptionsData) GetOptions() []*RenewalOption {
+	if r == nil {
+		return nil
+	}
+	return r.Options
+}
+
+func (r *RenewalOptionsData) GetQuantityStep() float64 {
+	if r == nil {
+		return 0
+	}
+	return r.QuantityStep
+}
+
+func (r *RenewalOptionsData) GetDemand() *RenewalDemand {
+	if r == nil {
+		return nil
+	}
+	return r.Demand
+}
+
+func (r *RenewalOptionsData) GetQuota() *RenewalQuota {
+	if r == nil {
+		return nil
+	}
+	return r.Quota
+}
+
+func (r *RenewalOptionsData) GetSizeMix() []*RenewalRunningSize {
+	if r == nil {
+		return nil
+	}
+	return r.SizeMix
+}
+
+func (r *RenewalOptionsData) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RenewalOptionsData) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetCommitmentID sets the CommitmentID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOptionsData) SetCommitmentID(commitmentID string) {
+	r.CommitmentID = commitmentID
+	r.require(renewalOptionsDataFieldCommitmentID)
+}
+
+// SetSizingBasis sets the SizingBasis field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOptionsData) SetSizingBasis(sizingBasis string) {
+	r.SizingBasis = sizingBasis
+	r.require(renewalOptionsDataFieldSizingBasis)
+}
+
+// SetDecision sets the Decision field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOptionsData) SetDecision(decision *RenewalOptionsDataDecision) {
+	r.Decision = decision
+	r.require(renewalOptionsDataFieldDecision)
+}
+
+// SetQuotedAt sets the QuotedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOptionsData) SetQuotedAt(quotedAt *string) {
+	r.QuotedAt = quotedAt
+	r.require(renewalOptionsDataFieldQuotedAt)
+}
+
+// SetHeldQuantity sets the HeldQuantity field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOptionsData) SetHeldQuantity(heldQuantity float64) {
+	r.HeldQuantity = heldQuantity
+	r.require(renewalOptionsDataFieldHeldQuantity)
+}
+
+// SetHeldResource sets the HeldResource field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOptionsData) SetHeldResource(heldResource *string) {
+	r.HeldResource = heldResource
+	r.require(renewalOptionsDataFieldHeldResource)
+}
+
+// SetHeldQuantityAsBought sets the HeldQuantityAsBought field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOptionsData) SetHeldQuantityAsBought(heldQuantityAsBought *float64) {
+	r.HeldQuantityAsBought = heldQuantityAsBought
+	r.require(renewalOptionsDataFieldHeldQuantityAsBought)
+}
+
+// SetClasses sets the Classes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOptionsData) SetClasses(classes []*RenewalClass) {
+	r.Classes = classes
+	r.require(renewalOptionsDataFieldClasses)
+}
+
+// SetContract sets the Contract field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOptionsData) SetContract(contract *RenewalOption) {
+	r.Contract = contract
+	r.require(renewalOptionsDataFieldContract)
+}
+
+// SetOptions sets the Options field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOptionsData) SetOptions(options []*RenewalOption) {
+	r.Options = options
+	r.require(renewalOptionsDataFieldOptions)
+}
+
+// SetQuantityStep sets the QuantityStep field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOptionsData) SetQuantityStep(quantityStep float64) {
+	r.QuantityStep = quantityStep
+	r.require(renewalOptionsDataFieldQuantityStep)
+}
+
+// SetDemand sets the Demand field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOptionsData) SetDemand(demand *RenewalDemand) {
+	r.Demand = demand
+	r.require(renewalOptionsDataFieldDemand)
+}
+
+// SetQuota sets the Quota field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOptionsData) SetQuota(quota *RenewalQuota) {
+	r.Quota = quota
+	r.require(renewalOptionsDataFieldQuota)
+}
+
+// SetSizeMix sets the SizeMix field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOptionsData) SetSizeMix(sizeMix []*RenewalRunningSize) {
+	r.SizeMix = sizeMix
+	r.require(renewalOptionsDataFieldSizeMix)
+}
+
+func (r *RenewalOptionsData) UnmarshalJSON(data []byte) error {
+	type unmarshaler RenewalOptionsData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = RenewalOptionsData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RenewalOptionsData) MarshalJSON() ([]byte, error) {
+	type embed RenewalOptionsData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RenewalOptionsData) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+type RenewalOptionsDataDecision string
+
+const (
+	RenewalOptionsDataDecisionRenew     RenewalOptionsDataDecision = "renew"
+	RenewalOptionsDataDecisionLetExpire RenewalOptionsDataDecision = "let_expire"
+)
+
+func NewRenewalOptionsDataDecisionFromString(s string) (RenewalOptionsDataDecision, error) {
+	switch s {
+	case "renew":
+		return RenewalOptionsDataDecisionRenew, nil
+	case "let_expire":
+		return RenewalOptionsDataDecisionLetExpire, nil
+	}
+	var t RenewalOptionsDataDecision
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (r RenewalOptionsDataDecision) Ptr() *RenewalOptionsDataDecision {
+	return &r
+}
+
+var (
+	renewalOptionsResponseFieldSuccess   = big.NewInt(1 << 0)
+	renewalOptionsResponseFieldTimestamp = big.NewInt(1 << 1)
+	renewalOptionsResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type RenewalOptionsResponse struct {
+	Success   *bool               `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time          `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *RenewalOptionsData `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RenewalOptionsResponse) GetSuccess() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.Success
+}
+
+func (r *RenewalOptionsResponse) GetTimestamp() *time.Time {
+	if r == nil {
+		return nil
+	}
+	return r.Timestamp
+}
+
+func (r *RenewalOptionsResponse) GetData() *RenewalOptionsData {
+	if r == nil {
+		return nil
+	}
+	return r.Data
+}
+
+func (r *RenewalOptionsResponse) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RenewalOptionsResponse) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOptionsResponse) SetSuccess(success *bool) {
+	r.Success = success
+	r.require(renewalOptionsResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOptionsResponse) SetTimestamp(timestamp *time.Time) {
+	r.Timestamp = timestamp
+	r.require(renewalOptionsResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalOptionsResponse) SetData(data *RenewalOptionsData) {
+	r.Data = data
+	r.require(renewalOptionsResponseFieldData)
+}
+
+func (r *RenewalOptionsResponse) UnmarshalJSON(data []byte) error {
+	type embed RenewalOptionsResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*r),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*r = RenewalOptionsResponse(unmarshaler.embed)
+	r.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RenewalOptionsResponse) MarshalJSON() ([]byte, error) {
+	type embed RenewalOptionsResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*r),
+		Timestamp: internal.NewOptionalDateTime(r.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RenewalOptionsResponse) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
 }
 
 var (
@@ -10193,37 +21593,57 @@ func (r *RenewalPendingChange) String() string {
 }
 
 var (
-	renewalPlanDataFieldCommitmentID       = big.NewInt(1 << 0)
-	renewalPlanDataFieldService            = big.NewInt(1 << 1)
-	renewalPlanDataFieldHolderAccountID    = big.NewInt(1 << 2)
-	renewalPlanDataFieldEndAt              = big.NewInt(1 << 3)
-	renewalPlanDataFieldBuyAfterUtc        = big.NewInt(1 << 4)
-	renewalPlanDataFieldExpiresInSeconds   = big.NewInt(1 << 5)
-	renewalPlanDataFieldUnitsHeld          = big.NewInt(1 << 6)
-	renewalPlanDataFieldUnitsConsumed      = big.NewInt(1 << 7)
-	renewalPlanDataFieldUnitsRecommended   = big.NewInt(1 << 8)
-	renewalPlanDataFieldProtectsMonthly    = big.NewInt(1 << 9)
-	renewalPlanDataFieldRightsizingMonthly = big.NewInt(1 << 10)
-	renewalPlanDataFieldPendingChanges     = big.NewInt(1 << 11)
-	renewalPlanDataFieldExchangeable       = big.NewInt(1 << 12)
-	renewalPlanDataFieldCancellable        = big.NewInt(1 << 13)
+	renewalPlanDataFieldCommitmentID        = big.NewInt(1 << 0)
+	renewalPlanDataFieldService             = big.NewInt(1 << 1)
+	renewalPlanDataFieldHolderAccountID     = big.NewInt(1 << 2)
+	renewalPlanDataFieldEndAt               = big.NewInt(1 << 3)
+	renewalPlanDataFieldEndAtAssumed        = big.NewInt(1 << 4)
+	renewalPlanDataFieldBuyAfterUtc         = big.NewInt(1 << 5)
+	renewalPlanDataFieldExpiresInSeconds    = big.NewInt(1 << 6)
+	renewalPlanDataFieldRenewalWindowDays   = big.NewInt(1 << 7)
+	renewalPlanDataFieldUnitsHeld           = big.NewInt(1 << 8)
+	renewalPlanDataFieldUnitsConsumed       = big.NewInt(1 << 9)
+	renewalPlanDataFieldUnitsRecommended    = big.NewInt(1 << 10)
+	renewalPlanDataFieldResourceRecommended = big.NewInt(1 << 11)
+	renewalPlanDataFieldQuantityRecommended = big.NewInt(1 << 12)
+	renewalPlanDataFieldSizingBasis         = big.NewInt(1 << 13)
+	renewalPlanDataFieldDecision            = big.NewInt(1 << 14)
+	renewalPlanDataFieldProtectsMonthly     = big.NewInt(1 << 15)
+	renewalPlanDataFieldRightsizingMonthly  = big.NewInt(1 << 16)
+	renewalPlanDataFieldPendingChanges      = big.NewInt(1 << 17)
+	renewalPlanDataFieldBlockingChanges     = big.NewInt(1 << 18)
+	renewalPlanDataFieldExchangeable        = big.NewInt(1 << 19)
+	renewalPlanDataFieldCancellable         = big.NewInt(1 << 20)
+	renewalPlanDataFieldSupersededBy        = big.NewInt(1 << 21)
+	renewalPlanDataFieldSupersededAt        = big.NewInt(1 << 22)
+	renewalPlanDataFieldNoRecentUsage       = big.NewInt(1 << 23)
 )
 
 type RenewalPlanData struct {
-	CommitmentID       string                  `json:"commitment_id" url:"commitment_id"`
-	Service            string                  `json:"service" url:"service"`
-	HolderAccountID    string                  `json:"holder_account_id" url:"holder_account_id"`
-	EndAt              *string                 `json:"end_at,omitempty" url:"end_at,omitempty"`
-	BuyAfterUtc        *string                 `json:"buy_after_utc,omitempty" url:"buy_after_utc,omitempty"`
-	ExpiresInSeconds   *int                    `json:"expires_in_seconds,omitempty" url:"expires_in_seconds,omitempty"`
-	UnitsHeld          int                     `json:"units_held" url:"units_held"`
-	UnitsConsumed      int                     `json:"units_consumed" url:"units_consumed"`
-	UnitsRecommended   int                     `json:"units_recommended" url:"units_recommended"`
-	ProtectsMonthly    float64                 `json:"protects_monthly" url:"protects_monthly"`
-	RightsizingMonthly float64                 `json:"rightsizing_monthly" url:"rightsizing_monthly"`
-	PendingChanges     []*RenewalPendingChange `json:"pending_changes" url:"pending_changes"`
-	Exchangeable       *bool                   `json:"exchangeable,omitempty" url:"exchangeable,omitempty"`
-	Cancellable        *bool                   `json:"cancellable,omitempty" url:"cancellable,omitempty"`
+	CommitmentID        string                   `json:"commitment_id" url:"commitment_id"`
+	Service             string                   `json:"service" url:"service"`
+	HolderAccountID     string                   `json:"holder_account_id" url:"holder_account_id"`
+	EndAt               *string                  `json:"end_at,omitempty" url:"end_at,omitempty"`
+	EndAtAssumed        *bool                    `json:"end_at_assumed,omitempty" url:"end_at_assumed,omitempty"`
+	BuyAfterUtc         *string                  `json:"buy_after_utc,omitempty" url:"buy_after_utc,omitempty"`
+	ExpiresInSeconds    *int                     `json:"expires_in_seconds,omitempty" url:"expires_in_seconds,omitempty"`
+	RenewalWindowDays   int                      `json:"renewal_window_days" url:"renewal_window_days"`
+	UnitsHeld           float64                  `json:"units_held" url:"units_held"`
+	UnitsConsumed       *float64                 `json:"units_consumed,omitempty" url:"units_consumed,omitempty"`
+	UnitsRecommended    float64                  `json:"units_recommended" url:"units_recommended"`
+	ResourceRecommended *string                  `json:"resource_recommended,omitempty" url:"resource_recommended,omitempty"`
+	QuantityRecommended *float64                 `json:"quantity_recommended,omitempty" url:"quantity_recommended,omitempty"`
+	SizingBasis         *string                  `json:"sizing_basis,omitempty" url:"sizing_basis,omitempty"`
+	Decision            *RenewalPlanDataDecision `json:"decision,omitempty" url:"decision,omitempty"`
+	ProtectsMonthly     float64                  `json:"protects_monthly" url:"protects_monthly"`
+	RightsizingMonthly  float64                  `json:"rightsizing_monthly" url:"rightsizing_monthly"`
+	PendingChanges      []*RenewalPendingChange  `json:"pending_changes" url:"pending_changes"`
+	BlockingChanges     []*RenewalPendingChange  `json:"blocking_changes,omitempty" url:"blocking_changes,omitempty"`
+	Exchangeable        *bool                    `json:"exchangeable,omitempty" url:"exchangeable,omitempty"`
+	Cancellable         *bool                    `json:"cancellable,omitempty" url:"cancellable,omitempty"`
+	SupersededBy        *string                  `json:"superseded_by,omitempty" url:"superseded_by,omitempty"`
+	SupersededAt        *string                  `json:"superseded_at,omitempty" url:"superseded_at,omitempty"`
+	NoRecentUsage       *bool                    `json:"no_recent_usage,omitempty" url:"no_recent_usage,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -10260,6 +21680,13 @@ func (r *RenewalPlanData) GetEndAt() *string {
 	return r.EndAt
 }
 
+func (r *RenewalPlanData) GetEndAtAssumed() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.EndAtAssumed
+}
+
 func (r *RenewalPlanData) GetBuyAfterUtc() *string {
 	if r == nil {
 		return nil
@@ -10274,25 +21701,60 @@ func (r *RenewalPlanData) GetExpiresInSeconds() *int {
 	return r.ExpiresInSeconds
 }
 
-func (r *RenewalPlanData) GetUnitsHeld() int {
+func (r *RenewalPlanData) GetRenewalWindowDays() int {
+	if r == nil {
+		return 0
+	}
+	return r.RenewalWindowDays
+}
+
+func (r *RenewalPlanData) GetUnitsHeld() float64 {
 	if r == nil {
 		return 0
 	}
 	return r.UnitsHeld
 }
 
-func (r *RenewalPlanData) GetUnitsConsumed() int {
+func (r *RenewalPlanData) GetUnitsConsumed() *float64 {
 	if r == nil {
-		return 0
+		return nil
 	}
 	return r.UnitsConsumed
 }
 
-func (r *RenewalPlanData) GetUnitsRecommended() int {
+func (r *RenewalPlanData) GetUnitsRecommended() float64 {
 	if r == nil {
 		return 0
 	}
 	return r.UnitsRecommended
+}
+
+func (r *RenewalPlanData) GetResourceRecommended() *string {
+	if r == nil {
+		return nil
+	}
+	return r.ResourceRecommended
+}
+
+func (r *RenewalPlanData) GetQuantityRecommended() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.QuantityRecommended
+}
+
+func (r *RenewalPlanData) GetSizingBasis() *string {
+	if r == nil {
+		return nil
+	}
+	return r.SizingBasis
+}
+
+func (r *RenewalPlanData) GetDecision() *RenewalPlanDataDecision {
+	if r == nil {
+		return nil
+	}
+	return r.Decision
 }
 
 func (r *RenewalPlanData) GetProtectsMonthly() float64 {
@@ -10316,6 +21778,13 @@ func (r *RenewalPlanData) GetPendingChanges() []*RenewalPendingChange {
 	return r.PendingChanges
 }
 
+func (r *RenewalPlanData) GetBlockingChanges() []*RenewalPendingChange {
+	if r == nil {
+		return nil
+	}
+	return r.BlockingChanges
+}
+
 func (r *RenewalPlanData) GetExchangeable() *bool {
 	if r == nil {
 		return nil
@@ -10328,6 +21797,27 @@ func (r *RenewalPlanData) GetCancellable() *bool {
 		return nil
 	}
 	return r.Cancellable
+}
+
+func (r *RenewalPlanData) GetSupersededBy() *string {
+	if r == nil {
+		return nil
+	}
+	return r.SupersededBy
+}
+
+func (r *RenewalPlanData) GetSupersededAt() *string {
+	if r == nil {
+		return nil
+	}
+	return r.SupersededAt
+}
+
+func (r *RenewalPlanData) GetNoRecentUsage() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.NoRecentUsage
 }
 
 func (r *RenewalPlanData) GetExtraProperties() map[string]interface{} {
@@ -10372,6 +21862,13 @@ func (r *RenewalPlanData) SetEndAt(endAt *string) {
 	r.require(renewalPlanDataFieldEndAt)
 }
 
+// SetEndAtAssumed sets the EndAtAssumed field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalPlanData) SetEndAtAssumed(endAtAssumed *bool) {
+	r.EndAtAssumed = endAtAssumed
+	r.require(renewalPlanDataFieldEndAtAssumed)
+}
+
 // SetBuyAfterUtc sets the BuyAfterUtc field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (r *RenewalPlanData) SetBuyAfterUtc(buyAfterUtc *string) {
@@ -10386,25 +21883,60 @@ func (r *RenewalPlanData) SetExpiresInSeconds(expiresInSeconds *int) {
 	r.require(renewalPlanDataFieldExpiresInSeconds)
 }
 
+// SetRenewalWindowDays sets the RenewalWindowDays field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalPlanData) SetRenewalWindowDays(renewalWindowDays int) {
+	r.RenewalWindowDays = renewalWindowDays
+	r.require(renewalPlanDataFieldRenewalWindowDays)
+}
+
 // SetUnitsHeld sets the UnitsHeld field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (r *RenewalPlanData) SetUnitsHeld(unitsHeld int) {
+func (r *RenewalPlanData) SetUnitsHeld(unitsHeld float64) {
 	r.UnitsHeld = unitsHeld
 	r.require(renewalPlanDataFieldUnitsHeld)
 }
 
 // SetUnitsConsumed sets the UnitsConsumed field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (r *RenewalPlanData) SetUnitsConsumed(unitsConsumed int) {
+func (r *RenewalPlanData) SetUnitsConsumed(unitsConsumed *float64) {
 	r.UnitsConsumed = unitsConsumed
 	r.require(renewalPlanDataFieldUnitsConsumed)
 }
 
 // SetUnitsRecommended sets the UnitsRecommended field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (r *RenewalPlanData) SetUnitsRecommended(unitsRecommended int) {
+func (r *RenewalPlanData) SetUnitsRecommended(unitsRecommended float64) {
 	r.UnitsRecommended = unitsRecommended
 	r.require(renewalPlanDataFieldUnitsRecommended)
+}
+
+// SetResourceRecommended sets the ResourceRecommended field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalPlanData) SetResourceRecommended(resourceRecommended *string) {
+	r.ResourceRecommended = resourceRecommended
+	r.require(renewalPlanDataFieldResourceRecommended)
+}
+
+// SetQuantityRecommended sets the QuantityRecommended field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalPlanData) SetQuantityRecommended(quantityRecommended *float64) {
+	r.QuantityRecommended = quantityRecommended
+	r.require(renewalPlanDataFieldQuantityRecommended)
+}
+
+// SetSizingBasis sets the SizingBasis field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalPlanData) SetSizingBasis(sizingBasis *string) {
+	r.SizingBasis = sizingBasis
+	r.require(renewalPlanDataFieldSizingBasis)
+}
+
+// SetDecision sets the Decision field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalPlanData) SetDecision(decision *RenewalPlanDataDecision) {
+	r.Decision = decision
+	r.require(renewalPlanDataFieldDecision)
 }
 
 // SetProtectsMonthly sets the ProtectsMonthly field and marks it as non-optional;
@@ -10428,6 +21960,13 @@ func (r *RenewalPlanData) SetPendingChanges(pendingChanges []*RenewalPendingChan
 	r.require(renewalPlanDataFieldPendingChanges)
 }
 
+// SetBlockingChanges sets the BlockingChanges field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalPlanData) SetBlockingChanges(blockingChanges []*RenewalPendingChange) {
+	r.BlockingChanges = blockingChanges
+	r.require(renewalPlanDataFieldBlockingChanges)
+}
+
 // SetExchangeable sets the Exchangeable field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (r *RenewalPlanData) SetExchangeable(exchangeable *bool) {
@@ -10440,6 +21979,27 @@ func (r *RenewalPlanData) SetExchangeable(exchangeable *bool) {
 func (r *RenewalPlanData) SetCancellable(cancellable *bool) {
 	r.Cancellable = cancellable
 	r.require(renewalPlanDataFieldCancellable)
+}
+
+// SetSupersededBy sets the SupersededBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalPlanData) SetSupersededBy(supersededBy *string) {
+	r.SupersededBy = supersededBy
+	r.require(renewalPlanDataFieldSupersededBy)
+}
+
+// SetSupersededAt sets the SupersededAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalPlanData) SetSupersededAt(supersededAt *string) {
+	r.SupersededAt = supersededAt
+	r.require(renewalPlanDataFieldSupersededAt)
+}
+
+// SetNoRecentUsage sets the NoRecentUsage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalPlanData) SetNoRecentUsage(noRecentUsage *bool) {
+	r.NoRecentUsage = noRecentUsage
+	r.require(renewalPlanDataFieldNoRecentUsage)
 }
 
 func (r *RenewalPlanData) UnmarshalJSON(data []byte) error {
@@ -10482,6 +22042,28 @@ func (r *RenewalPlanData) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", r)
+}
+
+type RenewalPlanDataDecision string
+
+const (
+	RenewalPlanDataDecisionRenew     RenewalPlanDataDecision = "renew"
+	RenewalPlanDataDecisionLetExpire RenewalPlanDataDecision = "let_expire"
+)
+
+func NewRenewalPlanDataDecisionFromString(s string) (RenewalPlanDataDecision, error) {
+	switch s {
+	case "renew":
+		return RenewalPlanDataDecisionRenew, nil
+	case "let_expire":
+		return RenewalPlanDataDecisionLetExpire, nil
+	}
+	var t RenewalPlanDataDecision
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (r RenewalPlanDataDecision) Ptr() *RenewalPlanDataDecision {
+	return &r
 }
 
 var (
@@ -10594,6 +22176,672 @@ func (r *RenewalPlanResponse) MarshalJSON() ([]byte, error) {
 }
 
 func (r *RenewalPlanResponse) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+// An account's reservation limit against what it holds once this sweep's renewals are bought.
+var (
+	renewalQuotaFieldUsed      = big.NewInt(1 << 0)
+	renewalQuotaFieldLimit     = big.NewInt(1 << 1)
+	renewalQuotaFieldProjected = big.NewInt(1 << 2)
+)
+
+type RenewalQuota struct {
+	Used      int `json:"used" url:"used"`
+	Limit     int `json:"limit" url:"limit"`
+	Projected int `json:"projected" url:"projected"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RenewalQuota) GetUsed() int {
+	if r == nil {
+		return 0
+	}
+	return r.Used
+}
+
+func (r *RenewalQuota) GetLimit() int {
+	if r == nil {
+		return 0
+	}
+	return r.Limit
+}
+
+func (r *RenewalQuota) GetProjected() int {
+	if r == nil {
+		return 0
+	}
+	return r.Projected
+}
+
+func (r *RenewalQuota) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RenewalQuota) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetUsed sets the Used field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuota) SetUsed(used int) {
+	r.Used = used
+	r.require(renewalQuotaFieldUsed)
+}
+
+// SetLimit sets the Limit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuota) SetLimit(limit int) {
+	r.Limit = limit
+	r.require(renewalQuotaFieldLimit)
+}
+
+// SetProjected sets the Projected field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuota) SetProjected(projected int) {
+	r.Projected = projected
+	r.require(renewalQuotaFieldProjected)
+}
+
+func (r *RenewalQuota) UnmarshalJSON(data []byte) error {
+	type unmarshaler RenewalQuota
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = RenewalQuota(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RenewalQuota) MarshalJSON() ([]byte, error) {
+	type embed RenewalQuota
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RenewalQuota) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	renewalQuoteDataFieldCommitmentID     = big.NewInt(1 << 0)
+	renewalQuoteDataFieldOfferingID       = big.NewInt(1 << 1)
+	renewalQuoteDataFieldTermMonths       = big.NewInt(1 << 2)
+	renewalQuoteDataFieldPaymentOption    = big.NewInt(1 << 3)
+	renewalQuoteDataFieldQty              = big.NewInt(1 << 4)
+	renewalQuoteDataFieldCurrency         = big.NewInt(1 << 5)
+	renewalQuoteDataFieldFixedPrice       = big.NewInt(1 << 6)
+	renewalQuoteDataFieldRecurringHourly  = big.NewInt(1 << 7)
+	renewalQuoteDataFieldUsageHourly      = big.NewInt(1 << 8)
+	renewalQuoteDataFieldUpfront          = big.NewInt(1 << 9)
+	renewalQuoteDataFieldCommitmentHourly = big.NewInt(1 << 10)
+	renewalQuoteDataFieldErrorMessage     = big.NewInt(1 << 11)
+	renewalQuoteDataFieldQuotedAt         = big.NewInt(1 << 12)
+	renewalQuoteDataFieldTerm             = big.NewInt(1 << 13)
+)
+
+type RenewalQuoteData struct {
+	CommitmentID     string                 `json:"commitment_id" url:"commitment_id"`
+	OfferingID       *string                `json:"offering_id,omitempty" url:"offering_id,omitempty"`
+	TermMonths       *int                   `json:"term_months,omitempty" url:"term_months,omitempty"`
+	PaymentOption    *string                `json:"payment_option,omitempty" url:"payment_option,omitempty"`
+	Qty              *int                   `json:"qty,omitempty" url:"qty,omitempty"`
+	Currency         *string                `json:"currency,omitempty" url:"currency,omitempty"`
+	FixedPrice       *float64               `json:"fixed_price,omitempty" url:"fixed_price,omitempty"`
+	RecurringHourly  *float64               `json:"recurring_hourly,omitempty" url:"recurring_hourly,omitempty"`
+	UsageHourly      *float64               `json:"usage_hourly,omitempty" url:"usage_hourly,omitempty"`
+	Upfront          *float64               `json:"upfront,omitempty" url:"upfront,omitempty"`
+	CommitmentHourly *float64               `json:"commitment_hourly,omitempty" url:"commitment_hourly,omitempty"`
+	ErrorMessage     *string                `json:"error_message,omitempty" url:"error_message,omitempty"`
+	QuotedAt         *string                `json:"quoted_at,omitempty" url:"quoted_at,omitempty"`
+	Term             *CommitmentTermPricing `json:"term,omitempty" url:"term,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RenewalQuoteData) GetCommitmentID() string {
+	if r == nil {
+		return ""
+	}
+	return r.CommitmentID
+}
+
+func (r *RenewalQuoteData) GetOfferingID() *string {
+	if r == nil {
+		return nil
+	}
+	return r.OfferingID
+}
+
+func (r *RenewalQuoteData) GetTermMonths() *int {
+	if r == nil {
+		return nil
+	}
+	return r.TermMonths
+}
+
+func (r *RenewalQuoteData) GetPaymentOption() *string {
+	if r == nil {
+		return nil
+	}
+	return r.PaymentOption
+}
+
+func (r *RenewalQuoteData) GetQty() *int {
+	if r == nil {
+		return nil
+	}
+	return r.Qty
+}
+
+func (r *RenewalQuoteData) GetCurrency() *string {
+	if r == nil {
+		return nil
+	}
+	return r.Currency
+}
+
+func (r *RenewalQuoteData) GetFixedPrice() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.FixedPrice
+}
+
+func (r *RenewalQuoteData) GetRecurringHourly() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.RecurringHourly
+}
+
+func (r *RenewalQuoteData) GetUsageHourly() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.UsageHourly
+}
+
+func (r *RenewalQuoteData) GetUpfront() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.Upfront
+}
+
+func (r *RenewalQuoteData) GetCommitmentHourly() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.CommitmentHourly
+}
+
+func (r *RenewalQuoteData) GetErrorMessage() *string {
+	if r == nil {
+		return nil
+	}
+	return r.ErrorMessage
+}
+
+func (r *RenewalQuoteData) GetQuotedAt() *string {
+	if r == nil {
+		return nil
+	}
+	return r.QuotedAt
+}
+
+func (r *RenewalQuoteData) GetTerm() *CommitmentTermPricing {
+	if r == nil {
+		return nil
+	}
+	return r.Term
+}
+
+func (r *RenewalQuoteData) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RenewalQuoteData) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetCommitmentID sets the CommitmentID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetCommitmentID(commitmentID string) {
+	r.CommitmentID = commitmentID
+	r.require(renewalQuoteDataFieldCommitmentID)
+}
+
+// SetOfferingID sets the OfferingID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetOfferingID(offeringID *string) {
+	r.OfferingID = offeringID
+	r.require(renewalQuoteDataFieldOfferingID)
+}
+
+// SetTermMonths sets the TermMonths field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetTermMonths(termMonths *int) {
+	r.TermMonths = termMonths
+	r.require(renewalQuoteDataFieldTermMonths)
+}
+
+// SetPaymentOption sets the PaymentOption field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetPaymentOption(paymentOption *string) {
+	r.PaymentOption = paymentOption
+	r.require(renewalQuoteDataFieldPaymentOption)
+}
+
+// SetQty sets the Qty field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetQty(qty *int) {
+	r.Qty = qty
+	r.require(renewalQuoteDataFieldQty)
+}
+
+// SetCurrency sets the Currency field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetCurrency(currency *string) {
+	r.Currency = currency
+	r.require(renewalQuoteDataFieldCurrency)
+}
+
+// SetFixedPrice sets the FixedPrice field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetFixedPrice(fixedPrice *float64) {
+	r.FixedPrice = fixedPrice
+	r.require(renewalQuoteDataFieldFixedPrice)
+}
+
+// SetRecurringHourly sets the RecurringHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetRecurringHourly(recurringHourly *float64) {
+	r.RecurringHourly = recurringHourly
+	r.require(renewalQuoteDataFieldRecurringHourly)
+}
+
+// SetUsageHourly sets the UsageHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetUsageHourly(usageHourly *float64) {
+	r.UsageHourly = usageHourly
+	r.require(renewalQuoteDataFieldUsageHourly)
+}
+
+// SetUpfront sets the Upfront field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetUpfront(upfront *float64) {
+	r.Upfront = upfront
+	r.require(renewalQuoteDataFieldUpfront)
+}
+
+// SetCommitmentHourly sets the CommitmentHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetCommitmentHourly(commitmentHourly *float64) {
+	r.CommitmentHourly = commitmentHourly
+	r.require(renewalQuoteDataFieldCommitmentHourly)
+}
+
+// SetErrorMessage sets the ErrorMessage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetErrorMessage(errorMessage *string) {
+	r.ErrorMessage = errorMessage
+	r.require(renewalQuoteDataFieldErrorMessage)
+}
+
+// SetQuotedAt sets the QuotedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetQuotedAt(quotedAt *string) {
+	r.QuotedAt = quotedAt
+	r.require(renewalQuoteDataFieldQuotedAt)
+}
+
+// SetTerm sets the Term field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteData) SetTerm(term *CommitmentTermPricing) {
+	r.Term = term
+	r.require(renewalQuoteDataFieldTerm)
+}
+
+func (r *RenewalQuoteData) UnmarshalJSON(data []byte) error {
+	type unmarshaler RenewalQuoteData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = RenewalQuoteData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RenewalQuoteData) MarshalJSON() ([]byte, error) {
+	type embed RenewalQuoteData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RenewalQuoteData) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	renewalQuoteResponseFieldSuccess   = big.NewInt(1 << 0)
+	renewalQuoteResponseFieldTimestamp = big.NewInt(1 << 1)
+	renewalQuoteResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type RenewalQuoteResponse struct {
+	Success   *bool             `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time        `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *RenewalQuoteData `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RenewalQuoteResponse) GetSuccess() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.Success
+}
+
+func (r *RenewalQuoteResponse) GetTimestamp() *time.Time {
+	if r == nil {
+		return nil
+	}
+	return r.Timestamp
+}
+
+func (r *RenewalQuoteResponse) GetData() *RenewalQuoteData {
+	if r == nil {
+		return nil
+	}
+	return r.Data
+}
+
+func (r *RenewalQuoteResponse) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RenewalQuoteResponse) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteResponse) SetSuccess(success *bool) {
+	r.Success = success
+	r.require(renewalQuoteResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteResponse) SetTimestamp(timestamp *time.Time) {
+	r.Timestamp = timestamp
+	r.require(renewalQuoteResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalQuoteResponse) SetData(data *RenewalQuoteData) {
+	r.Data = data
+	r.require(renewalQuoteResponseFieldData)
+}
+
+func (r *RenewalQuoteResponse) UnmarshalJSON(data []byte) error {
+	type embed RenewalQuoteResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*r),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*r = RenewalQuoteResponse(unmarshaler.embed)
+	r.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RenewalQuoteResponse) MarshalJSON() ([]byte, error) {
+	type embed RenewalQuoteResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*r),
+		Timestamp: internal.NewOptionalDateTime(r.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RenewalQuoteResponse) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+// One size and deployment the commitment's family runs, averaged over the window it was sized on.
+var (
+	renewalRunningSizeFieldInstanceType    = big.NewInt(1 << 0)
+	renewalRunningSizeFieldDeployment      = big.NewInt(1 << 1)
+	renewalRunningSizeFieldInstances       = big.NewInt(1 << 2)
+	renewalRunningSizeFieldNormalizedUnits = big.NewInt(1 << 3)
+)
+
+type RenewalRunningSize struct {
+	InstanceType    string  `json:"instance_type" url:"instance_type"`
+	Deployment      string  `json:"deployment" url:"deployment"`
+	Instances       float64 `json:"instances" url:"instances"`
+	NormalizedUnits float64 `json:"normalized_units" url:"normalized_units"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RenewalRunningSize) GetInstanceType() string {
+	if r == nil {
+		return ""
+	}
+	return r.InstanceType
+}
+
+func (r *RenewalRunningSize) GetDeployment() string {
+	if r == nil {
+		return ""
+	}
+	return r.Deployment
+}
+
+func (r *RenewalRunningSize) GetInstances() float64 {
+	if r == nil {
+		return 0
+	}
+	return r.Instances
+}
+
+func (r *RenewalRunningSize) GetNormalizedUnits() float64 {
+	if r == nil {
+		return 0
+	}
+	return r.NormalizedUnits
+}
+
+func (r *RenewalRunningSize) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RenewalRunningSize) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetInstanceType sets the InstanceType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalRunningSize) SetInstanceType(instanceType string) {
+	r.InstanceType = instanceType
+	r.require(renewalRunningSizeFieldInstanceType)
+}
+
+// SetDeployment sets the Deployment field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalRunningSize) SetDeployment(deployment string) {
+	r.Deployment = deployment
+	r.require(renewalRunningSizeFieldDeployment)
+}
+
+// SetInstances sets the Instances field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalRunningSize) SetInstances(instances float64) {
+	r.Instances = instances
+	r.require(renewalRunningSizeFieldInstances)
+}
+
+// SetNormalizedUnits sets the NormalizedUnits field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RenewalRunningSize) SetNormalizedUnits(normalizedUnits float64) {
+	r.NormalizedUnits = normalizedUnits
+	r.require(renewalRunningSizeFieldNormalizedUnits)
+}
+
+func (r *RenewalRunningSize) UnmarshalJSON(data []byte) error {
+	type unmarshaler RenewalRunningSize
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = RenewalRunningSize(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RenewalRunningSize) MarshalJSON() ([]byte, error) {
+	type embed RenewalRunningSize
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RenewalRunningSize) String() string {
 	if r == nil {
 		return "<nil>"
 	}
@@ -10947,23 +23195,35 @@ func (u *UncoveredResponse) String() string {
 var (
 	uncoveredSliceRowFieldService                   = big.NewInt(1 << 0)
 	uncoveredSliceRowFieldOrganizationID            = big.NewInt(1 << 1)
-	uncoveredSliceRowFieldPlatform                  = big.NewInt(1 << 2)
-	uncoveredSliceRowFieldOnDemandHourlyAvg         = big.NewInt(1 << 3)
-	uncoveredSliceRowFieldOnDemandHourlyMin         = big.NewInt(1 << 4)
-	uncoveredSliceRowFieldVolatilityRatio           = big.NewInt(1 << 5)
-	uncoveredSliceRowFieldRecommendedKind           = big.NewInt(1 << 6)
-	uncoveredSliceRowFieldSuggestedCommitmentHourly = big.NewInt(1 << 7)
+	uncoveredSliceRowFieldPayerAccountID            = big.NewInt(1 << 2)
+	uncoveredSliceRowFieldPlanType                  = big.NewInt(1 << 3)
+	uncoveredSliceRowFieldPlatform                  = big.NewInt(1 << 4)
+	uncoveredSliceRowFieldOnDemandHourlyAvg         = big.NewInt(1 << 5)
+	uncoveredSliceRowFieldOnDemandHourlyMin         = big.NewInt(1 << 6)
+	uncoveredSliceRowFieldVolatilityRatio           = big.NewInt(1 << 7)
+	uncoveredSliceRowFieldRecommendedKind           = big.NewInt(1 << 8)
+	uncoveredSliceRowFieldSuggestedCommitmentHourly = big.NewInt(1 << 9)
+	uncoveredSliceRowFieldGrain                     = big.NewInt(1 << 10)
+	uncoveredSliceRowFieldSource                    = big.NewInt(1 << 11)
+	uncoveredSliceRowFieldWindowDays                = big.NewInt(1 << 12)
+	uncoveredSliceRowFieldFetchedOn                 = big.NewInt(1 << 13)
 )
 
 type UncoveredSliceRow struct {
-	Service                   string  `json:"service" url:"service"`
-	OrganizationID            string  `json:"organization_id" url:"organization_id"`
-	Platform                  string  `json:"platform" url:"platform"`
-	OnDemandHourlyAvg         float64 `json:"on_demand_hourly_avg" url:"on_demand_hourly_avg"`
-	OnDemandHourlyMin         float64 `json:"on_demand_hourly_min" url:"on_demand_hourly_min"`
-	VolatilityRatio           float64 `json:"volatility_ratio" url:"volatility_ratio"`
-	RecommendedKind           *string `json:"recommended_kind,omitempty" url:"recommended_kind,omitempty"`
-	SuggestedCommitmentHourly float64 `json:"suggested_commitment_hourly" url:"suggested_commitment_hourly"`
+	Service                   string                    `json:"service" url:"service"`
+	OrganizationID            string                    `json:"organization_id" url:"organization_id"`
+	PayerAccountID            string                    `json:"payer_account_id" url:"payer_account_id"`
+	PlanType                  UncoveredSliceRowPlanType `json:"plan_type" url:"plan_type"`
+	Platform                  string                    `json:"platform" url:"platform"`
+	OnDemandHourlyAvg         float64                   `json:"on_demand_hourly_avg" url:"on_demand_hourly_avg"`
+	OnDemandHourlyMin         float64                   `json:"on_demand_hourly_min" url:"on_demand_hourly_min"`
+	VolatilityRatio           float64                   `json:"volatility_ratio" url:"volatility_ratio"`
+	RecommendedKind           *string                   `json:"recommended_kind,omitempty" url:"recommended_kind,omitempty"`
+	SuggestedCommitmentHourly float64                   `json:"suggested_commitment_hourly" url:"suggested_commitment_hourly"`
+	Grain                     UncoveredSliceRowGrain    `json:"grain" url:"grain"`
+	Source                    UncoveredSliceRowSource   `json:"source" url:"source"`
+	WindowDays                int                       `json:"window_days" url:"window_days"`
+	FetchedOn                 *time.Time                `json:"fetched_on,omitempty" url:"fetched_on,omitempty" format:"date"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -10984,6 +23244,20 @@ func (u *UncoveredSliceRow) GetOrganizationID() string {
 		return ""
 	}
 	return u.OrganizationID
+}
+
+func (u *UncoveredSliceRow) GetPayerAccountID() string {
+	if u == nil {
+		return ""
+	}
+	return u.PayerAccountID
+}
+
+func (u *UncoveredSliceRow) GetPlanType() UncoveredSliceRowPlanType {
+	if u == nil {
+		return ""
+	}
+	return u.PlanType
 }
 
 func (u *UncoveredSliceRow) GetPlatform() string {
@@ -11028,6 +23302,34 @@ func (u *UncoveredSliceRow) GetSuggestedCommitmentHourly() float64 {
 	return u.SuggestedCommitmentHourly
 }
 
+func (u *UncoveredSliceRow) GetGrain() UncoveredSliceRowGrain {
+	if u == nil {
+		return ""
+	}
+	return u.Grain
+}
+
+func (u *UncoveredSliceRow) GetSource() UncoveredSliceRowSource {
+	if u == nil {
+		return ""
+	}
+	return u.Source
+}
+
+func (u *UncoveredSliceRow) GetWindowDays() int {
+	if u == nil {
+		return 0
+	}
+	return u.WindowDays
+}
+
+func (u *UncoveredSliceRow) GetFetchedOn() *time.Time {
+	if u == nil {
+		return nil
+	}
+	return u.FetchedOn
+}
+
 func (u *UncoveredSliceRow) GetExtraProperties() map[string]interface{} {
 	if u == nil {
 		return nil
@@ -11054,6 +23356,20 @@ func (u *UncoveredSliceRow) SetService(service string) {
 func (u *UncoveredSliceRow) SetOrganizationID(organizationID string) {
 	u.OrganizationID = organizationID
 	u.require(uncoveredSliceRowFieldOrganizationID)
+}
+
+// SetPayerAccountID sets the PayerAccountID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UncoveredSliceRow) SetPayerAccountID(payerAccountID string) {
+	u.PayerAccountID = payerAccountID
+	u.require(uncoveredSliceRowFieldPayerAccountID)
+}
+
+// SetPlanType sets the PlanType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UncoveredSliceRow) SetPlanType(planType UncoveredSliceRowPlanType) {
+	u.PlanType = planType
+	u.require(uncoveredSliceRowFieldPlanType)
 }
 
 // SetPlatform sets the Platform field and marks it as non-optional;
@@ -11098,13 +23414,47 @@ func (u *UncoveredSliceRow) SetSuggestedCommitmentHourly(suggestedCommitmentHour
 	u.require(uncoveredSliceRowFieldSuggestedCommitmentHourly)
 }
 
+// SetGrain sets the Grain field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UncoveredSliceRow) SetGrain(grain UncoveredSliceRowGrain) {
+	u.Grain = grain
+	u.require(uncoveredSliceRowFieldGrain)
+}
+
+// SetSource sets the Source field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UncoveredSliceRow) SetSource(source UncoveredSliceRowSource) {
+	u.Source = source
+	u.require(uncoveredSliceRowFieldSource)
+}
+
+// SetWindowDays sets the WindowDays field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UncoveredSliceRow) SetWindowDays(windowDays int) {
+	u.WindowDays = windowDays
+	u.require(uncoveredSliceRowFieldWindowDays)
+}
+
+// SetFetchedOn sets the FetchedOn field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UncoveredSliceRow) SetFetchedOn(fetchedOn *time.Time) {
+	u.FetchedOn = fetchedOn
+	u.require(uncoveredSliceRowFieldFetchedOn)
+}
+
 func (u *UncoveredSliceRow) UnmarshalJSON(data []byte) error {
-	type unmarshaler UncoveredSliceRow
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
+	type embed UncoveredSliceRow
+	var unmarshaler = struct {
+		embed
+		FetchedOn *internal.Date `json:"fetched_on,omitempty"`
+	}{
+		embed: embed(*u),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*u = UncoveredSliceRow(value)
+	*u = UncoveredSliceRow(unmarshaler.embed)
+	u.FetchedOn = unmarshaler.FetchedOn.TimePtr()
 	extraProperties, err := internal.ExtractExtraProperties(data, *u)
 	if err != nil {
 		return err
@@ -11118,8 +23468,10 @@ func (u *UncoveredSliceRow) MarshalJSON() ([]byte, error) {
 	type embed UncoveredSliceRow
 	var marshaler = struct {
 		embed
+		FetchedOn *internal.Date `json:"fetched_on,omitempty"`
 	}{
-		embed: embed(*u),
+		embed:     embed(*u),
+		FetchedOn: internal.NewOptionalDate(u.FetchedOn),
 	}
 	explicitMarshaler := internal.HandleExplicitFields(marshaler, u.explicitFields)
 	return json.Marshal(explicitMarshaler)
@@ -11138,6 +23490,72 @@ func (u *UncoveredSliceRow) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", u)
+}
+
+type UncoveredSliceRowGrain string
+
+const (
+	UncoveredSliceRowGrainDaily  UncoveredSliceRowGrain = "daily"
+	UncoveredSliceRowGrainHourly UncoveredSliceRowGrain = "hourly"
+)
+
+func NewUncoveredSliceRowGrainFromString(s string) (UncoveredSliceRowGrain, error) {
+	switch s {
+	case "daily":
+		return UncoveredSliceRowGrainDaily, nil
+	case "hourly":
+		return UncoveredSliceRowGrainHourly, nil
+	}
+	var t UncoveredSliceRowGrain
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UncoveredSliceRowGrain) Ptr() *UncoveredSliceRowGrain {
+	return &u
+}
+
+type UncoveredSliceRowPlanType string
+
+const (
+	UncoveredSliceRowPlanTypeCompute  UncoveredSliceRowPlanType = "compute"
+	UncoveredSliceRowPlanTypeDatabase UncoveredSliceRowPlanType = "database"
+)
+
+func NewUncoveredSliceRowPlanTypeFromString(s string) (UncoveredSliceRowPlanType, error) {
+	switch s {
+	case "compute":
+		return UncoveredSliceRowPlanTypeCompute, nil
+	case "database":
+		return UncoveredSliceRowPlanTypeDatabase, nil
+	}
+	var t UncoveredSliceRowPlanType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UncoveredSliceRowPlanType) Ptr() *UncoveredSliceRowPlanType {
+	return &u
+}
+
+type UncoveredSliceRowSource string
+
+const (
+	UncoveredSliceRowSourceCur                        UncoveredSliceRowSource = "cur"
+	UncoveredSliceRowSourceCostExplorerRecommendation UncoveredSliceRowSource = "cost_explorer_recommendation"
+)
+
+func NewUncoveredSliceRowSourceFromString(s string) (UncoveredSliceRowSource, error) {
+	switch s {
+	case "cur":
+		return UncoveredSliceRowSourceCur, nil
+	case "cost_explorer_recommendation":
+		return UncoveredSliceRowSourceCostExplorerRecommendation, nil
+	}
+	var t UncoveredSliceRowSource
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UncoveredSliceRowSource) Ptr() *UncoveredSliceRowSource {
+	return &u
 }
 
 var (
@@ -11308,4 +23726,153 @@ func NewUtilizationDimensionKeyFromString(s string) (UtilizationDimensionKey, er
 
 func (u UtilizationDimensionKey) Ptr() *UtilizationDimensionKey {
 	return &u
+}
+
+type GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestPlanType string
+
+const (
+	GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestPlanTypeCompute  GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestPlanType = "compute"
+	GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestPlanTypeDatabase GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestPlanType = "database"
+)
+
+func NewGetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestPlanTypeFromString(s string) (GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestPlanType, error) {
+	switch s {
+	case "compute":
+		return GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestPlanTypeCompute, nil
+	case "database":
+		return GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestPlanTypeDatabase, nil
+	}
+	var t GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestPlanType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestPlanType) Ptr() *GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequestPlanType {
+	return &g
+}
+
+type PurchaseRaisePlanType string
+
+const (
+	PurchaseRaisePlanTypeCompute  PurchaseRaisePlanType = "compute"
+	PurchaseRaisePlanTypeDatabase PurchaseRaisePlanType = "database"
+)
+
+func NewPurchaseRaisePlanTypeFromString(s string) (PurchaseRaisePlanType, error) {
+	switch s {
+	case "compute":
+		return PurchaseRaisePlanTypeCompute, nil
+	case "database":
+		return PurchaseRaisePlanTypeDatabase, nil
+	}
+	var t PurchaseRaisePlanType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (p PurchaseRaisePlanType) Ptr() *PurchaseRaisePlanType {
+	return &p
+}
+
+type PurchaseRaiseProfile string
+
+const (
+	PurchaseRaiseProfileConservative PurchaseRaiseProfile = "conservative"
+	PurchaseRaiseProfileBalanced     PurchaseRaiseProfile = "balanced"
+	PurchaseRaiseProfileMaxSavings   PurchaseRaiseProfile = "max_savings"
+)
+
+func NewPurchaseRaiseProfileFromString(s string) (PurchaseRaiseProfile, error) {
+	switch s {
+	case "conservative":
+		return PurchaseRaiseProfileConservative, nil
+	case "balanced":
+		return PurchaseRaiseProfileBalanced, nil
+	case "max_savings":
+		return PurchaseRaiseProfileMaxSavings, nil
+	}
+	var t PurchaseRaiseProfile
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (p PurchaseRaiseProfile) Ptr() *PurchaseRaiseProfile {
+	return &p
+}
+
+type PurchaseSizeProfile string
+
+const (
+	PurchaseSizeProfileConservative PurchaseSizeProfile = "conservative"
+	PurchaseSizeProfileBalanced     PurchaseSizeProfile = "balanced"
+	PurchaseSizeProfileMaxSavings   PurchaseSizeProfile = "max_savings"
+)
+
+func NewPurchaseSizeProfileFromString(s string) (PurchaseSizeProfile, error) {
+	switch s {
+	case "conservative":
+		return PurchaseSizeProfileConservative, nil
+	case "balanced":
+		return PurchaseSizeProfileBalanced, nil
+	case "max_savings":
+		return PurchaseSizeProfileMaxSavings, nil
+	}
+	var t PurchaseSizeProfile
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (p PurchaseSizeProfile) Ptr() *PurchaseSizeProfile {
+	return &p
+}
+
+var (
+	purchaseSizeFieldProfile          = big.NewInt(1 << 0)
+	purchaseSizeFieldCommitmentHourly = big.NewInt(1 << 1)
+)
+
+type PurchaseSize struct {
+	Profile          *PurchaseSizeProfile `json:"profile,omitempty" url:"-"`
+	CommitmentHourly *float64             `json:"commitment_hourly,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (p *PurchaseSize) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetProfile sets the Profile field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSize) SetProfile(profile *PurchaseSizeProfile) {
+	p.Profile = profile
+	p.require(purchaseSizeFieldProfile)
+}
+
+// SetCommitmentHourly sets the CommitmentHourly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PurchaseSize) SetCommitmentHourly(commitmentHourly *float64) {
+	p.CommitmentHourly = commitmentHourly
+	p.require(purchaseSizeFieldCommitmentHourly)
+}
+
+func (p *PurchaseSize) UnmarshalJSON(data []byte) error {
+	type unmarshaler PurchaseSize
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*p = PurchaseSize(body)
+	return nil
+}
+
+func (p *PurchaseSize) MarshalJSON() ([]byte, error) {
+	type embed PurchaseSize
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*p),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
