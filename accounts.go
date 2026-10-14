@@ -78,9 +78,9 @@ var (
 type GitlabCompleteRequest struct {
 	// OAuth authorization code returned to the GitLab callback
 	Code string `json:"code" url:"-"`
-	// Legacy single-target path. When scope='group', a group full path (e.g. globo or globo/infra). When scope='project', a single project full path (e.g. globo/infra/billing). Provide either namespace (legacy) or projects (multi-project mint-and-store), not both.
+	// Legacy single-target path. When scope='group', a group full path (e.g. acme or acme/infra). When scope='project', a single project full path (e.g. acme/infra/billing). Provide either namespace (legacy) or projects (multi-project mint-and-store), not both.
 	Namespace *string `json:"namespace,omitempty" url:"-"`
-	// Multi-project path: one or more project full paths (e.g. globo/infra/billing). Requires scope='project'. Each project mints its own scoped Project Access Token at connect time so the bot has a per-project identity and the connector's OAuth token is never stored.
+	// Multi-project path: one or more project full paths (e.g. acme/infra/billing). Requires scope='project'. Each project mints its own scoped Project Access Token at connect time so the bot has a per-project identity and the connector's OAuth token is never stored.
 	Projects []string `json:"projects,omitempty" url:"-"`
 	// Whether to connect an entire group (registers a group webhook, needs GitLab Premium/Ultimate) or one or more projects (registers a project webhook each, works on all tiers).
 	Scope *GitlabCompleteRequestScope `json:"scope,omitempty" url:"-"`
@@ -379,6 +379,53 @@ func (l *ListConnectedAccountsAPIV1AccountsGetRequest) SetPage(page *int) {
 func (l *ListConnectedAccountsAPIV1AccountsGetRequest) SetPageSize(pageSize *int) {
 	l.PageSize = pageSize
 	l.require(listConnectedAccountsAPIV1AccountsGetRequestFieldPageSize)
+}
+
+var (
+	slackAlertChannelRequestFieldChannelID = big.NewInt(1 << 0)
+)
+
+type SlackAlertChannelRequest struct {
+	// A public or private channel id, or null for no default
+	ChannelID *string `json:"channel_id,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (s *SlackAlertChannelRequest) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetChannelID sets the ChannelID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SlackAlertChannelRequest) SetChannelID(channelID *string) {
+	s.ChannelID = channelID
+	s.require(slackAlertChannelRequestFieldChannelID)
+}
+
+func (s *SlackAlertChannelRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler SlackAlertChannelRequest
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*s = SlackAlertChannelRequest(body)
+	return nil
+}
+
+func (s *SlackAlertChannelRequest) MarshalJSON() ([]byte, error) {
+	type embed SlackAlertChannelRequest
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
 }
 
 var (
@@ -4874,6 +4921,656 @@ func (j *JiraSiteSummary) String() string {
 }
 
 var (
+	slackAlertChannelFieldID   = big.NewInt(1 << 0)
+	slackAlertChannelFieldName = big.NewInt(1 << 1)
+)
+
+type SlackAlertChannel struct {
+	ID   string `json:"id" url:"id"`
+	Name string `json:"name" url:"name"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SlackAlertChannel) GetID() string {
+	if s == nil {
+		return ""
+	}
+	return s.ID
+}
+
+func (s *SlackAlertChannel) GetName() string {
+	if s == nil {
+		return ""
+	}
+	return s.Name
+}
+
+func (s *SlackAlertChannel) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *SlackAlertChannel) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SlackAlertChannel) SetID(id string) {
+	s.ID = id
+	s.require(slackAlertChannelFieldID)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SlackAlertChannel) SetName(name string) {
+	s.Name = name
+	s.require(slackAlertChannelFieldName)
+}
+
+func (s *SlackAlertChannel) UnmarshalJSON(data []byte) error {
+	type unmarshaler SlackAlertChannel
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SlackAlertChannel(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SlackAlertChannel) MarshalJSON() ([]byte, error) {
+	type embed SlackAlertChannel
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *SlackAlertChannel) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+var (
+	slackAlertChannelDataFieldChannel = big.NewInt(1 << 0)
+)
+
+type SlackAlertChannelData struct {
+	// The channel a new cost alert starts with, or null when there is no default
+	Channel *SlackAlertChannel `json:"channel,omitempty" url:"channel,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SlackAlertChannelData) GetChannel() *SlackAlertChannel {
+	if s == nil {
+		return nil
+	}
+	return s.Channel
+}
+
+func (s *SlackAlertChannelData) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *SlackAlertChannelData) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetChannel sets the Channel field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SlackAlertChannelData) SetChannel(channel *SlackAlertChannel) {
+	s.Channel = channel
+	s.require(slackAlertChannelDataFieldChannel)
+}
+
+func (s *SlackAlertChannelData) UnmarshalJSON(data []byte) error {
+	type unmarshaler SlackAlertChannelData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SlackAlertChannelData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SlackAlertChannelData) MarshalJSON() ([]byte, error) {
+	type embed SlackAlertChannelData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *SlackAlertChannelData) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+var (
+	slackAlertChannelResponseFieldSuccess   = big.NewInt(1 << 0)
+	slackAlertChannelResponseFieldTimestamp = big.NewInt(1 << 1)
+	slackAlertChannelResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type SlackAlertChannelResponse struct {
+	Success   *bool                  `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time             `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *SlackAlertChannelData `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SlackAlertChannelResponse) GetSuccess() *bool {
+	if s == nil {
+		return nil
+	}
+	return s.Success
+}
+
+func (s *SlackAlertChannelResponse) GetTimestamp() *time.Time {
+	if s == nil {
+		return nil
+	}
+	return s.Timestamp
+}
+
+func (s *SlackAlertChannelResponse) GetData() *SlackAlertChannelData {
+	if s == nil {
+		return nil
+	}
+	return s.Data
+}
+
+func (s *SlackAlertChannelResponse) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *SlackAlertChannelResponse) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SlackAlertChannelResponse) SetSuccess(success *bool) {
+	s.Success = success
+	s.require(slackAlertChannelResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SlackAlertChannelResponse) SetTimestamp(timestamp *time.Time) {
+	s.Timestamp = timestamp
+	s.require(slackAlertChannelResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SlackAlertChannelResponse) SetData(data *SlackAlertChannelData) {
+	s.Data = data
+	s.require(slackAlertChannelResponseFieldData)
+}
+
+func (s *SlackAlertChannelResponse) UnmarshalJSON(data []byte) error {
+	type embed SlackAlertChannelResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*s),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*s = SlackAlertChannelResponse(unmarshaler.embed)
+	s.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SlackAlertChannelResponse) MarshalJSON() ([]byte, error) {
+	type embed SlackAlertChannelResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*s),
+		Timestamp: internal.NewOptionalDateTime(s.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *SlackAlertChannelResponse) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+var (
+	slackChannelSummaryFieldID        = big.NewInt(1 << 0)
+	slackChannelSummaryFieldName      = big.NewInt(1 << 1)
+	slackChannelSummaryFieldIsPrivate = big.NewInt(1 << 2)
+)
+
+type SlackChannelSummary struct {
+	ID        string `json:"id" url:"id"`
+	Name      string `json:"name" url:"name"`
+	IsPrivate bool   `json:"is_private" url:"is_private"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SlackChannelSummary) GetID() string {
+	if s == nil {
+		return ""
+	}
+	return s.ID
+}
+
+func (s *SlackChannelSummary) GetName() string {
+	if s == nil {
+		return ""
+	}
+	return s.Name
+}
+
+func (s *SlackChannelSummary) GetIsPrivate() bool {
+	if s == nil {
+		return false
+	}
+	return s.IsPrivate
+}
+
+func (s *SlackChannelSummary) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *SlackChannelSummary) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SlackChannelSummary) SetID(id string) {
+	s.ID = id
+	s.require(slackChannelSummaryFieldID)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SlackChannelSummary) SetName(name string) {
+	s.Name = name
+	s.require(slackChannelSummaryFieldName)
+}
+
+// SetIsPrivate sets the IsPrivate field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SlackChannelSummary) SetIsPrivate(isPrivate bool) {
+	s.IsPrivate = isPrivate
+	s.require(slackChannelSummaryFieldIsPrivate)
+}
+
+func (s *SlackChannelSummary) UnmarshalJSON(data []byte) error {
+	type unmarshaler SlackChannelSummary
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SlackChannelSummary(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SlackChannelSummary) MarshalJSON() ([]byte, error) {
+	type embed SlackChannelSummary
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *SlackChannelSummary) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+var (
+	slackChannelsDataFieldItems     = big.NewInt(1 << 0)
+	slackChannelsDataFieldTruncated = big.NewInt(1 << 1)
+)
+
+type SlackChannelsData struct {
+	Items []*SlackChannelSummary `json:"items" url:"items"`
+	// True when the workspace has more channels than the list reads
+	Truncated bool `json:"truncated" url:"truncated"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SlackChannelsData) GetItems() []*SlackChannelSummary {
+	if s == nil {
+		return nil
+	}
+	return s.Items
+}
+
+func (s *SlackChannelsData) GetTruncated() bool {
+	if s == nil {
+		return false
+	}
+	return s.Truncated
+}
+
+func (s *SlackChannelsData) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *SlackChannelsData) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SlackChannelsData) SetItems(items []*SlackChannelSummary) {
+	s.Items = items
+	s.require(slackChannelsDataFieldItems)
+}
+
+// SetTruncated sets the Truncated field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SlackChannelsData) SetTruncated(truncated bool) {
+	s.Truncated = truncated
+	s.require(slackChannelsDataFieldTruncated)
+}
+
+func (s *SlackChannelsData) UnmarshalJSON(data []byte) error {
+	type unmarshaler SlackChannelsData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SlackChannelsData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SlackChannelsData) MarshalJSON() ([]byte, error) {
+	type embed SlackChannelsData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *SlackChannelsData) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+var (
+	slackChannelsResponseFieldSuccess   = big.NewInt(1 << 0)
+	slackChannelsResponseFieldTimestamp = big.NewInt(1 << 1)
+	slackChannelsResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type SlackChannelsResponse struct {
+	Success   *bool              `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time         `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *SlackChannelsData `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SlackChannelsResponse) GetSuccess() *bool {
+	if s == nil {
+		return nil
+	}
+	return s.Success
+}
+
+func (s *SlackChannelsResponse) GetTimestamp() *time.Time {
+	if s == nil {
+		return nil
+	}
+	return s.Timestamp
+}
+
+func (s *SlackChannelsResponse) GetData() *SlackChannelsData {
+	if s == nil {
+		return nil
+	}
+	return s.Data
+}
+
+func (s *SlackChannelsResponse) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *SlackChannelsResponse) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SlackChannelsResponse) SetSuccess(success *bool) {
+	s.Success = success
+	s.require(slackChannelsResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SlackChannelsResponse) SetTimestamp(timestamp *time.Time) {
+	s.Timestamp = timestamp
+	s.require(slackChannelsResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SlackChannelsResponse) SetData(data *SlackChannelsData) {
+	s.Data = data
+	s.require(slackChannelsResponseFieldData)
+}
+
+func (s *SlackChannelsResponse) UnmarshalJSON(data []byte) error {
+	type embed SlackChannelsResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*s),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*s = SlackChannelsResponse(unmarshaler.embed)
+	s.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SlackChannelsResponse) MarshalJSON() ([]byte, error) {
+	type embed SlackChannelsResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*s),
+		Timestamp: internal.NewOptionalDateTime(s.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *SlackChannelsResponse) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+var (
 	slackCompleteDataFieldIntegrationID = big.NewInt(1 << 0)
 	slackCompleteDataFieldConnected     = big.NewInt(1 << 1)
 	slackCompleteDataFieldConnection    = big.NewInt(1 << 2)
@@ -5133,7 +5830,7 @@ type SlackConnectionSummary struct {
 	TeamName string `json:"team_name" url:"team_name"`
 	// Scopes the workspace actually granted. The history scopes are optional in the app manifest, so an admin can approve the install without them.
 	GrantedScopes []string `json:"granted_scopes" url:"granted_scopes"`
-	// True when the granted scopes allow reading a thread reply that does not mention the bot. False means the bot still posts alerts and still answers an @mention, but cannot pick up a plain reply, and the dashboard should say so.
+	// True when the granted scopes allow reading a thread reply that does not mention the bot. False means the bot still answers an @mention, but cannot pick up a plain reply, and the dashboard should say so.
 	CanAnswerUnmentioned bool       `json:"can_answer_unmentioned" url:"can_answer_unmentioned"`
 	ConnectedAt          *time.Time `json:"connected_at,omitempty" url:"connected_at,omitempty"`
 
