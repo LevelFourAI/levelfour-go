@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1](https://github.com/LevelFourAI/levelfour-go/compare/v0.2.0...v0.2.1) (2026-10-19)
+
+
+### Documentation
+
+* show how to create, change, pause and delete a cost alert ([af3aacf](https://github.com/LevelFourAI/levelfour-go/commit/af3aacfb858022e230f32634b40ebb2c49a6dea7))
+* show how to create, change, pause and delete a cost alert ([a8bbe80](https://github.com/LevelFourAI/levelfour-go/commit/a8bbe80378eb5f335bc8286e968e7278efde3447))
+
 ## [0.2.0](https://github.com/LevelFourAI/levelfour-go/compare/v0.1.0...v0.2.0) (2026-09-20)
 
 
