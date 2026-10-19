@@ -54,6 +54,41 @@ func main() {
 }
 ```
 
+## Cost alerts
+
+`client.CostAlerts` creates, changes, pauses and deletes the alerts that watch an account or a saved cost view. Writes need a read-write key, and the methods arrived in v0.2.0. [`examples/cost_alerts`](examples/cost_alerts/) runs the whole sequence.
+
+```go
+budget := func(amount float64) *levelfour.BudgetParamsInput {
+	return &levelfour.BudgetParamsInput{
+		Budget: &levelfour.BudgetParamsInputBudget{Double: amount},
+		Reset:  "monthly",
+		Rules: []*levelfour.BudgetRuleInput{
+			{Amount: &levelfour.BudgetRuleInputAmount{Double: 80}, Unit: "percent"},
+		},
+	}
+}
+
+created, err := client.CostAlerts.CreateAlert(ctx, &levelfour.CreateAlertRequest{
+	Name:       "Production budget",
+	SourceID:   "123456789012", // an id from client.CostAlerts.ListSources
+	Params:     &levelfour.CreateAlertRequestParams{Budget: budget(40000)},
+	Recipients: []*levelfour.AlertRecipient{{Name: "Ana", Email: "ana@example.com", Member: true}},
+})
+id := created.Data.ID
+
+// Only the fields you set change. Params replaces the whole rule, so send it back with the new figure.
+_, err = client.CostAlerts.UpdateAlert(ctx, id, &levelfour.UpdateAlertRequest{
+	Params: &levelfour.UpdateAlertRequestParams{Budget: budget(50000)},
+})
+
+enabled := false // pauses it; true resumes it
+_, err = client.CostAlerts.UpdateAlert(ctx, id, &levelfour.UpdateAlertRequest{Enabled: &enabled})
+
+// Deleting takes the alert's history with it. Pausing keeps it.
+_, err = client.CostAlerts.DeleteAlert(ctx, id)
+```
+
 ## Error Handling
 
 Use the convenience functions in the `levelfour` package to check API error types:

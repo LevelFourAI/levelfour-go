@@ -27,6 +27,9 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e  # v6
         with:
           go-version: ${{ matrix.go-version }}
+          # The runner's cached patch lags the release, and govulncheck reads the standard library
+          # of the Go that runs it: 1.26.8 failed on GO-2026-6617, fixed in 1.26.9.
+          check-latest: true
 
       - name: Build
         run: go build ./...
