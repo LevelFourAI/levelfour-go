@@ -49,7 +49,7 @@ func (c *Client) GetOverview(
 	return response.Body, nil
 }
 
-// Coverage per service and the covered spend per consuming account, with the on-demand remainder beside it so the percentage names its own denominator. Weighted by the dollars behind each figure, never averaged across commitments, where a hundred dollar reservation would move the number as far as a fifty thousand dollar one. A provider whose sweep has not run reports measured false rather than zero coverage, because holding none and not having looked are opposite answers.
+// Coverage per service and the covered spend per consuming account, with the on-demand remainder beside it so the percentage names its own denominator. Weighted by the dollars behind each figure, never averaged across commitments, where a hundred dollar reservation would move the number as far as a fifty thousand dollar one. A provider whose sweep has not run reports measured false rather than zero coverage, because holding none and not having looked are opposite answers. months adds that many calendar months ending at the current month, AWS only, for the organization, each payer and each account where the workloads run: instance hours at public on-demand prices covered and uncovered, and the commitment dollars each account consumed, took from other accounts, gave to them and left idle. On Google Cloud, projects lists each project's committed use discounts month to date, and cost_export_cud_status says whether the billing export has been swept.
 func (c *Client) GetCoverageRates(
 	ctx context.Context,
 	request *levelfour.GetCoverageRatesAPIV1CommitmentsCoverageRatesGetRequest,
@@ -149,6 +149,94 @@ func (c *Client) ListCommitments(
 	return response.Body, nil
 }
 
+// Priced from the current offering rather than from the expiring term, whose price is as old as the term. error_message carries a lookup that failed, so an unpriced renewal reads as unpriced rather than as zero.
+func (c *Client) GetRenewalQuote(
+	ctx context.Context,
+	commitmentID string,
+	opts ...option.RequestOption,
+) (*levelfour.RenewalQuoteResponse, error) {
+	response, err := c.WithRawResponse.GetRenewalQuote(
+		ctx,
+		commitmentID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// The contract priced again as it stands, beside every other term its shape is sold on today, each priced at up to about forty quantities spanning what was sized and what is held, and recommended on exactly one row, above the quantity held only on a family basis, or on none when decision is let_expire: the commitment was used too little to pay for itself, so every row is priced at the quantity held for comparison and nothing is advised. With quantity, each offering is priced at exactly that quantity instead, one row each; a reservation is sold in whole units, so a fractional quantity is a 422. Without a stored series every quantity is still priced, and idle_units, spill_units and spill_cost come back null. sizing_basis says where the recommended quantity came from: the commitment's own fee line, which can only argue for buying less; family, that line plus the on-demand usage of its family and engine held on nine days in ten, the one basis that can argue for more; or unmeasured, where the quantity held stands; measured appears only on options an earlier sweep priced. upfront is the total paid at purchase for the row's quantity; recurring_hourly is the rate per unit. demand is the daily series the sizing read, with its projection across the longest term. A size-flexible RDS, ElastiCache or MemoryDB reservation can be renewed as a larger class of its family: classes lists every class it was priced in, smallest first, with what one reservation covers in the class held and the term and payment options each is sold on. The rows are one class, the one recommended unless resource names another; resource on a row is the class bought, every quantity and demand are counted in it, held_units_equivalent is a row's quantity in the class held, and the contract is always priced in the class held. A class it was not priced in is a 422. quota says how many reservations the account may hold against what it would hold once the expiring ones are renewed; quota_blocked marks a renewal it could not hold in any class. size_mix is what the family runs by instance size and deployment.
+func (c *Client) GetRenewalOptions(
+	ctx context.Context,
+	commitmentID string,
+	request *levelfour.GetRenewalOptionsAPIV1CommitmentsRenewalOptionsCommitmentIDGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.RenewalOptionsResponse, error) {
+	response, err := c.WithRawResponse.GetRenewalOptions(
+		ctx,
+		commitmentID,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+func (c *Client) GetRenewal(
+	ctx context.Context,
+	commitmentID string,
+	opts ...option.RequestOption,
+) (*levelfour.CommitmentRenewalResponse, error) {
+	response, err := c.WithRawResponse.GetRenewal(
+		ctx,
+		commitmentID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Returns the recommendation that buys the new term, and the offering and quantity it is bound to. Calling it again never raises a rival: with no choice it returns the first one, and with a different choice it points a renewal nobody has decided on at that choice (rebound). rebindable says whether what it buys can still change: once anybody accepts, rejects or requests it, only the choice it was decided on is accepted. A renewal rejected before anybody released it is closed, and raising again creates a new one while the rejected one stays as history. Nothing is bought here: the recommendation carries the offering, the quantity and the instant after which buying is safe, and the apply path acts on it. A commitment already renewed, or whose family and engine ran nothing last week, is refused with 409. A read-write API key may raise a renewal; releasing it needs an organization admin.
+func (c *Client) CreateRenewal(
+	ctx context.Context,
+	commitmentID string,
+	request *levelfour.CreateRenewalCommitmentsRequest,
+	opts ...option.RequestOption,
+) (*levelfour.CommitmentRenewalResponse, error) {
+	response, err := c.WithRawResponse.CreateRenewal(
+		ctx,
+		commitmentID,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// The latest purchase run of this commitment's renewal, with the steps, logs and trigger of the recommendation that renews it. not_started until somebody releases the renewal. queued once released and waiting for the term to end, or once the provider queued the purchase. in_progress while a run holds it. active once the provider reports the new commitment active, or once the renewal was completed by hand. payment_failed when the provider could not charge for it. failed when a run was refused before sending or the provider refused the purchase. indeterminate when nobody knows yet whether the purchase went through: it is reconciled, never retried. A commitment the organization does not hold is a 404.
+func (c *Client) GetExecution(
+	ctx context.Context,
+	commitmentID string,
+	opts ...option.RequestOption,
+) (*levelfour.CommitmentExecutionResponse, error) {
+	response, err := c.WithRawResponse.GetExecution(
+		ctx,
+		commitmentID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
 func (c *Client) GetDetail(
 	ctx context.Context,
 	commitmentID string,
@@ -215,7 +303,7 @@ func (c *Client) GetPortfolio(
 	return response.Body, nil
 }
 
-// What the same usage would have cost at public on-demand rates against what it actually cost, for the organization and for each account that consumed the benefit. The rate is split into the part a negotiated agreement earns and the part commitments earn, because the public on-demand price sits above both and an account owning no commitment at all would otherwise report a healthy rate.
+// What the same usage would have cost at public on-demand rates against what it actually cost, for the organization and for each account that consumed the benefit. The rate is split into the part a negotiated agreement earns and the part commitments earn, because the public on-demand price sits above both and an account owning no commitment at all would otherwise report a healthy rate. esr_pct is the rate after idle commitment, and is null until the month is complete. months adds that many calendar months ending at period, for the organization, each payer and each account.
 func (c *Client) GetEsr(
 	ctx context.Context,
 	request *levelfour.GetEsrAPIV1CommitmentsEsrGetRequest,
@@ -232,7 +320,7 @@ func (c *Client) GetEsr(
 	return response.Body, nil
 }
 
-// On-demand spend no commitment covers, split by platform and volatility. Carries the hourly floor as well as the average, because sizing against the average of a volatile base commits more than the base can sustain.
+// On-demand spend a Savings Plan could cover and no commitment does, per payer, plan type, service and platform, read off the daily CUR over the last 30 complete days. Carries the daily floor of each slice, in commitment dollars an hour, and names each row's grain and source. A payer with no CUR gets Cost Explorer's hourly figures as visibility, with no suggested size.
 func (c *Client) GetUncovered(
 	ctx context.Context,
 	opts ...option.RequestOption,
@@ -247,7 +335,170 @@ func (c *Client) GetUncovered(
 	return response.Body, nil
 }
 
-// What to repurchase and when. States the instant to buy after rather than a date, because a replacement bills from the moment it is bought, and lists the pending changes that must land first so their capacity is not reserved for another term.
+// The uncovered base, as /uncovered returns it, beside one proposal per payer and plan type at 12 months No Upfront. Each proposal offers three profiles sized on the daily CUR floor, net of the commitment already bought or agreed, capped by AWS's own recommendation, and replayed over the last 60 complete days. Free to every organization; reads cached rates and offerings and never calls AWS. raised is null until a proposal can be raised as a purchase. schedule lists every tranche of each purchase schedule with a month still to come: its day, its size, where it stands and why it last shrank or was skipped. reservations lists the new Reserved Instances LevelFour would buy for on-demand usage no Savings Plan covers, each sized on the 10th percentile day, quoted on the cached offering at the guardrails' term, and flagged quota_blocked when the RDS reserved instance quota cannot hold it.
+func (c *Client) GetPurchasePlan(
+	ctx context.Context,
+	opts ...option.RequestOption,
+) (*levelfour.PurchasePlanResponse, error) {
+	response, err := c.WithRawResponse.GetPurchasePlan(
+		ctx,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Replays a commitment in dollars an hour over the payer's recent daily bill: the eligible on-demand spend it would have covered, the commitment it would have left unused, its utilization, coverage and monthly savings, day by day, beside the sized profiles and AWS's own figure. A day averages its hours, so every figure is an upper bound on the hourly truth. Free to every organization; never calls AWS. A Database plan is sold for 12 months No Upfront only. payer_account_id may be omitted when the organization has one payer. Missing data answers 200 with unavailable_reason.
+func (c *Client) GetPurchaseSimulation(
+	ctx context.Context,
+	request *levelfour.GetPurchaseSimulationAPIV1CommitmentsPurchaseSimulationGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.PurchaseSimulationResponse, error) {
+	response, err := c.WithRawResponse.GetPurchaseSimulation(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Quotes one purchase the organization does not hold yet, a NewPurchase with an optional lookback_days of 30 or 60. basis is usage when the buying account's payer already runs the target: a reservation is replayed over its family's daily on-demand hours in units of the class bought and priced at the on-demand rate measured on the bill; a plan is replayed at the organization's own rates, as GET /purchase-simulation does, on any term and payment AWS sells it on. Otherwise basis is full_use: every hour used, against the price list's on-demand rate where it has one, and at face (no saving) where it has none, which is always the case for a plan. upfront, recurring_monthly, commitment_monthly and term_total are the offering's list price; over_automation_cap says Automated Savings would refuse the term total. A reservation quoted on usage also answers unused_units and left_on_demand_units, what it leaves unused and on demand an hour in reservations of the class bought. The offering is the one named, or the cheapest sold on those terms. A plan quoted without an offering_id is priced on its commitment, term and payment option without reading the catalogue, and its offering_id is null. 422 when AWS sells nothing on those terms, and for a Database plan other than 12 months No Upfront; 409 when every connected account's role refused LevelFour, and 502 when the catalogue could not be read for any other reason. Buys nothing.
+func (c *Client) PostPurchaseSimulation(
+	ctx context.Context,
+	request *levelfour.PostPurchaseSimulationAPIV1CommitmentsPurchaseSimulationPostRequest,
+	opts ...option.RequestOption,
+) (*levelfour.PurchaseQuoteResponse, error) {
+	response, err := c.WithRawResponse.PostPurchaseSimulation(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// The catalogue one field at a time. choices lists, for every field of the target, the values sold given every field before it, in the order each narrows the next: service, region, engine, deployment, offering_class, tenancy and resource for a reservation, plan_type, instance_family and region for a plan. A field the service does not use has no choices and must be left out. complete says the target is whole; offers then lists every offering sold for it, priced per unit (a reservation, or a dollar an hour of a plan) beside the public on-demand rate where the price list has one. EC2 is read one instance type at a time, so its offers wait for resource. Regions are where the organization's accounts live, hold commitments, run anything or opted in; classes are those it runs and those the catalogue sells. Every page AWS returns is kept a day, fetched_at says when it was read. AWS is read through the role of the optional buying_account_id, the account the purchase would be bought in, then its payer's, then every other connected account's, payers first, passing over a role AWS refuses to assume. 422 for a value the service does not sell; 409 when every connected account's role refused LevelFour, and 502 when the catalogue could not be read for any other reason.
+func (c *Client) GetOfferings(
+	ctx context.Context,
+	request *levelfour.GetOfferingsAPIV1CommitmentsOfferingsGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.OfferingsResponse, error) {
+	response, err := c.WithRawResponse.GetOfferings(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// One BUY- purchase: what it buys, the tranche it belongs to, and its latest purchase run with the steps, logs and trigger of its row. execution.status reads as it does for a renewal, plus returned when AWS refunded the plan after it was bought, and cancelled when a plan queued inside AWS was deleted while queued. execution.starts_at is when AWS starts such a plan: only runs sent before LevelFour stopped queueing inside AWS carry either. bought_outside names the plan of the same type and term bought outside LevelFour that stopped the latest run. execution.status reads scheduled while a released purchase waits on LevelFour's side until execution.send_at, and cancelled_before_purchase once it was cancelled before it was sent. execution.can_buy_now and execution.can_cancel say whether the caller may buy it now or cancel it at this moment, by the rules those two routes apply. Reads stored state only and never calls AWS. 404 for an id that is no purchase of this organization.
+func (c *Client) GetPurchase(
+	ctx context.Context,
+	recommendationID string,
+	opts ...option.RequestOption,
+) (*levelfour.CommitmentPurchaseStatusResponse, error) {
+	response, err := c.WithRawResponse.GetPurchase(
+		ctx,
+		recommendationID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// A body naming kind re-sizes a purchase raised as a NewPurchase: its size, term, payment option and offering, looked up again in AWS. Its target and buying account stay as raised (409 for another). A body without kind points a purchase raised from its proposal at another profile or commitment_hourly, sized on today's proposal; naming neither re-sizes the pick it was raised on. Each body fits only its own kind of purchase (409 otherwise). Keeps the id. 404 for an id that is no purchase, 409 once anybody has accepted, rejected or requested it, and 409 for any refusal a raise meets. Answers rebound true. A draft is re-sized by the person who raised it alone (404 for anybody else), which renews its expiry, and 409 purchase_draft_expired once it has expired.
+func (c *Client) UpdatePurchase(
+	ctx context.Context,
+	recommendationID string,
+	request *levelfour.UpdatePurchaseCommitmentsRequest,
+	opts ...option.RequestOption,
+) (*levelfour.CommitmentPurchaseResponse, error) {
+	response, err := c.WithRawResponse.UpdatePurchase(
+		ctx,
+		recommendationID,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Raises a purchase as a savings recommendation, BUY- followed by a number. Nothing is bought until an organization admin releases it, so a member may raise one, and so may a read-write API key.
+//
+// A body naming kind is a NewPurchase: a reservation (service, region, class, quantity) or a Savings Plan of any type (commitment_hourly, and for an EC2 Instance plan its instance_family and region), on a 12 or 36 month term and any payment option. offering_id is required: it is looked up again in AWS and refused with 409 once AWS no longer sells it. buying_account_id must be an AWS account of the organization (422 otherwise). monthly_savings is the quote's net savings when it was replayed over measured usage, and 0 when it assumes every hour is used. Calling it again for the same target returns the undecided purchase when it names the same pick. Any other pick is answered 409 undecided_purchase_exists with that purchase's recommendation_id, state, raised_by and raised_at, and confirm_additional true raises a second one beside it.
+//
+// draft true raises a purchase before anybody asks for a decision on it, so an access grant can be minted for its id. A draft is its raiser's alone: it is left out of every savings list and total, it is never the purchase already raised for its target, and it becomes an ordinary purchase the moment it is accepted or an execution request is filed for it. It expires at draft_expires_at, which is renewed when it is re-sized and moved to its access grant's end when that is later, and an expired draft is refused with 409 purchase_draft_expired wherever it is acted on. Raising a draft again for the same target and buying account returns the caller's own draft, re-sized to the new pick with rebound true, so it keeps its id and its grant. Another person's draft is never returned and never refuses a raise, so accepting a draft or filing its execution request asks again what a raise asks: 409 schedule_exists, same_purchase_exists or undecided_purchase_exists, the last two unless the draft was raised again with confirm_additional true. A draft takes a signed-in caller and a body naming kind (422 otherwise).
+//
+// A body without kind raises one payer's /purchase-plan proposal for a 12 month No Upfront plan, as before. profile picks a sized profile (balanced when neither is named), or commitment_hourly names a size of the caller's own, rounded down to $0.001 and refused above AWS's cap. Calling it again returns the purchase nobody has decided yet for that payer and plan type when it is bound to the same pick, and refuses any other pick with 409: PATCH /purchase/{recommendation_id} changes it. Also 409 when the proposal carries no size, when AWS's own recommendation was not fetched in the last 7 days, or when the size is under $0.001 an hour. payer_account_id may be omitted when the organization has one payer (422 otherwise; 404 for a payer that bills nothing). monthly_savings is the lower of the daily replay and AWS's estimate scaled to this size, both at the organization's own rates.
+//
+// attempt_id names one attempt at a purchase: sending the same attempt_id again, after a second click, a reload or a retry, returns the purchase that attempt raised with created false, and a different request under an attempt_id already used is refused with 422. A new attempt identical to a purchase awaiting approval, accepted, released, or sent to AWS in the last 24 hours is answered 409 same_purchase_exists with that purchase's recommendation_id, state, raised_by and raised_at; send it again with confirm_additional true to raise a second one. Any other difference, a quantity or a commitment for one, raises as usual.
+//
+// Either way, when the buying account is connected the row carries both implementation tags and an access policy that can only buy this one purchase, so Automated Savings can buy it; otherwise it is delivered by hand (Manual Setup) with no access policy. It bills only once AWS reports it active.
+func (c *Client) CreatePurchase(
+	ctx context.Context,
+	request *levelfour.CreatePurchaseCommitmentsRequest,
+	opts ...option.RequestOption,
+) (*levelfour.CommitmentPurchaseResponse, error) {
+	response, err := c.WithRawResponse.CreatePurchase(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// A new purchase released to Automated Savings waits up to 24 hours before LevelFour sends it to AWS, so it can still be cancelled. This ends the wait: the executor sends it on its next run, within about five minutes. Organization admins only. Answers where the purchase stands; calling it again changes nothing. 409 purchase_not_held for a purchase that is not released to Automated Savings, tranche_keeps_its_day for a tranche of a purchase schedule, purchase_cancelled once it was cancelled, and purchase_already_sent once it was sent. 404 for an id that is no purchase.
+func (c *Client) BuyPurchaseNow(
+	ctx context.Context,
+	recommendationID string,
+	opts ...option.RequestOption,
+) (*levelfour.CommitmentPurchaseStatusResponse, error) {
+	response, err := c.WithRawResponse.BuyPurchaseNow(
+		ctx,
+		recommendationID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Stops a purchase that has not been sent to AWS: it is rejected, reads cancelled_before_purchase, and stays that way, so it cannot be accepted or released again; raise a new purchase to buy it. An organization admin or the member who raised or requested it may cancel. Calling it again changes nothing. 409 purchase_already_sent once a purchase was sent and may have been bought, purchase_closed for one already bought or rejected, and purchase_bought_by_hand for one released to be bought by hand, which may already be bought. 404 for an id that is no purchase.
+func (c *Client) CancelPurchaseBeforeItIsSent(
+	ctx context.Context,
+	recommendationID string,
+	opts ...option.RequestOption,
+) (*levelfour.CommitmentPurchaseStatusResponse, error) {
+	response, err := c.WithRawResponse.CancelPurchaseBeforeItIsSent(
+		ctx,
+		recommendationID,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// What to repurchase and when. units_recommended is the quantity the renewal options recommend, the same number the drawer shows: 0 with decision let_expire when the commitment was used too little to pay for itself, the quantity held when nothing measured it. units_consumed is the average the sized series measured, null when unmeasured. States the instant to buy after rather than a date, because a replacement bills from the moment it is bought, and lists the pending changes to the same instance family that must land first so their capacity is not reserved for another term. superseded_by names the commitment that already renewed this one, and no_recent_usage says nothing of its family and engine ran last week; either one means no renewal is raised.
 func (c *Client) GetRenewalPlan(
 	ctx context.Context,
 	commitmentID string,
