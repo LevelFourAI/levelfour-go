@@ -169,7 +169,7 @@ func (r *RawClient) GetLabelHygiene(
 func (r *RawClient) GetUtilizationSummary(
 	ctx context.Context,
 	opts ...option.RequestOption,
-) (*core.Response[*levelfour.UtilizationSummaryResponse], error) {
+) (*core.Response[*levelfour.SrcProvidersGcpSchemasUtilizationSummaryResponse], error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -181,7 +181,7 @@ func (r *RawClient) GetUtilizationSummary(
 		r.options.ToHeader(),
 		options.ToHeader(),
 	)
-	var response *levelfour.UtilizationSummaryResponse
+	var response *levelfour.SrcProvidersGcpSchemasUtilizationSummaryResponse
 	raw, err := r.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -199,7 +199,7 @@ func (r *RawClient) GetUtilizationSummary(
 	if err != nil {
 		return nil, err
 	}
-	return &core.Response[*levelfour.UtilizationSummaryResponse]{
+	return &core.Response[*levelfour.SrcProvidersGcpSchemasUtilizationSummaryResponse]{
 		StatusCode: raw.StatusCode,
 		Header:     raw.Header,
 		Body:       response,
