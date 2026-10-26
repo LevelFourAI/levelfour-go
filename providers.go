@@ -47,6 +47,520 @@ func (g *GetProviderInvoicesAPIV1ProvidersProviderIDCostsInvoicesGetRequest) Set
 }
 
 var (
+	costFilterDimensionFieldKey        = big.NewInt(1 << 0)
+	costFilterDimensionFieldLabel      = big.NewInt(1 << 1)
+	costFilterDimensionFieldOptionsKey = big.NewInt(1 << 2)
+)
+
+type CostFilterDimension struct {
+	// The breakdown query parameter
+	Key string `json:"key" url:"key"`
+	// What the provider calls this dimension
+	Label string `json:"label" url:"label"`
+	// The filter-options field that lists its values
+	OptionsKey string `json:"options_key" url:"options_key"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CostFilterDimension) GetKey() string {
+	if c == nil {
+		return ""
+	}
+	return c.Key
+}
+
+func (c *CostFilterDimension) GetLabel() string {
+	if c == nil {
+		return ""
+	}
+	return c.Label
+}
+
+func (c *CostFilterDimension) GetOptionsKey() string {
+	if c == nil {
+		return ""
+	}
+	return c.OptionsKey
+}
+
+func (c *CostFilterDimension) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CostFilterDimension) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetKey sets the Key field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CostFilterDimension) SetKey(key string) {
+	c.Key = key
+	c.require(costFilterDimensionFieldKey)
+}
+
+// SetLabel sets the Label field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CostFilterDimension) SetLabel(label string) {
+	c.Label = label
+	c.require(costFilterDimensionFieldLabel)
+}
+
+// SetOptionsKey sets the OptionsKey field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CostFilterDimension) SetOptionsKey(optionsKey string) {
+	c.OptionsKey = optionsKey
+	c.require(costFilterDimensionFieldOptionsKey)
+}
+
+func (c *CostFilterDimension) UnmarshalJSON(data []byte) error {
+	type unmarshaler CostFilterDimension
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CostFilterDimension(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CostFilterDimension) MarshalJSON() ([]byte, error) {
+	type embed CostFilterDimension
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CostFilterDimension) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	costGroupDimensionFieldKey   = big.NewInt(1 << 0)
+	costGroupDimensionFieldLabel = big.NewInt(1 << 1)
+	costGroupDimensionFieldTable = big.NewInt(1 << 2)
+	costGroupDimensionFieldChart = big.NewInt(1 << 3)
+)
+
+type CostGroupDimension struct {
+	// The group_by value the breakdown accepts
+	Key string `json:"key" url:"key"`
+	// What the provider calls this dimension
+	Label string `json:"label" url:"label"`
+	// Whether the breakdown table groups by it
+	Table bool `json:"table" url:"table"`
+	// Whether the breakdown chart groups by it
+	Chart bool `json:"chart" url:"chart"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CostGroupDimension) GetKey() string {
+	if c == nil {
+		return ""
+	}
+	return c.Key
+}
+
+func (c *CostGroupDimension) GetLabel() string {
+	if c == nil {
+		return ""
+	}
+	return c.Label
+}
+
+func (c *CostGroupDimension) GetTable() bool {
+	if c == nil {
+		return false
+	}
+	return c.Table
+}
+
+func (c *CostGroupDimension) GetChart() bool {
+	if c == nil {
+		return false
+	}
+	return c.Chart
+}
+
+func (c *CostGroupDimension) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CostGroupDimension) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetKey sets the Key field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CostGroupDimension) SetKey(key string) {
+	c.Key = key
+	c.require(costGroupDimensionFieldKey)
+}
+
+// SetLabel sets the Label field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CostGroupDimension) SetLabel(label string) {
+	c.Label = label
+	c.require(costGroupDimensionFieldLabel)
+}
+
+// SetTable sets the Table field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CostGroupDimension) SetTable(table bool) {
+	c.Table = table
+	c.require(costGroupDimensionFieldTable)
+}
+
+// SetChart sets the Chart field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CostGroupDimension) SetChart(chart bool) {
+	c.Chart = chart
+	c.require(costGroupDimensionFieldChart)
+}
+
+func (c *CostGroupDimension) UnmarshalJSON(data []byte) error {
+	type unmarshaler CostGroupDimension
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CostGroupDimension(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CostGroupDimension) MarshalJSON() ([]byte, error) {
+	type embed CostGroupDimension
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CostGroupDimension) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	costMeasureOptionFieldKey     = big.NewInt(1 << 0)
+	costMeasureOptionFieldLabel   = big.NewInt(1 << 1)
+	costMeasureOptionFieldGroupBy = big.NewInt(1 << 2)
+	costMeasureOptionFieldFilters = big.NewInt(1 << 3)
+)
+
+type CostMeasureOption struct {
+	// The measure value the breakdown accepts
+	Key   CostMeasureOptionKey `json:"key" url:"key"`
+	Label string               `json:"label" url:"label"`
+	// The group_by keys this measure answers
+	GroupBy []string `json:"group_by" url:"group_by"`
+	// The filter keys this measure answers
+	Filters []string `json:"filters" url:"filters"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CostMeasureOption) GetKey() CostMeasureOptionKey {
+	if c == nil {
+		return ""
+	}
+	return c.Key
+}
+
+func (c *CostMeasureOption) GetLabel() string {
+	if c == nil {
+		return ""
+	}
+	return c.Label
+}
+
+func (c *CostMeasureOption) GetGroupBy() []string {
+	if c == nil {
+		return nil
+	}
+	return c.GroupBy
+}
+
+func (c *CostMeasureOption) GetFilters() []string {
+	if c == nil {
+		return nil
+	}
+	return c.Filters
+}
+
+func (c *CostMeasureOption) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CostMeasureOption) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetKey sets the Key field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CostMeasureOption) SetKey(key CostMeasureOptionKey) {
+	c.Key = key
+	c.require(costMeasureOptionFieldKey)
+}
+
+// SetLabel sets the Label field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CostMeasureOption) SetLabel(label string) {
+	c.Label = label
+	c.require(costMeasureOptionFieldLabel)
+}
+
+// SetGroupBy sets the GroupBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CostMeasureOption) SetGroupBy(groupBy []string) {
+	c.GroupBy = groupBy
+	c.require(costMeasureOptionFieldGroupBy)
+}
+
+// SetFilters sets the Filters field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CostMeasureOption) SetFilters(filters []string) {
+	c.Filters = filters
+	c.require(costMeasureOptionFieldFilters)
+}
+
+func (c *CostMeasureOption) UnmarshalJSON(data []byte) error {
+	type unmarshaler CostMeasureOption
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CostMeasureOption(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CostMeasureOption) MarshalJSON() ([]byte, error) {
+	type embed CostMeasureOption
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CostMeasureOption) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+// The measure value the breakdown accepts
+type CostMeasureOptionKey string
+
+const (
+	CostMeasureOptionKeyCost  CostMeasureOptionKey = "cost"
+	CostMeasureOptionKeyUsage CostMeasureOptionKey = "usage"
+)
+
+func NewCostMeasureOptionKeyFromString(s string) (CostMeasureOptionKey, error) {
+	switch s {
+	case "cost":
+		return CostMeasureOptionKeyCost, nil
+	case "usage":
+		return CostMeasureOptionKeyUsage, nil
+	}
+	var t CostMeasureOptionKey
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CostMeasureOptionKey) Ptr() *CostMeasureOptionKey {
+	return &c
+}
+
+var (
+	costMetricOptionFieldKey   = big.NewInt(1 << 0)
+	costMetricOptionFieldLabel = big.NewInt(1 << 1)
+)
+
+type CostMetricOption struct {
+	// The show_cost_as value
+	Key   string `json:"key" url:"key"`
+	Label string `json:"label" url:"label"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CostMetricOption) GetKey() string {
+	if c == nil {
+		return ""
+	}
+	return c.Key
+}
+
+func (c *CostMetricOption) GetLabel() string {
+	if c == nil {
+		return ""
+	}
+	return c.Label
+}
+
+func (c *CostMetricOption) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CostMetricOption) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetKey sets the Key field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CostMetricOption) SetKey(key string) {
+	c.Key = key
+	c.require(costMetricOptionFieldKey)
+}
+
+// SetLabel sets the Label field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CostMetricOption) SetLabel(label string) {
+	c.Label = label
+	c.require(costMetricOptionFieldLabel)
+}
+
+func (c *CostMetricOption) UnmarshalJSON(data []byte) error {
+	type unmarshaler CostMetricOption
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CostMetricOption(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CostMetricOption) MarshalJSON() ([]byte, error) {
+	type embed CostMetricOption
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CostMetricOption) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
 	invoiceCostTypesFieldRegular       = big.NewInt(1 << 0)
 	invoiceCostTypesFieldTax           = big.NewInt(1 << 1)
 	invoiceCostTypesFieldAdjustment    = big.NewInt(1 << 2)
@@ -582,6 +1096,297 @@ func (i *InvoicesResponse) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", i)
+}
+
+var (
+	providerCostDimensionsDataFieldProviderID   = big.NewInt(1 << 0)
+	providerCostDimensionsDataFieldGroupBy      = big.NewInt(1 << 1)
+	providerCostDimensionsDataFieldFilters      = big.NewInt(1 << 2)
+	providerCostDimensionsDataFieldCostMetrics  = big.NewInt(1 << 3)
+	providerCostDimensionsDataFieldCreditsBasis = big.NewInt(1 << 4)
+	providerCostDimensionsDataFieldMeasures     = big.NewInt(1 << 5)
+)
+
+type ProviderCostDimensionsData struct {
+	ProviderID string                 `json:"provider_id" url:"provider_id"`
+	GroupBy    []*CostGroupDimension  `json:"group_by" url:"group_by"`
+	Filters    []*CostFilterDimension `json:"filters" url:"filters"`
+	// The show_cost_as values the provider answers; one means there is no choice to offer
+	CostMetrics []*CostMetricOption `json:"cost_metrics" url:"cost_metrics"`
+	// Whether the before/after credits toggle applies
+	CreditsBasis bool `json:"credits_basis" url:"credits_basis"`
+	// What the breakdown can measure for this provider. Usage is listed only where the provider's daily rows carry quantities, so a provider without it is offered cost alone
+	Measures []*CostMeasureOption `json:"measures,omitempty" url:"measures,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *ProviderCostDimensionsData) GetProviderID() string {
+	if p == nil {
+		return ""
+	}
+	return p.ProviderID
+}
+
+func (p *ProviderCostDimensionsData) GetGroupBy() []*CostGroupDimension {
+	if p == nil {
+		return nil
+	}
+	return p.GroupBy
+}
+
+func (p *ProviderCostDimensionsData) GetFilters() []*CostFilterDimension {
+	if p == nil {
+		return nil
+	}
+	return p.Filters
+}
+
+func (p *ProviderCostDimensionsData) GetCostMetrics() []*CostMetricOption {
+	if p == nil {
+		return nil
+	}
+	return p.CostMetrics
+}
+
+func (p *ProviderCostDimensionsData) GetCreditsBasis() bool {
+	if p == nil {
+		return false
+	}
+	return p.CreditsBasis
+}
+
+func (p *ProviderCostDimensionsData) GetMeasures() []*CostMeasureOption {
+	if p == nil {
+		return nil
+	}
+	return p.Measures
+}
+
+func (p *ProviderCostDimensionsData) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *ProviderCostDimensionsData) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetProviderID sets the ProviderID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderCostDimensionsData) SetProviderID(providerID string) {
+	p.ProviderID = providerID
+	p.require(providerCostDimensionsDataFieldProviderID)
+}
+
+// SetGroupBy sets the GroupBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderCostDimensionsData) SetGroupBy(groupBy []*CostGroupDimension) {
+	p.GroupBy = groupBy
+	p.require(providerCostDimensionsDataFieldGroupBy)
+}
+
+// SetFilters sets the Filters field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderCostDimensionsData) SetFilters(filters []*CostFilterDimension) {
+	p.Filters = filters
+	p.require(providerCostDimensionsDataFieldFilters)
+}
+
+// SetCostMetrics sets the CostMetrics field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderCostDimensionsData) SetCostMetrics(costMetrics []*CostMetricOption) {
+	p.CostMetrics = costMetrics
+	p.require(providerCostDimensionsDataFieldCostMetrics)
+}
+
+// SetCreditsBasis sets the CreditsBasis field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderCostDimensionsData) SetCreditsBasis(creditsBasis bool) {
+	p.CreditsBasis = creditsBasis
+	p.require(providerCostDimensionsDataFieldCreditsBasis)
+}
+
+// SetMeasures sets the Measures field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderCostDimensionsData) SetMeasures(measures []*CostMeasureOption) {
+	p.Measures = measures
+	p.require(providerCostDimensionsDataFieldMeasures)
+}
+
+func (p *ProviderCostDimensionsData) UnmarshalJSON(data []byte) error {
+	type unmarshaler ProviderCostDimensionsData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*p = ProviderCostDimensionsData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *ProviderCostDimensionsData) MarshalJSON() ([]byte, error) {
+	type embed ProviderCostDimensionsData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*p),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *ProviderCostDimensionsData) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
+}
+
+var (
+	providerCostDimensionsResponseFieldSuccess   = big.NewInt(1 << 0)
+	providerCostDimensionsResponseFieldTimestamp = big.NewInt(1 << 1)
+	providerCostDimensionsResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type ProviderCostDimensionsResponse struct {
+	Success   *bool                       `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time                  `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *ProviderCostDimensionsData `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (p *ProviderCostDimensionsResponse) GetSuccess() *bool {
+	if p == nil {
+		return nil
+	}
+	return p.Success
+}
+
+func (p *ProviderCostDimensionsResponse) GetTimestamp() *time.Time {
+	if p == nil {
+		return nil
+	}
+	return p.Timestamp
+}
+
+func (p *ProviderCostDimensionsResponse) GetData() *ProviderCostDimensionsData {
+	if p == nil {
+		return nil
+	}
+	return p.Data
+}
+
+func (p *ProviderCostDimensionsResponse) GetExtraProperties() map[string]interface{} {
+	if p == nil {
+		return nil
+	}
+	return p.extraProperties
+}
+
+func (p *ProviderCostDimensionsResponse) require(field *big.Int) {
+	if p.explicitFields == nil {
+		p.explicitFields = big.NewInt(0)
+	}
+	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderCostDimensionsResponse) SetSuccess(success *bool) {
+	p.Success = success
+	p.require(providerCostDimensionsResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderCostDimensionsResponse) SetTimestamp(timestamp *time.Time) {
+	p.Timestamp = timestamp
+	p.require(providerCostDimensionsResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderCostDimensionsResponse) SetData(data *ProviderCostDimensionsData) {
+	p.Data = data
+	p.require(providerCostDimensionsResponseFieldData)
+}
+
+func (p *ProviderCostDimensionsResponse) UnmarshalJSON(data []byte) error {
+	type embed ProviderCostDimensionsResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*p),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*p = ProviderCostDimensionsResponse(unmarshaler.embed)
+	p.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *p)
+	if err != nil {
+		return err
+	}
+	p.extraProperties = extraProperties
+	p.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (p *ProviderCostDimensionsResponse) MarshalJSON() ([]byte, error) {
+	type embed ProviderCostDimensionsResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*p),
+		Timestamp: internal.NewOptionalDateTime(p.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (p *ProviderCostDimensionsResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	if len(p.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(p.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(p); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", p)
 }
 
 var (
