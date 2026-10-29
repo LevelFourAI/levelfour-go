@@ -58,11 +58,12 @@ func (c *CreateGrantRequest) MarshalJSON() ([]byte, error) {
 }
 
 var (
-	createGrantDataFieldGrantID        = big.NewInt(1 << 0)
-	createGrantDataFieldLaunchStackURL = big.NewInt(1 << 1)
-	createGrantDataFieldConnectCommand = big.NewInt(1 << 2)
-	createGrantDataFieldExpiresAt      = big.NewInt(1 << 3)
-	createGrantDataFieldScopeSummary   = big.NewInt(1 << 4)
+	createGrantDataFieldGrantID            = big.NewInt(1 << 0)
+	createGrantDataFieldLaunchStackURL     = big.NewInt(1 << 1)
+	createGrantDataFieldConnectCommand     = big.NewInt(1 << 2)
+	createGrantDataFieldExpiresAt          = big.NewInt(1 << 3)
+	createGrantDataFieldScopeSummary       = big.NewInt(1 << 4)
+	createGrantDataFieldStaleGrantPolicies = big.NewInt(1 << 5)
 )
 
 type CreateGrantData struct {
@@ -70,11 +71,13 @@ type CreateGrantData struct {
 	GrantID string `json:"grant_id" url:"grant_id"`
 	// AWS Console quickcreate URL that attaches the scoped, time-boxed grant
 	LaunchStackURL *string `json:"launch_stack_url,omitempty" url:"launch_stack_url,omitempty"`
-	// GCP Cloud Shell command the customer runs to apply the scoped, time-boxed grant. The per-grant bearer secret travels in the Authorization header, not the URL.
+	// GCP or Azure Cloud Shell command the customer runs to apply the scoped, time-boxed grant. The per-grant bearer secret travels in the Authorization header, not the URL.
 	ConnectCommand *string `json:"connect_command,omitempty" url:"connect_command,omitempty"`
-	// When the grant expires (DateLessThan baked into every statement)
+	// When the grant expires. AWS (DateLessThan) and Google Cloud (a CEL condition) stop honouring it on their own; an Azure assignment cannot expire, so LevelFour removes it by then
 	ExpiresAt    time.Time          `json:"expires_at" url:"expires_at"`
 	ScopeSummary *GrantScopeSummary `json:"scope_summary" url:"scope_summary"`
+	// For a commitment, the LevelFourSavingsGrant policies still attached to the execution role whose grants have expired. AWS allows 10 managed policies on a role by default, so their stacks are deleted first
+	StaleGrantPolicies []string `json:"stale_grant_policies,omitempty" url:"stale_grant_policies,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -116,6 +119,13 @@ func (c *CreateGrantData) GetScopeSummary() *GrantScopeSummary {
 		return nil
 	}
 	return c.ScopeSummary
+}
+
+func (c *CreateGrantData) GetStaleGrantPolicies() []string {
+	if c == nil {
+		return nil
+	}
+	return c.StaleGrantPolicies
 }
 
 func (c *CreateGrantData) GetExtraProperties() map[string]interface{} {
@@ -165,6 +175,13 @@ func (c *CreateGrantData) SetExpiresAt(expiresAt time.Time) {
 func (c *CreateGrantData) SetScopeSummary(scopeSummary *GrantScopeSummary) {
 	c.ScopeSummary = scopeSummary
 	c.require(createGrantDataFieldScopeSummary)
+}
+
+// SetStaleGrantPolicies sets the StaleGrantPolicies field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreateGrantData) SetStaleGrantPolicies(staleGrantPolicies []string) {
+	c.StaleGrantPolicies = staleGrantPolicies
+	c.require(createGrantDataFieldStaleGrantPolicies)
 }
 
 func (c *CreateGrantData) UnmarshalJSON(data []byte) error {
@@ -494,7 +511,7 @@ type GrantStatusData struct {
 	BatchParentID string                  `json:"batch_parent_id" url:"batch_parent_id"`
 	Provider      GrantStatusDataProvider `json:"provider" url:"provider"`
 	Status        GrantStatusDataStatus   `json:"status" url:"status"`
-	// Populated when status is failed
+	// Why the grant failed, a step its script reported failing, or, for an Azure grant past its expiry, the Cloud Shell command that removes access Azure refused to let LevelFour remove
 	ErrorMessage *string `json:"error_message,omitempty" url:"error_message,omitempty"`
 	// How long the dashboard should wait before polling again; 0 when terminal
 	PollingHintMs int                `json:"polling_hint_ms" url:"polling_hint_ms"`
@@ -703,8 +720,9 @@ func (g *GrantStatusData) String() string {
 type GrantStatusDataProvider string
 
 const (
-	GrantStatusDataProviderAws GrantStatusDataProvider = "aws"
-	GrantStatusDataProviderGcp GrantStatusDataProvider = "gcp"
+	GrantStatusDataProviderAws   GrantStatusDataProvider = "aws"
+	GrantStatusDataProviderGcp   GrantStatusDataProvider = "gcp"
+	GrantStatusDataProviderAzure GrantStatusDataProvider = "azure"
 )
 
 func NewGrantStatusDataProviderFromString(s string) (GrantStatusDataProvider, error) {
@@ -713,6 +731,8 @@ func NewGrantStatusDataProviderFromString(s string) (GrantStatusDataProvider, er
 		return GrantStatusDataProviderAws, nil
 	case "gcp":
 		return GrantStatusDataProviderGcp, nil
+	case "azure":
+		return GrantStatusDataProviderAzure, nil
 	}
 	var t GrantStatusDataProvider
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
