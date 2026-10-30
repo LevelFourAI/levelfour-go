@@ -11,19 +11,23 @@ import (
 )
 
 var (
-	createAlertRequestFieldName         = big.NewInt(1 << 0)
-	createAlertRequestFieldParams       = big.NewInt(1 << 1)
-	createAlertRequestFieldSourceID     = big.NewInt(1 << 2)
-	createAlertRequestFieldRecipients   = big.NewInt(1 << 3)
-	createAlertRequestFieldSlackChannel = big.NewInt(1 << 4)
+	createAlertRequestFieldName            = big.NewInt(1 << 0)
+	createAlertRequestFieldParams          = big.NewInt(1 << 1)
+	createAlertRequestFieldSourceID        = big.NewInt(1 << 2)
+	createAlertRequestFieldRecipients      = big.NewInt(1 << 3)
+	createAlertRequestFieldSlackChannelIDs = big.NewInt(1 << 4)
+	createAlertRequestFieldSlackChannel    = big.NewInt(1 << 5)
 )
 
 type CreateAlertRequest struct {
-	Name         string                    `json:"name" url:"-"`
-	Params       *CreateAlertRequestParams `json:"params" url:"-"`
-	SourceID     string                    `json:"source_id" url:"-"`
-	Recipients   []*AlertRecipient         `json:"recipients" url:"-"`
-	SlackChannel *string                   `json:"slack_channel,omitempty" url:"-"`
+	Name       string                    `json:"name" url:"-"`
+	Params     *CreateAlertRequestParams `json:"params" url:"-"`
+	SourceID   string                    `json:"source_id" url:"-"`
+	Recipients []*AlertRecipient         `json:"recipients" url:"-"`
+	// Slack channel ids to post in, public or private. Omitted, the alert takes the organization's default channel when one is set; an empty list posts in no channel
+	SlackChannelIDs []string `json:"slack_channel_ids,omitempty" url:"-"`
+	// Deprecated and never read: use slack_channel_ids
+	SlackChannel *string `json:"slack_channel,omitempty" url:"-"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -62,6 +66,13 @@ func (c *CreateAlertRequest) SetSourceID(sourceID string) {
 func (c *CreateAlertRequest) SetRecipients(recipients []*AlertRecipient) {
 	c.Recipients = recipients
 	c.require(createAlertRequestFieldRecipients)
+}
+
+// SetSlackChannelIDs sets the SlackChannelIDs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreateAlertRequest) SetSlackChannelIDs(slackChannelIDs []string) {
+	c.SlackChannelIDs = slackChannelIDs
+	c.require(createAlertRequestFieldSlackChannelIDs)
 }
 
 // SetSlackChannel sets the SlackChannel field and marks it as non-optional;
@@ -656,6 +667,169 @@ func (a AlertEventState) Ptr() *AlertEventState {
 	return &a
 }
 
+// One thing a rule watches, as the last sweep left it.
+var (
+	alertInstanceStateFieldKey         = big.NewInt(1 << 0)
+	alertInstanceStateFieldState       = big.NewInt(1 << 1)
+	alertInstanceStateFieldPeriod      = big.NewInt(1 << 2)
+	alertInstanceStateFieldObservedUsd = big.NewInt(1 << 3)
+)
+
+type AlertInstanceState struct {
+	// Empty for a rule that watches one thing, the slice for a split rule, the commitment id for a commitment rule
+	Key string `json:"key" url:"key"`
+	// pending is a crossing waiting for a second sweep to agree; firing has been announced
+	State AlertInstanceStateState `json:"state" url:"state"`
+	// The period the firing was announced for
+	Period *string `json:"period,omitempty" url:"period,omitempty"`
+	// The last figure measured: dollars for a spend rule, days or a percentage for a commitment rule
+	ObservedUsd *float64 `json:"observed_usd,omitempty" url:"observed_usd,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AlertInstanceState) GetKey() string {
+	if a == nil {
+		return ""
+	}
+	return a.Key
+}
+
+func (a *AlertInstanceState) GetState() AlertInstanceStateState {
+	if a == nil {
+		return ""
+	}
+	return a.State
+}
+
+func (a *AlertInstanceState) GetPeriod() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Period
+}
+
+func (a *AlertInstanceState) GetObservedUsd() *float64 {
+	if a == nil {
+		return nil
+	}
+	return a.ObservedUsd
+}
+
+func (a *AlertInstanceState) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AlertInstanceState) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetKey sets the Key field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AlertInstanceState) SetKey(key string) {
+	a.Key = key
+	a.require(alertInstanceStateFieldKey)
+}
+
+// SetState sets the State field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AlertInstanceState) SetState(state AlertInstanceStateState) {
+	a.State = state
+	a.require(alertInstanceStateFieldState)
+}
+
+// SetPeriod sets the Period field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AlertInstanceState) SetPeriod(period *string) {
+	a.Period = period
+	a.require(alertInstanceStateFieldPeriod)
+}
+
+// SetObservedUsd sets the ObservedUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AlertInstanceState) SetObservedUsd(observedUsd *float64) {
+	a.ObservedUsd = observedUsd
+	a.require(alertInstanceStateFieldObservedUsd)
+}
+
+func (a *AlertInstanceState) UnmarshalJSON(data []byte) error {
+	type unmarshaler AlertInstanceState
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AlertInstanceState(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AlertInstanceState) MarshalJSON() ([]byte, error) {
+	type embed AlertInstanceState
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AlertInstanceState) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+// pending is a crossing waiting for a second sweep to agree; firing has been announced
+type AlertInstanceStateState string
+
+const (
+	AlertInstanceStateStateOk      AlertInstanceStateState = "ok"
+	AlertInstanceStateStatePending AlertInstanceStateState = "pending"
+	AlertInstanceStateStateFiring  AlertInstanceStateState = "firing"
+)
+
+func NewAlertInstanceStateStateFromString(s string) (AlertInstanceStateState, error) {
+	switch s {
+	case "ok":
+		return AlertInstanceStateStateOk, nil
+	case "pending":
+		return AlertInstanceStateStatePending, nil
+	case "firing":
+		return AlertInstanceStateStateFiring, nil
+	}
+	var t AlertInstanceStateState
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AlertInstanceStateState) Ptr() *AlertInstanceStateState {
+	return &a
+}
+
 var (
 	alertListResponseFieldSuccess   = big.NewInt(1 << 0)
 	alertListResponseFieldTimestamp = big.NewInt(1 << 1)
@@ -904,6 +1078,107 @@ func (a *AlertResponse) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
+var (
+	alertSlackChannelFieldID   = big.NewInt(1 << 0)
+	alertSlackChannelFieldName = big.NewInt(1 << 1)
+)
+
+type AlertSlackChannel struct {
+	ID string `json:"id" url:"id"`
+	// The channel's name when the alert was saved, without the #
+	Name string `json:"name" url:"name"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AlertSlackChannel) GetID() string {
+	if a == nil {
+		return ""
+	}
+	return a.ID
+}
+
+func (a *AlertSlackChannel) GetName() string {
+	if a == nil {
+		return ""
+	}
+	return a.Name
+}
+
+func (a *AlertSlackChannel) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AlertSlackChannel) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AlertSlackChannel) SetID(id string) {
+	a.ID = id
+	a.require(alertSlackChannelFieldID)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AlertSlackChannel) SetName(name string) {
+	a.Name = name
+	a.require(alertSlackChannelFieldName)
+}
+
+func (a *AlertSlackChannel) UnmarshalJSON(data []byte) error {
+	type unmarshaler AlertSlackChannel
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AlertSlackChannel(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AlertSlackChannel) MarshalJSON() ([]byte, error) {
+	type embed AlertSlackChannel
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AlertSlackChannel) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
 // What slice of spend a rule watches.
 var (
 	alertSourceFieldID       = big.NewInt(1 << 0)
@@ -1044,6 +1319,7 @@ const (
 	AlertSourceGroupAccounts    AlertSourceGroup = "accounts"
 	AlertSourceGroupViews       AlertSourceGroup = "views"
 	AlertSourceGroupCommitments AlertSourceGroup = "commitments"
+	AlertSourceGroupKubernetes  AlertSourceGroup = "kubernetes"
 )
 
 func NewAlertSourceGroupFromString(s string) (AlertSourceGroup, error) {
@@ -1054,6 +1330,8 @@ func NewAlertSourceGroupFromString(s string) (AlertSourceGroup, error) {
 		return AlertSourceGroupViews, nil
 	case "commitments":
 		return AlertSourceGroupCommitments, nil
+	case "kubernetes":
+		return AlertSourceGroupKubernetes, nil
 	}
 	var t AlertSourceGroup
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -1324,10 +1602,11 @@ func (a *AlertSuggestion) String() string {
 }
 
 type AlertSuggestionParams struct {
-	Kind       string
-	Budget     *BudgetParamsOutput
-	Changes    *ChangesParamsOutput
-	Commitment *CommitmentParamsOutput
+	Kind        string
+	Budget      *BudgetParamsOutput
+	Changes     *ChangesParamsOutput
+	Commitment  *CommitmentParamsOutput
+	Reliability *ReliabilityParams
 }
 
 func (a *AlertSuggestionParams) GetKind() string {
@@ -1356,6 +1635,13 @@ func (a *AlertSuggestionParams) GetCommitment() *CommitmentParamsOutput {
 		return nil
 	}
 	return a.Commitment
+}
+
+func (a *AlertSuggestionParams) GetReliability() *ReliabilityParams {
+	if a == nil {
+		return nil
+	}
+	return a.Reliability
 }
 
 func (a *AlertSuggestionParams) UnmarshalJSON(data []byte) error {
@@ -1388,6 +1674,12 @@ func (a *AlertSuggestionParams) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		a.Commitment = value
+	case "reliability":
+		value := new(ReliabilityParams)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		a.Reliability = value
 	}
 	return nil
 }
@@ -1405,6 +1697,9 @@ func (a AlertSuggestionParams) MarshalJSON() ([]byte, error) {
 	if a.Commitment != nil {
 		return internal.MarshalJSONWithExtraProperty(a.Commitment, "kind", "commitment")
 	}
+	if a.Reliability != nil {
+		return internal.MarshalJSONWithExtraProperty(a.Reliability, "kind", "reliability")
+	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", a)
 }
 
@@ -1412,6 +1707,7 @@ type AlertSuggestionParamsVisitor interface {
 	VisitBudget(*BudgetParamsOutput) error
 	VisitChanges(*ChangesParamsOutput) error
 	VisitCommitment(*CommitmentParamsOutput) error
+	VisitReliability(*ReliabilityParams) error
 }
 
 func (a *AlertSuggestionParams) Accept(visitor AlertSuggestionParamsVisitor) error {
@@ -1423,6 +1719,9 @@ func (a *AlertSuggestionParams) Accept(visitor AlertSuggestionParamsVisitor) err
 	}
 	if a.Commitment != nil {
 		return visitor.VisitCommitment(a.Commitment)
+	}
+	if a.Reliability != nil {
+		return visitor.VisitReliability(a.Reliability)
 	}
 	return fmt.Errorf("type %T does not define a non-empty union type", a)
 }
@@ -1440,6 +1739,9 @@ func (a *AlertSuggestionParams) validate() error {
 	}
 	if a.Commitment != nil {
 		fields = append(fields, "commitment")
+	}
+	if a.Reliability != nil {
+		fields = append(fields, "reliability")
 	}
 	if len(fields) == 0 {
 		if a.Kind != "" {
@@ -1470,6 +1772,7 @@ var (
 	budgetParamsInputFieldReset     = big.NewInt(1 << 1)
 	budgetParamsInputFieldRules     = big.NewInt(1 << 2)
 	budgetParamsInputFieldCostBasis = big.NewInt(1 << 3)
+	budgetParamsInputFieldMeasure   = big.NewInt(1 << 4)
 )
 
 type BudgetParamsInput struct {
@@ -1477,6 +1780,8 @@ type BudgetParamsInput struct {
 	Reset     BudgetParamsInputReset      `json:"reset" url:"reset"`
 	Rules     []*BudgetRuleInput          `json:"rules" url:"rules"`
 	CostBasis *BudgetParamsInputCostBasis `json:"cost_basis,omitempty" url:"cost_basis,omitempty"`
+	// waste reads only on a Kubernetes source; every other source is cost
+	Measure *BudgetParamsInputMeasure `json:"measure,omitempty" url:"measure,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -1511,6 +1816,13 @@ func (b *BudgetParamsInput) GetCostBasis() *BudgetParamsInputCostBasis {
 		return nil
 	}
 	return b.CostBasis
+}
+
+func (b *BudgetParamsInput) GetMeasure() *BudgetParamsInputMeasure {
+	if b == nil {
+		return nil
+	}
+	return b.Measure
 }
 
 func (b *BudgetParamsInput) GetExtraProperties() map[string]interface{} {
@@ -1553,6 +1865,13 @@ func (b *BudgetParamsInput) SetRules(rules []*BudgetRuleInput) {
 func (b *BudgetParamsInput) SetCostBasis(costBasis *BudgetParamsInputCostBasis) {
 	b.CostBasis = costBasis
 	b.require(budgetParamsInputFieldCostBasis)
+}
+
+// SetMeasure sets the Measure field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BudgetParamsInput) SetMeasure(measure *BudgetParamsInputMeasure) {
+	b.Measure = measure
+	b.require(budgetParamsInputFieldMeasure)
 }
 
 func (b *BudgetParamsInput) UnmarshalJSON(data []byte) error {
@@ -1690,6 +2009,29 @@ func (b BudgetParamsInputCostBasis) Ptr() *BudgetParamsInputCostBasis {
 	return &b
 }
 
+// waste reads only on a Kubernetes source; every other source is cost
+type BudgetParamsInputMeasure string
+
+const (
+	BudgetParamsInputMeasureCost  BudgetParamsInputMeasure = "cost"
+	BudgetParamsInputMeasureWaste BudgetParamsInputMeasure = "waste"
+)
+
+func NewBudgetParamsInputMeasureFromString(s string) (BudgetParamsInputMeasure, error) {
+	switch s {
+	case "cost":
+		return BudgetParamsInputMeasureCost, nil
+	case "waste":
+		return BudgetParamsInputMeasureWaste, nil
+	}
+	var t BudgetParamsInputMeasure
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (b BudgetParamsInputMeasure) Ptr() *BudgetParamsInputMeasure {
+	return &b
+}
+
 type BudgetParamsInputReset string
 
 const (
@@ -1718,6 +2060,7 @@ var (
 	budgetParamsOutputFieldReset     = big.NewInt(1 << 1)
 	budgetParamsOutputFieldRules     = big.NewInt(1 << 2)
 	budgetParamsOutputFieldCostBasis = big.NewInt(1 << 3)
+	budgetParamsOutputFieldMeasure   = big.NewInt(1 << 4)
 )
 
 type BudgetParamsOutput struct {
@@ -1725,6 +2068,8 @@ type BudgetParamsOutput struct {
 	Reset     BudgetParamsOutputReset      `json:"reset" url:"reset"`
 	Rules     []*BudgetRuleOutput          `json:"rules" url:"rules"`
 	CostBasis *BudgetParamsOutputCostBasis `json:"cost_basis,omitempty" url:"cost_basis,omitempty"`
+	// waste reads only on a Kubernetes source; every other source is cost
+	Measure *BudgetParamsOutputMeasure `json:"measure,omitempty" url:"measure,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -1759,6 +2104,13 @@ func (b *BudgetParamsOutput) GetCostBasis() *BudgetParamsOutputCostBasis {
 		return nil
 	}
 	return b.CostBasis
+}
+
+func (b *BudgetParamsOutput) GetMeasure() *BudgetParamsOutputMeasure {
+	if b == nil {
+		return nil
+	}
+	return b.Measure
 }
 
 func (b *BudgetParamsOutput) GetExtraProperties() map[string]interface{} {
@@ -1801,6 +2153,13 @@ func (b *BudgetParamsOutput) SetRules(rules []*BudgetRuleOutput) {
 func (b *BudgetParamsOutput) SetCostBasis(costBasis *BudgetParamsOutputCostBasis) {
 	b.CostBasis = costBasis
 	b.require(budgetParamsOutputFieldCostBasis)
+}
+
+// SetMeasure sets the Measure field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BudgetParamsOutput) SetMeasure(measure *BudgetParamsOutputMeasure) {
+	b.Measure = measure
+	b.require(budgetParamsOutputFieldMeasure)
 }
 
 func (b *BudgetParamsOutput) UnmarshalJSON(data []byte) error {
@@ -1873,6 +2232,29 @@ func NewBudgetParamsOutputCostBasisFromString(s string) (BudgetParamsOutputCostB
 }
 
 func (b BudgetParamsOutputCostBasis) Ptr() *BudgetParamsOutputCostBasis {
+	return &b
+}
+
+// waste reads only on a Kubernetes source; every other source is cost
+type BudgetParamsOutputMeasure string
+
+const (
+	BudgetParamsOutputMeasureCost  BudgetParamsOutputMeasure = "cost"
+	BudgetParamsOutputMeasureWaste BudgetParamsOutputMeasure = "waste"
+)
+
+func NewBudgetParamsOutputMeasureFromString(s string) (BudgetParamsOutputMeasure, error) {
+	switch s {
+	case "cost":
+		return BudgetParamsOutputMeasureCost, nil
+	case "waste":
+		return BudgetParamsOutputMeasureWaste, nil
+	}
+	var t BudgetParamsOutputMeasure
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (b BudgetParamsOutputMeasure) Ptr() *BudgetParamsOutputMeasure {
 	return &b
 }
 
@@ -2511,6 +2893,7 @@ var (
 	changesParamsInputFieldComparison = big.NewInt(1 << 1)
 	changesParamsInputFieldFloor      = big.NewInt(1 << 2)
 	changesParamsInputFieldCostBasis  = big.NewInt(1 << 3)
+	changesParamsInputFieldMeasure    = big.NewInt(1 << 4)
 )
 
 type ChangesParamsInput struct {
@@ -2518,6 +2901,8 @@ type ChangesParamsInput struct {
 	Comparison ChangesParamsInputComparison `json:"comparison" url:"comparison"`
 	Floor      *ChangesParamsInputFloor     `json:"floor,omitempty" url:"floor,omitempty"`
 	CostBasis  *ChangesParamsInputCostBasis `json:"cost_basis,omitempty" url:"cost_basis,omitempty"`
+	// waste reads only on a Kubernetes source; every other source is cost
+	Measure *ChangesParamsInputMeasure `json:"measure,omitempty" url:"measure,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -2552,6 +2937,13 @@ func (c *ChangesParamsInput) GetCostBasis() *ChangesParamsInputCostBasis {
 		return nil
 	}
 	return c.CostBasis
+}
+
+func (c *ChangesParamsInput) GetMeasure() *ChangesParamsInputMeasure {
+	if c == nil {
+		return nil
+	}
+	return c.Measure
 }
 
 func (c *ChangesParamsInput) GetExtraProperties() map[string]interface{} {
@@ -2594,6 +2986,13 @@ func (c *ChangesParamsInput) SetFloor(floor *ChangesParamsInputFloor) {
 func (c *ChangesParamsInput) SetCostBasis(costBasis *ChangesParamsInputCostBasis) {
 	c.CostBasis = costBasis
 	c.require(changesParamsInputFieldCostBasis)
+}
+
+// SetMeasure sets the Measure field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ChangesParamsInput) SetMeasure(measure *ChangesParamsInputMeasure) {
+	c.Measure = measure
+	c.require(changesParamsInputFieldMeasure)
 }
 
 func (c *ChangesParamsInput) UnmarshalJSON(data []byte) error {
@@ -2818,6 +3217,29 @@ func (c *ChangesParamsInputFloor) Accept(visitor ChangesParamsInputFloorVisitor)
 	return fmt.Errorf("type %T does not include a non-empty union type", c)
 }
 
+// waste reads only on a Kubernetes source; every other source is cost
+type ChangesParamsInputMeasure string
+
+const (
+	ChangesParamsInputMeasureCost  ChangesParamsInputMeasure = "cost"
+	ChangesParamsInputMeasureWaste ChangesParamsInputMeasure = "waste"
+)
+
+func NewChangesParamsInputMeasureFromString(s string) (ChangesParamsInputMeasure, error) {
+	switch s {
+	case "cost":
+		return ChangesParamsInputMeasureCost, nil
+	case "waste":
+		return ChangesParamsInputMeasureWaste, nil
+	}
+	var t ChangesParamsInputMeasure
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c ChangesParamsInputMeasure) Ptr() *ChangesParamsInputMeasure {
+	return &c
+}
+
 // Spend that moved, measured against its own recent past.
 //
 // `floor` is what keeps this usable. Percentage change on a small number is noise, and a
@@ -2827,6 +3249,7 @@ var (
 	changesParamsOutputFieldComparison = big.NewInt(1 << 1)
 	changesParamsOutputFieldFloor      = big.NewInt(1 << 2)
 	changesParamsOutputFieldCostBasis  = big.NewInt(1 << 3)
+	changesParamsOutputFieldMeasure    = big.NewInt(1 << 4)
 )
 
 type ChangesParamsOutput struct {
@@ -2834,6 +3257,8 @@ type ChangesParamsOutput struct {
 	Comparison ChangesParamsOutputComparison `json:"comparison" url:"comparison"`
 	Floor      *string                       `json:"floor,omitempty" url:"floor,omitempty"`
 	CostBasis  *ChangesParamsOutputCostBasis `json:"cost_basis,omitempty" url:"cost_basis,omitempty"`
+	// waste reads only on a Kubernetes source; every other source is cost
+	Measure *ChangesParamsOutputMeasure `json:"measure,omitempty" url:"measure,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -2868,6 +3293,13 @@ func (c *ChangesParamsOutput) GetCostBasis() *ChangesParamsOutputCostBasis {
 		return nil
 	}
 	return c.CostBasis
+}
+
+func (c *ChangesParamsOutput) GetMeasure() *ChangesParamsOutputMeasure {
+	if c == nil {
+		return nil
+	}
+	return c.Measure
 }
 
 func (c *ChangesParamsOutput) GetExtraProperties() map[string]interface{} {
@@ -2910,6 +3342,13 @@ func (c *ChangesParamsOutput) SetFloor(floor *string) {
 func (c *ChangesParamsOutput) SetCostBasis(costBasis *ChangesParamsOutputCostBasis) {
 	c.CostBasis = costBasis
 	c.require(changesParamsOutputFieldCostBasis)
+}
+
+// SetMeasure sets the Measure field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ChangesParamsOutput) SetMeasure(measure *ChangesParamsOutputMeasure) {
+	c.Measure = measure
+	c.require(changesParamsOutputFieldMeasure)
 }
 
 func (c *ChangesParamsOutput) UnmarshalJSON(data []byte) error {
@@ -3007,6 +3446,29 @@ func NewChangesParamsOutputCostBasisFromString(s string) (ChangesParamsOutputCos
 }
 
 func (c ChangesParamsOutputCostBasis) Ptr() *ChangesParamsOutputCostBasis {
+	return &c
+}
+
+// waste reads only on a Kubernetes source; every other source is cost
+type ChangesParamsOutputMeasure string
+
+const (
+	ChangesParamsOutputMeasureCost  ChangesParamsOutputMeasure = "cost"
+	ChangesParamsOutputMeasureWaste ChangesParamsOutputMeasure = "waste"
+)
+
+func NewChangesParamsOutputMeasureFromString(s string) (ChangesParamsOutputMeasure, error) {
+	switch s {
+	case "cost":
+		return ChangesParamsOutputMeasureCost, nil
+	case "waste":
+		return ChangesParamsOutputMeasureWaste, nil
+	}
+	var t ChangesParamsOutputMeasure
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c ChangesParamsOutputMeasure) Ptr() *ChangesParamsOutputMeasure {
 	return &c
 }
 
@@ -3533,27 +3995,34 @@ func (c CommitmentParamsOutputWatch) Ptr() *CommitmentParamsOutputWatch {
 }
 
 var (
-	costAlertFieldID           = big.NewInt(1 << 0)
-	costAlertFieldName         = big.NewInt(1 << 1)
-	costAlertFieldParams       = big.NewInt(1 << 2)
-	costAlertFieldSourceID     = big.NewInt(1 << 3)
-	costAlertFieldRecipients   = big.NewInt(1 << 4)
-	costAlertFieldSlackChannel = big.NewInt(1 << 5)
-	costAlertFieldEnabled      = big.NewInt(1 << 6)
-	costAlertFieldPausedBy     = big.NewInt(1 << 7)
-	costAlertFieldSentToMe     = big.NewInt(1 << 8)
+	costAlertFieldID            = big.NewInt(1 << 0)
+	costAlertFieldName          = big.NewInt(1 << 1)
+	costAlertFieldParams        = big.NewInt(1 << 2)
+	costAlertFieldSourceID      = big.NewInt(1 << 3)
+	costAlertFieldRecipients    = big.NewInt(1 << 4)
+	costAlertFieldSlackChannels = big.NewInt(1 << 5)
+	costAlertFieldSlackChannel  = big.NewInt(1 << 6)
+	costAlertFieldEnabled       = big.NewInt(1 << 7)
+	costAlertFieldPausedBy      = big.NewInt(1 << 8)
+	costAlertFieldSentToMe      = big.NewInt(1 << 9)
+	costAlertFieldWatching      = big.NewInt(1 << 10)
 )
 
 type CostAlert struct {
-	ID           string            `json:"id" url:"id"`
-	Name         string            `json:"name" url:"name"`
-	Params       *CostAlertParams  `json:"params" url:"params"`
-	SourceID     string            `json:"source_id" url:"source_id"`
-	Recipients   []*AlertRecipient `json:"recipients" url:"recipients"`
-	SlackChannel *string           `json:"slack_channel,omitempty" url:"slack_channel,omitempty"`
-	Enabled      bool              `json:"enabled" url:"enabled"`
-	PausedBy     *string           `json:"paused_by,omitempty" url:"paused_by,omitempty"`
-	SentToMe     *bool             `json:"sent_to_me,omitempty" url:"sent_to_me,omitempty"`
+	ID         string            `json:"id" url:"id"`
+	Name       string            `json:"name" url:"name"`
+	Params     *CostAlertParams  `json:"params" url:"params"`
+	SourceID   string            `json:"source_id" url:"source_id"`
+	Recipients []*AlertRecipient `json:"recipients" url:"recipients"`
+	// The Slack channels this alert posts in, each once per firing
+	SlackChannels []*AlertSlackChannel `json:"slack_channels,omitempty" url:"slack_channels,omitempty"`
+	// Deprecated and always null: read slack_channels
+	SlackChannel *string `json:"slack_channel,omitempty" url:"slack_channel,omitempty"`
+	Enabled      bool    `json:"enabled" url:"enabled"`
+	PausedBy     *string `json:"paused_by,omitempty" url:"paused_by,omitempty"`
+	SentToMe     *bool   `json:"sent_to_me,omitempty" url:"sent_to_me,omitempty"`
+	// The live state of each thing this alert watches. Empty until a sweep has measured it
+	Watching []*AlertInstanceState `json:"watching,omitempty" url:"watching,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -3597,6 +4066,13 @@ func (c *CostAlert) GetRecipients() []*AlertRecipient {
 	return c.Recipients
 }
 
+func (c *CostAlert) GetSlackChannels() []*AlertSlackChannel {
+	if c == nil {
+		return nil
+	}
+	return c.SlackChannels
+}
+
 func (c *CostAlert) GetSlackChannel() *string {
 	if c == nil {
 		return nil
@@ -3623,6 +4099,13 @@ func (c *CostAlert) GetSentToMe() *bool {
 		return nil
 	}
 	return c.SentToMe
+}
+
+func (c *CostAlert) GetWatching() []*AlertInstanceState {
+	if c == nil {
+		return nil
+	}
+	return c.Watching
 }
 
 func (c *CostAlert) GetExtraProperties() map[string]interface{} {
@@ -3674,6 +4157,13 @@ func (c *CostAlert) SetRecipients(recipients []*AlertRecipient) {
 	c.require(costAlertFieldRecipients)
 }
 
+// SetSlackChannels sets the SlackChannels field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CostAlert) SetSlackChannels(slackChannels []*AlertSlackChannel) {
+	c.SlackChannels = slackChannels
+	c.require(costAlertFieldSlackChannels)
+}
+
 // SetSlackChannel sets the SlackChannel field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (c *CostAlert) SetSlackChannel(slackChannel *string) {
@@ -3700,6 +4190,13 @@ func (c *CostAlert) SetPausedBy(pausedBy *string) {
 func (c *CostAlert) SetSentToMe(sentToMe *bool) {
 	c.SentToMe = sentToMe
 	c.require(costAlertFieldSentToMe)
+}
+
+// SetWatching sets the Watching field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CostAlert) SetWatching(watching []*AlertInstanceState) {
+	c.Watching = watching
+	c.require(costAlertFieldWatching)
 }
 
 func (c *CostAlert) UnmarshalJSON(data []byte) error {
@@ -3745,10 +4242,11 @@ func (c *CostAlert) String() string {
 }
 
 type CostAlertParams struct {
-	Kind       string
-	Budget     *BudgetParamsOutput
-	Changes    *ChangesParamsOutput
-	Commitment *CommitmentParamsOutput
+	Kind        string
+	Budget      *BudgetParamsOutput
+	Changes     *ChangesParamsOutput
+	Commitment  *CommitmentParamsOutput
+	Reliability *ReliabilityParams
 }
 
 func (c *CostAlertParams) GetKind() string {
@@ -3777,6 +4275,13 @@ func (c *CostAlertParams) GetCommitment() *CommitmentParamsOutput {
 		return nil
 	}
 	return c.Commitment
+}
+
+func (c *CostAlertParams) GetReliability() *ReliabilityParams {
+	if c == nil {
+		return nil
+	}
+	return c.Reliability
 }
 
 func (c *CostAlertParams) UnmarshalJSON(data []byte) error {
@@ -3809,6 +4314,12 @@ func (c *CostAlertParams) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		c.Commitment = value
+	case "reliability":
+		value := new(ReliabilityParams)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		c.Reliability = value
 	}
 	return nil
 }
@@ -3826,6 +4337,9 @@ func (c CostAlertParams) MarshalJSON() ([]byte, error) {
 	if c.Commitment != nil {
 		return internal.MarshalJSONWithExtraProperty(c.Commitment, "kind", "commitment")
 	}
+	if c.Reliability != nil {
+		return internal.MarshalJSONWithExtraProperty(c.Reliability, "kind", "reliability")
+	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", c)
 }
 
@@ -3833,6 +4347,7 @@ type CostAlertParamsVisitor interface {
 	VisitBudget(*BudgetParamsOutput) error
 	VisitChanges(*ChangesParamsOutput) error
 	VisitCommitment(*CommitmentParamsOutput) error
+	VisitReliability(*ReliabilityParams) error
 }
 
 func (c *CostAlertParams) Accept(visitor CostAlertParamsVisitor) error {
@@ -3844,6 +4359,9 @@ func (c *CostAlertParams) Accept(visitor CostAlertParamsVisitor) error {
 	}
 	if c.Commitment != nil {
 		return visitor.VisitCommitment(c.Commitment)
+	}
+	if c.Reliability != nil {
+		return visitor.VisitReliability(c.Reliability)
 	}
 	return fmt.Errorf("type %T does not define a non-empty union type", c)
 }
@@ -3861,6 +4379,9 @@ func (c *CostAlertParams) validate() error {
 	}
 	if c.Commitment != nil {
 		fields = append(fields, "commitment")
+	}
+	if c.Reliability != nil {
+		fields = append(fields, "reliability")
 	}
 	if len(fields) == 0 {
 		if c.Kind != "" {
@@ -3883,6 +4404,303 @@ func (c *CostAlertParams) validate() error {
 		}
 	}
 	return nil
+}
+
+// What a reliability rule stays quiet about: a namespace, a workload, an indicator, or the pair of them.
+//
+// Every field given has to match for the ignore to apply, so `indicator` alone mutes that indicator everywhere
+// the rule watches, and a workload with an indicator mutes only that indicator on that workload.
+var (
+	reliabilityIgnoreFieldNamespace = big.NewInt(1 << 0)
+	reliabilityIgnoreFieldWorkload  = big.NewInt(1 << 1)
+	reliabilityIgnoreFieldIndicator = big.NewInt(1 << 2)
+)
+
+type ReliabilityIgnore struct {
+	Namespace *string `json:"namespace,omitempty" url:"namespace,omitempty"`
+	// Kind/name, as Deployment/api
+	Workload  *string `json:"workload,omitempty" url:"workload,omitempty"`
+	Indicator *string `json:"indicator,omitempty" url:"indicator,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *ReliabilityIgnore) GetNamespace() *string {
+	if r == nil {
+		return nil
+	}
+	return r.Namespace
+}
+
+func (r *ReliabilityIgnore) GetWorkload() *string {
+	if r == nil {
+		return nil
+	}
+	return r.Workload
+}
+
+func (r *ReliabilityIgnore) GetIndicator() *string {
+	if r == nil {
+		return nil
+	}
+	return r.Indicator
+}
+
+func (r *ReliabilityIgnore) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *ReliabilityIgnore) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetNamespace sets the Namespace field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ReliabilityIgnore) SetNamespace(namespace *string) {
+	r.Namespace = namespace
+	r.require(reliabilityIgnoreFieldNamespace)
+}
+
+// SetWorkload sets the Workload field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ReliabilityIgnore) SetWorkload(workload *string) {
+	r.Workload = workload
+	r.require(reliabilityIgnoreFieldWorkload)
+}
+
+// SetIndicator sets the Indicator field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ReliabilityIgnore) SetIndicator(indicator *string) {
+	r.Indicator = indicator
+	r.require(reliabilityIgnoreFieldIndicator)
+}
+
+func (r *ReliabilityIgnore) UnmarshalJSON(data []byte) error {
+	type unmarshaler ReliabilityIgnore
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = ReliabilityIgnore(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *ReliabilityIgnore) MarshalJSON() ([]byte, error) {
+	type embed ReliabilityIgnore
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *ReliabilityIgnore) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+// A Kubernetes workload whose risk reaches `min_risk`, as the reliability indicators judge it.
+//
+// One instance per workload, so each is announced on its own and clears on its own. A workload is announced once
+// when it reaches the rule, and again only after it cleared: a swing between high and medium is the same episode.
+var (
+	reliabilityParamsFieldMinRisk   = big.NewInt(1 << 0)
+	reliabilityParamsFieldIgnore    = big.NewInt(1 << 1)
+	reliabilityParamsFieldCostBasis = big.NewInt(1 << 2)
+)
+
+type ReliabilityParams struct {
+	MinRisk   *ReliabilityParamsMinRisk   `json:"min_risk,omitempty" url:"min_risk,omitempty"`
+	Ignore    []*ReliabilityIgnore        `json:"ignore,omitempty" url:"ignore,omitempty"`
+	CostBasis *ReliabilityParamsCostBasis `json:"cost_basis,omitempty" url:"cost_basis,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *ReliabilityParams) GetMinRisk() *ReliabilityParamsMinRisk {
+	if r == nil {
+		return nil
+	}
+	return r.MinRisk
+}
+
+func (r *ReliabilityParams) GetIgnore() []*ReliabilityIgnore {
+	if r == nil {
+		return nil
+	}
+	return r.Ignore
+}
+
+func (r *ReliabilityParams) GetCostBasis() *ReliabilityParamsCostBasis {
+	if r == nil {
+		return nil
+	}
+	return r.CostBasis
+}
+
+func (r *ReliabilityParams) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *ReliabilityParams) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetMinRisk sets the MinRisk field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ReliabilityParams) SetMinRisk(minRisk *ReliabilityParamsMinRisk) {
+	r.MinRisk = minRisk
+	r.require(reliabilityParamsFieldMinRisk)
+}
+
+// SetIgnore sets the Ignore field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ReliabilityParams) SetIgnore(ignore []*ReliabilityIgnore) {
+	r.Ignore = ignore
+	r.require(reliabilityParamsFieldIgnore)
+}
+
+// SetCostBasis sets the CostBasis field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ReliabilityParams) SetCostBasis(costBasis *ReliabilityParamsCostBasis) {
+	r.CostBasis = costBasis
+	r.require(reliabilityParamsFieldCostBasis)
+}
+
+func (r *ReliabilityParams) UnmarshalJSON(data []byte) error {
+	type unmarshaler ReliabilityParams
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = ReliabilityParams(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *ReliabilityParams) MarshalJSON() ([]byte, error) {
+	type embed ReliabilityParams
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *ReliabilityParams) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+type ReliabilityParamsCostBasis string
+
+const (
+	ReliabilityParamsCostBasisUnblended    ReliabilityParamsCostBasis = "unblended"
+	ReliabilityParamsCostBasisBlended      ReliabilityParamsCostBasis = "blended"
+	ReliabilityParamsCostBasisAmortized    ReliabilityParamsCostBasis = "amortized"
+	ReliabilityParamsCostBasisNetUnblended ReliabilityParamsCostBasis = "net_unblended"
+	ReliabilityParamsCostBasisNetAmortized ReliabilityParamsCostBasis = "net_amortized"
+)
+
+func NewReliabilityParamsCostBasisFromString(s string) (ReliabilityParamsCostBasis, error) {
+	switch s {
+	case "unblended":
+		return ReliabilityParamsCostBasisUnblended, nil
+	case "blended":
+		return ReliabilityParamsCostBasisBlended, nil
+	case "amortized":
+		return ReliabilityParamsCostBasisAmortized, nil
+	case "net_unblended":
+		return ReliabilityParamsCostBasisNetUnblended, nil
+	case "net_amortized":
+		return ReliabilityParamsCostBasisNetAmortized, nil
+	}
+	var t ReliabilityParamsCostBasis
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (r ReliabilityParamsCostBasis) Ptr() *ReliabilityParamsCostBasis {
+	return &r
+}
+
+type ReliabilityParamsMinRisk string
+
+const (
+	ReliabilityParamsMinRiskHigh   ReliabilityParamsMinRisk = "high"
+	ReliabilityParamsMinRiskMedium ReliabilityParamsMinRisk = "medium"
+	ReliabilityParamsMinRiskLow    ReliabilityParamsMinRisk = "low"
+)
+
+func NewReliabilityParamsMinRiskFromString(s string) (ReliabilityParamsMinRisk, error) {
+	switch s {
+	case "high":
+		return ReliabilityParamsMinRiskHigh, nil
+	case "medium":
+		return ReliabilityParamsMinRiskMedium, nil
+	case "low":
+		return ReliabilityParamsMinRiskLow, nil
+	}
+	var t ReliabilityParamsMinRisk
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (r ReliabilityParamsMinRisk) Ptr() *ReliabilityParamsMinRisk {
+	return &r
 }
 
 var (
@@ -4495,10 +5313,11 @@ func (s *SuggestionsResponse) String() string {
 }
 
 type CreateAlertRequestParams struct {
-	Kind       string
-	Budget     *BudgetParamsInput
-	Changes    *ChangesParamsInput
-	Commitment *CommitmentParamsInput
+	Kind        string
+	Budget      *BudgetParamsInput
+	Changes     *ChangesParamsInput
+	Commitment  *CommitmentParamsInput
+	Reliability *ReliabilityParams
 }
 
 func (c *CreateAlertRequestParams) GetKind() string {
@@ -4527,6 +5346,13 @@ func (c *CreateAlertRequestParams) GetCommitment() *CommitmentParamsInput {
 		return nil
 	}
 	return c.Commitment
+}
+
+func (c *CreateAlertRequestParams) GetReliability() *ReliabilityParams {
+	if c == nil {
+		return nil
+	}
+	return c.Reliability
 }
 
 func (c *CreateAlertRequestParams) UnmarshalJSON(data []byte) error {
@@ -4559,6 +5385,12 @@ func (c *CreateAlertRequestParams) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		c.Commitment = value
+	case "reliability":
+		value := new(ReliabilityParams)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		c.Reliability = value
 	}
 	return nil
 }
@@ -4576,6 +5408,9 @@ func (c CreateAlertRequestParams) MarshalJSON() ([]byte, error) {
 	if c.Commitment != nil {
 		return internal.MarshalJSONWithExtraProperty(c.Commitment, "kind", "commitment")
 	}
+	if c.Reliability != nil {
+		return internal.MarshalJSONWithExtraProperty(c.Reliability, "kind", "reliability")
+	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", c)
 }
 
@@ -4583,6 +5418,7 @@ type CreateAlertRequestParamsVisitor interface {
 	VisitBudget(*BudgetParamsInput) error
 	VisitChanges(*ChangesParamsInput) error
 	VisitCommitment(*CommitmentParamsInput) error
+	VisitReliability(*ReliabilityParams) error
 }
 
 func (c *CreateAlertRequestParams) Accept(visitor CreateAlertRequestParamsVisitor) error {
@@ -4594,6 +5430,9 @@ func (c *CreateAlertRequestParams) Accept(visitor CreateAlertRequestParamsVisito
 	}
 	if c.Commitment != nil {
 		return visitor.VisitCommitment(c.Commitment)
+	}
+	if c.Reliability != nil {
+		return visitor.VisitReliability(c.Reliability)
 	}
 	return fmt.Errorf("type %T does not define a non-empty union type", c)
 }
@@ -4611,6 +5450,9 @@ func (c *CreateAlertRequestParams) validate() error {
 	}
 	if c.Commitment != nil {
 		fields = append(fields, "commitment")
+	}
+	if c.Reliability != nil {
+		fields = append(fields, "reliability")
 	}
 	if len(fields) == 0 {
 		if c.Kind != "" {
@@ -4636,10 +5478,11 @@ func (c *CreateAlertRequestParams) validate() error {
 }
 
 type UpdateAlertRequestParams struct {
-	Kind       string
-	Budget     *BudgetParamsInput
-	Changes    *ChangesParamsInput
-	Commitment *CommitmentParamsInput
+	Kind        string
+	Budget      *BudgetParamsInput
+	Changes     *ChangesParamsInput
+	Commitment  *CommitmentParamsInput
+	Reliability *ReliabilityParams
 }
 
 func (u *UpdateAlertRequestParams) GetKind() string {
@@ -4668,6 +5511,13 @@ func (u *UpdateAlertRequestParams) GetCommitment() *CommitmentParamsInput {
 		return nil
 	}
 	return u.Commitment
+}
+
+func (u *UpdateAlertRequestParams) GetReliability() *ReliabilityParams {
+	if u == nil {
+		return nil
+	}
+	return u.Reliability
 }
 
 func (u *UpdateAlertRequestParams) UnmarshalJSON(data []byte) error {
@@ -4700,6 +5550,12 @@ func (u *UpdateAlertRequestParams) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		u.Commitment = value
+	case "reliability":
+		value := new(ReliabilityParams)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		u.Reliability = value
 	}
 	return nil
 }
@@ -4717,6 +5573,9 @@ func (u UpdateAlertRequestParams) MarshalJSON() ([]byte, error) {
 	if u.Commitment != nil {
 		return internal.MarshalJSONWithExtraProperty(u.Commitment, "kind", "commitment")
 	}
+	if u.Reliability != nil {
+		return internal.MarshalJSONWithExtraProperty(u.Reliability, "kind", "reliability")
+	}
 	return nil, fmt.Errorf("type %T does not define a non-empty union type", u)
 }
 
@@ -4724,6 +5583,7 @@ type UpdateAlertRequestParamsVisitor interface {
 	VisitBudget(*BudgetParamsInput) error
 	VisitChanges(*ChangesParamsInput) error
 	VisitCommitment(*CommitmentParamsInput) error
+	VisitReliability(*ReliabilityParams) error
 }
 
 func (u *UpdateAlertRequestParams) Accept(visitor UpdateAlertRequestParamsVisitor) error {
@@ -4735,6 +5595,9 @@ func (u *UpdateAlertRequestParams) Accept(visitor UpdateAlertRequestParamsVisito
 	}
 	if u.Commitment != nil {
 		return visitor.VisitCommitment(u.Commitment)
+	}
+	if u.Reliability != nil {
+		return visitor.VisitReliability(u.Reliability)
 	}
 	return fmt.Errorf("type %T does not define a non-empty union type", u)
 }
@@ -4752,6 +5615,9 @@ func (u *UpdateAlertRequestParams) validate() error {
 	}
 	if u.Commitment != nil {
 		fields = append(fields, "commitment")
+	}
+	if u.Reliability != nil {
+		fields = append(fields, "reliability")
 	}
 	if len(fields) == 0 {
 		if u.Kind != "" {
@@ -4777,19 +5643,25 @@ func (u *UpdateAlertRequestParams) validate() error {
 }
 
 var (
-	updateAlertRequestFieldName         = big.NewInt(1 << 0)
-	updateAlertRequestFieldParams       = big.NewInt(1 << 1)
-	updateAlertRequestFieldRecipients   = big.NewInt(1 << 2)
-	updateAlertRequestFieldSlackChannel = big.NewInt(1 << 3)
-	updateAlertRequestFieldEnabled      = big.NewInt(1 << 4)
+	updateAlertRequestFieldName            = big.NewInt(1 << 0)
+	updateAlertRequestFieldParams          = big.NewInt(1 << 1)
+	updateAlertRequestFieldSourceID        = big.NewInt(1 << 2)
+	updateAlertRequestFieldRecipients      = big.NewInt(1 << 3)
+	updateAlertRequestFieldSlackChannelIDs = big.NewInt(1 << 4)
+	updateAlertRequestFieldSlackChannel    = big.NewInt(1 << 5)
+	updateAlertRequestFieldEnabled         = big.NewInt(1 << 6)
 )
 
 type UpdateAlertRequest struct {
-	Name         *string                   `json:"name,omitempty" url:"-"`
-	Params       *UpdateAlertRequestParams `json:"params,omitempty" url:"-"`
-	Recipients   []*AlertRecipient         `json:"recipients,omitempty" url:"-"`
-	SlackChannel *string                   `json:"slack_channel,omitempty" url:"-"`
-	Enabled      *bool                     `json:"enabled,omitempty" url:"-"`
+	Name       *string                   `json:"name,omitempty" url:"-"`
+	Params     *UpdateAlertRequestParams `json:"params,omitempty" url:"-"`
+	SourceID   *string                   `json:"source_id,omitempty" url:"-"`
+	Recipients []*AlertRecipient         `json:"recipients,omitempty" url:"-"`
+	// Replaces the channels this alert posts in; an empty list takes them all off
+	SlackChannelIDs []string `json:"slack_channel_ids,omitempty" url:"-"`
+	// Deprecated and never read: use slack_channel_ids
+	SlackChannel *string `json:"slack_channel,omitempty" url:"-"`
+	Enabled      *bool   `json:"enabled,omitempty" url:"-"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -4816,11 +5688,25 @@ func (u *UpdateAlertRequest) SetParams(params *UpdateAlertRequestParams) {
 	u.require(updateAlertRequestFieldParams)
 }
 
+// SetSourceID sets the SourceID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UpdateAlertRequest) SetSourceID(sourceID *string) {
+	u.SourceID = sourceID
+	u.require(updateAlertRequestFieldSourceID)
+}
+
 // SetRecipients sets the Recipients field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (u *UpdateAlertRequest) SetRecipients(recipients []*AlertRecipient) {
 	u.Recipients = recipients
 	u.require(updateAlertRequestFieldRecipients)
+}
+
+// SetSlackChannelIDs sets the SlackChannelIDs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UpdateAlertRequest) SetSlackChannelIDs(slackChannelIDs []string) {
+	u.SlackChannelIDs = slackChannelIDs
+	u.require(updateAlertRequestFieldSlackChannelIDs)
 }
 
 // SetSlackChannel sets the SlackChannel field and marks it as non-optional;
