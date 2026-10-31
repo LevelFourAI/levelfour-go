@@ -114,6 +114,50 @@ func (r *RawClient) GetProviderTopSavers(
 	}, nil
 }
 
+func (r *RawClient) GetProviderCostDimensions(
+	ctx context.Context,
+	providerID string,
+	opts ...option.RequestOption,
+) (*core.Response[*levelfour.ProviderCostDimensionsResponse], error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		r.baseURL,
+		"",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/api/v1/providers/%v/costs/dimensions",
+		providerID,
+	)
+	headers := internal.MergeHeaders(
+		r.options.ToHeader(),
+		options.ToHeader(),
+	)
+	var response *levelfour.ProviderCostDimensionsResponse
+	raw, err := r.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+			ErrorDecoder:    internal.NewErrorDecoder(levelfour.ErrorCodes),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &core.Response[*levelfour.ProviderCostDimensionsResponse]{
+		StatusCode: raw.StatusCode,
+		Header:     raw.Header,
+		Body:       response,
+	}, nil
+}
+
 func (r *RawClient) GetProviderInvoices(
 	ctx context.Context,
 	providerID string,
