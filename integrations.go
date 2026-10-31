@@ -12,28 +12,43 @@ import (
 
 var (
 	createTaskPayloadFieldRecommendationID = big.NewInt(1 << 0)
-	createTaskPayloadFieldTitle            = big.NewInt(1 << 1)
-	createTaskPayloadFieldDescription      = big.NewInt(1 << 2)
-	createTaskPayloadFieldLink             = big.NewInt(1 << 3)
-	createTaskPayloadFieldMonthlySavings   = big.NewInt(1 << 4)
-	createTaskPayloadFieldAnnualSavings    = big.NewInt(1 << 5)
-	createTaskPayloadFieldSiteID           = big.NewInt(1 << 6)
-	createTaskPayloadFieldDestinationID    = big.NewInt(1 << 7)
+	createTaskPayloadFieldCommitmentID     = big.NewInt(1 << 1)
+	createTaskPayloadFieldTitle            = big.NewInt(1 << 2)
+	createTaskPayloadFieldDescription      = big.NewInt(1 << 3)
+	createTaskPayloadFieldLink             = big.NewInt(1 << 4)
+	createTaskPayloadFieldMonthlySavings   = big.NewInt(1 << 5)
+	createTaskPayloadFieldAnnualSavings    = big.NewInt(1 << 6)
+	createTaskPayloadFieldCommittedMonthly = big.NewInt(1 << 7)
+	createTaskPayloadFieldCurrency         = big.NewInt(1 << 8)
+	createTaskPayloadFieldTermMonths       = big.NewInt(1 << 9)
+	createTaskPayloadFieldEndsAt           = big.NewInt(1 << 10)
+	createTaskPayloadFieldSiteID           = big.NewInt(1 << 11)
+	createTaskPayloadFieldDestinationID    = big.NewInt(1 << 12)
 )
 
 type CreateTaskPayload struct {
 	// The savings recommendation this task tracks
-	RecommendationID string `json:"recommendation_id" url:"-"`
-	// Task title, prefilled from the savings and user-editable
+	RecommendationID *string `json:"recommendation_id,omitempty" url:"-"`
+	// The commitment this task tracks
+	CommitmentID *string `json:"commitment_id,omitempty" url:"-"`
+	// Task title, prefilled from the record and user-editable
 	Title string `json:"title" url:"-"`
 	// Task description (may be empty)
 	Description *string `json:"description,omitempty" url:"-"`
-	// Dashboard deep link back to the savings
+	// Dashboard deep link back to the record
 	Link *string `json:"link,omitempty" url:"-"`
-	// Estimated USD savings per month
+	// Savings only. Estimated USD savings per month
 	MonthlySavings *float64 `json:"monthly_savings,omitempty" url:"-"`
-	// Estimated USD savings per year
+	// Savings only. Estimated USD savings per year
 	AnnualSavings *float64 `json:"annual_savings,omitempty" url:"-"`
+	// Commitment only. What the commitment costs per month
+	CommittedMonthly *float64 `json:"committed_monthly,omitempty" url:"-"`
+	// Commitment only. Currency of committed_monthly
+	Currency *string `json:"currency,omitempty" url:"-"`
+	// Commitment only. Length of the term in months
+	TermMonths *int `json:"term_months,omitempty" url:"-"`
+	// Commitment only. The day the commitment ends
+	EndsAt *time.Time `json:"ends_at,omitempty" url:"-" format:"date"`
 	// Atlassian cloud id of the site to create the issue on (required for Jira)
 	SiteID *string `json:"site_id,omitempty" url:"-"`
 	// Jira project id to file the issue under (required for Jira)
@@ -52,9 +67,16 @@ func (c *CreateTaskPayload) require(field *big.Int) {
 
 // SetRecommendationID sets the RecommendationID field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (c *CreateTaskPayload) SetRecommendationID(recommendationID string) {
+func (c *CreateTaskPayload) SetRecommendationID(recommendationID *string) {
 	c.RecommendationID = recommendationID
 	c.require(createTaskPayloadFieldRecommendationID)
+}
+
+// SetCommitmentID sets the CommitmentID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreateTaskPayload) SetCommitmentID(commitmentID *string) {
+	c.CommitmentID = commitmentID
+	c.require(createTaskPayloadFieldCommitmentID)
 }
 
 // SetTitle sets the Title field and marks it as non-optional;
@@ -92,6 +114,34 @@ func (c *CreateTaskPayload) SetAnnualSavings(annualSavings *float64) {
 	c.require(createTaskPayloadFieldAnnualSavings)
 }
 
+// SetCommittedMonthly sets the CommittedMonthly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreateTaskPayload) SetCommittedMonthly(committedMonthly *float64) {
+	c.CommittedMonthly = committedMonthly
+	c.require(createTaskPayloadFieldCommittedMonthly)
+}
+
+// SetCurrency sets the Currency field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreateTaskPayload) SetCurrency(currency *string) {
+	c.Currency = currency
+	c.require(createTaskPayloadFieldCurrency)
+}
+
+// SetTermMonths sets the TermMonths field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreateTaskPayload) SetTermMonths(termMonths *int) {
+	c.TermMonths = termMonths
+	c.require(createTaskPayloadFieldTermMonths)
+}
+
+// SetEndsAt sets the EndsAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreateTaskPayload) SetEndsAt(endsAt *time.Time) {
+	c.EndsAt = endsAt
+	c.require(createTaskPayloadFieldEndsAt)
+}
+
 // SetSiteID sets the SiteID field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (c *CreateTaskPayload) SetSiteID(siteID *string) {
@@ -120,8 +170,10 @@ func (c *CreateTaskPayload) MarshalJSON() ([]byte, error) {
 	type embed CreateTaskPayload
 	var marshaler = struct {
 		embed
+		EndsAt *internal.Date `json:"ends_at,omitempty"`
 	}{
-		embed: embed(*c),
+		embed:  embed(*c),
+		EndsAt: internal.NewOptionalDate(c.EndsAt),
 	}
 	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
 	return json.Marshal(explicitMarshaler)
