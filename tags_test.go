@@ -298,7 +298,7 @@ func TestSettersMarkExplicitDeleteConfigTagsRequest(t *testing.T) {
 func TestSettersGetCoverageTagsRequest(t *testing.T) {
 	t.Run("SetProvider", func(t *testing.T) {
 		obj := &GetCoverageTagsRequest{}
-		var fernTestValueProvider *GetCoverageTagsRequestProvider
+		var fernTestValueProvider *string
 		obj.SetProvider(fernTestValueProvider)
 		assert.Equal(t, fernTestValueProvider, obj.Provider)
 		assert.NotNil(t, obj.explicitFields)
@@ -327,7 +327,7 @@ func TestSettersMarkExplicitGetCoverageTagsRequest(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &GetCoverageTagsRequest{}
-		var fernTestValueProvider *GetCoverageTagsRequestProvider
+		var fernTestValueProvider *string
 
 		// Act
 		obj.SetProvider(fernTestValueProvider)
@@ -421,7 +421,7 @@ func TestSettersMarkExplicitGetCoverageTagsRequest(t *testing.T) {
 func TestSettersGetDimensionValuesTagsRequest(t *testing.T) {
 	t.Run("SetProvider", func(t *testing.T) {
 		obj := &GetDimensionValuesTagsRequest{}
-		var fernTestValueProvider *GetDimensionValuesTagsRequestProvider
+		var fernTestValueProvider []*string
 		obj.SetProvider(fernTestValueProvider)
 		assert.Equal(t, fernTestValueProvider, obj.Provider)
 		assert.NotNil(t, obj.explicitFields)
@@ -458,7 +458,7 @@ func TestSettersMarkExplicitGetDimensionValuesTagsRequest(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &GetDimensionValuesTagsRequest{}
-		var fernTestValueProvider *GetDimensionValuesTagsRequestProvider
+		var fernTestValueProvider []*string
 
 		// Act
 		obj.SetProvider(fernTestValueProvider)
@@ -583,7 +583,7 @@ func TestSettersMarkExplicitGetDimensionValuesTagsRequest(t *testing.T) {
 func TestSettersGetDimensionsTagsRequest(t *testing.T) {
 	t.Run("SetProvider", func(t *testing.T) {
 		obj := &GetDimensionsTagsRequest{}
-		var fernTestValueProvider *GetDimensionsTagsRequestProvider
+		var fernTestValueProvider *string
 		obj.SetProvider(fernTestValueProvider)
 		assert.Equal(t, fernTestValueProvider, obj.Provider)
 		assert.NotNil(t, obj.explicitFields)
@@ -596,7 +596,7 @@ func TestSettersMarkExplicitGetDimensionsTagsRequest(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &GetDimensionsTagsRequest{}
-		var fernTestValueProvider *GetDimensionsTagsRequestProvider
+		var fernTestValueProvider *string
 
 		// Act
 		obj.SetProvider(fernTestValueProvider)
@@ -720,7 +720,7 @@ func TestSettersListKeyResourcesTagsRequest(t *testing.T) {
 
 	t.Run("SetProvider", func(t *testing.T) {
 		obj := &ListKeyResourcesTagsRequest{}
-		var fernTestValueProvider *ListKeyResourcesTagsRequestProvider
+		var fernTestValueProvider *string
 		obj.SetProvider(fernTestValueProvider)
 		assert.Equal(t, fernTestValueProvider, obj.Provider)
 		assert.NotNil(t, obj.explicitFields)
@@ -820,7 +820,7 @@ func TestSettersMarkExplicitListKeyResourcesTagsRequest(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &ListKeyResourcesTagsRequest{}
-		var fernTestValueProvider *ListKeyResourcesTagsRequestProvider
+		var fernTestValueProvider *string
 
 		// Act
 		obj.SetProvider(fernTestValueProvider)
@@ -1077,7 +1077,7 @@ func TestSettersListKeysTagsRequest(t *testing.T) {
 
 	t.Run("SetProvider", func(t *testing.T) {
 		obj := &ListKeysTagsRequest{}
-		var fernTestValueProvider *ListKeysTagsRequestProvider
+		var fernTestValueProvider *string
 		obj.SetProvider(fernTestValueProvider)
 		assert.Equal(t, fernTestValueProvider, obj.Provider)
 		assert.NotNil(t, obj.explicitFields)
@@ -1145,7 +1145,7 @@ func TestSettersMarkExplicitListKeysTagsRequest(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &ListKeysTagsRequest{}
-		var fernTestValueProvider *ListKeysTagsRequestProvider
+		var fernTestValueProvider *string
 
 		// Act
 		obj.SetProvider(fernTestValueProvider)
@@ -2035,7 +2035,7 @@ func TestSettersMarkExplicitVirtualTagReplaceRequest(t *testing.T) {
 func TestSettersSearchResourcesTagsRequest(t *testing.T) {
 	t.Run("SetProvider", func(t *testing.T) {
 		obj := &SearchResourcesTagsRequest{}
-		var fernTestValueProvider *SearchResourcesTagsRequestProvider
+		var fernTestValueProvider *string
 		obj.SetProvider(fernTestValueProvider)
 		assert.Equal(t, fernTestValueProvider, obj.Provider)
 		assert.NotNil(t, obj.explicitFields)
@@ -2088,7 +2088,7 @@ func TestSettersMarkExplicitSearchResourcesTagsRequest(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &SearchResourcesTagsRequest{}
-		var fernTestValueProvider *SearchResourcesTagsRequestProvider
+		var fernTestValueProvider *string
 
 		// Act
 		obj.SetProvider(fernTestValueProvider)
@@ -3960,7 +3960,7 @@ func TestSettersDimensionInfo(t *testing.T) {
 
 	t.Run("SetProviders", func(t *testing.T) {
 		obj := &DimensionInfo{}
-		var fernTestValueProviders []DimensionInfoProvidersItem
+		var fernTestValueProviders []string
 		obj.SetProviders(fernTestValueProviders)
 		assert.Equal(t, fernTestValueProviders, obj.Providers)
 		assert.NotNil(t, obj.explicitFields)
@@ -4042,7 +4042,7 @@ func TestGettersDimensionInfo(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &DimensionInfo{}
-		var expected []DimensionInfoProvidersItem
+		var expected []string
 		obj.Providers = expected
 
 		// Act & Assert
@@ -4171,7 +4171,150 @@ func TestSettersMarkExplicitDimensionInfo(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &DimensionInfo{}
-		var fernTestValueProviders []DimensionInfoProvidersItem
+		var fernTestValueProviders []string
+
+		// Act
+		obj.SetProviders(fernTestValueProviders)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+}
+
+func TestSettersDimensionValueItem(t *testing.T) {
+	t.Run("SetValue", func(t *testing.T) {
+		obj := &DimensionValueItem{}
+		var fernTestValueValue string
+		obj.SetValue(fernTestValueValue)
+		assert.Equal(t, fernTestValueValue, obj.Value)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetProviders", func(t *testing.T) {
+		obj := &DimensionValueItem{}
+		var fernTestValueProviders []string
+		obj.SetProviders(fernTestValueProviders)
+		assert.Equal(t, fernTestValueProviders, obj.Providers)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+}
+
+func TestGettersDimensionValueItem(t *testing.T) {
+	t.Run("GetValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DimensionValueItem{}
+		var expected string
+		obj.Value = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetValue(), "getter should return the property value")
+	})
+
+	t.Run("GetValue_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *DimensionValueItem
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetValue() // Should return zero value
+	})
+
+	t.Run("GetProviders", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DimensionValueItem{}
+		var expected []string
+		obj.Providers = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetProviders(), "getter should return the property value")
+	})
+
+	t.Run("GetProviders_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DimensionValueItem{}
+		obj.Providers = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetProviders(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetProviders_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *DimensionValueItem
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetProviders() // Should return zero value
+	})
+
+}
+
+func TestSettersMarkExplicitDimensionValueItem(t *testing.T) {
+	t.Run("SetValue_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DimensionValueItem{}
+		var fernTestValueValue string
+
+		// Act
+		obj.SetValue(fernTestValueValue)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetProviders_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DimensionValueItem{}
+		var fernTestValueProviders []string
 
 		// Act
 		obj.SetProviders(fernTestValueProviders)
@@ -4214,6 +4357,14 @@ func TestSettersDimensionValues(t *testing.T) {
 		var fernTestValueValues []string
 		obj.SetValues(fernTestValueValues)
 		assert.Equal(t, fernTestValueValues, obj.Values)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetItems", func(t *testing.T) {
+		obj := &DimensionValues{}
+		var fernTestValueItems []*DimensionValueItem
+		obj.SetItems(fernTestValueItems)
+		assert.Equal(t, fernTestValueItems, obj.Items)
 		assert.NotNil(t, obj.explicitFields)
 	})
 
@@ -4276,6 +4427,39 @@ func TestGettersDimensionValues(t *testing.T) {
 		_ = obj.GetValues() // Should return zero value
 	})
 
+	t.Run("GetItems", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DimensionValues{}
+		var expected []*DimensionValueItem
+		obj.Items = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetItems(), "getter should return the property value")
+	})
+
+	t.Run("GetItems_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DimensionValues{}
+		obj.Items = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetItems(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetItems_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *DimensionValues
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetItems() // Should return zero value
+	})
+
 }
 
 func TestSettersMarkExplicitDimensionValues(t *testing.T) {
@@ -4318,6 +4502,37 @@ func TestSettersMarkExplicitDimensionValues(t *testing.T) {
 
 		// Act
 		obj.SetValues(fernTestValueValues)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetItems_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DimensionValues{}
+		var fernTestValueItems []*DimensionValueItem
+
+		// Act
+		obj.SetItems(fernTestValueItems)
 
 		// Assert - object with explicitly set field can be marshaled/unmarshaled
 		bytes, err := json.Marshal(obj)
@@ -5057,7 +5272,7 @@ func TestSettersPickerResource(t *testing.T) {
 
 	t.Run("SetProvider", func(t *testing.T) {
 		obj := &PickerResource{}
-		var fernTestValueProvider PickerResourceProvider
+		var fernTestValueProvider string
 		obj.SetProvider(fernTestValueProvider)
 		assert.Equal(t, fernTestValueProvider, obj.Provider)
 		assert.NotNil(t, obj.explicitFields)
@@ -5163,7 +5378,7 @@ func TestGettersPickerResource(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &PickerResource{}
-		var expected PickerResourceProvider
+		var expected string
 		obj.Provider = expected
 
 		// Act & Assert
@@ -5361,7 +5576,7 @@ func TestSettersMarkExplicitPickerResource(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &PickerResource{}
-		var fernTestValueProvider PickerResourceProvider
+		var fernTestValueProvider string
 
 		// Act
 		obj.SetProvider(fernTestValueProvider)
@@ -6111,6 +6326,22 @@ func TestSettersPreviewResult(t *testing.T) {
 		assert.NotNil(t, obj.explicitFields)
 	})
 
+	t.Run("SetTotalUsageValue", func(t *testing.T) {
+		obj := &PreviewResult{}
+		var fernTestValueTotalUsageValue *float64
+		obj.SetTotalUsageValue(fernTestValueTotalUsageValue)
+		assert.Equal(t, fernTestValueTotalUsageValue, obj.TotalUsageValue)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetUnallocatedUsageValue", func(t *testing.T) {
+		obj := &PreviewResult{}
+		var fernTestValueUnallocatedUsageValue *float64
+		obj.SetUnallocatedUsageValue(fernTestValueUnallocatedUsageValue)
+		assert.Equal(t, fernTestValueUnallocatedUsageValue, obj.UnallocatedUsageValue)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
 	t.Run("SetShadowedSpend", func(t *testing.T) {
 		obj := &PreviewResult{}
 		var fernTestValueShadowedSpend float64
@@ -6207,6 +6438,72 @@ func TestGettersPreviewResult(t *testing.T) {
 			}
 		}()
 		_ = obj.GetUnallocatedSpend() // Should return zero value
+	})
+
+	t.Run("GetTotalUsageValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &PreviewResult{}
+		var expected *float64
+		obj.TotalUsageValue = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetTotalUsageValue(), "getter should return the property value")
+	})
+
+	t.Run("GetTotalUsageValue_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &PreviewResult{}
+		obj.TotalUsageValue = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetTotalUsageValue(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetTotalUsageValue_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *PreviewResult
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetTotalUsageValue() // Should return zero value
+	})
+
+	t.Run("GetUnallocatedUsageValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &PreviewResult{}
+		var expected *float64
+		obj.UnallocatedUsageValue = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetUnallocatedUsageValue(), "getter should return the property value")
+	})
+
+	t.Run("GetUnallocatedUsageValue_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &PreviewResult{}
+		obj.UnallocatedUsageValue = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetUnallocatedUsageValue(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetUnallocatedUsageValue_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *PreviewResult
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetUnallocatedUsageValue() // Should return zero value
 	})
 
 	t.Run("GetShadowedSpend", func(t *testing.T) {
@@ -6361,6 +6658,68 @@ func TestSettersMarkExplicitPreviewResult(t *testing.T) {
 		// It verifies that setting a field via setter allows successful JSON round-trip
 	})
 
+	t.Run("SetTotalUsageValue_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &PreviewResult{}
+		var fernTestValueTotalUsageValue *float64
+
+		// Act
+		obj.SetTotalUsageValue(fernTestValueTotalUsageValue)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetUnallocatedUsageValue_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &PreviewResult{}
+		var fernTestValueUnallocatedUsageValue *float64
+
+		// Act
+		obj.SetUnallocatedUsageValue(fernTestValueUnallocatedUsageValue)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
 	t.Run("SetShadowedSpend_MarksExplicit", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
@@ -6442,6 +6801,14 @@ func TestSettersPreviewValue(t *testing.T) {
 		assert.NotNil(t, obj.explicitFields)
 	})
 
+	t.Run("SetUsageValue", func(t *testing.T) {
+		obj := &PreviewValue{}
+		var fernTestValueUsageValue *float64
+		obj.SetUsageValue(fernTestValueUsageValue)
+		assert.Equal(t, fernTestValueUsageValue, obj.UsageValue)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
 	t.Run("SetResourceCount", func(t *testing.T) {
 		obj := &PreviewValue{}
 		var fernTestValueResourceCount int
@@ -6505,6 +6872,39 @@ func TestGettersPreviewValue(t *testing.T) {
 			}
 		}()
 		_ = obj.GetSpend() // Should return zero value
+	})
+
+	t.Run("GetUsageValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &PreviewValue{}
+		var expected *float64
+		obj.UsageValue = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetUsageValue(), "getter should return the property value")
+	})
+
+	t.Run("GetUsageValue_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &PreviewValue{}
+		obj.UsageValue = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetUsageValue(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetUsageValue_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *PreviewValue
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetUsageValue() // Should return zero value
 	})
 
 	t.Run("GetResourceCount", func(t *testing.T) {
@@ -6605,6 +7005,37 @@ func TestSettersMarkExplicitPreviewValue(t *testing.T) {
 
 		// Act
 		obj.SetSpend(fernTestValueSpend)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetUsageValue_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &PreviewValue{}
+		var fernTestValueUsageValue *float64
+
+		// Act
+		obj.SetUsageValue(fernTestValueUsageValue)
 
 		// Assert - object with explicitly set field can be marshaled/unmarshaled
 		bytes, err := json.Marshal(obj)
@@ -8490,6 +8921,22 @@ func TestSettersTagCoverage(t *testing.T) {
 		assert.NotNil(t, obj.explicitFields)
 	})
 
+	t.Run("SetUsageValue", func(t *testing.T) {
+		obj := &TagCoverage{}
+		var fernTestValueUsageValue *float64
+		obj.SetUsageValue(fernTestValueUsageValue)
+		assert.Equal(t, fernTestValueUsageValue, obj.UsageValue)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetUsageValueWithVirtual", func(t *testing.T) {
+		obj := &TagCoverage{}
+		var fernTestValueUsageValueWithVirtual *float64
+		obj.SetUsageValueWithVirtual(fernTestValueUsageValueWithVirtual)
+		assert.Equal(t, fernTestValueUsageValueWithVirtual, obj.UsageValueWithVirtual)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
 	t.Run("SetBySpend", func(t *testing.T) {
 		obj := &TagCoverage{}
 		var fernTestValueBySpend *CoverageBasis
@@ -8540,6 +8987,72 @@ func TestGettersTagCoverage(t *testing.T) {
 			}
 		}()
 		_ = obj.GetWindow() // Should return zero value
+	})
+
+	t.Run("GetUsageValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &TagCoverage{}
+		var expected *float64
+		obj.UsageValue = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetUsageValue(), "getter should return the property value")
+	})
+
+	t.Run("GetUsageValue_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &TagCoverage{}
+		obj.UsageValue = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetUsageValue(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetUsageValue_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *TagCoverage
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetUsageValue() // Should return zero value
+	})
+
+	t.Run("GetUsageValueWithVirtual", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &TagCoverage{}
+		var expected *float64
+		obj.UsageValueWithVirtual = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetUsageValueWithVirtual(), "getter should return the property value")
+	})
+
+	t.Run("GetUsageValueWithVirtual_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &TagCoverage{}
+		obj.UsageValueWithVirtual = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetUsageValueWithVirtual(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetUsageValueWithVirtual_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *TagCoverage
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetUsageValueWithVirtual() // Should return zero value
 	})
 
 	t.Run("GetBySpend", func(t *testing.T) {
@@ -8619,6 +9132,68 @@ func TestSettersMarkExplicitTagCoverage(t *testing.T) {
 
 		// Act
 		obj.SetWindow(fernTestValueWindow)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetUsageValue_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &TagCoverage{}
+		var fernTestValueUsageValue *float64
+
+		// Act
+		obj.SetUsageValue(fernTestValueUsageValue)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetUsageValueWithVirtual_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &TagCoverage{}
+		var fernTestValueUsageValueWithVirtual *float64
+
+		// Act
+		obj.SetUsageValueWithVirtual(fernTestValueUsageValueWithVirtual)
 
 		// Assert - object with explicitly set field can be marshaled/unmarshaled
 		bytes, err := json.Marshal(obj)
@@ -9859,7 +10434,7 @@ func TestSettersTagKeyDetail(t *testing.T) {
 
 	t.Run("SetProviders", func(t *testing.T) {
 		obj := &TagKeyDetail{}
-		var fernTestValueProviders []TagKeyDetailProvidersItem
+		var fernTestValueProviders []string
 		obj.SetProviders(fernTestValueProviders)
 		assert.Equal(t, fernTestValueProviders, obj.Providers)
 		assert.NotNil(t, obj.explicitFields)
@@ -9942,6 +10517,22 @@ func TestSettersTagKeyDetail(t *testing.T) {
 		var fernTestValueUnallocatedSpend float64
 		obj.SetUnallocatedSpend(fernTestValueUnallocatedSpend)
 		assert.Equal(t, fernTestValueUnallocatedSpend, obj.UnallocatedSpend)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetTotalUsageValue", func(t *testing.T) {
+		obj := &TagKeyDetail{}
+		var fernTestValueTotalUsageValue *float64
+		obj.SetTotalUsageValue(fernTestValueTotalUsageValue)
+		assert.Equal(t, fernTestValueTotalUsageValue, obj.TotalUsageValue)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetUnallocatedUsageValue", func(t *testing.T) {
+		obj := &TagKeyDetail{}
+		var fernTestValueUnallocatedUsageValue *float64
+		obj.SetUnallocatedUsageValue(fernTestValueUnallocatedUsageValue)
+		assert.Equal(t, fernTestValueUnallocatedUsageValue, obj.UnallocatedUsageValue)
 		assert.NotNil(t, obj.explicitFields)
 	})
 
@@ -10076,7 +10667,7 @@ func TestGettersTagKeyDetail(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &TagKeyDetail{}
-		var expected []TagKeyDetailProvidersItem
+		var expected []string
 		obj.Providers = expected
 
 		// Act & Assert
@@ -10415,6 +11006,72 @@ func TestGettersTagKeyDetail(t *testing.T) {
 		_ = obj.GetUnallocatedSpend() // Should return zero value
 	})
 
+	t.Run("GetTotalUsageValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &TagKeyDetail{}
+		var expected *float64
+		obj.TotalUsageValue = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetTotalUsageValue(), "getter should return the property value")
+	})
+
+	t.Run("GetTotalUsageValue_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &TagKeyDetail{}
+		obj.TotalUsageValue = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetTotalUsageValue(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetTotalUsageValue_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *TagKeyDetail
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetTotalUsageValue() // Should return zero value
+	})
+
+	t.Run("GetUnallocatedUsageValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &TagKeyDetail{}
+		var expected *float64
+		obj.UnallocatedUsageValue = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetUnallocatedUsageValue(), "getter should return the property value")
+	})
+
+	t.Run("GetUnallocatedUsageValue_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &TagKeyDetail{}
+		obj.UnallocatedUsageValue = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetUnallocatedUsageValue(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetUnallocatedUsageValue_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *TagKeyDetail
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetUnallocatedUsageValue() // Should return zero value
+	})
+
 	t.Run("GetResourceCount", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
@@ -10668,7 +11325,7 @@ func TestSettersMarkExplicitTagKeyDetail(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &TagKeyDetail{}
-		var fernTestValueProviders []TagKeyDetailProvidersItem
+		var fernTestValueProviders []string
 
 		// Act
 		obj.SetProviders(fernTestValueProviders)
@@ -10982,6 +11639,68 @@ func TestSettersMarkExplicitTagKeyDetail(t *testing.T) {
 
 		// Act
 		obj.SetUnallocatedSpend(fernTestValueUnallocatedSpend)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetTotalUsageValue_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &TagKeyDetail{}
+		var fernTestValueTotalUsageValue *float64
+
+		// Act
+		obj.SetTotalUsageValue(fernTestValueTotalUsageValue)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetUnallocatedUsageValue_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &TagKeyDetail{}
+		var fernTestValueUnallocatedUsageValue *float64
+
+		// Act
+		obj.SetUnallocatedUsageValue(fernTestValueUnallocatedUsageValue)
 
 		// Assert - object with explicitly set field can be marshaled/unmarshaled
 		bytes, err := json.Marshal(obj)
@@ -11994,7 +12713,7 @@ func TestSettersTagKeyRow(t *testing.T) {
 
 	t.Run("SetProviders", func(t *testing.T) {
 		obj := &TagKeyRow{}
-		var fernTestValueProviders []TagKeyRowProvidersItem
+		var fernTestValueProviders []string
 		obj.SetProviders(fernTestValueProviders)
 		assert.Equal(t, fernTestValueProviders, obj.Providers)
 		assert.NotNil(t, obj.explicitFields)
@@ -12021,6 +12740,14 @@ func TestSettersTagKeyRow(t *testing.T) {
 		var fernTestValueSpend float64
 		obj.SetSpend(fernTestValueSpend)
 		assert.Equal(t, fernTestValueSpend, obj.Spend)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetUsageValue", func(t *testing.T) {
+		obj := &TagKeyRow{}
+		var fernTestValueUsageValue *float64
+		obj.SetUsageValue(fernTestValueUsageValue)
+		assert.Equal(t, fernTestValueUsageValue, obj.UsageValue)
 		assert.NotNil(t, obj.explicitFields)
 	})
 
@@ -12155,7 +12882,7 @@ func TestGettersTagKeyRow(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &TagKeyRow{}
-		var expected []TagKeyRowProvidersItem
+		var expected []string
 		obj.Providers = expected
 
 		// Act & Assert
@@ -12251,6 +12978,39 @@ func TestGettersTagKeyRow(t *testing.T) {
 			}
 		}()
 		_ = obj.GetSpend() // Should return zero value
+	})
+
+	t.Run("GetUsageValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &TagKeyRow{}
+		var expected *float64
+		obj.UsageValue = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetUsageValue(), "getter should return the property value")
+	})
+
+	t.Run("GetUsageValue_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &TagKeyRow{}
+		obj.UsageValue = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetUsageValue(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetUsageValue_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *TagKeyRow
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetUsageValue() // Should return zero value
 	})
 
 	t.Run("GetSpendSharePct", func(t *testing.T) {
@@ -12506,7 +13266,7 @@ func TestSettersMarkExplicitTagKeyRow(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &TagKeyRow{}
-		var fernTestValueProviders []TagKeyRowProvidersItem
+		var fernTestValueProviders []string
 
 		// Act
 		obj.SetProviders(fernTestValueProviders)
@@ -12603,6 +13363,37 @@ func TestSettersMarkExplicitTagKeyRow(t *testing.T) {
 
 		// Act
 		obj.SetSpend(fernTestValueSpend)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetUsageValue_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &TagKeyRow{}
+		var fernTestValueUsageValue *float64
+
+		// Act
+		obj.SetUsageValue(fernTestValueUsageValue)
 
 		// Assert - object with explicitly set field can be marshaled/unmarshaled
 		bytes, err := json.Marshal(obj)
@@ -13157,7 +13948,7 @@ func TestSettersTagResourceRow(t *testing.T) {
 
 	t.Run("SetProvider", func(t *testing.T) {
 		obj := &TagResourceRow{}
-		var fernTestValueProvider TagResourceRowProvider
+		var fernTestValueProvider string
 		obj.SetProvider(fernTestValueProvider)
 		assert.Equal(t, fernTestValueProvider, obj.Provider)
 		assert.NotNil(t, obj.explicitFields)
@@ -13208,6 +13999,14 @@ func TestSettersTagResourceRow(t *testing.T) {
 		var fernTestValueSpend float64
 		obj.SetSpend(fernTestValueSpend)
 		assert.Equal(t, fernTestValueSpend, obj.Spend)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetUsageValue", func(t *testing.T) {
+		obj := &TagResourceRow{}
+		var fernTestValueUsageValue *float64
+		obj.SetUsageValue(fernTestValueUsageValue)
+		assert.Equal(t, fernTestValueUsageValue, obj.UsageValue)
 		assert.NotNil(t, obj.explicitFields)
 	})
 
@@ -13287,7 +14086,7 @@ func TestGettersTagResourceRow(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &TagResourceRow{}
-		var expected TagResourceRowProvider
+		var expected string
 		obj.Provider = expected
 
 		// Act & Assert
@@ -13484,6 +14283,39 @@ func TestGettersTagResourceRow(t *testing.T) {
 		_ = obj.GetSpend() // Should return zero value
 	})
 
+	t.Run("GetUsageValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &TagResourceRow{}
+		var expected *float64
+		obj.UsageValue = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetUsageValue(), "getter should return the property value")
+	})
+
+	t.Run("GetUsageValue_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &TagResourceRow{}
+		obj.UsageValue = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetUsageValue(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetUsageValue_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *TagResourceRow
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetUsageValue() // Should return zero value
+	})
+
 }
 
 func TestSettersMarkExplicitTagResourceRow(t *testing.T) {
@@ -13584,7 +14416,7 @@ func TestSettersMarkExplicitTagResourceRow(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &TagResourceRow{}
-		var fernTestValueProvider TagResourceRowProvider
+		var fernTestValueProvider string
 
 		// Act
 		obj.SetProvider(fernTestValueProvider)
@@ -13797,12 +14629,43 @@ func TestSettersMarkExplicitTagResourceRow(t *testing.T) {
 		// It verifies that setting a field via setter allows successful JSON round-trip
 	})
 
+	t.Run("SetUsageValue_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &TagResourceRow{}
+		var fernTestValueUsageValue *float64
+
+		// Act
+		obj.SetUsageValue(fernTestValueUsageValue)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
 }
 
 func TestSettersTagRule(t *testing.T) {
 	t.Run("SetProviders", func(t *testing.T) {
 		obj := &TagRule{}
-		var fernTestValueProviders []TagRuleProvidersItem
+		var fernTestValueProviders []string
 		obj.SetProviders(fernTestValueProviders)
 		assert.Equal(t, fernTestValueProviders, obj.Providers)
 		assert.NotNil(t, obj.explicitFields)
@@ -13823,7 +14686,7 @@ func TestGettersTagRule(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &TagRule{}
-		var expected []TagRuleProvidersItem
+		var expected []string
 		obj.Providers = expected
 
 		// Act & Assert
@@ -13892,7 +14755,7 @@ func TestSettersMarkExplicitTagRule(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &TagRule{}
-		var fernTestValueProviders []TagRuleProvidersItem
+		var fernTestValueProviders []string
 
 		// Act
 		obj.SetProviders(fernTestValueProviders)
@@ -13955,7 +14818,7 @@ func TestSettersMarkExplicitTagRule(t *testing.T) {
 func TestSettersTagScope(t *testing.T) {
 	t.Run("SetProviders", func(t *testing.T) {
 		obj := &TagScope{}
-		var fernTestValueProviders []TagScopeProvidersItem
+		var fernTestValueProviders []string
 		obj.SetProviders(fernTestValueProviders)
 		assert.Equal(t, fernTestValueProviders, obj.Providers)
 		assert.NotNil(t, obj.explicitFields)
@@ -13968,7 +14831,7 @@ func TestGettersTagScope(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &TagScope{}
-		var expected []TagScopeProvidersItem
+		var expected []string
 		obj.Providers = expected
 
 		// Act & Assert
@@ -14004,7 +14867,7 @@ func TestSettersMarkExplicitTagScope(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		obj := &TagScope{}
-		var fernTestValueProviders []TagScopeProvidersItem
+		var fernTestValueProviders []string
 
 		// Act
 		obj.SetProviders(fernTestValueProviders)
@@ -14191,6 +15054,14 @@ func TestSettersTagValueSummary(t *testing.T) {
 		assert.NotNil(t, obj.explicitFields)
 	})
 
+	t.Run("SetUsageValue", func(t *testing.T) {
+		obj := &TagValueSummary{}
+		var fernTestValueUsageValue *float64
+		obj.SetUsageValue(fernTestValueUsageValue)
+		assert.Equal(t, fernTestValueUsageValue, obj.UsageValue)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
 	t.Run("SetResourceCount", func(t *testing.T) {
 		obj := &TagValueSummary{}
 		var fernTestValueResourceCount int
@@ -14269,6 +15140,39 @@ func TestGettersTagValueSummary(t *testing.T) {
 			}
 		}()
 		_ = obj.GetSpend() // Should return zero value
+	})
+
+	t.Run("GetUsageValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &TagValueSummary{}
+		var expected *float64
+		obj.UsageValue = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetUsageValue(), "getter should return the property value")
+	})
+
+	t.Run("GetUsageValue_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &TagValueSummary{}
+		obj.UsageValue = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetUsageValue(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetUsageValue_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *TagValueSummary
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetUsageValue() // Should return zero value
 	})
 
 	t.Run("GetResourceCount", func(t *testing.T) {
@@ -14367,6 +15271,37 @@ func TestSettersMarkExplicitTagValueSummary(t *testing.T) {
 
 		// Act
 		obj.SetSpend(fernTestValueSpend)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetUsageValue_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &TagValueSummary{}
+		var fernTestValueUsageValue *float64
+
+		// Act
+		obj.SetUsageValue(fernTestValueUsageValue)
 
 		// Assert - object with explicitly set field can be marshaled/unmarshaled
 		bytes, err := json.Marshal(obj)
@@ -15240,6 +16175,39 @@ func TestJSONMarshalingDimensionInfo(t *testing.T) {
 	t.Run("UnmarshalEmptyObject", func(t *testing.T) {
 		t.Parallel()
 		var obj DimensionInfo
+		err := json.Unmarshal([]byte(`{}`), &obj)
+		assert.NoError(t, err, "unmarshaling empty object should succeed")
+	})
+}
+
+func TestJSONMarshalingDimensionValueItem(t *testing.T) {
+	t.Run("MarshalUnmarshal", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DimensionValueItem{}
+
+		// Act - Marshal to JSON
+		data, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed")
+		assert.NotNil(t, data, "marshaled data should not be nil")
+		assert.NotEmpty(t, data, "marshaled data should not be empty")
+
+		// Unmarshal back and verify round-trip
+		var unmarshaled DimensionValueItem
+		err = json.Unmarshal(data, &unmarshaled)
+		assert.NoError(t, err, "round-trip unmarshal should succeed")
+	})
+
+	t.Run("UnmarshalInvalidJSON", func(t *testing.T) {
+		t.Parallel()
+		var obj DimensionValueItem
+		err := json.Unmarshal([]byte(`{invalid json}`), &obj)
+		assert.Error(t, err, "unmarshaling invalid JSON should return an error")
+	})
+
+	t.Run("UnmarshalEmptyObject", func(t *testing.T) {
+		t.Parallel()
+		var obj DimensionValueItem
 		err := json.Unmarshal([]byte(`{}`), &obj)
 		assert.NoError(t, err, "unmarshaling empty object should succeed")
 	})
@@ -16594,6 +17562,22 @@ func TestStringDimensionInfo(t *testing.T) {
 	})
 }
 
+func TestStringDimensionValueItem(t *testing.T) {
+	t.Run("StringMethod", func(t *testing.T) {
+		t.Parallel()
+		obj := &DimensionValueItem{}
+		result := obj.String()
+		assert.NotEmpty(t, result, "String() should return a non-empty representation")
+	})
+
+	t.Run("StringMethod_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *DimensionValueItem
+		result := obj.String()
+		assert.Equal(t, "<nil>", result, "String() should return <nil> for nil receiver")
+	})
+}
+
 func TestStringDimensionValues(t *testing.T) {
 	t.Run("StringMethod", func(t *testing.T) {
 		t.Parallel()
@@ -17272,6 +18256,13 @@ func TestEnumDimensionInfoID(t *testing.T) {
 		assert.Equal(t, DimensionInfoID("billing_account"), val, "enum value should match expected wire value")
 	})
 
+	t.Run("NewFromString_provider", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewDimensionInfoIDFromString("provider")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, DimensionInfoID("provider"), val, "enum value should match expected wire value")
+	})
+
 	t.Run("NewFromString_region", func(t *testing.T) {
 		t.Parallel()
 		val, err := NewDimensionInfoIDFromString("region")
@@ -17300,6 +18291,13 @@ func TestEnumDimensionInfoID(t *testing.T) {
 		assert.Equal(t, DimensionInfoID("subcategory"), val, "enum value should match expected wire value")
 	})
 
+	t.Run("NewFromString_sku", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewDimensionInfoIDFromString("sku")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, DimensionInfoID("sku"), val, "enum value should match expected wire value")
+	})
+
 	t.Run("NewFromString_usage_unit", func(t *testing.T) {
 		t.Parallel()
 		val, err := NewDimensionInfoIDFromString("usage_unit")
@@ -17314,6 +18312,13 @@ func TestEnumDimensionInfoID(t *testing.T) {
 		assert.Equal(t, DimensionInfoID("resource"), val, "enum value should match expected wire value")
 	})
 
+	t.Run("NewFromString_person", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewDimensionInfoIDFromString("person")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, DimensionInfoID("person"), val, "enum value should match expected wire value")
+	})
+
 	t.Run("NewFromString_charge_type", func(t *testing.T) {
 		t.Parallel()
 		val, err := NewDimensionInfoIDFromString("charge_type")
@@ -17326,6 +18331,27 @@ func TestEnumDimensionInfoID(t *testing.T) {
 		val, err := NewDimensionInfoIDFromString("marketplace")
 		assert.NoError(t, err, "valid enum value should not return error")
 		assert.Equal(t, DimensionInfoID("marketplace"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_cluster", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewDimensionInfoIDFromString("cluster")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, DimensionInfoID("cluster"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_namespace", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewDimensionInfoIDFromString("namespace")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, DimensionInfoID("namespace"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_workload", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewDimensionInfoIDFromString("workload")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, DimensionInfoID("workload"), val, "enum value should match expected wire value")
 	})
 
 	t.Run("NewFromString_tag", func(t *testing.T) {
@@ -17399,35 +18425,6 @@ func TestEnumDimensionInfoKeyMode(t *testing.T) {
 	})
 }
 
-func TestEnumDimensionInfoProvidersItem(t *testing.T) {
-	t.Run("NewFromString_aws", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewDimensionInfoProvidersItemFromString("aws")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, DimensionInfoProvidersItem("aws"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_gcp", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewDimensionInfoProvidersItemFromString("gcp")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, DimensionInfoProvidersItem("gcp"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_Invalid", func(t *testing.T) {
-		_, err := NewDimensionInfoProvidersItemFromString("invalid_value_that_does_not_exist")
-		assert.Error(t, err)
-	})
-
-	t.Run("Ptr", func(t *testing.T) {
-		val, err := NewDimensionInfoProvidersItemFromString("aws")
-		assert.NoError(t, err)
-		ptr := val.Ptr()
-		assert.NotNil(t, ptr)
-		assert.Equal(t, val, *ptr)
-	})
-}
-
 func TestEnumDimensionValuesDimension(t *testing.T) {
 	t.Run("NewFromString_account", func(t *testing.T) {
 		t.Parallel()
@@ -17441,6 +18438,13 @@ func TestEnumDimensionValuesDimension(t *testing.T) {
 		val, err := NewDimensionValuesDimensionFromString("billing_account")
 		assert.NoError(t, err, "valid enum value should not return error")
 		assert.Equal(t, DimensionValuesDimension("billing_account"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_provider", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewDimensionValuesDimensionFromString("provider")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, DimensionValuesDimension("provider"), val, "enum value should match expected wire value")
 	})
 
 	t.Run("NewFromString_region", func(t *testing.T) {
@@ -17471,6 +18475,13 @@ func TestEnumDimensionValuesDimension(t *testing.T) {
 		assert.Equal(t, DimensionValuesDimension("subcategory"), val, "enum value should match expected wire value")
 	})
 
+	t.Run("NewFromString_sku", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewDimensionValuesDimensionFromString("sku")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, DimensionValuesDimension("sku"), val, "enum value should match expected wire value")
+	})
+
 	t.Run("NewFromString_usage_unit", func(t *testing.T) {
 		t.Parallel()
 		val, err := NewDimensionValuesDimensionFromString("usage_unit")
@@ -17485,6 +18496,13 @@ func TestEnumDimensionValuesDimension(t *testing.T) {
 		assert.Equal(t, DimensionValuesDimension("resource"), val, "enum value should match expected wire value")
 	})
 
+	t.Run("NewFromString_person", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewDimensionValuesDimensionFromString("person")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, DimensionValuesDimension("person"), val, "enum value should match expected wire value")
+	})
+
 	t.Run("NewFromString_charge_type", func(t *testing.T) {
 		t.Parallel()
 		val, err := NewDimensionValuesDimensionFromString("charge_type")
@@ -17497,6 +18515,27 @@ func TestEnumDimensionValuesDimension(t *testing.T) {
 		val, err := NewDimensionValuesDimensionFromString("marketplace")
 		assert.NoError(t, err, "valid enum value should not return error")
 		assert.Equal(t, DimensionValuesDimension("marketplace"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_cluster", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewDimensionValuesDimensionFromString("cluster")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, DimensionValuesDimension("cluster"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_namespace", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewDimensionValuesDimensionFromString("namespace")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, DimensionValuesDimension("namespace"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_workload", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewDimensionValuesDimensionFromString("workload")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, DimensionValuesDimension("workload"), val, "enum value should match expected wire value")
 	})
 
 	t.Run("NewFromString_tag", func(t *testing.T) {
@@ -17534,35 +18573,6 @@ func TestEnumDimensionValuesDimension(t *testing.T) {
 	})
 }
 
-func TestEnumGetCoverageTagsRequestProvider(t *testing.T) {
-	t.Run("NewFromString_aws", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewGetCoverageTagsRequestProviderFromString("aws")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, GetCoverageTagsRequestProvider("aws"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_gcp", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewGetCoverageTagsRequestProviderFromString("gcp")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, GetCoverageTagsRequestProvider("gcp"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_Invalid", func(t *testing.T) {
-		_, err := NewGetCoverageTagsRequestProviderFromString("invalid_value_that_does_not_exist")
-		assert.Error(t, err)
-	})
-
-	t.Run("Ptr", func(t *testing.T) {
-		val, err := NewGetCoverageTagsRequestProviderFromString("aws")
-		assert.NoError(t, err)
-		ptr := val.Ptr()
-		assert.NotNil(t, ptr)
-		assert.Equal(t, val, *ptr)
-	})
-}
-
 func TestEnumGetDimensionValuesTagsRequestDimension(t *testing.T) {
 	t.Run("NewFromString_account", func(t *testing.T) {
 		t.Parallel()
@@ -17576,6 +18586,13 @@ func TestEnumGetDimensionValuesTagsRequestDimension(t *testing.T) {
 		val, err := NewGetDimensionValuesTagsRequestDimensionFromString("billing_account")
 		assert.NoError(t, err, "valid enum value should not return error")
 		assert.Equal(t, GetDimensionValuesTagsRequestDimension("billing_account"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_provider", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewGetDimensionValuesTagsRequestDimensionFromString("provider")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, GetDimensionValuesTagsRequestDimension("provider"), val, "enum value should match expected wire value")
 	})
 
 	t.Run("NewFromString_region", func(t *testing.T) {
@@ -17606,6 +18623,13 @@ func TestEnumGetDimensionValuesTagsRequestDimension(t *testing.T) {
 		assert.Equal(t, GetDimensionValuesTagsRequestDimension("subcategory"), val, "enum value should match expected wire value")
 	})
 
+	t.Run("NewFromString_sku", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewGetDimensionValuesTagsRequestDimensionFromString("sku")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, GetDimensionValuesTagsRequestDimension("sku"), val, "enum value should match expected wire value")
+	})
+
 	t.Run("NewFromString_usage_unit", func(t *testing.T) {
 		t.Parallel()
 		val, err := NewGetDimensionValuesTagsRequestDimensionFromString("usage_unit")
@@ -17620,6 +18644,13 @@ func TestEnumGetDimensionValuesTagsRequestDimension(t *testing.T) {
 		assert.Equal(t, GetDimensionValuesTagsRequestDimension("resource"), val, "enum value should match expected wire value")
 	})
 
+	t.Run("NewFromString_person", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewGetDimensionValuesTagsRequestDimensionFromString("person")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, GetDimensionValuesTagsRequestDimension("person"), val, "enum value should match expected wire value")
+	})
+
 	t.Run("NewFromString_charge_type", func(t *testing.T) {
 		t.Parallel()
 		val, err := NewGetDimensionValuesTagsRequestDimensionFromString("charge_type")
@@ -17632,6 +18663,27 @@ func TestEnumGetDimensionValuesTagsRequestDimension(t *testing.T) {
 		val, err := NewGetDimensionValuesTagsRequestDimensionFromString("marketplace")
 		assert.NoError(t, err, "valid enum value should not return error")
 		assert.Equal(t, GetDimensionValuesTagsRequestDimension("marketplace"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_cluster", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewGetDimensionValuesTagsRequestDimensionFromString("cluster")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, GetDimensionValuesTagsRequestDimension("cluster"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_namespace", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewGetDimensionValuesTagsRequestDimensionFromString("namespace")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, GetDimensionValuesTagsRequestDimension("namespace"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_workload", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewGetDimensionValuesTagsRequestDimensionFromString("workload")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, GetDimensionValuesTagsRequestDimension("workload"), val, "enum value should match expected wire value")
 	})
 
 	t.Run("NewFromString_tag", func(t *testing.T) {
@@ -17662,107 +18714,6 @@ func TestEnumGetDimensionValuesTagsRequestDimension(t *testing.T) {
 
 	t.Run("Ptr", func(t *testing.T) {
 		val, err := NewGetDimensionValuesTagsRequestDimensionFromString("account")
-		assert.NoError(t, err)
-		ptr := val.Ptr()
-		assert.NotNil(t, ptr)
-		assert.Equal(t, val, *ptr)
-	})
-}
-
-func TestEnumGetDimensionValuesTagsRequestProvider(t *testing.T) {
-	t.Run("NewFromString_aws", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewGetDimensionValuesTagsRequestProviderFromString("aws")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, GetDimensionValuesTagsRequestProvider("aws"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_gcp", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewGetDimensionValuesTagsRequestProviderFromString("gcp")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, GetDimensionValuesTagsRequestProvider("gcp"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_all", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewGetDimensionValuesTagsRequestProviderFromString("all")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, GetDimensionValuesTagsRequestProvider("all"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_Invalid", func(t *testing.T) {
-		_, err := NewGetDimensionValuesTagsRequestProviderFromString("invalid_value_that_does_not_exist")
-		assert.Error(t, err)
-	})
-
-	t.Run("Ptr", func(t *testing.T) {
-		val, err := NewGetDimensionValuesTagsRequestProviderFromString("aws")
-		assert.NoError(t, err)
-		ptr := val.Ptr()
-		assert.NotNil(t, ptr)
-		assert.Equal(t, val, *ptr)
-	})
-}
-
-func TestEnumGetDimensionsTagsRequestProvider(t *testing.T) {
-	t.Run("NewFromString_aws", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewGetDimensionsTagsRequestProviderFromString("aws")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, GetDimensionsTagsRequestProvider("aws"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_gcp", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewGetDimensionsTagsRequestProviderFromString("gcp")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, GetDimensionsTagsRequestProvider("gcp"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_all", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewGetDimensionsTagsRequestProviderFromString("all")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, GetDimensionsTagsRequestProvider("all"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_Invalid", func(t *testing.T) {
-		_, err := NewGetDimensionsTagsRequestProviderFromString("invalid_value_that_does_not_exist")
-		assert.Error(t, err)
-	})
-
-	t.Run("Ptr", func(t *testing.T) {
-		val, err := NewGetDimensionsTagsRequestProviderFromString("aws")
-		assert.NoError(t, err)
-		ptr := val.Ptr()
-		assert.NotNil(t, ptr)
-		assert.Equal(t, val, *ptr)
-	})
-}
-
-func TestEnumListKeyResourcesTagsRequestProvider(t *testing.T) {
-	t.Run("NewFromString_aws", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewListKeyResourcesTagsRequestProviderFromString("aws")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, ListKeyResourcesTagsRequestProvider("aws"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_gcp", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewListKeyResourcesTagsRequestProviderFromString("gcp")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, ListKeyResourcesTagsRequestProvider("gcp"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_Invalid", func(t *testing.T) {
-		_, err := NewListKeyResourcesTagsRequestProviderFromString("invalid_value_that_does_not_exist")
-		assert.Error(t, err)
-	})
-
-	t.Run("Ptr", func(t *testing.T) {
-		val, err := NewListKeyResourcesTagsRequestProviderFromString("aws")
 		assert.NoError(t, err)
 		ptr := val.Ptr()
 		assert.NotNil(t, ptr)
@@ -17864,93 +18815,6 @@ func TestEnumListKeysTagsRequestOrigin(t *testing.T) {
 	})
 }
 
-func TestEnumListKeysTagsRequestProvider(t *testing.T) {
-	t.Run("NewFromString_aws", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewListKeysTagsRequestProviderFromString("aws")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, ListKeysTagsRequestProvider("aws"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_gcp", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewListKeysTagsRequestProviderFromString("gcp")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, ListKeysTagsRequestProvider("gcp"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_Invalid", func(t *testing.T) {
-		_, err := NewListKeysTagsRequestProviderFromString("invalid_value_that_does_not_exist")
-		assert.Error(t, err)
-	})
-
-	t.Run("Ptr", func(t *testing.T) {
-		val, err := NewListKeysTagsRequestProviderFromString("aws")
-		assert.NoError(t, err)
-		ptr := val.Ptr()
-		assert.NotNil(t, ptr)
-		assert.Equal(t, val, *ptr)
-	})
-}
-
-func TestEnumPickerResourceProvider(t *testing.T) {
-	t.Run("NewFromString_aws", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewPickerResourceProviderFromString("aws")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, PickerResourceProvider("aws"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_gcp", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewPickerResourceProviderFromString("gcp")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, PickerResourceProvider("gcp"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_Invalid", func(t *testing.T) {
-		_, err := NewPickerResourceProviderFromString("invalid_value_that_does_not_exist")
-		assert.Error(t, err)
-	})
-
-	t.Run("Ptr", func(t *testing.T) {
-		val, err := NewPickerResourceProviderFromString("aws")
-		assert.NoError(t, err)
-		ptr := val.Ptr()
-		assert.NotNil(t, ptr)
-		assert.Equal(t, val, *ptr)
-	})
-}
-
-func TestEnumSearchResourcesTagsRequestProvider(t *testing.T) {
-	t.Run("NewFromString_aws", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewSearchResourcesTagsRequestProviderFromString("aws")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, SearchResourcesTagsRequestProvider("aws"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_gcp", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewSearchResourcesTagsRequestProviderFromString("gcp")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, SearchResourcesTagsRequestProvider("gcp"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_Invalid", func(t *testing.T) {
-		_, err := NewSearchResourcesTagsRequestProviderFromString("invalid_value_that_does_not_exist")
-		assert.Error(t, err)
-	})
-
-	t.Run("Ptr", func(t *testing.T) {
-		val, err := NewSearchResourcesTagsRequestProviderFromString("aws")
-		assert.NoError(t, err)
-		ptr := val.Ptr()
-		assert.NotNil(t, ptr)
-		assert.Equal(t, val, *ptr)
-	})
-}
-
 func TestEnumSourceKeyOrigin(t *testing.T) {
 	t.Run("NewFromString_provider", func(t *testing.T) {
 		t.Parallel()
@@ -17995,6 +18859,13 @@ func TestEnumTagConditionDimension(t *testing.T) {
 		assert.Equal(t, TagConditionDimension("billing_account"), val, "enum value should match expected wire value")
 	})
 
+	t.Run("NewFromString_provider", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewTagConditionDimensionFromString("provider")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, TagConditionDimension("provider"), val, "enum value should match expected wire value")
+	})
+
 	t.Run("NewFromString_region", func(t *testing.T) {
 		t.Parallel()
 		val, err := NewTagConditionDimensionFromString("region")
@@ -18023,6 +18894,13 @@ func TestEnumTagConditionDimension(t *testing.T) {
 		assert.Equal(t, TagConditionDimension("subcategory"), val, "enum value should match expected wire value")
 	})
 
+	t.Run("NewFromString_sku", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewTagConditionDimensionFromString("sku")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, TagConditionDimension("sku"), val, "enum value should match expected wire value")
+	})
+
 	t.Run("NewFromString_usage_unit", func(t *testing.T) {
 		t.Parallel()
 		val, err := NewTagConditionDimensionFromString("usage_unit")
@@ -18037,6 +18915,13 @@ func TestEnumTagConditionDimension(t *testing.T) {
 		assert.Equal(t, TagConditionDimension("resource"), val, "enum value should match expected wire value")
 	})
 
+	t.Run("NewFromString_person", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewTagConditionDimensionFromString("person")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, TagConditionDimension("person"), val, "enum value should match expected wire value")
+	})
+
 	t.Run("NewFromString_charge_type", func(t *testing.T) {
 		t.Parallel()
 		val, err := NewTagConditionDimensionFromString("charge_type")
@@ -18049,6 +18934,27 @@ func TestEnumTagConditionDimension(t *testing.T) {
 		val, err := NewTagConditionDimensionFromString("marketplace")
 		assert.NoError(t, err, "valid enum value should not return error")
 		assert.Equal(t, TagConditionDimension("marketplace"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_cluster", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewTagConditionDimensionFromString("cluster")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, TagConditionDimension("cluster"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_namespace", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewTagConditionDimensionFromString("namespace")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, TagConditionDimension("namespace"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_workload", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewTagConditionDimensionFromString("workload")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, TagConditionDimension("workload"), val, "enum value should match expected wire value")
 	})
 
 	t.Run("NewFromString_tag", func(t *testing.T) {
@@ -18236,35 +19142,6 @@ func TestEnumTagKeyDetailOrigin(t *testing.T) {
 	})
 }
 
-func TestEnumTagKeyDetailProvidersItem(t *testing.T) {
-	t.Run("NewFromString_aws", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewTagKeyDetailProvidersItemFromString("aws")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, TagKeyDetailProvidersItem("aws"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_gcp", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewTagKeyDetailProvidersItemFromString("gcp")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, TagKeyDetailProvidersItem("gcp"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_Invalid", func(t *testing.T) {
-		_, err := NewTagKeyDetailProvidersItemFromString("invalid_value_that_does_not_exist")
-		assert.Error(t, err)
-	})
-
-	t.Run("Ptr", func(t *testing.T) {
-		val, err := NewTagKeyDetailProvidersItemFromString("aws")
-		assert.NoError(t, err)
-		ptr := val.Ptr()
-		assert.NotNil(t, ptr)
-		assert.Equal(t, val, *ptr)
-	})
-}
-
 func TestEnumTagKeyDetailStatus(t *testing.T) {
 	t.Run("NewFromString_active", func(t *testing.T) {
 		t.Parallel()
@@ -18330,35 +19207,6 @@ func TestEnumTagKeyRowOrigin(t *testing.T) {
 	})
 }
 
-func TestEnumTagKeyRowProvidersItem(t *testing.T) {
-	t.Run("NewFromString_aws", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewTagKeyRowProvidersItemFromString("aws")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, TagKeyRowProvidersItem("aws"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_gcp", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewTagKeyRowProvidersItemFromString("gcp")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, TagKeyRowProvidersItem("gcp"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_Invalid", func(t *testing.T) {
-		_, err := NewTagKeyRowProvidersItemFromString("invalid_value_that_does_not_exist")
-		assert.Error(t, err)
-	})
-
-	t.Run("Ptr", func(t *testing.T) {
-		val, err := NewTagKeyRowProvidersItemFromString("aws")
-		assert.NoError(t, err)
-		ptr := val.Ptr()
-		assert.NotNil(t, ptr)
-		assert.Equal(t, val, *ptr)
-	})
-}
-
 func TestEnumTagKeyRowStatus(t *testing.T) {
 	t.Run("NewFromString_active", func(t *testing.T) {
 		t.Parallel()
@@ -18388,35 +19236,6 @@ func TestEnumTagKeyRowStatus(t *testing.T) {
 
 	t.Run("Ptr", func(t *testing.T) {
 		val, err := NewTagKeyRowStatusFromString("active")
-		assert.NoError(t, err)
-		ptr := val.Ptr()
-		assert.NotNil(t, ptr)
-		assert.Equal(t, val, *ptr)
-	})
-}
-
-func TestEnumTagResourceRowProvider(t *testing.T) {
-	t.Run("NewFromString_aws", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewTagResourceRowProviderFromString("aws")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, TagResourceRowProvider("aws"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_gcp", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewTagResourceRowProviderFromString("gcp")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, TagResourceRowProvider("gcp"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_Invalid", func(t *testing.T) {
-		_, err := NewTagResourceRowProviderFromString("invalid_value_that_does_not_exist")
-		assert.Error(t, err)
-	})
-
-	t.Run("Ptr", func(t *testing.T) {
-		val, err := NewTagResourceRowProviderFromString("aws")
 		assert.NoError(t, err)
 		ptr := val.Ptr()
 		assert.NotNil(t, ptr)
@@ -18460,64 +19279,6 @@ func TestEnumTagResourceRowValueSource(t *testing.T) {
 
 	t.Run("Ptr", func(t *testing.T) {
 		val, err := NewTagResourceRowValueSourceFromString("provider")
-		assert.NoError(t, err)
-		ptr := val.Ptr()
-		assert.NotNil(t, ptr)
-		assert.Equal(t, val, *ptr)
-	})
-}
-
-func TestEnumTagRuleProvidersItem(t *testing.T) {
-	t.Run("NewFromString_aws", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewTagRuleProvidersItemFromString("aws")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, TagRuleProvidersItem("aws"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_gcp", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewTagRuleProvidersItemFromString("gcp")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, TagRuleProvidersItem("gcp"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_Invalid", func(t *testing.T) {
-		_, err := NewTagRuleProvidersItemFromString("invalid_value_that_does_not_exist")
-		assert.Error(t, err)
-	})
-
-	t.Run("Ptr", func(t *testing.T) {
-		val, err := NewTagRuleProvidersItemFromString("aws")
-		assert.NoError(t, err)
-		ptr := val.Ptr()
-		assert.NotNil(t, ptr)
-		assert.Equal(t, val, *ptr)
-	})
-}
-
-func TestEnumTagScopeProvidersItem(t *testing.T) {
-	t.Run("NewFromString_aws", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewTagScopeProvidersItemFromString("aws")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, TagScopeProvidersItem("aws"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_gcp", func(t *testing.T) {
-		t.Parallel()
-		val, err := NewTagScopeProvidersItemFromString("gcp")
-		assert.NoError(t, err, "valid enum value should not return error")
-		assert.Equal(t, TagScopeProvidersItem("gcp"), val, "enum value should match expected wire value")
-	})
-
-	t.Run("NewFromString_Invalid", func(t *testing.T) {
-		_, err := NewTagScopeProvidersItemFromString("invalid_value_that_does_not_exist")
-		assert.Error(t, err)
-	})
-
-	t.Run("Ptr", func(t *testing.T) {
-		val, err := NewTagScopeProvidersItemFromString("aws")
 		assert.NoError(t, err)
 		ptr := val.Ptr()
 		assert.NotNil(t, ptr)
@@ -18704,6 +19465,29 @@ func TestExtraPropertiesDimensionInfo(t *testing.T) {
 	t.Run("GetExtraProperties_NilReceiver", func(t *testing.T) {
 		t.Parallel()
 		var obj *DimensionInfo
+		extraProps := obj.GetExtraProperties()
+		assert.Nil(t, extraProps, "nil receiver should return nil without panicking")
+	})
+}
+
+func TestExtraPropertiesDimensionValueItem(t *testing.T) {
+	t.Run("GetExtraProperties", func(t *testing.T) {
+		t.Parallel()
+		obj := &DimensionValueItem{}
+		// Should not panic when calling GetExtraProperties()
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("GetExtraProperties() panicked: %v", r)
+			}
+		}()
+		extraProps := obj.GetExtraProperties()
+		// Result can be nil or an empty/non-empty map
+		_ = extraProps
+	})
+
+	t.Run("GetExtraProperties_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *DimensionValueItem
 		extraProps := obj.GetExtraProperties()
 		assert.Nil(t, extraProps, "nil receiver should return nil without panicking")
 	})
