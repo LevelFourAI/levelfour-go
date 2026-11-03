@@ -166,6 +166,50 @@ func (c *Client) DisconnectSlackConnection(
 	return response.Body, nil
 }
 
+func (c *Client) ListSlackChannels(
+	ctx context.Context,
+	opts ...option.RequestOption,
+) (*levelfour.SlackChannelsResponse, error) {
+	response, err := c.WithRawResponse.ListSlackChannels(
+		ctx,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+func (c *Client) GetSlackAlertChannel(
+	ctx context.Context,
+	opts ...option.RequestOption,
+) (*levelfour.SlackAlertChannelResponse, error) {
+	response, err := c.WithRawResponse.GetSlackAlertChannel(
+		ctx,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+func (c *Client) SetSlackAlertChannel(
+	ctx context.Context,
+	request *levelfour.SlackAlertChannelRequest,
+	opts ...option.RequestOption,
+) (*levelfour.SlackAlertChannelResponse, error) {
+	response, err := c.WithRawResponse.SetSlackAlertChannel(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
 func (c *Client) ListGithubInstallations(
 	ctx context.Context,
 	opts ...option.RequestOption,
