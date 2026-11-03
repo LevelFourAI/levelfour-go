@@ -150,6 +150,102 @@ func (c *Client) GetDimensionValues(
 	return response.Body, nil
 }
 
+func (c *Client) ListCategoryCandidates(
+	ctx context.Context,
+	request *levelfour.ListCategoryCandidatesTagsRequest,
+	opts ...option.RequestOption,
+) (*levelfour.CategoryCandidatesResponse, error) {
+	response, err := c.WithRawResponse.ListCategoryCandidates(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+func (c *Client) ListTelemetry(
+	ctx context.Context,
+	opts ...option.RequestOption,
+) (*levelfour.TelemetryDatasetsResponse, error) {
+	response, err := c.WithRawResponse.ListTelemetry(
+		ctx,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+func (c *Client) PushTelemetry(
+	ctx context.Context,
+	request *levelfour.TelemetryPushRequest,
+	opts ...option.RequestOption,
+) (*levelfour.TelemetryPushResponse, error) {
+	response, err := c.WithRawResponse.PushTelemetry(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+func (c *Client) CreateRelation(
+	ctx context.Context,
+	request *levelfour.RelationCreateRequest,
+	opts ...option.RequestOption,
+) (*levelfour.RelationResponse, error) {
+	response, err := c.WithRawResponse.CreateRelation(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+func (c *Client) GetRelationRows(
+	ctx context.Context,
+	relationID string,
+	request *levelfour.GetRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.RelationCostsResponse, error) {
+	response, err := c.WithRawResponse.GetRelationRows(
+		ctx,
+		relationID,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+func (c *Client) DeleteRelation(
+	ctx context.Context,
+	relationID string,
+	opts ...option.RequestOption,
+) error {
+	_, err := c.WithRawResponse.DeleteRelation(
+		ctx,
+		relationID,
+		opts...,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (c *Client) PreviewVirtual(
 	ctx context.Context,
 	request *levelfour.PreviewRequest,
@@ -223,6 +319,24 @@ func (c *Client) UpdateVirtual(
 	opts ...option.RequestOption,
 ) (*levelfour.TagKeyMutationResponse, error) {
 	response, err := c.WithRawResponse.UpdateVirtual(
+		ctx,
+		keyID,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+func (c *Client) DuplicateVirtual(
+	ctx context.Context,
+	keyID string,
+	request *levelfour.VirtualTagDuplicateRequest,
+	opts ...option.RequestOption,
+) (*levelfour.TagKeyMutationResponse, error) {
+	response, err := c.WithRawResponse.DuplicateVirtual(
 		ctx,
 		keyID,
 		request,
