@@ -99,3 +99,11 @@ Create a `main.go` and run with `go run .`. Use `LEVELFOUR_API_KEY` env var for 
 ## Reporting Issues
 
 Please open a GitHub issue for bug reports and feature requests. For security vulnerabilities, see [SECURITY.md](SECURITY.md).
+
+## How a Release Happens
+
+Nobody cuts a release by hand. Once a day the SDK is regenerated from the API definition and one pull request from `sdk-sync/main` is updated. CI runs on it and it merges itself when every required check passes. Release Please then opens a release pull request, which also merges itself once CI passes, and that merge tags the version. The tag is the release: the Go proxy serves it from there.
+
+A commit's type decides the version. While the module is below `v1`, both `feat` and `feat!` are a minor release and `fix` a patch. `ci`, `chore`, `docs` and `test` commits do not release anything.
+
+Hand-written files stay out of the sync through `.fernignore`. Anything the generated code needs on every sync belongs in `scripts/post_sync.sh`.
