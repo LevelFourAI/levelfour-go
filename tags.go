@@ -38,22 +38,101 @@ func (a *AddConfigTagsRequest) MarshalJSON() ([]byte, error) {
 }
 
 var (
-	virtualTagDefinitionFieldName          = big.NewInt(1 << 0)
-	virtualTagDefinitionFieldDescription   = big.NewInt(1 << 1)
-	virtualTagDefinitionFieldEffectiveFrom = big.NewInt(1 << 2)
-	virtualTagDefinitionFieldCanOverride   = big.NewInt(1 << 3)
-	virtualTagDefinitionFieldCollapsedKeys = big.NewInt(1 << 4)
-	virtualTagDefinitionFieldConfigs       = big.NewInt(1 << 5)
+	relationCreateRequestFieldDataset       = big.NewInt(1 << 0)
+	relationCreateRequestFieldFilter        = big.NewInt(1 << 1)
+	relationCreateRequestFieldKeys          = big.NewInt(1 << 2)
+	relationCreateRequestFieldEffectiveFrom = big.NewInt(1 << 3)
+)
+
+type RelationCreateRequest struct {
+	// The usage dataset every key of the relation splits by.
+	Dataset string `json:"dataset" url:"-"`
+	// The cost the keys share out: the same lines for every key.
+	Filter *TagFilter `json:"filter" url:"-"`
+	// One tag per dataset dimension. Each reads like any other tag, and any two read together.
+	Keys []*RelationKeyInput `json:"keys" url:"-"`
+	// First billing month the keys apply to, 'YYYY-MM'. Null means the current month.
+	EffectiveFrom *string `json:"effective_from,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (r *RelationCreateRequest) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetDataset sets the Dataset field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationCreateRequest) SetDataset(dataset string) {
+	r.Dataset = dataset
+	r.require(relationCreateRequestFieldDataset)
+}
+
+// SetFilter sets the Filter field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationCreateRequest) SetFilter(filter *TagFilter) {
+	r.Filter = filter
+	r.require(relationCreateRequestFieldFilter)
+}
+
+// SetKeys sets the Keys field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationCreateRequest) SetKeys(keys []*RelationKeyInput) {
+	r.Keys = keys
+	r.require(relationCreateRequestFieldKeys)
+}
+
+// SetEffectiveFrom sets the EffectiveFrom field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationCreateRequest) SetEffectiveFrom(effectiveFrom *string) {
+	r.EffectiveFrom = effectiveFrom
+	r.require(relationCreateRequestFieldEffectiveFrom)
+}
+
+func (r *RelationCreateRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler RelationCreateRequest
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*r = RelationCreateRequest(body)
+	return nil
+}
+
+func (r *RelationCreateRequest) MarshalJSON() ([]byte, error) {
+	type embed RelationCreateRequest
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+var (
+	virtualTagDefinitionFieldName            = big.NewInt(1 << 0)
+	virtualTagDefinitionFieldDescription     = big.NewInt(1 << 1)
+	virtualTagDefinitionFieldEffectiveFrom   = big.NewInt(1 << 2)
+	virtualTagDefinitionFieldCanOverride     = big.NewInt(1 << 3)
+	virtualTagDefinitionFieldUnallocatedName = big.NewInt(1 << 4)
+	virtualTagDefinitionFieldCollapsedKeys   = big.NewInt(1 << 5)
+	virtualTagDefinitionFieldConfigs         = big.NewInt(1 << 6)
 )
 
 type VirtualTagDefinition struct {
 	Name        string  `json:"name" url:"-"`
 	Description *string `json:"description,omitempty" url:"-"`
 	// First billing month the tag applies to, 'YYYY-MM'. Null means the current month.
-	EffectiveFrom *string              `json:"effective_from,omitempty" url:"-"`
-	CanOverride   *bool                `json:"can_override,omitempty" url:"-"`
-	CollapsedKeys []*CollapsedKeyInput `json:"collapsed_keys,omitempty" url:"-"`
-	Configs       []*TagConfigInput    `json:"configs,omitempty" url:"-"`
+	EffectiveFrom   *string              `json:"effective_from,omitempty" url:"-"`
+	CanOverride     *bool                `json:"can_override,omitempty" url:"-"`
+	UnallocatedName *string              `json:"unallocated_name,omitempty" url:"-"`
+	CollapsedKeys   []*CollapsedKeyInput `json:"collapsed_keys,omitempty" url:"-"`
+	Configs         []*TagConfigInput    `json:"configs,omitempty" url:"-"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -92,6 +171,13 @@ func (v *VirtualTagDefinition) SetEffectiveFrom(effectiveFrom *string) {
 func (v *VirtualTagDefinition) SetCanOverride(canOverride *bool) {
 	v.CanOverride = canOverride
 	v.require(virtualTagDefinitionFieldCanOverride)
+}
+
+// SetUnallocatedName sets the UnallocatedName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (v *VirtualTagDefinition) SetUnallocatedName(unallocatedName *string) {
+	v.UnallocatedName = unallocatedName
+	v.require(virtualTagDefinitionFieldUnallocatedName)
 }
 
 // SetCollapsedKeys sets the CollapsedKeys field and marks it as non-optional;
@@ -155,15 +241,172 @@ func (d *DeleteConfigTagsRequest) SetExpectedVersion(expectedVersion int) {
 }
 
 var (
+	virtualTagDuplicateRequestFieldName            = big.NewInt(1 << 0)
+	virtualTagDuplicateRequestFieldExpectedVersion = big.NewInt(1 << 1)
+)
+
+type VirtualTagDuplicateRequest struct {
+	// The copy's name. Left out, it reads 'Copy of' and the tag's name.
+	Name *string `json:"name,omitempty" url:"-"`
+	// Refuses the copy if the tag changed since this version.
+	ExpectedVersion *int `json:"expected_version,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (v *VirtualTagDuplicateRequest) require(field *big.Int) {
+	if v.explicitFields == nil {
+		v.explicitFields = big.NewInt(0)
+	}
+	v.explicitFields.Or(v.explicitFields, field)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (v *VirtualTagDuplicateRequest) SetName(name *string) {
+	v.Name = name
+	v.require(virtualTagDuplicateRequestFieldName)
+}
+
+// SetExpectedVersion sets the ExpectedVersion field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (v *VirtualTagDuplicateRequest) SetExpectedVersion(expectedVersion *int) {
+	v.ExpectedVersion = expectedVersion
+	v.require(virtualTagDuplicateRequestFieldExpectedVersion)
+}
+
+func (v *VirtualTagDuplicateRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler VirtualTagDuplicateRequest
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*v = VirtualTagDuplicateRequest(body)
+	return nil
+}
+
+func (v *VirtualTagDuplicateRequest) MarshalJSON() ([]byte, error) {
+	type embed VirtualTagDuplicateRequest
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*v),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, v.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+var (
+	getRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequestFieldKeys      = big.NewInt(1 << 0)
+	getRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequestFieldStart     = big.NewInt(1 << 1)
+	getRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequestFieldEnd       = big.NewInt(1 << 2)
+	getRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequestFieldProvider  = big.NewInt(1 << 3)
+	getRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequestFieldAccountID = big.NewInt(1 << 4)
+	getRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequestFieldService   = big.NewInt(1 << 5)
+	getRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequestFieldRegion    = big.NewInt(1 << 6)
+	getRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequestFieldA         = big.NewInt(1 << 7)
+	getRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequestFieldB         = big.NewInt(1 << 8)
+)
+
+type GetRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequest struct {
+	// The two keys to read together, by name or id.
+	Keys      []*string  `json:"-" url:"keys,omitempty"`
+	Start     *time.Time `json:"-" url:"start,omitempty" format:"date"`
+	End       *time.Time `json:"-" url:"end,omitempty" format:"date"`
+	Provider  *string    `json:"-" url:"provider,omitempty"`
+	AccountID []string   `json:"-" url:"account_id,omitempty"`
+	Service   []string   `json:"-" url:"service,omitempty"`
+	Region    []string   `json:"-" url:"region,omitempty"`
+	// Values of the first key to keep.
+	A []string `json:"-" url:"a,omitempty"`
+	// Values of the second key to keep.
+	B []string `json:"-" url:"b,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (g *GetRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequest) require(field *big.Int) {
+	if g.explicitFields == nil {
+		g.explicitFields = big.NewInt(0)
+	}
+	g.explicitFields.Or(g.explicitFields, field)
+}
+
+// SetKeys sets the Keys field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequest) SetKeys(keys []*string) {
+	g.Keys = keys
+	g.require(getRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequestFieldKeys)
+}
+
+// SetStart sets the Start field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequest) SetStart(start *time.Time) {
+	g.Start = start
+	g.require(getRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequestFieldStart)
+}
+
+// SetEnd sets the End field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequest) SetEnd(end *time.Time) {
+	g.End = end
+	g.require(getRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequestFieldEnd)
+}
+
+// SetProvider sets the Provider field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequest) SetProvider(provider *string) {
+	g.Provider = provider
+	g.require(getRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequestFieldProvider)
+}
+
+// SetAccountID sets the AccountID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequest) SetAccountID(accountID []string) {
+	g.AccountID = accountID
+	g.require(getRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequestFieldAccountID)
+}
+
+// SetService sets the Service field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequest) SetService(service []string) {
+	g.Service = service
+	g.require(getRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequestFieldService)
+}
+
+// SetRegion sets the Region field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequest) SetRegion(region []string) {
+	g.Region = region
+	g.require(getRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequestFieldRegion)
+}
+
+// SetA sets the A field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequest) SetA(a []string) {
+	g.A = a
+	g.require(getRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequestFieldA)
+}
+
+// SetB sets the B field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequest) SetB(b []string) {
+	g.B = b
+	g.require(getRelationRowsAPIV1TagsRelationsRelationIDRowsGetRequestFieldB)
+}
+
+var (
 	getCoverageTagsRequestFieldProvider = big.NewInt(1 << 0)
 	getCoverageTagsRequestFieldStart    = big.NewInt(1 << 1)
 	getCoverageTagsRequestFieldEnd      = big.NewInt(1 << 2)
 )
 
 type GetCoverageTagsRequest struct {
-	Provider *GetCoverageTagsRequestProvider `json:"-" url:"provider,omitempty"`
-	Start    *time.Time                      `json:"-" url:"start,omitempty" format:"date"`
-	End      *time.Time                      `json:"-" url:"end,omitempty" format:"date"`
+	Provider *string    `json:"-" url:"provider,omitempty"`
+	Start    *time.Time `json:"-" url:"start,omitempty" format:"date"`
+	End      *time.Time `json:"-" url:"end,omitempty" format:"date"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -178,7 +421,7 @@ func (g *GetCoverageTagsRequest) require(field *big.Int) {
 
 // SetProvider sets the Provider field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (g *GetCoverageTagsRequest) SetProvider(provider *GetCoverageTagsRequestProvider) {
+func (g *GetCoverageTagsRequest) SetProvider(provider *string) {
 	g.Provider = provider
 	g.require(getCoverageTagsRequestFieldProvider)
 }
@@ -205,10 +448,11 @@ var (
 )
 
 type GetDimensionValuesTagsRequest struct {
-	Provider *GetDimensionValuesTagsRequestProvider `json:"-" url:"provider,omitempty"`
-	Key      *string                                `json:"-" url:"key,omitempty"`
-	Search   *string                                `json:"-" url:"search,omitempty"`
-	Limit    *int                                   `json:"-" url:"limit,omitempty"`
+	// Repeat it to read several providers at once. `all`, the default, reads every one.
+	Provider []*string `json:"-" url:"provider,omitempty"`
+	Key      *string   `json:"-" url:"key,omitempty"`
+	Search   *string   `json:"-" url:"search,omitempty"`
+	Limit    *int      `json:"-" url:"limit,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -223,7 +467,7 @@ func (g *GetDimensionValuesTagsRequest) require(field *big.Int) {
 
 // SetProvider sets the Provider field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (g *GetDimensionValuesTagsRequest) SetProvider(provider *GetDimensionValuesTagsRequestProvider) {
+func (g *GetDimensionValuesTagsRequest) SetProvider(provider []*string) {
 	g.Provider = provider
 	g.require(getDimensionValuesTagsRequestFieldProvider)
 }
@@ -254,7 +498,7 @@ var (
 )
 
 type GetDimensionsTagsRequest struct {
-	Provider *GetDimensionsTagsRequestProvider `json:"-" url:"provider,omitempty"`
+	Provider *string `json:"-" url:"provider,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -269,7 +513,7 @@ func (g *GetDimensionsTagsRequest) require(field *big.Int) {
 
 // SetProvider sets the Provider field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (g *GetDimensionsTagsRequest) SetProvider(provider *GetDimensionsTagsRequestProvider) {
+func (g *GetDimensionsTagsRequest) SetProvider(provider *string) {
 	g.Provider = provider
 	g.require(getDimensionsTagsRequestFieldProvider)
 }
@@ -309,6 +553,49 @@ func (g *GetKeyTagsRequest) SetEnd(end *time.Time) {
 }
 
 var (
+	listCategoryCandidatesTagsRequestFieldCategory = big.NewInt(1 << 0)
+	listCategoryCandidatesTagsRequestFieldStart    = big.NewInt(1 << 1)
+	listCategoryCandidatesTagsRequestFieldEnd      = big.NewInt(1 << 2)
+)
+
+type ListCategoryCandidatesTagsRequest struct {
+	Category ListCategoryCandidatesTagsRequestCategory `json:"-" url:"category"`
+	Start    *time.Time                                `json:"-" url:"start,omitempty" format:"date"`
+	End      *time.Time                                `json:"-" url:"end,omitempty" format:"date"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (l *ListCategoryCandidatesTagsRequest) require(field *big.Int) {
+	if l.explicitFields == nil {
+		l.explicitFields = big.NewInt(0)
+	}
+	l.explicitFields.Or(l.explicitFields, field)
+}
+
+// SetCategory sets the Category field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListCategoryCandidatesTagsRequest) SetCategory(category ListCategoryCandidatesTagsRequestCategory) {
+	l.Category = category
+	l.require(listCategoryCandidatesTagsRequestFieldCategory)
+}
+
+// SetStart sets the Start field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListCategoryCandidatesTagsRequest) SetStart(start *time.Time) {
+	l.Start = start
+	l.require(listCategoryCandidatesTagsRequestFieldStart)
+}
+
+// SetEnd sets the End field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListCategoryCandidatesTagsRequest) SetEnd(end *time.Time) {
+	l.End = end
+	l.require(listCategoryCandidatesTagsRequestFieldEnd)
+}
+
+var (
 	listKeyResourcesTagsRequestFieldValueID   = big.NewInt(1 << 0)
 	listKeyResourcesTagsRequestFieldProvider  = big.NewInt(1 << 1)
 	listKeyResourcesTagsRequestFieldSearch    = big.NewInt(1 << 2)
@@ -322,7 +609,7 @@ var (
 
 type ListKeyResourcesTagsRequest struct {
 	ValueID   *string                               `json:"-" url:"value_id,omitempty"`
-	Provider  *ListKeyResourcesTagsRequestProvider  `json:"-" url:"provider,omitempty"`
+	Provider  *string                               `json:"-" url:"provider,omitempty"`
 	Search    *string                               `json:"-" url:"search,omitempty"`
 	SortBy    *ListKeyResourcesTagsRequestSortBy    `json:"-" url:"sort_by,omitempty"`
 	SortOrder *ListKeyResourcesTagsRequestSortOrder `json:"-" url:"sort_order,omitempty"`
@@ -351,7 +638,7 @@ func (l *ListKeyResourcesTagsRequest) SetValueID(valueID *string) {
 
 // SetProvider sets the Provider field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (l *ListKeyResourcesTagsRequest) SetProvider(provider *ListKeyResourcesTagsRequestProvider) {
+func (l *ListKeyResourcesTagsRequest) SetProvider(provider *string) {
 	l.Provider = provider
 	l.require(listKeyResourcesTagsRequestFieldProvider)
 }
@@ -414,11 +701,11 @@ var (
 )
 
 type ListKeysTagsRequest struct {
-	Origin   *ListKeysTagsRequestOrigin   `json:"-" url:"origin,omitempty"`
-	Provider *ListKeysTagsRequestProvider `json:"-" url:"provider,omitempty"`
-	Search   *string                      `json:"-" url:"search,omitempty"`
-	Start    *time.Time                   `json:"-" url:"start,omitempty" format:"date"`
-	End      *time.Time                   `json:"-" url:"end,omitempty" format:"date"`
+	Origin   *ListKeysTagsRequestOrigin `json:"-" url:"origin,omitempty"`
+	Provider *string                    `json:"-" url:"provider,omitempty"`
+	Search   *string                    `json:"-" url:"search,omitempty"`
+	Start    *time.Time                 `json:"-" url:"start,omitempty" format:"date"`
+	End      *time.Time                 `json:"-" url:"end,omitempty" format:"date"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -440,7 +727,7 @@ func (l *ListKeysTagsRequest) SetOrigin(origin *ListKeysTagsRequestOrigin) {
 
 // SetProvider sets the Provider field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (l *ListKeysTagsRequest) SetProvider(provider *ListKeysTagsRequestProvider) {
+func (l *ListKeysTagsRequest) SetProvider(provider *string) {
 	l.Provider = provider
 	l.require(listKeysTagsRequestFieldProvider)
 }
@@ -467,26 +754,28 @@ func (l *ListKeysTagsRequest) SetEnd(end *time.Time) {
 }
 
 var (
-	previewRequestFieldName          = big.NewInt(1 << 0)
-	previewRequestFieldDescription   = big.NewInt(1 << 1)
-	previewRequestFieldEffectiveFrom = big.NewInt(1 << 2)
-	previewRequestFieldCanOverride   = big.NewInt(1 << 3)
-	previewRequestFieldCollapsedKeys = big.NewInt(1 << 4)
-	previewRequestFieldConfigs       = big.NewInt(1 << 5)
-	previewRequestFieldStart         = big.NewInt(1 << 6)
-	previewRequestFieldEnd           = big.NewInt(1 << 7)
+	previewRequestFieldName            = big.NewInt(1 << 0)
+	previewRequestFieldDescription     = big.NewInt(1 << 1)
+	previewRequestFieldEffectiveFrom   = big.NewInt(1 << 2)
+	previewRequestFieldCanOverride     = big.NewInt(1 << 3)
+	previewRequestFieldUnallocatedName = big.NewInt(1 << 4)
+	previewRequestFieldCollapsedKeys   = big.NewInt(1 << 5)
+	previewRequestFieldConfigs         = big.NewInt(1 << 6)
+	previewRequestFieldStart           = big.NewInt(1 << 7)
+	previewRequestFieldEnd             = big.NewInt(1 << 8)
 )
 
 type PreviewRequest struct {
 	Name        *string `json:"name,omitempty" url:"-"`
 	Description *string `json:"description,omitempty" url:"-"`
 	// First billing month the tag applies to, 'YYYY-MM'. Null means the current month.
-	EffectiveFrom *string              `json:"effective_from,omitempty" url:"-"`
-	CanOverride   *bool                `json:"can_override,omitempty" url:"-"`
-	CollapsedKeys []*CollapsedKeyInput `json:"collapsed_keys,omitempty" url:"-"`
-	Configs       []*TagConfigInput    `json:"configs,omitempty" url:"-"`
-	Start         *time.Time           `json:"start,omitempty" url:"-" format:"date"`
-	End           *time.Time           `json:"end,omitempty" url:"-" format:"date"`
+	EffectiveFrom   *string              `json:"effective_from,omitempty" url:"-"`
+	CanOverride     *bool                `json:"can_override,omitempty" url:"-"`
+	UnallocatedName *string              `json:"unallocated_name,omitempty" url:"-"`
+	CollapsedKeys   []*CollapsedKeyInput `json:"collapsed_keys,omitempty" url:"-"`
+	Configs         []*TagConfigInput    `json:"configs,omitempty" url:"-"`
+	Start           *time.Time           `json:"start,omitempty" url:"-" format:"date"`
+	End             *time.Time           `json:"end,omitempty" url:"-" format:"date"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -525,6 +814,13 @@ func (p *PreviewRequest) SetEffectiveFrom(effectiveFrom *string) {
 func (p *PreviewRequest) SetCanOverride(canOverride *bool) {
 	p.CanOverride = canOverride
 	p.require(previewRequestFieldCanOverride)
+}
+
+// SetUnallocatedName sets the UnallocatedName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PreviewRequest) SetUnallocatedName(unallocatedName *string) {
+	p.UnallocatedName = unallocatedName
+	p.require(previewRequestFieldUnallocatedName)
 }
 
 // SetCollapsedKeys sets the CollapsedKeys field and marks it as non-optional;
@@ -577,6 +873,63 @@ func (p *PreviewRequest) MarshalJSON() ([]byte, error) {
 		End:   internal.NewOptionalDate(p.End),
 	}
 	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+var (
+	telemetryPushRequestFieldDataset = big.NewInt(1 << 0)
+	telemetryPushRequestFieldRows    = big.NewInt(1 << 1)
+)
+
+type TelemetryPushRequest struct {
+	// The dataset this usage belongs to. A telemetry assign reads it by this name.
+	Dataset string `json:"dataset" url:"-"`
+	// A whole day at a time: every day named here replaces what the dataset held for that day.
+	Rows []*TelemetryRow `json:"rows" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (t *TelemetryPushRequest) require(field *big.Int) {
+	if t.explicitFields == nil {
+		t.explicitFields = big.NewInt(0)
+	}
+	t.explicitFields.Or(t.explicitFields, field)
+}
+
+// SetDataset sets the Dataset field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryPushRequest) SetDataset(dataset string) {
+	t.Dataset = dataset
+	t.require(telemetryPushRequestFieldDataset)
+}
+
+// SetRows sets the Rows field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryPushRequest) SetRows(rows []*TelemetryRow) {
+	t.Rows = rows
+	t.require(telemetryPushRequestFieldRows)
+}
+
+func (t *TelemetryPushRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler TelemetryPushRequest
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*t = TelemetryPushRequest(body)
+	return nil
+}
+
+func (t *TelemetryPushRequest) MarshalJSON() ([]byte, error) {
+	type embed TelemetryPushRequest
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*t),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, t.explicitFields)
 	return json.Marshal(explicitMarshaler)
 }
 
@@ -695,9 +1048,10 @@ var (
 	virtualTagReplaceRequestFieldDescription     = big.NewInt(1 << 1)
 	virtualTagReplaceRequestFieldEffectiveFrom   = big.NewInt(1 << 2)
 	virtualTagReplaceRequestFieldCanOverride     = big.NewInt(1 << 3)
-	virtualTagReplaceRequestFieldCollapsedKeys   = big.NewInt(1 << 4)
-	virtualTagReplaceRequestFieldConfigs         = big.NewInt(1 << 5)
-	virtualTagReplaceRequestFieldExpectedVersion = big.NewInt(1 << 6)
+	virtualTagReplaceRequestFieldUnallocatedName = big.NewInt(1 << 4)
+	virtualTagReplaceRequestFieldCollapsedKeys   = big.NewInt(1 << 5)
+	virtualTagReplaceRequestFieldConfigs         = big.NewInt(1 << 6)
+	virtualTagReplaceRequestFieldExpectedVersion = big.NewInt(1 << 7)
 )
 
 type VirtualTagReplaceRequest struct {
@@ -706,6 +1060,7 @@ type VirtualTagReplaceRequest struct {
 	// First billing month the tag applies to, 'YYYY-MM'. Null means the current month.
 	EffectiveFrom   *string              `json:"effective_from,omitempty" url:"-"`
 	CanOverride     *bool                `json:"can_override,omitempty" url:"-"`
+	UnallocatedName *string              `json:"unallocated_name,omitempty" url:"-"`
 	CollapsedKeys   []*CollapsedKeyInput `json:"collapsed_keys,omitempty" url:"-"`
 	Configs         []*TagConfigInput    `json:"configs,omitempty" url:"-"`
 	ExpectedVersion int                  `json:"expected_version" url:"-"`
@@ -747,6 +1102,13 @@ func (v *VirtualTagReplaceRequest) SetEffectiveFrom(effectiveFrom *string) {
 func (v *VirtualTagReplaceRequest) SetCanOverride(canOverride *bool) {
 	v.CanOverride = canOverride
 	v.require(virtualTagReplaceRequestFieldCanOverride)
+}
+
+// SetUnallocatedName sets the UnallocatedName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (v *VirtualTagReplaceRequest) SetUnallocatedName(unallocatedName *string) {
+	v.UnallocatedName = unallocatedName
+	v.require(virtualTagReplaceRequestFieldUnallocatedName)
 }
 
 // SetCollapsedKeys sets the CollapsedKeys field and marks it as non-optional;
@@ -801,12 +1163,12 @@ var (
 )
 
 type SearchResourcesTagsRequest struct {
-	Provider  *SearchResourcesTagsRequestProvider `json:"-" url:"provider,omitempty"`
-	AccountID *string                             `json:"-" url:"account_id,omitempty"`
-	Search    *string                             `json:"-" url:"search,omitempty"`
-	Key       *string                             `json:"-" url:"key,omitempty"`
-	Page      *int                                `json:"-" url:"page,omitempty"`
-	PageSize  *int                                `json:"-" url:"page_size,omitempty"`
+	Provider  *string `json:"-" url:"provider,omitempty"`
+	AccountID *string `json:"-" url:"account_id,omitempty"`
+	Search    *string `json:"-" url:"search,omitempty"`
+	Key       *string `json:"-" url:"key,omitempty"`
+	Page      *int    `json:"-" url:"page,omitempty"`
+	PageSize  *int    `json:"-" url:"page_size,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -821,7 +1183,7 @@ func (s *SearchResourcesTagsRequest) require(field *big.Int) {
 
 // SetProvider sets the Provider field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (s *SearchResourcesTagsRequest) SetProvider(provider *SearchResourcesTagsRequestProvider) {
+func (s *SearchResourcesTagsRequest) SetProvider(provider *string) {
 	s.Provider = provider
 	s.require(searchResourcesTagsRequestFieldProvider)
 }
@@ -1014,6 +1376,705 @@ func (c *Capabilities) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	categoryCandidateFieldName          = big.NewInt(1 << 0)
+	categoryCandidateFieldMatch         = big.NewInt(1 << 1)
+	categoryCandidateFieldProviders     = big.NewInt(1 << 2)
+	categoryCandidateFieldValueCount    = big.NewInt(1 << 3)
+	categoryCandidateFieldSpend         = big.NewInt(1 << 4)
+	categoryCandidateFieldSpendSharePct = big.NewInt(1 << 5)
+)
+
+type CategoryCandidate struct {
+	Name string `json:"name" url:"name"`
+	// exact when the whole name is a word for this category, partial when one word of it is.
+	Match         CategoryCandidateMatch `json:"match" url:"match"`
+	Providers     []string               `json:"providers" url:"providers"`
+	ValueCount    int                    `json:"value_count" url:"value_count"`
+	Spend         float64                `json:"spend" url:"spend"`
+	SpendSharePct float64                `json:"spend_share_pct" url:"spend_share_pct"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CategoryCandidate) GetName() string {
+	if c == nil {
+		return ""
+	}
+	return c.Name
+}
+
+func (c *CategoryCandidate) GetMatch() CategoryCandidateMatch {
+	if c == nil {
+		return ""
+	}
+	return c.Match
+}
+
+func (c *CategoryCandidate) GetProviders() []string {
+	if c == nil {
+		return nil
+	}
+	return c.Providers
+}
+
+func (c *CategoryCandidate) GetValueCount() int {
+	if c == nil {
+		return 0
+	}
+	return c.ValueCount
+}
+
+func (c *CategoryCandidate) GetSpend() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.Spend
+}
+
+func (c *CategoryCandidate) GetSpendSharePct() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.SpendSharePct
+}
+
+func (c *CategoryCandidate) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CategoryCandidate) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CategoryCandidate) SetName(name string) {
+	c.Name = name
+	c.require(categoryCandidateFieldName)
+}
+
+// SetMatch sets the Match field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CategoryCandidate) SetMatch(match CategoryCandidateMatch) {
+	c.Match = match
+	c.require(categoryCandidateFieldMatch)
+}
+
+// SetProviders sets the Providers field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CategoryCandidate) SetProviders(providers []string) {
+	c.Providers = providers
+	c.require(categoryCandidateFieldProviders)
+}
+
+// SetValueCount sets the ValueCount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CategoryCandidate) SetValueCount(valueCount int) {
+	c.ValueCount = valueCount
+	c.require(categoryCandidateFieldValueCount)
+}
+
+// SetSpend sets the Spend field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CategoryCandidate) SetSpend(spend float64) {
+	c.Spend = spend
+	c.require(categoryCandidateFieldSpend)
+}
+
+// SetSpendSharePct sets the SpendSharePct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CategoryCandidate) SetSpendSharePct(spendSharePct float64) {
+	c.SpendSharePct = spendSharePct
+	c.require(categoryCandidateFieldSpendSharePct)
+}
+
+func (c *CategoryCandidate) UnmarshalJSON(data []byte) error {
+	type unmarshaler CategoryCandidate
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CategoryCandidate(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CategoryCandidate) MarshalJSON() ([]byte, error) {
+	type embed CategoryCandidate
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CategoryCandidate) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+// exact when the whole name is a word for this category, partial when one word of it is.
+type CategoryCandidateMatch string
+
+const (
+	CategoryCandidateMatchExact   CategoryCandidateMatch = "exact"
+	CategoryCandidateMatchPartial CategoryCandidateMatch = "partial"
+)
+
+func NewCategoryCandidateMatchFromString(s string) (CategoryCandidateMatch, error) {
+	switch s {
+	case "exact":
+		return CategoryCandidateMatchExact, nil
+	case "partial":
+		return CategoryCandidateMatchPartial, nil
+	}
+	var t CategoryCandidateMatch
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CategoryCandidateMatch) Ptr() *CategoryCandidateMatch {
+	return &c
+}
+
+var (
+	categoryCandidatesFieldCategory           = big.NewInt(1 << 0)
+	categoryCandidatesFieldWindow             = big.NewInt(1 << 1)
+	categoryCandidatesFieldCandidates         = big.NewInt(1 << 2)
+	categoryCandidatesFieldDimensionFallbacks = big.NewInt(1 << 3)
+)
+
+type CategoryCandidates struct {
+	Category CategoryCandidatesCategory `json:"category" url:"category"`
+	Window   *TagWindow                 `json:"window" url:"window"`
+	// Provider tag keys, the likeliest first.
+	Candidates []*CategoryCandidate `json:"candidates" url:"candidates"`
+	// What rules can match on instead when no tag key carries this category.
+	DimensionFallbacks []*CategoryFallback `json:"dimension_fallbacks" url:"dimension_fallbacks"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CategoryCandidates) GetCategory() CategoryCandidatesCategory {
+	if c == nil {
+		return ""
+	}
+	return c.Category
+}
+
+func (c *CategoryCandidates) GetWindow() *TagWindow {
+	if c == nil {
+		return nil
+	}
+	return c.Window
+}
+
+func (c *CategoryCandidates) GetCandidates() []*CategoryCandidate {
+	if c == nil {
+		return nil
+	}
+	return c.Candidates
+}
+
+func (c *CategoryCandidates) GetDimensionFallbacks() []*CategoryFallback {
+	if c == nil {
+		return nil
+	}
+	return c.DimensionFallbacks
+}
+
+func (c *CategoryCandidates) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CategoryCandidates) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetCategory sets the Category field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CategoryCandidates) SetCategory(category CategoryCandidatesCategory) {
+	c.Category = category
+	c.require(categoryCandidatesFieldCategory)
+}
+
+// SetWindow sets the Window field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CategoryCandidates) SetWindow(window *TagWindow) {
+	c.Window = window
+	c.require(categoryCandidatesFieldWindow)
+}
+
+// SetCandidates sets the Candidates field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CategoryCandidates) SetCandidates(candidates []*CategoryCandidate) {
+	c.Candidates = candidates
+	c.require(categoryCandidatesFieldCandidates)
+}
+
+// SetDimensionFallbacks sets the DimensionFallbacks field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CategoryCandidates) SetDimensionFallbacks(dimensionFallbacks []*CategoryFallback) {
+	c.DimensionFallbacks = dimensionFallbacks
+	c.require(categoryCandidatesFieldDimensionFallbacks)
+}
+
+func (c *CategoryCandidates) UnmarshalJSON(data []byte) error {
+	type unmarshaler CategoryCandidates
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CategoryCandidates(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CategoryCandidates) MarshalJSON() ([]byte, error) {
+	type embed CategoryCandidates
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CategoryCandidates) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type CategoryCandidatesCategory string
+
+const (
+	CategoryCandidatesCategoryEnvironment CategoryCandidatesCategory = "Environment"
+	CategoryCandidatesCategoryApplication CategoryCandidatesCategory = "Application"
+	CategoryCandidatesCategoryTeam        CategoryCandidatesCategory = "Team"
+	CategoryCandidatesCategoryCustomer    CategoryCandidatesCategory = "Customer"
+)
+
+func NewCategoryCandidatesCategoryFromString(s string) (CategoryCandidatesCategory, error) {
+	switch s {
+	case "Environment":
+		return CategoryCandidatesCategoryEnvironment, nil
+	case "Application":
+		return CategoryCandidatesCategoryApplication, nil
+	case "Team":
+		return CategoryCandidatesCategoryTeam, nil
+	case "Customer":
+		return CategoryCandidatesCategoryCustomer, nil
+	}
+	var t CategoryCandidatesCategory
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CategoryCandidatesCategory) Ptr() *CategoryCandidatesCategory {
+	return &c
+}
+
+var (
+	categoryCandidatesResponseFieldSuccess   = big.NewInt(1 << 0)
+	categoryCandidatesResponseFieldTimestamp = big.NewInt(1 << 1)
+	categoryCandidatesResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type CategoryCandidatesResponse struct {
+	Success   *bool               `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time          `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *CategoryCandidates `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CategoryCandidatesResponse) GetSuccess() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Success
+}
+
+func (c *CategoryCandidatesResponse) GetTimestamp() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.Timestamp
+}
+
+func (c *CategoryCandidatesResponse) GetData() *CategoryCandidates {
+	if c == nil {
+		return nil
+	}
+	return c.Data
+}
+
+func (c *CategoryCandidatesResponse) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CategoryCandidatesResponse) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CategoryCandidatesResponse) SetSuccess(success *bool) {
+	c.Success = success
+	c.require(categoryCandidatesResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CategoryCandidatesResponse) SetTimestamp(timestamp *time.Time) {
+	c.Timestamp = timestamp
+	c.require(categoryCandidatesResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CategoryCandidatesResponse) SetData(data *CategoryCandidates) {
+	c.Data = data
+	c.require(categoryCandidatesResponseFieldData)
+}
+
+func (c *CategoryCandidatesResponse) UnmarshalJSON(data []byte) error {
+	type embed CategoryCandidatesResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = CategoryCandidatesResponse(unmarshaler.embed)
+	c.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CategoryCandidatesResponse) MarshalJSON() ([]byte, error) {
+	type embed CategoryCandidatesResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*c),
+		Timestamp: internal.NewOptionalDateTime(c.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CategoryCandidatesResponse) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	categoryFallbackFieldDimension = big.NewInt(1 << 0)
+	categoryFallbackFieldProviders = big.NewInt(1 << 1)
+)
+
+type CategoryFallback struct {
+	Dimension CategoryFallbackDimension `json:"dimension" url:"dimension"`
+	// The providers that report this dimension.
+	Providers []string `json:"providers" url:"providers"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CategoryFallback) GetDimension() CategoryFallbackDimension {
+	if c == nil {
+		return ""
+	}
+	return c.Dimension
+}
+
+func (c *CategoryFallback) GetProviders() []string {
+	if c == nil {
+		return nil
+	}
+	return c.Providers
+}
+
+func (c *CategoryFallback) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CategoryFallback) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetDimension sets the Dimension field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CategoryFallback) SetDimension(dimension CategoryFallbackDimension) {
+	c.Dimension = dimension
+	c.require(categoryFallbackFieldDimension)
+}
+
+// SetProviders sets the Providers field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CategoryFallback) SetProviders(providers []string) {
+	c.Providers = providers
+	c.require(categoryFallbackFieldProviders)
+}
+
+func (c *CategoryFallback) UnmarshalJSON(data []byte) error {
+	type unmarshaler CategoryFallback
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CategoryFallback(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CategoryFallback) MarshalJSON() ([]byte, error) {
+	type embed CategoryFallback
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CategoryFallback) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type CategoryFallbackDimension string
+
+const (
+	CategoryFallbackDimensionAccount                CategoryFallbackDimension = "account"
+	CategoryFallbackDimensionBillingAccount         CategoryFallbackDimension = "billing_account"
+	CategoryFallbackDimensionProvider               CategoryFallbackDimension = "provider"
+	CategoryFallbackDimensionRegion                 CategoryFallbackDimension = "region"
+	CategoryFallbackDimensionService                CategoryFallbackDimension = "service"
+	CategoryFallbackDimensionCategory               CategoryFallbackDimension = "category"
+	CategoryFallbackDimensionSubcategory            CategoryFallbackDimension = "subcategory"
+	CategoryFallbackDimensionSku                    CategoryFallbackDimension = "sku"
+	CategoryFallbackDimensionUsageUnit              CategoryFallbackDimension = "usage_unit"
+	CategoryFallbackDimensionResource               CategoryFallbackDimension = "resource"
+	CategoryFallbackDimensionPerson                 CategoryFallbackDimension = "person"
+	CategoryFallbackDimensionChargeType             CategoryFallbackDimension = "charge_type"
+	CategoryFallbackDimensionMarketplace            CategoryFallbackDimension = "marketplace"
+	CategoryFallbackDimensionCluster                CategoryFallbackDimension = "cluster"
+	CategoryFallbackDimensionNamespace              CategoryFallbackDimension = "namespace"
+	CategoryFallbackDimensionWorkload               CategoryFallbackDimension = "workload"
+	CategoryFallbackDimensionTag                    CategoryFallbackDimension = "tag"
+	CategoryFallbackDimensionTagged                 CategoryFallbackDimension = "tagged"
+	CategoryFallbackDimensionVirtualTag             CategoryFallbackDimension = "virtual_tag"
+	CategoryFallbackDimensionAccountName            CategoryFallbackDimension = "account_name"
+	CategoryFallbackDimensionAiModel                CategoryFallbackDimension = "ai_model"
+	CategoryFallbackDimensionAiFamily               CategoryFallbackDimension = "ai_family"
+	CategoryFallbackDimensionAiBrand                CategoryFallbackDimension = "ai_brand"
+	CategoryFallbackDimensionAiChannel              CategoryFallbackDimension = "ai_channel"
+	CategoryFallbackDimensionAiLifecycle            CategoryFallbackDimension = "ai_lifecycle"
+	CategoryFallbackDimensionAiTokenType            CategoryFallbackDimension = "ai_token_type"
+	CategoryFallbackDimensionServiceCategory        CategoryFallbackDimension = "service_category"
+	CategoryFallbackDimensionAiLine                 CategoryFallbackDimension = "ai_line"
+	CategoryFallbackDimensionMarketplaceLine        CategoryFallbackDimension = "marketplace_line"
+	CategoryFallbackDimensionTaggableLine           CategoryFallbackDimension = "taggable_line"
+	CategoryFallbackDimensionProviderName           CategoryFallbackDimension = "provider_name"
+	CategoryFallbackDimensionCurrency               CategoryFallbackDimension = "currency"
+	CategoryFallbackDimensionPublisher              CategoryFallbackDimension = "publisher"
+	CategoryFallbackDimensionChargeCategory         CategoryFallbackDimension = "charge_category"
+	CategoryFallbackDimensionPricingCategory        CategoryFallbackDimension = "pricing_category"
+	CategoryFallbackDimensionCommitmentDiscountType CategoryFallbackDimension = "commitment_discount_type"
+)
+
+func NewCategoryFallbackDimensionFromString(s string) (CategoryFallbackDimension, error) {
+	switch s {
+	case "account":
+		return CategoryFallbackDimensionAccount, nil
+	case "billing_account":
+		return CategoryFallbackDimensionBillingAccount, nil
+	case "provider":
+		return CategoryFallbackDimensionProvider, nil
+	case "region":
+		return CategoryFallbackDimensionRegion, nil
+	case "service":
+		return CategoryFallbackDimensionService, nil
+	case "category":
+		return CategoryFallbackDimensionCategory, nil
+	case "subcategory":
+		return CategoryFallbackDimensionSubcategory, nil
+	case "sku":
+		return CategoryFallbackDimensionSku, nil
+	case "usage_unit":
+		return CategoryFallbackDimensionUsageUnit, nil
+	case "resource":
+		return CategoryFallbackDimensionResource, nil
+	case "person":
+		return CategoryFallbackDimensionPerson, nil
+	case "charge_type":
+		return CategoryFallbackDimensionChargeType, nil
+	case "marketplace":
+		return CategoryFallbackDimensionMarketplace, nil
+	case "cluster":
+		return CategoryFallbackDimensionCluster, nil
+	case "namespace":
+		return CategoryFallbackDimensionNamespace, nil
+	case "workload":
+		return CategoryFallbackDimensionWorkload, nil
+	case "tag":
+		return CategoryFallbackDimensionTag, nil
+	case "tagged":
+		return CategoryFallbackDimensionTagged, nil
+	case "virtual_tag":
+		return CategoryFallbackDimensionVirtualTag, nil
+	case "account_name":
+		return CategoryFallbackDimensionAccountName, nil
+	case "ai_model":
+		return CategoryFallbackDimensionAiModel, nil
+	case "ai_family":
+		return CategoryFallbackDimensionAiFamily, nil
+	case "ai_brand":
+		return CategoryFallbackDimensionAiBrand, nil
+	case "ai_channel":
+		return CategoryFallbackDimensionAiChannel, nil
+	case "ai_lifecycle":
+		return CategoryFallbackDimensionAiLifecycle, nil
+	case "ai_token_type":
+		return CategoryFallbackDimensionAiTokenType, nil
+	case "service_category":
+		return CategoryFallbackDimensionServiceCategory, nil
+	case "ai_line":
+		return CategoryFallbackDimensionAiLine, nil
+	case "marketplace_line":
+		return CategoryFallbackDimensionMarketplaceLine, nil
+	case "taggable_line":
+		return CategoryFallbackDimensionTaggableLine, nil
+	case "provider_name":
+		return CategoryFallbackDimensionProviderName, nil
+	case "currency":
+		return CategoryFallbackDimensionCurrency, nil
+	case "publisher":
+		return CategoryFallbackDimensionPublisher, nil
+	case "charge_category":
+		return CategoryFallbackDimensionChargeCategory, nil
+	case "pricing_category":
+		return CategoryFallbackDimensionPricingCategory, nil
+	case "commitment_discount_type":
+		return CategoryFallbackDimensionCommitmentDiscountType, nil
+	}
+	var t CategoryFallbackDimension
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CategoryFallbackDimension) Ptr() *CategoryFallbackDimension {
+	return &c
 }
 
 var (
@@ -1800,10 +2861,10 @@ var (
 )
 
 type DimensionInfo struct {
-	ID        DimensionInfoID              `json:"id" url:"id"`
-	KeyMode   DimensionInfoKeyMode         `json:"key_mode" url:"key_mode"`
-	Valueless bool                         `json:"valueless" url:"valueless"`
-	Providers []DimensionInfoProvidersItem `json:"providers" url:"providers"`
+	ID        DimensionInfoID      `json:"id" url:"id"`
+	KeyMode   DimensionInfoKeyMode `json:"key_mode" url:"key_mode"`
+	Valueless bool                 `json:"valueless" url:"valueless"`
+	Providers []string             `json:"providers" url:"providers"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -1833,7 +2894,7 @@ func (d *DimensionInfo) GetValueless() bool {
 	return d.Valueless
 }
 
-func (d *DimensionInfo) GetProviders() []DimensionInfoProvidersItem {
+func (d *DimensionInfo) GetProviders() []string {
 	if d == nil {
 		return nil
 	}
@@ -1877,7 +2938,7 @@ func (d *DimensionInfo) SetValueless(valueless bool) {
 
 // SetProviders sets the Providers field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (d *DimensionInfo) SetProviders(providers []DimensionInfoProvidersItem) {
+func (d *DimensionInfo) SetProviders(providers []string) {
 	d.Providers = providers
 	d.require(dimensionInfoFieldProviders)
 }
@@ -1927,19 +2988,42 @@ func (d *DimensionInfo) String() string {
 type DimensionInfoID string
 
 const (
-	DimensionInfoIDAccount        DimensionInfoID = "account"
-	DimensionInfoIDBillingAccount DimensionInfoID = "billing_account"
-	DimensionInfoIDRegion         DimensionInfoID = "region"
-	DimensionInfoIDService        DimensionInfoID = "service"
-	DimensionInfoIDCategory       DimensionInfoID = "category"
-	DimensionInfoIDSubcategory    DimensionInfoID = "subcategory"
-	DimensionInfoIDUsageUnit      DimensionInfoID = "usage_unit"
-	DimensionInfoIDResource       DimensionInfoID = "resource"
-	DimensionInfoIDChargeType     DimensionInfoID = "charge_type"
-	DimensionInfoIDMarketplace    DimensionInfoID = "marketplace"
-	DimensionInfoIDTag            DimensionInfoID = "tag"
-	DimensionInfoIDTagged         DimensionInfoID = "tagged"
-	DimensionInfoIDVirtualTag     DimensionInfoID = "virtual_tag"
+	DimensionInfoIDAccount                DimensionInfoID = "account"
+	DimensionInfoIDBillingAccount         DimensionInfoID = "billing_account"
+	DimensionInfoIDProvider               DimensionInfoID = "provider"
+	DimensionInfoIDRegion                 DimensionInfoID = "region"
+	DimensionInfoIDService                DimensionInfoID = "service"
+	DimensionInfoIDCategory               DimensionInfoID = "category"
+	DimensionInfoIDSubcategory            DimensionInfoID = "subcategory"
+	DimensionInfoIDSku                    DimensionInfoID = "sku"
+	DimensionInfoIDUsageUnit              DimensionInfoID = "usage_unit"
+	DimensionInfoIDResource               DimensionInfoID = "resource"
+	DimensionInfoIDPerson                 DimensionInfoID = "person"
+	DimensionInfoIDChargeType             DimensionInfoID = "charge_type"
+	DimensionInfoIDMarketplace            DimensionInfoID = "marketplace"
+	DimensionInfoIDCluster                DimensionInfoID = "cluster"
+	DimensionInfoIDNamespace              DimensionInfoID = "namespace"
+	DimensionInfoIDWorkload               DimensionInfoID = "workload"
+	DimensionInfoIDTag                    DimensionInfoID = "tag"
+	DimensionInfoIDTagged                 DimensionInfoID = "tagged"
+	DimensionInfoIDVirtualTag             DimensionInfoID = "virtual_tag"
+	DimensionInfoIDAccountName            DimensionInfoID = "account_name"
+	DimensionInfoIDAiModel                DimensionInfoID = "ai_model"
+	DimensionInfoIDAiFamily               DimensionInfoID = "ai_family"
+	DimensionInfoIDAiBrand                DimensionInfoID = "ai_brand"
+	DimensionInfoIDAiChannel              DimensionInfoID = "ai_channel"
+	DimensionInfoIDAiLifecycle            DimensionInfoID = "ai_lifecycle"
+	DimensionInfoIDAiTokenType            DimensionInfoID = "ai_token_type"
+	DimensionInfoIDServiceCategory        DimensionInfoID = "service_category"
+	DimensionInfoIDAiLine                 DimensionInfoID = "ai_line"
+	DimensionInfoIDMarketplaceLine        DimensionInfoID = "marketplace_line"
+	DimensionInfoIDTaggableLine           DimensionInfoID = "taggable_line"
+	DimensionInfoIDProviderName           DimensionInfoID = "provider_name"
+	DimensionInfoIDCurrency               DimensionInfoID = "currency"
+	DimensionInfoIDPublisher              DimensionInfoID = "publisher"
+	DimensionInfoIDChargeCategory         DimensionInfoID = "charge_category"
+	DimensionInfoIDPricingCategory        DimensionInfoID = "pricing_category"
+	DimensionInfoIDCommitmentDiscountType DimensionInfoID = "commitment_discount_type"
 )
 
 func NewDimensionInfoIDFromString(s string) (DimensionInfoID, error) {
@@ -1948,6 +3032,8 @@ func NewDimensionInfoIDFromString(s string) (DimensionInfoID, error) {
 		return DimensionInfoIDAccount, nil
 	case "billing_account":
 		return DimensionInfoIDBillingAccount, nil
+	case "provider":
+		return DimensionInfoIDProvider, nil
 	case "region":
 		return DimensionInfoIDRegion, nil
 	case "service":
@@ -1956,20 +3042,64 @@ func NewDimensionInfoIDFromString(s string) (DimensionInfoID, error) {
 		return DimensionInfoIDCategory, nil
 	case "subcategory":
 		return DimensionInfoIDSubcategory, nil
+	case "sku":
+		return DimensionInfoIDSku, nil
 	case "usage_unit":
 		return DimensionInfoIDUsageUnit, nil
 	case "resource":
 		return DimensionInfoIDResource, nil
+	case "person":
+		return DimensionInfoIDPerson, nil
 	case "charge_type":
 		return DimensionInfoIDChargeType, nil
 	case "marketplace":
 		return DimensionInfoIDMarketplace, nil
+	case "cluster":
+		return DimensionInfoIDCluster, nil
+	case "namespace":
+		return DimensionInfoIDNamespace, nil
+	case "workload":
+		return DimensionInfoIDWorkload, nil
 	case "tag":
 		return DimensionInfoIDTag, nil
 	case "tagged":
 		return DimensionInfoIDTagged, nil
 	case "virtual_tag":
 		return DimensionInfoIDVirtualTag, nil
+	case "account_name":
+		return DimensionInfoIDAccountName, nil
+	case "ai_model":
+		return DimensionInfoIDAiModel, nil
+	case "ai_family":
+		return DimensionInfoIDAiFamily, nil
+	case "ai_brand":
+		return DimensionInfoIDAiBrand, nil
+	case "ai_channel":
+		return DimensionInfoIDAiChannel, nil
+	case "ai_lifecycle":
+		return DimensionInfoIDAiLifecycle, nil
+	case "ai_token_type":
+		return DimensionInfoIDAiTokenType, nil
+	case "service_category":
+		return DimensionInfoIDServiceCategory, nil
+	case "ai_line":
+		return DimensionInfoIDAiLine, nil
+	case "marketplace_line":
+		return DimensionInfoIDMarketplaceLine, nil
+	case "taggable_line":
+		return DimensionInfoIDTaggableLine, nil
+	case "provider_name":
+		return DimensionInfoIDProviderName, nil
+	case "currency":
+		return DimensionInfoIDCurrency, nil
+	case "publisher":
+		return DimensionInfoIDPublisher, nil
+	case "charge_category":
+		return DimensionInfoIDChargeCategory, nil
+	case "pricing_category":
+		return DimensionInfoIDPricingCategory, nil
+	case "commitment_discount_type":
+		return DimensionInfoIDCommitmentDiscountType, nil
 	}
 	var t DimensionInfoID
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -2004,36 +3134,119 @@ func (d DimensionInfoKeyMode) Ptr() *DimensionInfoKeyMode {
 	return &d
 }
 
-type DimensionInfoProvidersItem string
-
-const (
-	DimensionInfoProvidersItemAws DimensionInfoProvidersItem = "aws"
-	DimensionInfoProvidersItemGcp DimensionInfoProvidersItem = "gcp"
+var (
+	dimensionValueItemFieldValue     = big.NewInt(1 << 0)
+	dimensionValueItemFieldProviders = big.NewInt(1 << 1)
 )
 
-func NewDimensionInfoProvidersItemFromString(s string) (DimensionInfoProvidersItem, error) {
-	switch s {
-	case "aws":
-		return DimensionInfoProvidersItemAws, nil
-	case "gcp":
-		return DimensionInfoProvidersItemGcp, nil
-	}
-	var t DimensionInfoProvidersItem
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
+type DimensionValueItem struct {
+	Value string `json:"value" url:"value"`
+	// Providers that bill this value. Empty for a virtual tag's values, which belong to none.
+	Providers []string `json:"providers" url:"providers"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
 }
 
-func (d DimensionInfoProvidersItem) Ptr() *DimensionInfoProvidersItem {
-	return &d
+func (d *DimensionValueItem) GetValue() string {
+	if d == nil {
+		return ""
+	}
+	return d.Value
+}
+
+func (d *DimensionValueItem) GetProviders() []string {
+	if d == nil {
+		return nil
+	}
+	return d.Providers
+}
+
+func (d *DimensionValueItem) GetExtraProperties() map[string]interface{} {
+	if d == nil {
+		return nil
+	}
+	return d.extraProperties
+}
+
+func (d *DimensionValueItem) require(field *big.Int) {
+	if d.explicitFields == nil {
+		d.explicitFields = big.NewInt(0)
+	}
+	d.explicitFields.Or(d.explicitFields, field)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DimensionValueItem) SetValue(value string) {
+	d.Value = value
+	d.require(dimensionValueItemFieldValue)
+}
+
+// SetProviders sets the Providers field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DimensionValueItem) SetProviders(providers []string) {
+	d.Providers = providers
+	d.require(dimensionValueItemFieldProviders)
+}
+
+func (d *DimensionValueItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler DimensionValueItem
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*d = DimensionValueItem(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *d)
+	if err != nil {
+		return err
+	}
+	d.extraProperties = extraProperties
+	d.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (d *DimensionValueItem) MarshalJSON() ([]byte, error) {
+	type embed DimensionValueItem
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*d),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, d.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (d *DimensionValueItem) String() string {
+	if d == nil {
+		return "<nil>"
+	}
+	if len(d.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(d.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(d); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", d)
 }
 
 var (
 	dimensionValuesFieldDimension = big.NewInt(1 << 0)
 	dimensionValuesFieldValues    = big.NewInt(1 << 1)
+	dimensionValuesFieldItems     = big.NewInt(1 << 2)
 )
 
 type DimensionValues struct {
 	Dimension DimensionValuesDimension `json:"dimension" url:"dimension"`
-	Values    []string                 `json:"values" url:"values"`
+	// The values a condition can match, in name order. Kept beside items for the CLI and SDK clients that read the names alone.
+	Values []string `json:"values" url:"values"`
+	// The same values in the same order, each with the providers that bill it.
+	Items []*DimensionValueItem `json:"items,omitempty" url:"items,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -2054,6 +3267,13 @@ func (d *DimensionValues) GetValues() []string {
 		return nil
 	}
 	return d.Values
+}
+
+func (d *DimensionValues) GetItems() []*DimensionValueItem {
+	if d == nil {
+		return nil
+	}
+	return d.Items
 }
 
 func (d *DimensionValues) GetExtraProperties() map[string]interface{} {
@@ -2082,6 +3302,13 @@ func (d *DimensionValues) SetDimension(dimension DimensionValuesDimension) {
 func (d *DimensionValues) SetValues(values []string) {
 	d.Values = values
 	d.require(dimensionValuesFieldValues)
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DimensionValues) SetItems(items []*DimensionValueItem) {
+	d.Items = items
+	d.require(dimensionValuesFieldItems)
 }
 
 func (d *DimensionValues) UnmarshalJSON(data []byte) error {
@@ -2129,19 +3356,42 @@ func (d *DimensionValues) String() string {
 type DimensionValuesDimension string
 
 const (
-	DimensionValuesDimensionAccount        DimensionValuesDimension = "account"
-	DimensionValuesDimensionBillingAccount DimensionValuesDimension = "billing_account"
-	DimensionValuesDimensionRegion         DimensionValuesDimension = "region"
-	DimensionValuesDimensionService        DimensionValuesDimension = "service"
-	DimensionValuesDimensionCategory       DimensionValuesDimension = "category"
-	DimensionValuesDimensionSubcategory    DimensionValuesDimension = "subcategory"
-	DimensionValuesDimensionUsageUnit      DimensionValuesDimension = "usage_unit"
-	DimensionValuesDimensionResource       DimensionValuesDimension = "resource"
-	DimensionValuesDimensionChargeType     DimensionValuesDimension = "charge_type"
-	DimensionValuesDimensionMarketplace    DimensionValuesDimension = "marketplace"
-	DimensionValuesDimensionTag            DimensionValuesDimension = "tag"
-	DimensionValuesDimensionTagged         DimensionValuesDimension = "tagged"
-	DimensionValuesDimensionVirtualTag     DimensionValuesDimension = "virtual_tag"
+	DimensionValuesDimensionAccount                DimensionValuesDimension = "account"
+	DimensionValuesDimensionBillingAccount         DimensionValuesDimension = "billing_account"
+	DimensionValuesDimensionProvider               DimensionValuesDimension = "provider"
+	DimensionValuesDimensionRegion                 DimensionValuesDimension = "region"
+	DimensionValuesDimensionService                DimensionValuesDimension = "service"
+	DimensionValuesDimensionCategory               DimensionValuesDimension = "category"
+	DimensionValuesDimensionSubcategory            DimensionValuesDimension = "subcategory"
+	DimensionValuesDimensionSku                    DimensionValuesDimension = "sku"
+	DimensionValuesDimensionUsageUnit              DimensionValuesDimension = "usage_unit"
+	DimensionValuesDimensionResource               DimensionValuesDimension = "resource"
+	DimensionValuesDimensionPerson                 DimensionValuesDimension = "person"
+	DimensionValuesDimensionChargeType             DimensionValuesDimension = "charge_type"
+	DimensionValuesDimensionMarketplace            DimensionValuesDimension = "marketplace"
+	DimensionValuesDimensionCluster                DimensionValuesDimension = "cluster"
+	DimensionValuesDimensionNamespace              DimensionValuesDimension = "namespace"
+	DimensionValuesDimensionWorkload               DimensionValuesDimension = "workload"
+	DimensionValuesDimensionTag                    DimensionValuesDimension = "tag"
+	DimensionValuesDimensionTagged                 DimensionValuesDimension = "tagged"
+	DimensionValuesDimensionVirtualTag             DimensionValuesDimension = "virtual_tag"
+	DimensionValuesDimensionAccountName            DimensionValuesDimension = "account_name"
+	DimensionValuesDimensionAiModel                DimensionValuesDimension = "ai_model"
+	DimensionValuesDimensionAiFamily               DimensionValuesDimension = "ai_family"
+	DimensionValuesDimensionAiBrand                DimensionValuesDimension = "ai_brand"
+	DimensionValuesDimensionAiChannel              DimensionValuesDimension = "ai_channel"
+	DimensionValuesDimensionAiLifecycle            DimensionValuesDimension = "ai_lifecycle"
+	DimensionValuesDimensionAiTokenType            DimensionValuesDimension = "ai_token_type"
+	DimensionValuesDimensionServiceCategory        DimensionValuesDimension = "service_category"
+	DimensionValuesDimensionAiLine                 DimensionValuesDimension = "ai_line"
+	DimensionValuesDimensionMarketplaceLine        DimensionValuesDimension = "marketplace_line"
+	DimensionValuesDimensionTaggableLine           DimensionValuesDimension = "taggable_line"
+	DimensionValuesDimensionProviderName           DimensionValuesDimension = "provider_name"
+	DimensionValuesDimensionCurrency               DimensionValuesDimension = "currency"
+	DimensionValuesDimensionPublisher              DimensionValuesDimension = "publisher"
+	DimensionValuesDimensionChargeCategory         DimensionValuesDimension = "charge_category"
+	DimensionValuesDimensionPricingCategory        DimensionValuesDimension = "pricing_category"
+	DimensionValuesDimensionCommitmentDiscountType DimensionValuesDimension = "commitment_discount_type"
 )
 
 func NewDimensionValuesDimensionFromString(s string) (DimensionValuesDimension, error) {
@@ -2150,6 +3400,8 @@ func NewDimensionValuesDimensionFromString(s string) (DimensionValuesDimension, 
 		return DimensionValuesDimensionAccount, nil
 	case "billing_account":
 		return DimensionValuesDimensionBillingAccount, nil
+	case "provider":
+		return DimensionValuesDimensionProvider, nil
 	case "region":
 		return DimensionValuesDimensionRegion, nil
 	case "service":
@@ -2158,20 +3410,64 @@ func NewDimensionValuesDimensionFromString(s string) (DimensionValuesDimension, 
 		return DimensionValuesDimensionCategory, nil
 	case "subcategory":
 		return DimensionValuesDimensionSubcategory, nil
+	case "sku":
+		return DimensionValuesDimensionSku, nil
 	case "usage_unit":
 		return DimensionValuesDimensionUsageUnit, nil
 	case "resource":
 		return DimensionValuesDimensionResource, nil
+	case "person":
+		return DimensionValuesDimensionPerson, nil
 	case "charge_type":
 		return DimensionValuesDimensionChargeType, nil
 	case "marketplace":
 		return DimensionValuesDimensionMarketplace, nil
+	case "cluster":
+		return DimensionValuesDimensionCluster, nil
+	case "namespace":
+		return DimensionValuesDimensionNamespace, nil
+	case "workload":
+		return DimensionValuesDimensionWorkload, nil
 	case "tag":
 		return DimensionValuesDimensionTag, nil
 	case "tagged":
 		return DimensionValuesDimensionTagged, nil
 	case "virtual_tag":
 		return DimensionValuesDimensionVirtualTag, nil
+	case "account_name":
+		return DimensionValuesDimensionAccountName, nil
+	case "ai_model":
+		return DimensionValuesDimensionAiModel, nil
+	case "ai_family":
+		return DimensionValuesDimensionAiFamily, nil
+	case "ai_brand":
+		return DimensionValuesDimensionAiBrand, nil
+	case "ai_channel":
+		return DimensionValuesDimensionAiChannel, nil
+	case "ai_lifecycle":
+		return DimensionValuesDimensionAiLifecycle, nil
+	case "ai_token_type":
+		return DimensionValuesDimensionAiTokenType, nil
+	case "service_category":
+		return DimensionValuesDimensionServiceCategory, nil
+	case "ai_line":
+		return DimensionValuesDimensionAiLine, nil
+	case "marketplace_line":
+		return DimensionValuesDimensionMarketplaceLine, nil
+	case "taggable_line":
+		return DimensionValuesDimensionTaggableLine, nil
+	case "provider_name":
+		return DimensionValuesDimensionProviderName, nil
+	case "currency":
+		return DimensionValuesDimensionCurrency, nil
+	case "publisher":
+		return DimensionValuesDimensionPublisher, nil
+	case "charge_category":
+		return DimensionValuesDimensionChargeCategory, nil
+	case "pricing_category":
+		return DimensionValuesDimensionPricingCategory, nil
+	case "commitment_discount_type":
+		return DimensionValuesDimensionCommitmentDiscountType, nil
 	}
 	var t DimensionValuesDimension
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -2303,6 +3599,90 @@ func (d *DimensionValuesResponse) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", d)
+}
+
+var (
+	keyAssignFieldSource = big.NewInt(1 << 0)
+)
+
+type KeyAssign struct {
+	Source *SourceKey `json:"source" url:"source"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (k *KeyAssign) GetSource() *SourceKey {
+	if k == nil {
+		return nil
+	}
+	return k.Source
+}
+
+func (k *KeyAssign) GetExtraProperties() map[string]interface{} {
+	if k == nil {
+		return nil
+	}
+	return k.extraProperties
+}
+
+func (k *KeyAssign) require(field *big.Int) {
+	if k.explicitFields == nil {
+		k.explicitFields = big.NewInt(0)
+	}
+	k.explicitFields.Or(k.explicitFields, field)
+}
+
+// SetSource sets the Source field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KeyAssign) SetSource(source *SourceKey) {
+	k.Source = source
+	k.require(keyAssignFieldSource)
+}
+
+func (k *KeyAssign) UnmarshalJSON(data []byte) error {
+	type unmarshaler KeyAssign
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*k = KeyAssign(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *k)
+	if err != nil {
+		return err
+	}
+	k.extraProperties = extraProperties
+	k.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (k *KeyAssign) MarshalJSON() ([]byte, error) {
+	type embed KeyAssign
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*k),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, k.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (k *KeyAssign) String() string {
+	if k == nil {
+		return "<nil>"
+	}
+	if len(k.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(k); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", k)
 }
 
 var (
@@ -2470,10 +3850,13 @@ func (p *Pagination) String() string {
 }
 
 var (
-	percentAssignFieldSplits = big.NewInt(1 << 0)
+	percentAssignFieldEven   = big.NewInt(1 << 0)
+	percentAssignFieldSplits = big.NewInt(1 << 1)
 )
 
 type PercentAssign struct {
+	// Share equally across the values, whatever their pct.
+	Even   *bool    `json:"even,omitempty" url:"even,omitempty"`
 	Splits []*Split `json:"splits,omitempty" url:"splits,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
@@ -2481,6 +3864,13 @@ type PercentAssign struct {
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
+}
+
+func (p *PercentAssign) GetEven() *bool {
+	if p == nil {
+		return nil
+	}
+	return p.Even
 }
 
 func (p *PercentAssign) GetSplits() []*Split {
@@ -2502,6 +3892,13 @@ func (p *PercentAssign) require(field *big.Int) {
 		p.explicitFields = big.NewInt(0)
 	}
 	p.explicitFields.Or(p.explicitFields, field)
+}
+
+// SetEven sets the Even field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PercentAssign) SetEven(even *bool) {
+	p.Even = even
+	p.require(percentAssignFieldEven)
 }
 
 // SetSplits sets the Splits field and marks it as non-optional;
@@ -2564,13 +3961,13 @@ var (
 )
 
 type PickerResource struct {
-	ResourceID       string                 `json:"resource_id" url:"resource_id"`
-	Name             string                 `json:"name" url:"name"`
-	Type             string                 `json:"type" url:"type"`
-	Provider         PickerResourceProvider `json:"provider" url:"provider"`
-	AccountID        string                 `json:"account_id" url:"account_id"`
-	Spend            float64                `json:"spend" url:"spend"`
-	CurrentValueName *string                `json:"current_value_name,omitempty" url:"current_value_name,omitempty"`
+	ResourceID       string  `json:"resource_id" url:"resource_id"`
+	Name             string  `json:"name" url:"name"`
+	Type             string  `json:"type" url:"type"`
+	Provider         string  `json:"provider" url:"provider"`
+	AccountID        string  `json:"account_id" url:"account_id"`
+	Spend            float64 `json:"spend" url:"spend"`
+	CurrentValueName *string `json:"current_value_name,omitempty" url:"current_value_name,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -2600,7 +3997,7 @@ func (p *PickerResource) GetType() string {
 	return p.Type
 }
 
-func (p *PickerResource) GetProvider() PickerResourceProvider {
+func (p *PickerResource) GetProvider() string {
 	if p == nil {
 		return ""
 	}
@@ -2665,7 +4062,7 @@ func (p *PickerResource) SetType(type_ string) {
 
 // SetProvider sets the Provider field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (p *PickerResource) SetProvider(provider PickerResourceProvider) {
+func (p *PickerResource) SetProvider(provider string) {
 	p.Provider = provider
 	p.require(pickerResourceFieldProvider)
 }
@@ -2957,28 +4354,6 @@ func (p *PickerResourcePageResponse) String() string {
 	return fmt.Sprintf("%#v", p)
 }
 
-type PickerResourceProvider string
-
-const (
-	PickerResourceProviderAws PickerResourceProvider = "aws"
-	PickerResourceProviderGcp PickerResourceProvider = "gcp"
-)
-
-func NewPickerResourceProviderFromString(s string) (PickerResourceProvider, error) {
-	switch s {
-	case "aws":
-		return PickerResourceProviderAws, nil
-	case "gcp":
-		return PickerResourceProviderGcp, nil
-	}
-	var t PickerResourceProvider
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (p PickerResourceProvider) Ptr() *PickerResourceProvider {
-	return &p
-}
-
 var (
 	previewResponseFieldSuccess   = big.NewInt(1 << 0)
 	previewResponseFieldTimestamp = big.NewInt(1 << 1)
@@ -3104,19 +4479,25 @@ func (p *PreviewResponse) String() string {
 }
 
 var (
-	previewResultFieldWindow           = big.NewInt(1 << 0)
-	previewResultFieldTotalSpend       = big.NewInt(1 << 1)
-	previewResultFieldUnallocatedSpend = big.NewInt(1 << 2)
-	previewResultFieldShadowedSpend    = big.NewInt(1 << 3)
-	previewResultFieldValues           = big.NewInt(1 << 4)
+	previewResultFieldWindow                = big.NewInt(1 << 0)
+	previewResultFieldTotalSpend            = big.NewInt(1 << 1)
+	previewResultFieldUnallocatedSpend      = big.NewInt(1 << 2)
+	previewResultFieldTotalUsageValue       = big.NewInt(1 << 3)
+	previewResultFieldUnallocatedUsageValue = big.NewInt(1 << 4)
+	previewResultFieldShadowedSpend         = big.NewInt(1 << 5)
+	previewResultFieldValues                = big.NewInt(1 << 6)
 )
 
 type PreviewResult struct {
-	Window           *TagWindow      `json:"window" url:"window"`
-	TotalSpend       float64         `json:"total_spend" url:"total_spend"`
-	UnallocatedSpend float64         `json:"unallocated_spend" url:"unallocated_spend"`
-	ShadowedSpend    float64         `json:"shadowed_spend" url:"shadowed_spend"`
-	Values           []*PreviewValue `json:"values" url:"values"`
+	Window           *TagWindow `json:"window" url:"window"`
+	TotalSpend       float64    `json:"total_spend" url:"total_spend"`
+	UnallocatedSpend float64    `json:"unallocated_spend" url:"unallocated_spend"`
+	// Usage a connector values at list price rather than bills, such as Claude Code telemetry. It sits beside spend and is never added to it. Zero on a cloud bill.
+	TotalUsageValue *float64 `json:"total_usage_value,omitempty" url:"total_usage_value,omitempty"`
+	// Usage a connector values at list price rather than bills, such as Claude Code telemetry. It sits beside spend and is never added to it. Zero on a cloud bill.
+	UnallocatedUsageValue *float64        `json:"unallocated_usage_value,omitempty" url:"unallocated_usage_value,omitempty"`
+	ShadowedSpend         float64         `json:"shadowed_spend" url:"shadowed_spend"`
+	Values                []*PreviewValue `json:"values" url:"values"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -3144,6 +4525,20 @@ func (p *PreviewResult) GetUnallocatedSpend() float64 {
 		return 0
 	}
 	return p.UnallocatedSpend
+}
+
+func (p *PreviewResult) GetTotalUsageValue() *float64 {
+	if p == nil {
+		return nil
+	}
+	return p.TotalUsageValue
+}
+
+func (p *PreviewResult) GetUnallocatedUsageValue() *float64 {
+	if p == nil {
+		return nil
+	}
+	return p.UnallocatedUsageValue
 }
 
 func (p *PreviewResult) GetShadowedSpend() float64 {
@@ -3193,6 +4588,20 @@ func (p *PreviewResult) SetTotalSpend(totalSpend float64) {
 func (p *PreviewResult) SetUnallocatedSpend(unallocatedSpend float64) {
 	p.UnallocatedSpend = unallocatedSpend
 	p.require(previewResultFieldUnallocatedSpend)
+}
+
+// SetTotalUsageValue sets the TotalUsageValue field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PreviewResult) SetTotalUsageValue(totalUsageValue *float64) {
+	p.TotalUsageValue = totalUsageValue
+	p.require(previewResultFieldTotalUsageValue)
+}
+
+// SetUnallocatedUsageValue sets the UnallocatedUsageValue field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PreviewResult) SetUnallocatedUsageValue(unallocatedUsageValue *float64) {
+	p.UnallocatedUsageValue = unallocatedUsageValue
+	p.require(previewResultFieldUnallocatedUsageValue)
 }
 
 // SetShadowedSpend sets the ShadowedSpend field and marks it as non-optional;
@@ -3254,13 +4663,16 @@ func (p *PreviewResult) String() string {
 var (
 	previewValueFieldName            = big.NewInt(1 << 0)
 	previewValueFieldSpend           = big.NewInt(1 << 1)
-	previewValueFieldResourceCount   = big.NewInt(1 << 2)
-	previewValueFieldSampleResources = big.NewInt(1 << 3)
+	previewValueFieldUsageValue      = big.NewInt(1 << 2)
+	previewValueFieldResourceCount   = big.NewInt(1 << 3)
+	previewValueFieldSampleResources = big.NewInt(1 << 4)
 )
 
 type PreviewValue struct {
-	Name            string   `json:"name" url:"name"`
-	Spend           float64  `json:"spend" url:"spend"`
+	Name  string  `json:"name" url:"name"`
+	Spend float64 `json:"spend" url:"spend"`
+	// Usage a connector values at list price rather than bills, such as Claude Code telemetry. It sits beside spend and is never added to it. Zero on a cloud bill.
+	UsageValue      *float64 `json:"usage_value,omitempty" url:"usage_value,omitempty"`
 	ResourceCount   int      `json:"resource_count" url:"resource_count"`
 	SampleResources []string `json:"sample_resources" url:"sample_resources"`
 
@@ -3283,6 +4695,13 @@ func (p *PreviewValue) GetSpend() float64 {
 		return 0
 	}
 	return p.Spend
+}
+
+func (p *PreviewValue) GetUsageValue() *float64 {
+	if p == nil {
+		return nil
+	}
+	return p.UsageValue
 }
 
 func (p *PreviewValue) GetResourceCount() int {
@@ -3325,6 +4744,13 @@ func (p *PreviewValue) SetName(name string) {
 func (p *PreviewValue) SetSpend(spend float64) {
 	p.Spend = spend
 	p.require(previewValueFieldSpend)
+}
+
+// SetUsageValue sets the UsageValue field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PreviewValue) SetUsageValue(usageValue *float64) {
+	p.UsageValue = usageValue
+	p.require(previewValueFieldUsageValue)
 }
 
 // SetResourceCount sets the ResourceCount field and marks it as non-optional;
@@ -3384,13 +4810,879 @@ func (p *PreviewValue) String() string {
 }
 
 var (
+	relationFieldRelationID = big.NewInt(1 << 0)
+	relationFieldKeys       = big.NewInt(1 << 1)
+	relationFieldJobs       = big.NewInt(1 << 2)
+)
+
+type Relation struct {
+	RelationID string            `json:"relation_id" url:"relation_id"`
+	Keys       []*RelationKeyRef `json:"keys" url:"keys"`
+	Jobs       []*TagJob         `json:"jobs" url:"jobs"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *Relation) GetRelationID() string {
+	if r == nil {
+		return ""
+	}
+	return r.RelationID
+}
+
+func (r *Relation) GetKeys() []*RelationKeyRef {
+	if r == nil {
+		return nil
+	}
+	return r.Keys
+}
+
+func (r *Relation) GetJobs() []*TagJob {
+	if r == nil {
+		return nil
+	}
+	return r.Jobs
+}
+
+func (r *Relation) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *Relation) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetRelationID sets the RelationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *Relation) SetRelationID(relationID string) {
+	r.RelationID = relationID
+	r.require(relationFieldRelationID)
+}
+
+// SetKeys sets the Keys field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *Relation) SetKeys(keys []*RelationKeyRef) {
+	r.Keys = keys
+	r.require(relationFieldKeys)
+}
+
+// SetJobs sets the Jobs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *Relation) SetJobs(jobs []*TagJob) {
+	r.Jobs = jobs
+	r.require(relationFieldJobs)
+}
+
+func (r *Relation) UnmarshalJSON(data []byte) error {
+	type unmarshaler Relation
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = Relation(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *Relation) MarshalJSON() ([]byte, error) {
+	type embed Relation
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *Relation) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	relationCostRowFieldA          = big.NewInt(1 << 0)
+	relationCostRowFieldB          = big.NewInt(1 << 1)
+	relationCostRowFieldSpend      = big.NewInt(1 << 2)
+	relationCostRowFieldUsageValue = big.NewInt(1 << 3)
+)
+
+type RelationCostRow struct {
+	// The value of the first key named.
+	A string `json:"a" url:"a"`
+	// The value of the second key named.
+	B     string  `json:"b" url:"b"`
+	Spend float64 `json:"spend" url:"spend"`
+	// Usage a connector values at list price rather than bills, such as Claude Code telemetry. It sits beside spend and is never added to it. Zero on a cloud bill.
+	UsageValue *float64 `json:"usage_value,omitempty" url:"usage_value,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RelationCostRow) GetA() string {
+	if r == nil {
+		return ""
+	}
+	return r.A
+}
+
+func (r *RelationCostRow) GetB() string {
+	if r == nil {
+		return ""
+	}
+	return r.B
+}
+
+func (r *RelationCostRow) GetSpend() float64 {
+	if r == nil {
+		return 0
+	}
+	return r.Spend
+}
+
+func (r *RelationCostRow) GetUsageValue() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.UsageValue
+}
+
+func (r *RelationCostRow) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RelationCostRow) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetA sets the A field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationCostRow) SetA(a string) {
+	r.A = a
+	r.require(relationCostRowFieldA)
+}
+
+// SetB sets the B field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationCostRow) SetB(b string) {
+	r.B = b
+	r.require(relationCostRowFieldB)
+}
+
+// SetSpend sets the Spend field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationCostRow) SetSpend(spend float64) {
+	r.Spend = spend
+	r.require(relationCostRowFieldSpend)
+}
+
+// SetUsageValue sets the UsageValue field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationCostRow) SetUsageValue(usageValue *float64) {
+	r.UsageValue = usageValue
+	r.require(relationCostRowFieldUsageValue)
+}
+
+func (r *RelationCostRow) UnmarshalJSON(data []byte) error {
+	type unmarshaler RelationCostRow
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = RelationCostRow(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RelationCostRow) MarshalJSON() ([]byte, error) {
+	type embed RelationCostRow
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RelationCostRow) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	relationCostsFieldRelationID = big.NewInt(1 << 0)
+	relationCostsFieldKeys       = big.NewInt(1 << 1)
+	relationCostsFieldRows       = big.NewInt(1 << 2)
+	relationCostsFieldWindow     = big.NewInt(1 << 3)
+)
+
+type RelationCosts struct {
+	RelationID string `json:"relation_id" url:"relation_id"`
+	// The two keys read, in the order a and b hold them.
+	Keys   []string           `json:"keys" url:"keys"`
+	Rows   []*RelationCostRow `json:"rows" url:"rows"`
+	Window *TagWindow         `json:"window" url:"window"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RelationCosts) GetRelationID() string {
+	if r == nil {
+		return ""
+	}
+	return r.RelationID
+}
+
+func (r *RelationCosts) GetKeys() []string {
+	if r == nil {
+		return nil
+	}
+	return r.Keys
+}
+
+func (r *RelationCosts) GetRows() []*RelationCostRow {
+	if r == nil {
+		return nil
+	}
+	return r.Rows
+}
+
+func (r *RelationCosts) GetWindow() *TagWindow {
+	if r == nil {
+		return nil
+	}
+	return r.Window
+}
+
+func (r *RelationCosts) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RelationCosts) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetRelationID sets the RelationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationCosts) SetRelationID(relationID string) {
+	r.RelationID = relationID
+	r.require(relationCostsFieldRelationID)
+}
+
+// SetKeys sets the Keys field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationCosts) SetKeys(keys []string) {
+	r.Keys = keys
+	r.require(relationCostsFieldKeys)
+}
+
+// SetRows sets the Rows field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationCosts) SetRows(rows []*RelationCostRow) {
+	r.Rows = rows
+	r.require(relationCostsFieldRows)
+}
+
+// SetWindow sets the Window field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationCosts) SetWindow(window *TagWindow) {
+	r.Window = window
+	r.require(relationCostsFieldWindow)
+}
+
+func (r *RelationCosts) UnmarshalJSON(data []byte) error {
+	type unmarshaler RelationCosts
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = RelationCosts(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RelationCosts) MarshalJSON() ([]byte, error) {
+	type embed RelationCosts
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RelationCosts) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	relationCostsResponseFieldSuccess   = big.NewInt(1 << 0)
+	relationCostsResponseFieldTimestamp = big.NewInt(1 << 1)
+	relationCostsResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type RelationCostsResponse struct {
+	Success   *bool          `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time     `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *RelationCosts `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RelationCostsResponse) GetSuccess() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.Success
+}
+
+func (r *RelationCostsResponse) GetTimestamp() *time.Time {
+	if r == nil {
+		return nil
+	}
+	return r.Timestamp
+}
+
+func (r *RelationCostsResponse) GetData() *RelationCosts {
+	if r == nil {
+		return nil
+	}
+	return r.Data
+}
+
+func (r *RelationCostsResponse) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RelationCostsResponse) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationCostsResponse) SetSuccess(success *bool) {
+	r.Success = success
+	r.require(relationCostsResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationCostsResponse) SetTimestamp(timestamp *time.Time) {
+	r.Timestamp = timestamp
+	r.require(relationCostsResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationCostsResponse) SetData(data *RelationCosts) {
+	r.Data = data
+	r.require(relationCostsResponseFieldData)
+}
+
+func (r *RelationCostsResponse) UnmarshalJSON(data []byte) error {
+	type embed RelationCostsResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*r),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*r = RelationCostsResponse(unmarshaler.embed)
+	r.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RelationCostsResponse) MarshalJSON() ([]byte, error) {
+	type embed RelationCostsResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*r),
+		Timestamp: internal.NewOptionalDateTime(r.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RelationCostsResponse) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	relationKeyInputFieldName            = big.NewInt(1 << 0)
+	relationKeyInputFieldDimension       = big.NewInt(1 << 1)
+	relationKeyInputFieldDescription     = big.NewInt(1 << 2)
+	relationKeyInputFieldUnallocatedName = big.NewInt(1 << 3)
+)
+
+type RelationKeyInput struct {
+	// The tag this dataset dimension becomes.
+	Name string `json:"name" url:"name"`
+	// The dataset dimension whose values the tag takes.
+	Dimension       string  `json:"dimension" url:"dimension"`
+	Description     *string `json:"description,omitempty" url:"description,omitempty"`
+	UnallocatedName *string `json:"unallocated_name,omitempty" url:"unallocated_name,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RelationKeyInput) GetName() string {
+	if r == nil {
+		return ""
+	}
+	return r.Name
+}
+
+func (r *RelationKeyInput) GetDimension() string {
+	if r == nil {
+		return ""
+	}
+	return r.Dimension
+}
+
+func (r *RelationKeyInput) GetDescription() *string {
+	if r == nil {
+		return nil
+	}
+	return r.Description
+}
+
+func (r *RelationKeyInput) GetUnallocatedName() *string {
+	if r == nil {
+		return nil
+	}
+	return r.UnallocatedName
+}
+
+func (r *RelationKeyInput) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RelationKeyInput) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationKeyInput) SetName(name string) {
+	r.Name = name
+	r.require(relationKeyInputFieldName)
+}
+
+// SetDimension sets the Dimension field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationKeyInput) SetDimension(dimension string) {
+	r.Dimension = dimension
+	r.require(relationKeyInputFieldDimension)
+}
+
+// SetDescription sets the Description field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationKeyInput) SetDescription(description *string) {
+	r.Description = description
+	r.require(relationKeyInputFieldDescription)
+}
+
+// SetUnallocatedName sets the UnallocatedName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationKeyInput) SetUnallocatedName(unallocatedName *string) {
+	r.UnallocatedName = unallocatedName
+	r.require(relationKeyInputFieldUnallocatedName)
+}
+
+func (r *RelationKeyInput) UnmarshalJSON(data []byte) error {
+	type unmarshaler RelationKeyInput
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = RelationKeyInput(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RelationKeyInput) MarshalJSON() ([]byte, error) {
+	type embed RelationKeyInput
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RelationKeyInput) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	relationKeyRefFieldID   = big.NewInt(1 << 0)
+	relationKeyRefFieldName = big.NewInt(1 << 1)
+)
+
+type RelationKeyRef struct {
+	ID   string `json:"id" url:"id"`
+	Name string `json:"name" url:"name"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RelationKeyRef) GetID() string {
+	if r == nil {
+		return ""
+	}
+	return r.ID
+}
+
+func (r *RelationKeyRef) GetName() string {
+	if r == nil {
+		return ""
+	}
+	return r.Name
+}
+
+func (r *RelationKeyRef) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RelationKeyRef) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationKeyRef) SetID(id string) {
+	r.ID = id
+	r.require(relationKeyRefFieldID)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationKeyRef) SetName(name string) {
+	r.Name = name
+	r.require(relationKeyRefFieldName)
+}
+
+func (r *RelationKeyRef) UnmarshalJSON(data []byte) error {
+	type unmarshaler RelationKeyRef
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = RelationKeyRef(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RelationKeyRef) MarshalJSON() ([]byte, error) {
+	type embed RelationKeyRef
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RelationKeyRef) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	relationResponseFieldSuccess   = big.NewInt(1 << 0)
+	relationResponseFieldTimestamp = big.NewInt(1 << 1)
+	relationResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type RelationResponse struct {
+	Success   *bool      `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *Relation  `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RelationResponse) GetSuccess() *bool {
+	if r == nil {
+		return nil
+	}
+	return r.Success
+}
+
+func (r *RelationResponse) GetTimestamp() *time.Time {
+	if r == nil {
+		return nil
+	}
+	return r.Timestamp
+}
+
+func (r *RelationResponse) GetData() *Relation {
+	if r == nil {
+		return nil
+	}
+	return r.Data
+}
+
+func (r *RelationResponse) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RelationResponse) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationResponse) SetSuccess(success *bool) {
+	r.Success = success
+	r.require(relationResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationResponse) SetTimestamp(timestamp *time.Time) {
+	r.Timestamp = timestamp
+	r.require(relationResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RelationResponse) SetData(data *Relation) {
+	r.Data = data
+	r.require(relationResponseFieldData)
+}
+
+func (r *RelationResponse) UnmarshalJSON(data []byte) error {
+	type embed RelationResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*r),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*r = RelationResponse(unmarshaler.embed)
+	r.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RelationResponse) MarshalJSON() ([]byte, error) {
+	type embed RelationResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*r),
+		Timestamp: internal.NewOptionalDateTime(r.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RelationResponse) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
 	sourceKeyFieldOrigin = big.NewInt(1 << 0)
 	sourceKeyFieldKey    = big.NewInt(1 << 1)
 )
 
 type SourceKey struct {
 	Origin SourceKeyOrigin `json:"origin" url:"origin"`
-	// A provider key name, or a virtual key id or name.
+	// A provider key name, a virtual key id or name, or a dimension id.
 	Key string `json:"key" url:"key"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
@@ -3487,8 +5779,9 @@ func (s *SourceKey) String() string {
 type SourceKeyOrigin string
 
 const (
-	SourceKeyOriginProvider SourceKeyOrigin = "provider"
-	SourceKeyOriginVirtual  SourceKeyOrigin = "virtual"
+	SourceKeyOriginProvider  SourceKeyOrigin = "provider"
+	SourceKeyOriginVirtual   SourceKeyOrigin = "virtual"
+	SourceKeyOriginDimension SourceKeyOrigin = "dimension"
 )
 
 func NewSourceKeyOriginFromString(s string) (SourceKeyOrigin, error) {
@@ -3497,6 +5790,8 @@ func NewSourceKeyOriginFromString(s string) (SourceKeyOrigin, error) {
 		return SourceKeyOriginProvider, nil
 	case "virtual":
 		return SourceKeyOriginVirtual, nil
+	case "dimension":
+		return SourceKeyOriginDimension, nil
 	}
 	var t SourceKeyOrigin
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -3512,8 +5807,9 @@ var (
 )
 
 type Split struct {
-	Value string  `json:"value" url:"value"`
-	Pct   float64 `json:"pct" url:"pct"`
+	Value string `json:"value" url:"value"`
+	// Leave out on an even split.
+	Pct *float64 `json:"pct,omitempty" url:"pct,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -3529,9 +5825,9 @@ func (s *Split) GetValue() string {
 	return s.Value
 }
 
-func (s *Split) GetPct() float64 {
+func (s *Split) GetPct() *float64 {
 	if s == nil {
-		return 0
+		return nil
 	}
 	return s.Pct
 }
@@ -3559,7 +5855,7 @@ func (s *Split) SetValue(value string) {
 
 // SetPct sets the Pct field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (s *Split) SetPct(pct float64) {
+func (s *Split) SetPct(pct *float64) {
 	s.Pct = pct
 	s.require(splitFieldPct)
 }
@@ -3742,19 +6038,42 @@ func (t *TagCondition) String() string {
 type TagConditionDimension string
 
 const (
-	TagConditionDimensionAccount        TagConditionDimension = "account"
-	TagConditionDimensionBillingAccount TagConditionDimension = "billing_account"
-	TagConditionDimensionRegion         TagConditionDimension = "region"
-	TagConditionDimensionService        TagConditionDimension = "service"
-	TagConditionDimensionCategory       TagConditionDimension = "category"
-	TagConditionDimensionSubcategory    TagConditionDimension = "subcategory"
-	TagConditionDimensionUsageUnit      TagConditionDimension = "usage_unit"
-	TagConditionDimensionResource       TagConditionDimension = "resource"
-	TagConditionDimensionChargeType     TagConditionDimension = "charge_type"
-	TagConditionDimensionMarketplace    TagConditionDimension = "marketplace"
-	TagConditionDimensionTag            TagConditionDimension = "tag"
-	TagConditionDimensionTagged         TagConditionDimension = "tagged"
-	TagConditionDimensionVirtualTag     TagConditionDimension = "virtual_tag"
+	TagConditionDimensionAccount                TagConditionDimension = "account"
+	TagConditionDimensionBillingAccount         TagConditionDimension = "billing_account"
+	TagConditionDimensionProvider               TagConditionDimension = "provider"
+	TagConditionDimensionRegion                 TagConditionDimension = "region"
+	TagConditionDimensionService                TagConditionDimension = "service"
+	TagConditionDimensionCategory               TagConditionDimension = "category"
+	TagConditionDimensionSubcategory            TagConditionDimension = "subcategory"
+	TagConditionDimensionSku                    TagConditionDimension = "sku"
+	TagConditionDimensionUsageUnit              TagConditionDimension = "usage_unit"
+	TagConditionDimensionResource               TagConditionDimension = "resource"
+	TagConditionDimensionPerson                 TagConditionDimension = "person"
+	TagConditionDimensionChargeType             TagConditionDimension = "charge_type"
+	TagConditionDimensionMarketplace            TagConditionDimension = "marketplace"
+	TagConditionDimensionCluster                TagConditionDimension = "cluster"
+	TagConditionDimensionNamespace              TagConditionDimension = "namespace"
+	TagConditionDimensionWorkload               TagConditionDimension = "workload"
+	TagConditionDimensionTag                    TagConditionDimension = "tag"
+	TagConditionDimensionTagged                 TagConditionDimension = "tagged"
+	TagConditionDimensionVirtualTag             TagConditionDimension = "virtual_tag"
+	TagConditionDimensionAccountName            TagConditionDimension = "account_name"
+	TagConditionDimensionAiModel                TagConditionDimension = "ai_model"
+	TagConditionDimensionAiFamily               TagConditionDimension = "ai_family"
+	TagConditionDimensionAiBrand                TagConditionDimension = "ai_brand"
+	TagConditionDimensionAiChannel              TagConditionDimension = "ai_channel"
+	TagConditionDimensionAiLifecycle            TagConditionDimension = "ai_lifecycle"
+	TagConditionDimensionAiTokenType            TagConditionDimension = "ai_token_type"
+	TagConditionDimensionServiceCategory        TagConditionDimension = "service_category"
+	TagConditionDimensionAiLine                 TagConditionDimension = "ai_line"
+	TagConditionDimensionMarketplaceLine        TagConditionDimension = "marketplace_line"
+	TagConditionDimensionTaggableLine           TagConditionDimension = "taggable_line"
+	TagConditionDimensionProviderName           TagConditionDimension = "provider_name"
+	TagConditionDimensionCurrency               TagConditionDimension = "currency"
+	TagConditionDimensionPublisher              TagConditionDimension = "publisher"
+	TagConditionDimensionChargeCategory         TagConditionDimension = "charge_category"
+	TagConditionDimensionPricingCategory        TagConditionDimension = "pricing_category"
+	TagConditionDimensionCommitmentDiscountType TagConditionDimension = "commitment_discount_type"
 )
 
 func NewTagConditionDimensionFromString(s string) (TagConditionDimension, error) {
@@ -3763,6 +6082,8 @@ func NewTagConditionDimensionFromString(s string) (TagConditionDimension, error)
 		return TagConditionDimensionAccount, nil
 	case "billing_account":
 		return TagConditionDimensionBillingAccount, nil
+	case "provider":
+		return TagConditionDimensionProvider, nil
 	case "region":
 		return TagConditionDimensionRegion, nil
 	case "service":
@@ -3771,20 +6092,64 @@ func NewTagConditionDimensionFromString(s string) (TagConditionDimension, error)
 		return TagConditionDimensionCategory, nil
 	case "subcategory":
 		return TagConditionDimensionSubcategory, nil
+	case "sku":
+		return TagConditionDimensionSku, nil
 	case "usage_unit":
 		return TagConditionDimensionUsageUnit, nil
 	case "resource":
 		return TagConditionDimensionResource, nil
+	case "person":
+		return TagConditionDimensionPerson, nil
 	case "charge_type":
 		return TagConditionDimensionChargeType, nil
 	case "marketplace":
 		return TagConditionDimensionMarketplace, nil
+	case "cluster":
+		return TagConditionDimensionCluster, nil
+	case "namespace":
+		return TagConditionDimensionNamespace, nil
+	case "workload":
+		return TagConditionDimensionWorkload, nil
 	case "tag":
 		return TagConditionDimensionTag, nil
 	case "tagged":
 		return TagConditionDimensionTagged, nil
 	case "virtual_tag":
 		return TagConditionDimensionVirtualTag, nil
+	case "account_name":
+		return TagConditionDimensionAccountName, nil
+	case "ai_model":
+		return TagConditionDimensionAiModel, nil
+	case "ai_family":
+		return TagConditionDimensionAiFamily, nil
+	case "ai_brand":
+		return TagConditionDimensionAiBrand, nil
+	case "ai_channel":
+		return TagConditionDimensionAiChannel, nil
+	case "ai_lifecycle":
+		return TagConditionDimensionAiLifecycle, nil
+	case "ai_token_type":
+		return TagConditionDimensionAiTokenType, nil
+	case "service_category":
+		return TagConditionDimensionServiceCategory, nil
+	case "ai_line":
+		return TagConditionDimensionAiLine, nil
+	case "marketplace_line":
+		return TagConditionDimensionMarketplaceLine, nil
+	case "taggable_line":
+		return TagConditionDimensionTaggableLine, nil
+	case "provider_name":
+		return TagConditionDimensionProviderName, nil
+	case "currency":
+		return TagConditionDimensionCurrency, nil
+	case "publisher":
+		return TagConditionDimensionPublisher, nil
+	case "charge_category":
+		return TagConditionDimensionChargeCategory, nil
+	case "pricing_category":
+		return TagConditionDimensionPricingCategory, nil
+	case "commitment_discount_type":
+		return TagConditionDimensionCommitmentDiscountType, nil
 	}
 	var t TagConditionDimension
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -3985,7 +6350,9 @@ func (t *TagConfig) String() string {
 type TagConfigAssign struct {
 	Type      string
 	CostBased *CostBasedAssign
+	Key       *KeyAssign
 	Percent   *PercentAssign
+	Telemetry *TelemetryAssign
 	Value     *ValueAssign
 }
 
@@ -4003,11 +6370,25 @@ func (t *TagConfigAssign) GetCostBased() *CostBasedAssign {
 	return t.CostBased
 }
 
+func (t *TagConfigAssign) GetKey() *KeyAssign {
+	if t == nil {
+		return nil
+	}
+	return t.Key
+}
+
 func (t *TagConfigAssign) GetPercent() *PercentAssign {
 	if t == nil {
 		return nil
 	}
 	return t.Percent
+}
+
+func (t *TagConfigAssign) GetTelemetry() *TelemetryAssign {
+	if t == nil {
+		return nil
+	}
+	return t.Telemetry
 }
 
 func (t *TagConfigAssign) GetValue() *ValueAssign {
@@ -4035,12 +6416,24 @@ func (t *TagConfigAssign) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		t.CostBased = value
+	case "key":
+		value := new(KeyAssign)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		t.Key = value
 	case "percent":
 		value := new(PercentAssign)
 		if err := json.Unmarshal(data, &value); err != nil {
 			return err
 		}
 		t.Percent = value
+	case "telemetry":
+		value := new(TelemetryAssign)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		t.Telemetry = value
 	case "value":
 		value := new(ValueAssign)
 		if err := json.Unmarshal(data, &value); err != nil {
@@ -4058,8 +6451,14 @@ func (t TagConfigAssign) MarshalJSON() ([]byte, error) {
 	if t.CostBased != nil {
 		return internal.MarshalJSONWithExtraProperty(t.CostBased, "type", "cost_based")
 	}
+	if t.Key != nil {
+		return internal.MarshalJSONWithExtraProperty(t.Key, "type", "key")
+	}
 	if t.Percent != nil {
 		return internal.MarshalJSONWithExtraProperty(t.Percent, "type", "percent")
+	}
+	if t.Telemetry != nil {
+		return internal.MarshalJSONWithExtraProperty(t.Telemetry, "type", "telemetry")
 	}
 	if t.Value != nil {
 		return internal.MarshalJSONWithExtraProperty(t.Value, "type", "value")
@@ -4069,7 +6468,9 @@ func (t TagConfigAssign) MarshalJSON() ([]byte, error) {
 
 type TagConfigAssignVisitor interface {
 	VisitCostBased(*CostBasedAssign) error
+	VisitKey(*KeyAssign) error
 	VisitPercent(*PercentAssign) error
+	VisitTelemetry(*TelemetryAssign) error
 	VisitValue(*ValueAssign) error
 }
 
@@ -4077,8 +6478,14 @@ func (t *TagConfigAssign) Accept(visitor TagConfigAssignVisitor) error {
 	if t.CostBased != nil {
 		return visitor.VisitCostBased(t.CostBased)
 	}
+	if t.Key != nil {
+		return visitor.VisitKey(t.Key)
+	}
 	if t.Percent != nil {
 		return visitor.VisitPercent(t.Percent)
+	}
+	if t.Telemetry != nil {
+		return visitor.VisitTelemetry(t.Telemetry)
 	}
 	if t.Value != nil {
 		return visitor.VisitValue(t.Value)
@@ -4094,8 +6501,14 @@ func (t *TagConfigAssign) validate() error {
 	if t.CostBased != nil {
 		fields = append(fields, "cost_based")
 	}
+	if t.Key != nil {
+		fields = append(fields, "key")
+	}
 	if t.Percent != nil {
 		fields = append(fields, "percent")
+	}
+	if t.Telemetry != nil {
+		fields = append(fields, "telemetry")
 	}
 	if t.Value != nil {
 		fields = append(fields, "value")
@@ -4242,7 +6655,9 @@ func (t *TagConfigInput) String() string {
 type TagConfigInputAssign struct {
 	Type      string
 	CostBased *CostBasedAssign
+	Key       *KeyAssign
 	Percent   *PercentAssign
+	Telemetry *TelemetryAssign
 	Value     *ValueAssign
 }
 
@@ -4260,11 +6675,25 @@ func (t *TagConfigInputAssign) GetCostBased() *CostBasedAssign {
 	return t.CostBased
 }
 
+func (t *TagConfigInputAssign) GetKey() *KeyAssign {
+	if t == nil {
+		return nil
+	}
+	return t.Key
+}
+
 func (t *TagConfigInputAssign) GetPercent() *PercentAssign {
 	if t == nil {
 		return nil
 	}
 	return t.Percent
+}
+
+func (t *TagConfigInputAssign) GetTelemetry() *TelemetryAssign {
+	if t == nil {
+		return nil
+	}
+	return t.Telemetry
 }
 
 func (t *TagConfigInputAssign) GetValue() *ValueAssign {
@@ -4292,12 +6721,24 @@ func (t *TagConfigInputAssign) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		t.CostBased = value
+	case "key":
+		value := new(KeyAssign)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		t.Key = value
 	case "percent":
 		value := new(PercentAssign)
 		if err := json.Unmarshal(data, &value); err != nil {
 			return err
 		}
 		t.Percent = value
+	case "telemetry":
+		value := new(TelemetryAssign)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		t.Telemetry = value
 	case "value":
 		value := new(ValueAssign)
 		if err := json.Unmarshal(data, &value); err != nil {
@@ -4315,8 +6756,14 @@ func (t TagConfigInputAssign) MarshalJSON() ([]byte, error) {
 	if t.CostBased != nil {
 		return internal.MarshalJSONWithExtraProperty(t.CostBased, "type", "cost_based")
 	}
+	if t.Key != nil {
+		return internal.MarshalJSONWithExtraProperty(t.Key, "type", "key")
+	}
 	if t.Percent != nil {
 		return internal.MarshalJSONWithExtraProperty(t.Percent, "type", "percent")
+	}
+	if t.Telemetry != nil {
+		return internal.MarshalJSONWithExtraProperty(t.Telemetry, "type", "telemetry")
 	}
 	if t.Value != nil {
 		return internal.MarshalJSONWithExtraProperty(t.Value, "type", "value")
@@ -4326,7 +6773,9 @@ func (t TagConfigInputAssign) MarshalJSON() ([]byte, error) {
 
 type TagConfigInputAssignVisitor interface {
 	VisitCostBased(*CostBasedAssign) error
+	VisitKey(*KeyAssign) error
 	VisitPercent(*PercentAssign) error
+	VisitTelemetry(*TelemetryAssign) error
 	VisitValue(*ValueAssign) error
 }
 
@@ -4334,8 +6783,14 @@ func (t *TagConfigInputAssign) Accept(visitor TagConfigInputAssignVisitor) error
 	if t.CostBased != nil {
 		return visitor.VisitCostBased(t.CostBased)
 	}
+	if t.Key != nil {
+		return visitor.VisitKey(t.Key)
+	}
 	if t.Percent != nil {
 		return visitor.VisitPercent(t.Percent)
+	}
+	if t.Telemetry != nil {
+		return visitor.VisitTelemetry(t.Telemetry)
 	}
 	if t.Value != nil {
 		return visitor.VisitValue(t.Value)
@@ -4351,8 +6806,14 @@ func (t *TagConfigInputAssign) validate() error {
 	if t.CostBased != nil {
 		fields = append(fields, "cost_based")
 	}
+	if t.Key != nil {
+		fields = append(fields, "key")
+	}
 	if t.Percent != nil {
 		fields = append(fields, "percent")
+	}
+	if t.Telemetry != nil {
+		fields = append(fields, "telemetry")
 	}
 	if t.Value != nil {
 		fields = append(fields, "value")
@@ -4515,7 +6976,9 @@ func (t *TagConfigWriteRequest) String() string {
 type TagConfigWriteRequestAssign struct {
 	Type      string
 	CostBased *CostBasedAssign
+	Key       *KeyAssign
 	Percent   *PercentAssign
+	Telemetry *TelemetryAssign
 	Value     *ValueAssign
 }
 
@@ -4533,11 +6996,25 @@ func (t *TagConfigWriteRequestAssign) GetCostBased() *CostBasedAssign {
 	return t.CostBased
 }
 
+func (t *TagConfigWriteRequestAssign) GetKey() *KeyAssign {
+	if t == nil {
+		return nil
+	}
+	return t.Key
+}
+
 func (t *TagConfigWriteRequestAssign) GetPercent() *PercentAssign {
 	if t == nil {
 		return nil
 	}
 	return t.Percent
+}
+
+func (t *TagConfigWriteRequestAssign) GetTelemetry() *TelemetryAssign {
+	if t == nil {
+		return nil
+	}
+	return t.Telemetry
 }
 
 func (t *TagConfigWriteRequestAssign) GetValue() *ValueAssign {
@@ -4565,12 +7042,24 @@ func (t *TagConfigWriteRequestAssign) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		t.CostBased = value
+	case "key":
+		value := new(KeyAssign)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		t.Key = value
 	case "percent":
 		value := new(PercentAssign)
 		if err := json.Unmarshal(data, &value); err != nil {
 			return err
 		}
 		t.Percent = value
+	case "telemetry":
+		value := new(TelemetryAssign)
+		if err := json.Unmarshal(data, &value); err != nil {
+			return err
+		}
+		t.Telemetry = value
 	case "value":
 		value := new(ValueAssign)
 		if err := json.Unmarshal(data, &value); err != nil {
@@ -4588,8 +7077,14 @@ func (t TagConfigWriteRequestAssign) MarshalJSON() ([]byte, error) {
 	if t.CostBased != nil {
 		return internal.MarshalJSONWithExtraProperty(t.CostBased, "type", "cost_based")
 	}
+	if t.Key != nil {
+		return internal.MarshalJSONWithExtraProperty(t.Key, "type", "key")
+	}
 	if t.Percent != nil {
 		return internal.MarshalJSONWithExtraProperty(t.Percent, "type", "percent")
+	}
+	if t.Telemetry != nil {
+		return internal.MarshalJSONWithExtraProperty(t.Telemetry, "type", "telemetry")
 	}
 	if t.Value != nil {
 		return internal.MarshalJSONWithExtraProperty(t.Value, "type", "value")
@@ -4599,7 +7094,9 @@ func (t TagConfigWriteRequestAssign) MarshalJSON() ([]byte, error) {
 
 type TagConfigWriteRequestAssignVisitor interface {
 	VisitCostBased(*CostBasedAssign) error
+	VisitKey(*KeyAssign) error
 	VisitPercent(*PercentAssign) error
+	VisitTelemetry(*TelemetryAssign) error
 	VisitValue(*ValueAssign) error
 }
 
@@ -4607,8 +7104,14 @@ func (t *TagConfigWriteRequestAssign) Accept(visitor TagConfigWriteRequestAssign
 	if t.CostBased != nil {
 		return visitor.VisitCostBased(t.CostBased)
 	}
+	if t.Key != nil {
+		return visitor.VisitKey(t.Key)
+	}
 	if t.Percent != nil {
 		return visitor.VisitPercent(t.Percent)
+	}
+	if t.Telemetry != nil {
+		return visitor.VisitTelemetry(t.Telemetry)
 	}
 	if t.Value != nil {
 		return visitor.VisitValue(t.Value)
@@ -4624,8 +7127,14 @@ func (t *TagConfigWriteRequestAssign) validate() error {
 	if t.CostBased != nil {
 		fields = append(fields, "cost_based")
 	}
+	if t.Key != nil {
+		fields = append(fields, "key")
+	}
 	if t.Percent != nil {
 		fields = append(fields, "percent")
+	}
+	if t.Telemetry != nil {
+		fields = append(fields, "telemetry")
 	}
 	if t.Value != nil {
 		fields = append(fields, "value")
@@ -4654,15 +7163,21 @@ func (t *TagConfigWriteRequestAssign) validate() error {
 }
 
 var (
-	tagCoverageFieldWindow     = big.NewInt(1 << 0)
-	tagCoverageFieldBySpend    = big.NewInt(1 << 1)
-	tagCoverageFieldByResource = big.NewInt(1 << 2)
+	tagCoverageFieldWindow                = big.NewInt(1 << 0)
+	tagCoverageFieldUsageValue            = big.NewInt(1 << 1)
+	tagCoverageFieldUsageValueWithVirtual = big.NewInt(1 << 2)
+	tagCoverageFieldBySpend               = big.NewInt(1 << 3)
+	tagCoverageFieldByResource            = big.NewInt(1 << 4)
 )
 
 type TagCoverage struct {
-	Window     *TagWindow     `json:"window" url:"window"`
-	BySpend    *CoverageBasis `json:"by_spend" url:"by_spend"`
-	ByResource *CoverageBasis `json:"by_resource" url:"by_resource"`
+	Window *TagWindow `json:"window" url:"window"`
+	// Usage a connector values at list price rather than bills, such as Claude Code telemetry. It sits beside spend and is never added to it. Zero on a cloud bill.
+	UsageValue *float64 `json:"usage_value,omitempty" url:"usage_value,omitempty"`
+	// Usage a connector values at list price rather than bills, such as Claude Code telemetry. It sits beside spend and is never added to it. Zero on a cloud bill.
+	UsageValueWithVirtual *float64       `json:"usage_value_with_virtual,omitempty" url:"usage_value_with_virtual,omitempty"`
+	BySpend               *CoverageBasis `json:"by_spend" url:"by_spend"`
+	ByResource            *CoverageBasis `json:"by_resource" url:"by_resource"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -4676,6 +7191,20 @@ func (t *TagCoverage) GetWindow() *TagWindow {
 		return nil
 	}
 	return t.Window
+}
+
+func (t *TagCoverage) GetUsageValue() *float64 {
+	if t == nil {
+		return nil
+	}
+	return t.UsageValue
+}
+
+func (t *TagCoverage) GetUsageValueWithVirtual() *float64 {
+	if t == nil {
+		return nil
+	}
+	return t.UsageValueWithVirtual
 }
 
 func (t *TagCoverage) GetBySpend() *CoverageBasis {
@@ -4711,6 +7240,20 @@ func (t *TagCoverage) require(field *big.Int) {
 func (t *TagCoverage) SetWindow(window *TagWindow) {
 	t.Window = window
 	t.require(tagCoverageFieldWindow)
+}
+
+// SetUsageValue sets the UsageValue field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TagCoverage) SetUsageValue(usageValue *float64) {
+	t.UsageValue = usageValue
+	t.require(tagCoverageFieldUsageValue)
+}
+
+// SetUsageValueWithVirtual sets the UsageValueWithVirtual field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TagCoverage) SetUsageValueWithVirtual(usageValueWithVirtual *float64) {
+	t.UsageValueWithVirtual = usageValueWithVirtual
+	t.require(tagCoverageFieldUsageValueWithVirtual)
 }
 
 // SetBySpend sets the BySpend field and marks it as non-optional;
@@ -5357,47 +7900,59 @@ func (t TagJobStatus) Ptr() *TagJobStatus {
 }
 
 var (
-	tagKeyDetailFieldID                = big.NewInt(1 << 0)
-	tagKeyDetailFieldName              = big.NewInt(1 << 1)
-	tagKeyDetailFieldOrigin            = big.NewInt(1 << 2)
-	tagKeyDetailFieldDescription       = big.NewInt(1 << 3)
-	tagKeyDetailFieldProviders         = big.NewInt(1 << 4)
-	tagKeyDetailFieldStatus            = big.NewInt(1 << 5)
-	tagKeyDetailFieldSharesProviderKey = big.NewInt(1 << 6)
-	tagKeyDetailFieldCanOverride       = big.NewInt(1 << 7)
-	tagKeyDetailFieldEffectiveFrom     = big.NewInt(1 << 8)
-	tagKeyDetailFieldRulesVersion      = big.NewInt(1 << 9)
-	tagKeyDetailFieldCollapsedKeys     = big.NewInt(1 << 10)
-	tagKeyDetailFieldConfigs           = big.NewInt(1 << 11)
-	tagKeyDetailFieldValues            = big.NewInt(1 << 12)
-	tagKeyDetailFieldTotalSpend        = big.NewInt(1 << 13)
-	tagKeyDetailFieldUnallocatedSpend  = big.NewInt(1 << 14)
-	tagKeyDetailFieldResourceCount     = big.NewInt(1 << 15)
-	tagKeyDetailFieldDependents        = big.NewInt(1 << 16)
-	tagKeyDetailFieldJob               = big.NewInt(1 << 17)
-	tagKeyDetailFieldWindow            = big.NewInt(1 << 18)
+	tagKeyDetailFieldID                    = big.NewInt(1 << 0)
+	tagKeyDetailFieldName                  = big.NewInt(1 << 1)
+	tagKeyDetailFieldOrigin                = big.NewInt(1 << 2)
+	tagKeyDetailFieldDescription           = big.NewInt(1 << 3)
+	tagKeyDetailFieldProviders             = big.NewInt(1 << 4)
+	tagKeyDetailFieldStatus                = big.NewInt(1 << 5)
+	tagKeyDetailFieldSharesProviderKey     = big.NewInt(1 << 6)
+	tagKeyDetailFieldManaged               = big.NewInt(1 << 7)
+	tagKeyDetailFieldUnallocatedName       = big.NewInt(1 << 8)
+	tagKeyDetailFieldRelationID            = big.NewInt(1 << 9)
+	tagKeyDetailFieldCanOverride           = big.NewInt(1 << 10)
+	tagKeyDetailFieldEffectiveFrom         = big.NewInt(1 << 11)
+	tagKeyDetailFieldRulesVersion          = big.NewInt(1 << 12)
+	tagKeyDetailFieldCollapsedKeys         = big.NewInt(1 << 13)
+	tagKeyDetailFieldConfigs               = big.NewInt(1 << 14)
+	tagKeyDetailFieldValues                = big.NewInt(1 << 15)
+	tagKeyDetailFieldTotalSpend            = big.NewInt(1 << 16)
+	tagKeyDetailFieldUnallocatedSpend      = big.NewInt(1 << 17)
+	tagKeyDetailFieldTotalUsageValue       = big.NewInt(1 << 18)
+	tagKeyDetailFieldUnallocatedUsageValue = big.NewInt(1 << 19)
+	tagKeyDetailFieldResourceCount         = big.NewInt(1 << 20)
+	tagKeyDetailFieldDependents            = big.NewInt(1 << 21)
+	tagKeyDetailFieldJob                   = big.NewInt(1 << 22)
+	tagKeyDetailFieldWindow                = big.NewInt(1 << 23)
 )
 
 type TagKeyDetail struct {
-	ID                string                      `json:"id" url:"id"`
-	Name              string                      `json:"name" url:"name"`
-	Origin            TagKeyDetailOrigin          `json:"origin" url:"origin"`
-	Description       string                      `json:"description" url:"description"`
-	Providers         []TagKeyDetailProvidersItem `json:"providers" url:"providers"`
-	Status            *TagKeyDetailStatus         `json:"status,omitempty" url:"status,omitempty"`
-	SharesProviderKey *bool                       `json:"shares_provider_key,omitempty" url:"shares_provider_key,omitempty"`
-	CanOverride       *bool                       `json:"can_override,omitempty" url:"can_override,omitempty"`
-	EffectiveFrom     *string                     `json:"effective_from,omitempty" url:"effective_from,omitempty"`
-	RulesVersion      *int                        `json:"rules_version,omitempty" url:"rules_version,omitempty"`
-	CollapsedKeys     []*CollapsedKey             `json:"collapsed_keys,omitempty" url:"collapsed_keys,omitempty"`
-	Configs           []*TagConfig                `json:"configs,omitempty" url:"configs,omitempty"`
-	Values            []*TagValueSummary          `json:"values,omitempty" url:"values,omitempty"`
-	TotalSpend        float64                     `json:"total_spend" url:"total_spend"`
-	UnallocatedSpend  float64                     `json:"unallocated_spend" url:"unallocated_spend"`
-	ResourceCount     int                         `json:"resource_count" url:"resource_count"`
-	Dependents        []*TagValueRef              `json:"dependents,omitempty" url:"dependents,omitempty"`
-	Job               *TagJob                     `json:"job,omitempty" url:"job,omitempty"`
-	Window            *TagWindow                  `json:"window" url:"window"`
+	ID                string              `json:"id" url:"id"`
+	Name              string              `json:"name" url:"name"`
+	Origin            TagKeyDetailOrigin  `json:"origin" url:"origin"`
+	Description       string              `json:"description" url:"description"`
+	Providers         []string            `json:"providers" url:"providers"`
+	Status            *TagKeyDetailStatus `json:"status,omitempty" url:"status,omitempty"`
+	SharesProviderKey *bool               `json:"shares_provider_key,omitempty" url:"shares_provider_key,omitempty"`
+	Managed           *bool               `json:"managed,omitempty" url:"managed,omitempty"`
+	UnallocatedName   *string             `json:"unallocated_name,omitempty" url:"unallocated_name,omitempty"`
+	RelationID        *string             `json:"relation_id,omitempty" url:"relation_id,omitempty"`
+	CanOverride       *bool               `json:"can_override,omitempty" url:"can_override,omitempty"`
+	EffectiveFrom     *string             `json:"effective_from,omitempty" url:"effective_from,omitempty"`
+	RulesVersion      *int                `json:"rules_version,omitempty" url:"rules_version,omitempty"`
+	CollapsedKeys     []*CollapsedKey     `json:"collapsed_keys,omitempty" url:"collapsed_keys,omitempty"`
+	Configs           []*TagConfig        `json:"configs,omitempty" url:"configs,omitempty"`
+	Values            []*TagValueSummary  `json:"values,omitempty" url:"values,omitempty"`
+	TotalSpend        float64             `json:"total_spend" url:"total_spend"`
+	UnallocatedSpend  float64             `json:"unallocated_spend" url:"unallocated_spend"`
+	// Usage a connector values at list price rather than bills, such as Claude Code telemetry. It sits beside spend and is never added to it. Zero on a cloud bill.
+	TotalUsageValue *float64 `json:"total_usage_value,omitempty" url:"total_usage_value,omitempty"`
+	// Usage a connector values at list price rather than bills, such as Claude Code telemetry. It sits beside spend and is never added to it. Zero on a cloud bill.
+	UnallocatedUsageValue *float64       `json:"unallocated_usage_value,omitempty" url:"unallocated_usage_value,omitempty"`
+	ResourceCount         int            `json:"resource_count" url:"resource_count"`
+	Dependents            []*TagValueRef `json:"dependents,omitempty" url:"dependents,omitempty"`
+	Job                   *TagJob        `json:"job,omitempty" url:"job,omitempty"`
+	Window                *TagWindow     `json:"window" url:"window"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -5434,7 +7989,7 @@ func (t *TagKeyDetail) GetDescription() string {
 	return t.Description
 }
 
-func (t *TagKeyDetail) GetProviders() []TagKeyDetailProvidersItem {
+func (t *TagKeyDetail) GetProviders() []string {
 	if t == nil {
 		return nil
 	}
@@ -5453,6 +8008,27 @@ func (t *TagKeyDetail) GetSharesProviderKey() *bool {
 		return nil
 	}
 	return t.SharesProviderKey
+}
+
+func (t *TagKeyDetail) GetManaged() *bool {
+	if t == nil {
+		return nil
+	}
+	return t.Managed
+}
+
+func (t *TagKeyDetail) GetUnallocatedName() *string {
+	if t == nil {
+		return nil
+	}
+	return t.UnallocatedName
+}
+
+func (t *TagKeyDetail) GetRelationID() *string {
+	if t == nil {
+		return nil
+	}
+	return t.RelationID
 }
 
 func (t *TagKeyDetail) GetCanOverride() *bool {
@@ -5509,6 +8085,20 @@ func (t *TagKeyDetail) GetUnallocatedSpend() float64 {
 		return 0
 	}
 	return t.UnallocatedSpend
+}
+
+func (t *TagKeyDetail) GetTotalUsageValue() *float64 {
+	if t == nil {
+		return nil
+	}
+	return t.TotalUsageValue
+}
+
+func (t *TagKeyDetail) GetUnallocatedUsageValue() *float64 {
+	if t == nil {
+		return nil
+	}
+	return t.UnallocatedUsageValue
 }
 
 func (t *TagKeyDetail) GetResourceCount() int {
@@ -5583,7 +8173,7 @@ func (t *TagKeyDetail) SetDescription(description string) {
 
 // SetProviders sets the Providers field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (t *TagKeyDetail) SetProviders(providers []TagKeyDetailProvidersItem) {
+func (t *TagKeyDetail) SetProviders(providers []string) {
 	t.Providers = providers
 	t.require(tagKeyDetailFieldProviders)
 }
@@ -5600,6 +8190,27 @@ func (t *TagKeyDetail) SetStatus(status *TagKeyDetailStatus) {
 func (t *TagKeyDetail) SetSharesProviderKey(sharesProviderKey *bool) {
 	t.SharesProviderKey = sharesProviderKey
 	t.require(tagKeyDetailFieldSharesProviderKey)
+}
+
+// SetManaged sets the Managed field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TagKeyDetail) SetManaged(managed *bool) {
+	t.Managed = managed
+	t.require(tagKeyDetailFieldManaged)
+}
+
+// SetUnallocatedName sets the UnallocatedName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TagKeyDetail) SetUnallocatedName(unallocatedName *string) {
+	t.UnallocatedName = unallocatedName
+	t.require(tagKeyDetailFieldUnallocatedName)
+}
+
+// SetRelationID sets the RelationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TagKeyDetail) SetRelationID(relationID *string) {
+	t.RelationID = relationID
+	t.require(tagKeyDetailFieldRelationID)
 }
 
 // SetCanOverride sets the CanOverride field and marks it as non-optional;
@@ -5656,6 +8267,20 @@ func (t *TagKeyDetail) SetTotalSpend(totalSpend float64) {
 func (t *TagKeyDetail) SetUnallocatedSpend(unallocatedSpend float64) {
 	t.UnallocatedSpend = unallocatedSpend
 	t.require(tagKeyDetailFieldUnallocatedSpend)
+}
+
+// SetTotalUsageValue sets the TotalUsageValue field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TagKeyDetail) SetTotalUsageValue(totalUsageValue *float64) {
+	t.TotalUsageValue = totalUsageValue
+	t.require(tagKeyDetailFieldTotalUsageValue)
+}
+
+// SetUnallocatedUsageValue sets the UnallocatedUsageValue field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TagKeyDetail) SetUnallocatedUsageValue(unallocatedUsageValue *float64) {
+	t.UnallocatedUsageValue = unallocatedUsageValue
+	t.require(tagKeyDetailFieldUnallocatedUsageValue)
 }
 
 // SetResourceCount sets the ResourceCount field and marks it as non-optional;
@@ -5747,28 +8372,6 @@ func NewTagKeyDetailOriginFromString(s string) (TagKeyDetailOrigin, error) {
 }
 
 func (t TagKeyDetailOrigin) Ptr() *TagKeyDetailOrigin {
-	return &t
-}
-
-type TagKeyDetailProvidersItem string
-
-const (
-	TagKeyDetailProvidersItemAws TagKeyDetailProvidersItem = "aws"
-	TagKeyDetailProvidersItemGcp TagKeyDetailProvidersItem = "gcp"
-)
-
-func NewTagKeyDetailProvidersItemFromString(s string) (TagKeyDetailProvidersItem, error) {
-	switch s {
-	case "aws":
-		return TagKeyDetailProvidersItemAws, nil
-	case "gcp":
-		return TagKeyDetailProvidersItemGcp, nil
-	}
-	var t TagKeyDetailProvidersItem
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (t TagKeyDetailProvidersItem) Ptr() *TagKeyDetailProvidersItem {
 	return &t
 }
 
@@ -6278,25 +8881,34 @@ var (
 	tagKeyRowFieldValueCount        = big.NewInt(1 << 5)
 	tagKeyRowFieldResourceCount     = big.NewInt(1 << 6)
 	tagKeyRowFieldSpend             = big.NewInt(1 << 7)
-	tagKeyRowFieldSpendSharePct     = big.NewInt(1 << 8)
-	tagKeyRowFieldStatus            = big.NewInt(1 << 9)
-	tagKeyRowFieldSharesProviderKey = big.NewInt(1 << 10)
-	tagKeyRowFieldValues            = big.NewInt(1 << 11)
+	tagKeyRowFieldUsageValue        = big.NewInt(1 << 8)
+	tagKeyRowFieldSpendSharePct     = big.NewInt(1 << 9)
+	tagKeyRowFieldStatus            = big.NewInt(1 << 10)
+	tagKeyRowFieldSharesProviderKey = big.NewInt(1 << 11)
+	tagKeyRowFieldManaged           = big.NewInt(1 << 12)
+	tagKeyRowFieldUnallocatedName   = big.NewInt(1 << 13)
+	tagKeyRowFieldRelationID        = big.NewInt(1 << 14)
+	tagKeyRowFieldValues            = big.NewInt(1 << 15)
 )
 
 type TagKeyRow struct {
-	ID                string                   `json:"id" url:"id"`
-	Name              string                   `json:"name" url:"name"`
-	Origin            TagKeyRowOrigin          `json:"origin" url:"origin"`
-	Description       string                   `json:"description" url:"description"`
-	Providers         []TagKeyRowProvidersItem `json:"providers" url:"providers"`
-	ValueCount        int                      `json:"value_count" url:"value_count"`
-	ResourceCount     int                      `json:"resource_count" url:"resource_count"`
-	Spend             float64                  `json:"spend" url:"spend"`
-	SpendSharePct     float64                  `json:"spend_share_pct" url:"spend_share_pct"`
-	Status            *TagKeyRowStatus         `json:"status,omitempty" url:"status,omitempty"`
-	SharesProviderKey *bool                    `json:"shares_provider_key,omitempty" url:"shares_provider_key,omitempty"`
-	Values            []*TagValueRef           `json:"values,omitempty" url:"values,omitempty"`
+	ID            string          `json:"id" url:"id"`
+	Name          string          `json:"name" url:"name"`
+	Origin        TagKeyRowOrigin `json:"origin" url:"origin"`
+	Description   string          `json:"description" url:"description"`
+	Providers     []string        `json:"providers" url:"providers"`
+	ValueCount    int             `json:"value_count" url:"value_count"`
+	ResourceCount int             `json:"resource_count" url:"resource_count"`
+	Spend         float64         `json:"spend" url:"spend"`
+	// Usage a connector values at list price rather than bills, such as Claude Code telemetry. It sits beside spend and is never added to it. Zero on a cloud bill.
+	UsageValue        *float64         `json:"usage_value,omitempty" url:"usage_value,omitempty"`
+	SpendSharePct     float64          `json:"spend_share_pct" url:"spend_share_pct"`
+	Status            *TagKeyRowStatus `json:"status,omitempty" url:"status,omitempty"`
+	SharesProviderKey *bool            `json:"shares_provider_key,omitempty" url:"shares_provider_key,omitempty"`
+	Managed           *bool            `json:"managed,omitempty" url:"managed,omitempty"`
+	UnallocatedName   *string          `json:"unallocated_name,omitempty" url:"unallocated_name,omitempty"`
+	RelationID        *string          `json:"relation_id,omitempty" url:"relation_id,omitempty"`
+	Values            []*TagValueRef   `json:"values,omitempty" url:"values,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -6333,7 +8945,7 @@ func (t *TagKeyRow) GetDescription() string {
 	return t.Description
 }
 
-func (t *TagKeyRow) GetProviders() []TagKeyRowProvidersItem {
+func (t *TagKeyRow) GetProviders() []string {
 	if t == nil {
 		return nil
 	}
@@ -6361,6 +8973,13 @@ func (t *TagKeyRow) GetSpend() float64 {
 	return t.Spend
 }
 
+func (t *TagKeyRow) GetUsageValue() *float64 {
+	if t == nil {
+		return nil
+	}
+	return t.UsageValue
+}
+
 func (t *TagKeyRow) GetSpendSharePct() float64 {
 	if t == nil {
 		return 0
@@ -6380,6 +8999,27 @@ func (t *TagKeyRow) GetSharesProviderKey() *bool {
 		return nil
 	}
 	return t.SharesProviderKey
+}
+
+func (t *TagKeyRow) GetManaged() *bool {
+	if t == nil {
+		return nil
+	}
+	return t.Managed
+}
+
+func (t *TagKeyRow) GetUnallocatedName() *string {
+	if t == nil {
+		return nil
+	}
+	return t.UnallocatedName
+}
+
+func (t *TagKeyRow) GetRelationID() *string {
+	if t == nil {
+		return nil
+	}
+	return t.RelationID
 }
 
 func (t *TagKeyRow) GetValues() []*TagValueRef {
@@ -6433,7 +9073,7 @@ func (t *TagKeyRow) SetDescription(description string) {
 
 // SetProviders sets the Providers field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (t *TagKeyRow) SetProviders(providers []TagKeyRowProvidersItem) {
+func (t *TagKeyRow) SetProviders(providers []string) {
 	t.Providers = providers
 	t.require(tagKeyRowFieldProviders)
 }
@@ -6459,6 +9099,13 @@ func (t *TagKeyRow) SetSpend(spend float64) {
 	t.require(tagKeyRowFieldSpend)
 }
 
+// SetUsageValue sets the UsageValue field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TagKeyRow) SetUsageValue(usageValue *float64) {
+	t.UsageValue = usageValue
+	t.require(tagKeyRowFieldUsageValue)
+}
+
 // SetSpendSharePct sets the SpendSharePct field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (t *TagKeyRow) SetSpendSharePct(spendSharePct float64) {
@@ -6478,6 +9125,27 @@ func (t *TagKeyRow) SetStatus(status *TagKeyRowStatus) {
 func (t *TagKeyRow) SetSharesProviderKey(sharesProviderKey *bool) {
 	t.SharesProviderKey = sharesProviderKey
 	t.require(tagKeyRowFieldSharesProviderKey)
+}
+
+// SetManaged sets the Managed field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TagKeyRow) SetManaged(managed *bool) {
+	t.Managed = managed
+	t.require(tagKeyRowFieldManaged)
+}
+
+// SetUnallocatedName sets the UnallocatedName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TagKeyRow) SetUnallocatedName(unallocatedName *string) {
+	t.UnallocatedName = unallocatedName
+	t.require(tagKeyRowFieldUnallocatedName)
+}
+
+// SetRelationID sets the RelationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TagKeyRow) SetRelationID(relationID *string) {
+	t.RelationID = relationID
+	t.require(tagKeyRowFieldRelationID)
 }
 
 // SetValues sets the Values field and marks it as non-optional;
@@ -6548,28 +9216,6 @@ func NewTagKeyRowOriginFromString(s string) (TagKeyRowOrigin, error) {
 }
 
 func (t TagKeyRowOrigin) Ptr() *TagKeyRowOrigin {
-	return &t
-}
-
-type TagKeyRowProvidersItem string
-
-const (
-	TagKeyRowProvidersItemAws TagKeyRowProvidersItem = "aws"
-	TagKeyRowProvidersItemGcp TagKeyRowProvidersItem = "gcp"
-)
-
-func NewTagKeyRowProvidersItemFromString(s string) (TagKeyRowProvidersItem, error) {
-	switch s {
-	case "aws":
-		return TagKeyRowProvidersItemAws, nil
-	case "gcp":
-		return TagKeyRowProvidersItemGcp, nil
-	}
-	var t TagKeyRowProvidersItem
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (t TagKeyRowProvidersItem) Ptr() *TagKeyRowProvidersItem {
 	return &t
 }
 
@@ -6833,19 +9479,22 @@ var (
 	tagResourceRowFieldValueSource = big.NewInt(1 << 7)
 	tagResourceRowFieldRatio       = big.NewInt(1 << 8)
 	tagResourceRowFieldSpend       = big.NewInt(1 << 9)
+	tagResourceRowFieldUsageValue  = big.NewInt(1 << 10)
 )
 
 type TagResourceRow struct {
 	ResourceID  string                     `json:"resource_id" url:"resource_id"`
 	Name        string                     `json:"name" url:"name"`
 	Type        string                     `json:"type" url:"type"`
-	Provider    TagResourceRowProvider     `json:"provider" url:"provider"`
+	Provider    string                     `json:"provider" url:"provider"`
 	AccountID   string                     `json:"account_id" url:"account_id"`
 	ValueID     *string                    `json:"value_id,omitempty" url:"value_id,omitempty"`
 	ValueName   *string                    `json:"value_name,omitempty" url:"value_name,omitempty"`
 	ValueSource *TagResourceRowValueSource `json:"value_source,omitempty" url:"value_source,omitempty"`
 	Ratio       *float64                   `json:"ratio,omitempty" url:"ratio,omitempty"`
 	Spend       float64                    `json:"spend" url:"spend"`
+	// Usage a connector values at list price rather than bills, such as Claude Code telemetry. It sits beside spend and is never added to it. Zero on a cloud bill.
+	UsageValue *float64 `json:"usage_value,omitempty" url:"usage_value,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -6875,7 +9524,7 @@ func (t *TagResourceRow) GetType() string {
 	return t.Type
 }
 
-func (t *TagResourceRow) GetProvider() TagResourceRowProvider {
+func (t *TagResourceRow) GetProvider() string {
 	if t == nil {
 		return ""
 	}
@@ -6924,6 +9573,13 @@ func (t *TagResourceRow) GetSpend() float64 {
 	return t.Spend
 }
 
+func (t *TagResourceRow) GetUsageValue() *float64 {
+	if t == nil {
+		return nil
+	}
+	return t.UsageValue
+}
+
 func (t *TagResourceRow) GetExtraProperties() map[string]interface{} {
 	if t == nil {
 		return nil
@@ -6961,7 +9617,7 @@ func (t *TagResourceRow) SetType(type_ string) {
 
 // SetProvider sets the Provider field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (t *TagResourceRow) SetProvider(provider TagResourceRowProvider) {
+func (t *TagResourceRow) SetProvider(provider string) {
 	t.Provider = provider
 	t.require(tagResourceRowFieldProvider)
 }
@@ -7008,6 +9664,13 @@ func (t *TagResourceRow) SetSpend(spend float64) {
 	t.require(tagResourceRowFieldSpend)
 }
 
+// SetUsageValue sets the UsageValue field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TagResourceRow) SetUsageValue(usageValue *float64) {
+	t.UsageValue = usageValue
+	t.require(tagResourceRowFieldUsageValue)
+}
+
 func (t *TagResourceRow) UnmarshalJSON(data []byte) error {
 	type unmarshaler TagResourceRow
 	var value unmarshaler
@@ -7050,28 +9713,6 @@ func (t *TagResourceRow) String() string {
 	return fmt.Sprintf("%#v", t)
 }
 
-type TagResourceRowProvider string
-
-const (
-	TagResourceRowProviderAws TagResourceRowProvider = "aws"
-	TagResourceRowProviderGcp TagResourceRowProvider = "gcp"
-)
-
-func NewTagResourceRowProviderFromString(s string) (TagResourceRowProvider, error) {
-	switch s {
-	case "aws":
-		return TagResourceRowProviderAws, nil
-	case "gcp":
-		return TagResourceRowProviderGcp, nil
-	}
-	var t TagResourceRowProvider
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (t TagResourceRowProvider) Ptr() *TagResourceRowProvider {
-	return &t
-}
-
 type TagResourceRowValueSource string
 
 const (
@@ -7106,8 +9747,8 @@ var (
 )
 
 type TagRule struct {
-	Providers  []TagRuleProvidersItem `json:"providers,omitempty" url:"providers,omitempty"`
-	Conditions []*TagCondition        `json:"conditions,omitempty" url:"conditions,omitempty"`
+	Providers  []string        `json:"providers,omitempty" url:"providers,omitempty"`
+	Conditions []*TagCondition `json:"conditions,omitempty" url:"conditions,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -7116,7 +9757,7 @@ type TagRule struct {
 	rawJSON         json.RawMessage
 }
 
-func (t *TagRule) GetProviders() []TagRuleProvidersItem {
+func (t *TagRule) GetProviders() []string {
 	if t == nil {
 		return nil
 	}
@@ -7146,7 +9787,7 @@ func (t *TagRule) require(field *big.Int) {
 
 // SetProviders sets the Providers field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (t *TagRule) SetProviders(providers []TagRuleProvidersItem) {
+func (t *TagRule) SetProviders(providers []string) {
 	t.Providers = providers
 	t.require(tagRuleFieldProviders)
 }
@@ -7200,34 +9841,12 @@ func (t *TagRule) String() string {
 	return fmt.Sprintf("%#v", t)
 }
 
-type TagRuleProvidersItem string
-
-const (
-	TagRuleProvidersItemAws TagRuleProvidersItem = "aws"
-	TagRuleProvidersItemGcp TagRuleProvidersItem = "gcp"
-)
-
-func NewTagRuleProvidersItemFromString(s string) (TagRuleProvidersItem, error) {
-	switch s {
-	case "aws":
-		return TagRuleProvidersItemAws, nil
-	case "gcp":
-		return TagRuleProvidersItemGcp, nil
-	}
-	var t TagRuleProvidersItem
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (t TagRuleProvidersItem) Ptr() *TagRuleProvidersItem {
-	return &t
-}
-
 var (
 	tagScopeFieldProviders = big.NewInt(1 << 0)
 )
 
 type TagScope struct {
-	Providers []TagScopeProvidersItem `json:"providers,omitempty" url:"providers,omitempty"`
+	Providers []string `json:"providers,omitempty" url:"providers,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -7236,7 +9855,7 @@ type TagScope struct {
 	rawJSON         json.RawMessage
 }
 
-func (t *TagScope) GetProviders() []TagScopeProvidersItem {
+func (t *TagScope) GetProviders() []string {
 	if t == nil {
 		return nil
 	}
@@ -7259,7 +9878,7 @@ func (t *TagScope) require(field *big.Int) {
 
 // SetProviders sets the Providers field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (t *TagScope) SetProviders(providers []TagScopeProvidersItem) {
+func (t *TagScope) SetProviders(providers []string) {
 	t.Providers = providers
 	t.require(tagScopeFieldProviders)
 }
@@ -7304,28 +9923,6 @@ func (t *TagScope) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", t)
-}
-
-type TagScopeProvidersItem string
-
-const (
-	TagScopeProvidersItemAws TagScopeProvidersItem = "aws"
-	TagScopeProvidersItemGcp TagScopeProvidersItem = "gcp"
-)
-
-func NewTagScopeProvidersItemFromString(s string) (TagScopeProvidersItem, error) {
-	switch s {
-	case "aws":
-		return TagScopeProvidersItemAws, nil
-	case "gcp":
-		return TagScopeProvidersItemGcp, nil
-	}
-	var t TagScopeProvidersItem
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (t TagScopeProvidersItem) Ptr() *TagScopeProvidersItem {
-	return &t
 }
 
 var (
@@ -7432,14 +10029,17 @@ var (
 	tagValueSummaryFieldID            = big.NewInt(1 << 0)
 	tagValueSummaryFieldName          = big.NewInt(1 << 1)
 	tagValueSummaryFieldSpend         = big.NewInt(1 << 2)
-	tagValueSummaryFieldResourceCount = big.NewInt(1 << 3)
+	tagValueSummaryFieldUsageValue    = big.NewInt(1 << 3)
+	tagValueSummaryFieldResourceCount = big.NewInt(1 << 4)
 )
 
 type TagValueSummary struct {
-	ID            string  `json:"id" url:"id"`
-	Name          string  `json:"name" url:"name"`
-	Spend         float64 `json:"spend" url:"spend"`
-	ResourceCount int     `json:"resource_count" url:"resource_count"`
+	ID    string  `json:"id" url:"id"`
+	Name  string  `json:"name" url:"name"`
+	Spend float64 `json:"spend" url:"spend"`
+	// Usage a connector values at list price rather than bills, such as Claude Code telemetry. It sits beside spend and is never added to it. Zero on a cloud bill.
+	UsageValue    *float64 `json:"usage_value,omitempty" url:"usage_value,omitempty"`
+	ResourceCount int      `json:"resource_count" url:"resource_count"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -7467,6 +10067,13 @@ func (t *TagValueSummary) GetSpend() float64 {
 		return 0
 	}
 	return t.Spend
+}
+
+func (t *TagValueSummary) GetUsageValue() *float64 {
+	if t == nil {
+		return nil
+	}
+	return t.UsageValue
 }
 
 func (t *TagValueSummary) GetResourceCount() int {
@@ -7509,6 +10116,13 @@ func (t *TagValueSummary) SetName(name string) {
 func (t *TagValueSummary) SetSpend(spend float64) {
 	t.Spend = spend
 	t.require(tagValueSummaryFieldSpend)
+}
+
+// SetUsageValue sets the UsageValue field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TagValueSummary) SetUsageValue(usageValue *float64) {
+	t.UsageValue = usageValue
+	t.require(tagValueSummaryFieldUsageValue)
 }
 
 // SetResourceCount sets the ResourceCount field and marks it as non-optional;
@@ -7658,6 +10272,826 @@ func (t *TagWindow) MarshalJSON() ([]byte, error) {
 }
 
 func (t *TagWindow) String() string {
+	if t == nil {
+		return "<nil>"
+	}
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
+}
+
+var (
+	telemetryAssignFieldDataset = big.NewInt(1 << 0)
+	telemetryAssignFieldKey     = big.NewInt(1 << 1)
+	telemetryAssignFieldRenames = big.NewInt(1 << 2)
+)
+
+type TelemetryAssign struct {
+	// The dataset of usage to weigh the cost by.
+	Dataset string `json:"dataset" url:"dataset"`
+	// The dataset dimension whose values the cost goes to.
+	Key string `json:"key" url:"key"`
+	// What a value the dataset sends is called here. Set by renaming a value of a related key.
+	Renames map[string]string `json:"renames,omitempty" url:"renames,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TelemetryAssign) GetDataset() string {
+	if t == nil {
+		return ""
+	}
+	return t.Dataset
+}
+
+func (t *TelemetryAssign) GetKey() string {
+	if t == nil {
+		return ""
+	}
+	return t.Key
+}
+
+func (t *TelemetryAssign) GetRenames() map[string]string {
+	if t == nil {
+		return nil
+	}
+	return t.Renames
+}
+
+func (t *TelemetryAssign) GetExtraProperties() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.extraProperties
+}
+
+func (t *TelemetryAssign) require(field *big.Int) {
+	if t.explicitFields == nil {
+		t.explicitFields = big.NewInt(0)
+	}
+	t.explicitFields.Or(t.explicitFields, field)
+}
+
+// SetDataset sets the Dataset field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryAssign) SetDataset(dataset string) {
+	t.Dataset = dataset
+	t.require(telemetryAssignFieldDataset)
+}
+
+// SetKey sets the Key field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryAssign) SetKey(key string) {
+	t.Key = key
+	t.require(telemetryAssignFieldKey)
+}
+
+// SetRenames sets the Renames field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryAssign) SetRenames(renames map[string]string) {
+	t.Renames = renames
+	t.require(telemetryAssignFieldRenames)
+}
+
+func (t *TelemetryAssign) UnmarshalJSON(data []byte) error {
+	type unmarshaler TelemetryAssign
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*t = TelemetryAssign(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TelemetryAssign) MarshalJSON() ([]byte, error) {
+	type embed TelemetryAssign
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*t),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, t.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (t *TelemetryAssign) String() string {
+	if t == nil {
+		return "<nil>"
+	}
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
+}
+
+var (
+	telemetryDatasetFieldDataset    = big.NewInt(1 << 0)
+	telemetryDatasetFieldBuiltIn    = big.NewInt(1 << 1)
+	telemetryDatasetFieldDimensions = big.NewInt(1 << 2)
+	telemetryDatasetFieldFirstDay   = big.NewInt(1 << 3)
+	telemetryDatasetFieldLastDay    = big.NewInt(1 << 4)
+	telemetryDatasetFieldRowCount   = big.NewInt(1 << 5)
+)
+
+type TelemetryDataset struct {
+	Dataset string `json:"dataset" url:"dataset"`
+	// LevelFour fills it, so it takes no pushes.
+	BuiltIn    *bool      `json:"built_in,omitempty" url:"built_in,omitempty"`
+	Dimensions []string   `json:"dimensions" url:"dimensions"`
+	FirstDay   *time.Time `json:"first_day,omitempty" url:"first_day,omitempty" format:"date"`
+	LastDay    *time.Time `json:"last_day,omitempty" url:"last_day,omitempty" format:"date"`
+	RowCount   int        `json:"row_count" url:"row_count"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TelemetryDataset) GetDataset() string {
+	if t == nil {
+		return ""
+	}
+	return t.Dataset
+}
+
+func (t *TelemetryDataset) GetBuiltIn() *bool {
+	if t == nil {
+		return nil
+	}
+	return t.BuiltIn
+}
+
+func (t *TelemetryDataset) GetDimensions() []string {
+	if t == nil {
+		return nil
+	}
+	return t.Dimensions
+}
+
+func (t *TelemetryDataset) GetFirstDay() *time.Time {
+	if t == nil {
+		return nil
+	}
+	return t.FirstDay
+}
+
+func (t *TelemetryDataset) GetLastDay() *time.Time {
+	if t == nil {
+		return nil
+	}
+	return t.LastDay
+}
+
+func (t *TelemetryDataset) GetRowCount() int {
+	if t == nil {
+		return 0
+	}
+	return t.RowCount
+}
+
+func (t *TelemetryDataset) GetExtraProperties() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.extraProperties
+}
+
+func (t *TelemetryDataset) require(field *big.Int) {
+	if t.explicitFields == nil {
+		t.explicitFields = big.NewInt(0)
+	}
+	t.explicitFields.Or(t.explicitFields, field)
+}
+
+// SetDataset sets the Dataset field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryDataset) SetDataset(dataset string) {
+	t.Dataset = dataset
+	t.require(telemetryDatasetFieldDataset)
+}
+
+// SetBuiltIn sets the BuiltIn field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryDataset) SetBuiltIn(builtIn *bool) {
+	t.BuiltIn = builtIn
+	t.require(telemetryDatasetFieldBuiltIn)
+}
+
+// SetDimensions sets the Dimensions field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryDataset) SetDimensions(dimensions []string) {
+	t.Dimensions = dimensions
+	t.require(telemetryDatasetFieldDimensions)
+}
+
+// SetFirstDay sets the FirstDay field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryDataset) SetFirstDay(firstDay *time.Time) {
+	t.FirstDay = firstDay
+	t.require(telemetryDatasetFieldFirstDay)
+}
+
+// SetLastDay sets the LastDay field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryDataset) SetLastDay(lastDay *time.Time) {
+	t.LastDay = lastDay
+	t.require(telemetryDatasetFieldLastDay)
+}
+
+// SetRowCount sets the RowCount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryDataset) SetRowCount(rowCount int) {
+	t.RowCount = rowCount
+	t.require(telemetryDatasetFieldRowCount)
+}
+
+func (t *TelemetryDataset) UnmarshalJSON(data []byte) error {
+	type embed TelemetryDataset
+	var unmarshaler = struct {
+		embed
+		FirstDay *internal.Date `json:"first_day,omitempty"`
+		LastDay  *internal.Date `json:"last_day,omitempty"`
+	}{
+		embed: embed(*t),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*t = TelemetryDataset(unmarshaler.embed)
+	t.FirstDay = unmarshaler.FirstDay.TimePtr()
+	t.LastDay = unmarshaler.LastDay.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TelemetryDataset) MarshalJSON() ([]byte, error) {
+	type embed TelemetryDataset
+	var marshaler = struct {
+		embed
+		FirstDay *internal.Date `json:"first_day,omitempty"`
+		LastDay  *internal.Date `json:"last_day,omitempty"`
+	}{
+		embed:    embed(*t),
+		FirstDay: internal.NewOptionalDate(t.FirstDay),
+		LastDay:  internal.NewOptionalDate(t.LastDay),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, t.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (t *TelemetryDataset) String() string {
+	if t == nil {
+		return "<nil>"
+	}
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
+}
+
+var (
+	telemetryDatasetsResponseFieldSuccess   = big.NewInt(1 << 0)
+	telemetryDatasetsResponseFieldTimestamp = big.NewInt(1 << 1)
+	telemetryDatasetsResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type TelemetryDatasetsResponse struct {
+	Success   *bool               `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time          `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      []*TelemetryDataset `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TelemetryDatasetsResponse) GetSuccess() *bool {
+	if t == nil {
+		return nil
+	}
+	return t.Success
+}
+
+func (t *TelemetryDatasetsResponse) GetTimestamp() *time.Time {
+	if t == nil {
+		return nil
+	}
+	return t.Timestamp
+}
+
+func (t *TelemetryDatasetsResponse) GetData() []*TelemetryDataset {
+	if t == nil {
+		return nil
+	}
+	return t.Data
+}
+
+func (t *TelemetryDatasetsResponse) GetExtraProperties() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.extraProperties
+}
+
+func (t *TelemetryDatasetsResponse) require(field *big.Int) {
+	if t.explicitFields == nil {
+		t.explicitFields = big.NewInt(0)
+	}
+	t.explicitFields.Or(t.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryDatasetsResponse) SetSuccess(success *bool) {
+	t.Success = success
+	t.require(telemetryDatasetsResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryDatasetsResponse) SetTimestamp(timestamp *time.Time) {
+	t.Timestamp = timestamp
+	t.require(telemetryDatasetsResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryDatasetsResponse) SetData(data []*TelemetryDataset) {
+	t.Data = data
+	t.require(telemetryDatasetsResponseFieldData)
+}
+
+func (t *TelemetryDatasetsResponse) UnmarshalJSON(data []byte) error {
+	type embed TelemetryDatasetsResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*t),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*t = TelemetryDatasetsResponse(unmarshaler.embed)
+	t.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TelemetryDatasetsResponse) MarshalJSON() ([]byte, error) {
+	type embed TelemetryDatasetsResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*t),
+		Timestamp: internal.NewOptionalDateTime(t.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, t.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (t *TelemetryDatasetsResponse) String() string {
+	if t == nil {
+		return "<nil>"
+	}
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
+}
+
+var (
+	telemetryPushResponseFieldSuccess   = big.NewInt(1 << 0)
+	telemetryPushResponseFieldTimestamp = big.NewInt(1 << 1)
+	telemetryPushResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type TelemetryPushResponse struct {
+	Success   *bool                `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time           `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *TelemetryPushResult `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TelemetryPushResponse) GetSuccess() *bool {
+	if t == nil {
+		return nil
+	}
+	return t.Success
+}
+
+func (t *TelemetryPushResponse) GetTimestamp() *time.Time {
+	if t == nil {
+		return nil
+	}
+	return t.Timestamp
+}
+
+func (t *TelemetryPushResponse) GetData() *TelemetryPushResult {
+	if t == nil {
+		return nil
+	}
+	return t.Data
+}
+
+func (t *TelemetryPushResponse) GetExtraProperties() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.extraProperties
+}
+
+func (t *TelemetryPushResponse) require(field *big.Int) {
+	if t.explicitFields == nil {
+		t.explicitFields = big.NewInt(0)
+	}
+	t.explicitFields.Or(t.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryPushResponse) SetSuccess(success *bool) {
+	t.Success = success
+	t.require(telemetryPushResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryPushResponse) SetTimestamp(timestamp *time.Time) {
+	t.Timestamp = timestamp
+	t.require(telemetryPushResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryPushResponse) SetData(data *TelemetryPushResult) {
+	t.Data = data
+	t.require(telemetryPushResponseFieldData)
+}
+
+func (t *TelemetryPushResponse) UnmarshalJSON(data []byte) error {
+	type embed TelemetryPushResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*t),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*t = TelemetryPushResponse(unmarshaler.embed)
+	t.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TelemetryPushResponse) MarshalJSON() ([]byte, error) {
+	type embed TelemetryPushResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*t),
+		Timestamp: internal.NewOptionalDateTime(t.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, t.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (t *TelemetryPushResponse) String() string {
+	if t == nil {
+		return "<nil>"
+	}
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
+}
+
+var (
+	telemetryPushResultFieldDataset = big.NewInt(1 << 0)
+	telemetryPushResultFieldRows    = big.NewInt(1 << 1)
+	telemetryPushResultFieldDays    = big.NewInt(1 << 2)
+	telemetryPushResultFieldMonths  = big.NewInt(1 << 3)
+	telemetryPushResultFieldJobs    = big.NewInt(1 << 4)
+)
+
+type TelemetryPushResult struct {
+	Dataset string `json:"dataset" url:"dataset"`
+	Rows    int    `json:"rows" url:"rows"`
+	Days    int    `json:"days" url:"days"`
+	// The months these days fall in, 'YYYY-MM'.
+	Months []string `json:"months" url:"months"`
+	// Reprocessing for the keys that split spend by this dataset.
+	Jobs []*TagJob `json:"jobs" url:"jobs"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TelemetryPushResult) GetDataset() string {
+	if t == nil {
+		return ""
+	}
+	return t.Dataset
+}
+
+func (t *TelemetryPushResult) GetRows() int {
+	if t == nil {
+		return 0
+	}
+	return t.Rows
+}
+
+func (t *TelemetryPushResult) GetDays() int {
+	if t == nil {
+		return 0
+	}
+	return t.Days
+}
+
+func (t *TelemetryPushResult) GetMonths() []string {
+	if t == nil {
+		return nil
+	}
+	return t.Months
+}
+
+func (t *TelemetryPushResult) GetJobs() []*TagJob {
+	if t == nil {
+		return nil
+	}
+	return t.Jobs
+}
+
+func (t *TelemetryPushResult) GetExtraProperties() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.extraProperties
+}
+
+func (t *TelemetryPushResult) require(field *big.Int) {
+	if t.explicitFields == nil {
+		t.explicitFields = big.NewInt(0)
+	}
+	t.explicitFields.Or(t.explicitFields, field)
+}
+
+// SetDataset sets the Dataset field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryPushResult) SetDataset(dataset string) {
+	t.Dataset = dataset
+	t.require(telemetryPushResultFieldDataset)
+}
+
+// SetRows sets the Rows field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryPushResult) SetRows(rows int) {
+	t.Rows = rows
+	t.require(telemetryPushResultFieldRows)
+}
+
+// SetDays sets the Days field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryPushResult) SetDays(days int) {
+	t.Days = days
+	t.require(telemetryPushResultFieldDays)
+}
+
+// SetMonths sets the Months field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryPushResult) SetMonths(months []string) {
+	t.Months = months
+	t.require(telemetryPushResultFieldMonths)
+}
+
+// SetJobs sets the Jobs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryPushResult) SetJobs(jobs []*TagJob) {
+	t.Jobs = jobs
+	t.require(telemetryPushResultFieldJobs)
+}
+
+func (t *TelemetryPushResult) UnmarshalJSON(data []byte) error {
+	type unmarshaler TelemetryPushResult
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*t = TelemetryPushResult(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TelemetryPushResult) MarshalJSON() ([]byte, error) {
+	type embed TelemetryPushResult
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*t),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, t.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (t *TelemetryPushResult) String() string {
+	if t == nil {
+		return "<nil>"
+	}
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
+}
+
+var (
+	telemetryRowFieldDate       = big.NewInt(1 << 0)
+	telemetryRowFieldDimensions = big.NewInt(1 << 1)
+	telemetryRowFieldWeight     = big.NewInt(1 << 2)
+)
+
+type TelemetryRow struct {
+	Date time.Time `json:"date" url:"date" format:"date"`
+	// What this usage belongs to. Each name is what a telemetry assign's key can read.
+	Dimensions map[string]any `json:"dimensions" url:"dimensions"`
+	// This row's usage. Only its share of the day's weight matters, so any unit works.
+	Weight float64 `json:"weight" url:"weight"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TelemetryRow) GetDate() time.Time {
+	if t == nil {
+		return time.Time{}
+	}
+	return t.Date
+}
+
+func (t *TelemetryRow) GetDimensions() map[string]any {
+	if t == nil {
+		return nil
+	}
+	return t.Dimensions
+}
+
+func (t *TelemetryRow) GetWeight() float64 {
+	if t == nil {
+		return 0
+	}
+	return t.Weight
+}
+
+func (t *TelemetryRow) GetExtraProperties() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.extraProperties
+}
+
+func (t *TelemetryRow) require(field *big.Int) {
+	if t.explicitFields == nil {
+		t.explicitFields = big.NewInt(0)
+	}
+	t.explicitFields.Or(t.explicitFields, field)
+}
+
+// SetDate sets the Date field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryRow) SetDate(date time.Time) {
+	t.Date = date
+	t.require(telemetryRowFieldDate)
+}
+
+// SetDimensions sets the Dimensions field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryRow) SetDimensions(dimensions map[string]any) {
+	t.Dimensions = dimensions
+	t.require(telemetryRowFieldDimensions)
+}
+
+// SetWeight sets the Weight field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TelemetryRow) SetWeight(weight float64) {
+	t.Weight = weight
+	t.require(telemetryRowFieldWeight)
+}
+
+func (t *TelemetryRow) UnmarshalJSON(data []byte) error {
+	type embed TelemetryRow
+	var unmarshaler = struct {
+		embed
+		Date *internal.Date `json:"date"`
+	}{
+		embed: embed(*t),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*t = TelemetryRow(unmarshaler.embed)
+	t.Date = unmarshaler.Date.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TelemetryRow) MarshalJSON() ([]byte, error) {
+	type embed TelemetryRow
+	var marshaler = struct {
+		embed
+		Date *internal.Date `json:"date"`
+	}{
+		embed: embed(*t),
+		Date:  internal.NewDate(t.Date),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, t.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (t *TelemetryRow) String() string {
 	if t == nil {
 		return "<nil>"
 	}
@@ -7868,44 +11302,45 @@ func (v *ValueAssign) String() string {
 	return fmt.Sprintf("%#v", v)
 }
 
-type GetCoverageTagsRequestProvider string
-
-const (
-	GetCoverageTagsRequestProviderAws GetCoverageTagsRequestProvider = "aws"
-	GetCoverageTagsRequestProviderGcp GetCoverageTagsRequestProvider = "gcp"
-)
-
-func NewGetCoverageTagsRequestProviderFromString(s string) (GetCoverageTagsRequestProvider, error) {
-	switch s {
-	case "aws":
-		return GetCoverageTagsRequestProviderAws, nil
-	case "gcp":
-		return GetCoverageTagsRequestProviderGcp, nil
-	}
-	var t GetCoverageTagsRequestProvider
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (g GetCoverageTagsRequestProvider) Ptr() *GetCoverageTagsRequestProvider {
-	return &g
-}
-
 type GetDimensionValuesTagsRequestDimension string
 
 const (
-	GetDimensionValuesTagsRequestDimensionAccount        GetDimensionValuesTagsRequestDimension = "account"
-	GetDimensionValuesTagsRequestDimensionBillingAccount GetDimensionValuesTagsRequestDimension = "billing_account"
-	GetDimensionValuesTagsRequestDimensionRegion         GetDimensionValuesTagsRequestDimension = "region"
-	GetDimensionValuesTagsRequestDimensionService        GetDimensionValuesTagsRequestDimension = "service"
-	GetDimensionValuesTagsRequestDimensionCategory       GetDimensionValuesTagsRequestDimension = "category"
-	GetDimensionValuesTagsRequestDimensionSubcategory    GetDimensionValuesTagsRequestDimension = "subcategory"
-	GetDimensionValuesTagsRequestDimensionUsageUnit      GetDimensionValuesTagsRequestDimension = "usage_unit"
-	GetDimensionValuesTagsRequestDimensionResource       GetDimensionValuesTagsRequestDimension = "resource"
-	GetDimensionValuesTagsRequestDimensionChargeType     GetDimensionValuesTagsRequestDimension = "charge_type"
-	GetDimensionValuesTagsRequestDimensionMarketplace    GetDimensionValuesTagsRequestDimension = "marketplace"
-	GetDimensionValuesTagsRequestDimensionTag            GetDimensionValuesTagsRequestDimension = "tag"
-	GetDimensionValuesTagsRequestDimensionTagged         GetDimensionValuesTagsRequestDimension = "tagged"
-	GetDimensionValuesTagsRequestDimensionVirtualTag     GetDimensionValuesTagsRequestDimension = "virtual_tag"
+	GetDimensionValuesTagsRequestDimensionAccount                GetDimensionValuesTagsRequestDimension = "account"
+	GetDimensionValuesTagsRequestDimensionBillingAccount         GetDimensionValuesTagsRequestDimension = "billing_account"
+	GetDimensionValuesTagsRequestDimensionProvider               GetDimensionValuesTagsRequestDimension = "provider"
+	GetDimensionValuesTagsRequestDimensionRegion                 GetDimensionValuesTagsRequestDimension = "region"
+	GetDimensionValuesTagsRequestDimensionService                GetDimensionValuesTagsRequestDimension = "service"
+	GetDimensionValuesTagsRequestDimensionCategory               GetDimensionValuesTagsRequestDimension = "category"
+	GetDimensionValuesTagsRequestDimensionSubcategory            GetDimensionValuesTagsRequestDimension = "subcategory"
+	GetDimensionValuesTagsRequestDimensionSku                    GetDimensionValuesTagsRequestDimension = "sku"
+	GetDimensionValuesTagsRequestDimensionUsageUnit              GetDimensionValuesTagsRequestDimension = "usage_unit"
+	GetDimensionValuesTagsRequestDimensionResource               GetDimensionValuesTagsRequestDimension = "resource"
+	GetDimensionValuesTagsRequestDimensionPerson                 GetDimensionValuesTagsRequestDimension = "person"
+	GetDimensionValuesTagsRequestDimensionChargeType             GetDimensionValuesTagsRequestDimension = "charge_type"
+	GetDimensionValuesTagsRequestDimensionMarketplace            GetDimensionValuesTagsRequestDimension = "marketplace"
+	GetDimensionValuesTagsRequestDimensionCluster                GetDimensionValuesTagsRequestDimension = "cluster"
+	GetDimensionValuesTagsRequestDimensionNamespace              GetDimensionValuesTagsRequestDimension = "namespace"
+	GetDimensionValuesTagsRequestDimensionWorkload               GetDimensionValuesTagsRequestDimension = "workload"
+	GetDimensionValuesTagsRequestDimensionTag                    GetDimensionValuesTagsRequestDimension = "tag"
+	GetDimensionValuesTagsRequestDimensionTagged                 GetDimensionValuesTagsRequestDimension = "tagged"
+	GetDimensionValuesTagsRequestDimensionVirtualTag             GetDimensionValuesTagsRequestDimension = "virtual_tag"
+	GetDimensionValuesTagsRequestDimensionAccountName            GetDimensionValuesTagsRequestDimension = "account_name"
+	GetDimensionValuesTagsRequestDimensionAiModel                GetDimensionValuesTagsRequestDimension = "ai_model"
+	GetDimensionValuesTagsRequestDimensionAiFamily               GetDimensionValuesTagsRequestDimension = "ai_family"
+	GetDimensionValuesTagsRequestDimensionAiBrand                GetDimensionValuesTagsRequestDimension = "ai_brand"
+	GetDimensionValuesTagsRequestDimensionAiChannel              GetDimensionValuesTagsRequestDimension = "ai_channel"
+	GetDimensionValuesTagsRequestDimensionAiLifecycle            GetDimensionValuesTagsRequestDimension = "ai_lifecycle"
+	GetDimensionValuesTagsRequestDimensionAiTokenType            GetDimensionValuesTagsRequestDimension = "ai_token_type"
+	GetDimensionValuesTagsRequestDimensionServiceCategory        GetDimensionValuesTagsRequestDimension = "service_category"
+	GetDimensionValuesTagsRequestDimensionAiLine                 GetDimensionValuesTagsRequestDimension = "ai_line"
+	GetDimensionValuesTagsRequestDimensionMarketplaceLine        GetDimensionValuesTagsRequestDimension = "marketplace_line"
+	GetDimensionValuesTagsRequestDimensionTaggableLine           GetDimensionValuesTagsRequestDimension = "taggable_line"
+	GetDimensionValuesTagsRequestDimensionProviderName           GetDimensionValuesTagsRequestDimension = "provider_name"
+	GetDimensionValuesTagsRequestDimensionCurrency               GetDimensionValuesTagsRequestDimension = "currency"
+	GetDimensionValuesTagsRequestDimensionPublisher              GetDimensionValuesTagsRequestDimension = "publisher"
+	GetDimensionValuesTagsRequestDimensionChargeCategory         GetDimensionValuesTagsRequestDimension = "charge_category"
+	GetDimensionValuesTagsRequestDimensionPricingCategory        GetDimensionValuesTagsRequestDimension = "pricing_category"
+	GetDimensionValuesTagsRequestDimensionCommitmentDiscountType GetDimensionValuesTagsRequestDimension = "commitment_discount_type"
 )
 
 func NewGetDimensionValuesTagsRequestDimensionFromString(s string) (GetDimensionValuesTagsRequestDimension, error) {
@@ -7914,6 +11349,8 @@ func NewGetDimensionValuesTagsRequestDimensionFromString(s string) (GetDimension
 		return GetDimensionValuesTagsRequestDimensionAccount, nil
 	case "billing_account":
 		return GetDimensionValuesTagsRequestDimensionBillingAccount, nil
+	case "provider":
+		return GetDimensionValuesTagsRequestDimensionProvider, nil
 	case "region":
 		return GetDimensionValuesTagsRequestDimensionRegion, nil
 	case "service":
@@ -7922,20 +11359,64 @@ func NewGetDimensionValuesTagsRequestDimensionFromString(s string) (GetDimension
 		return GetDimensionValuesTagsRequestDimensionCategory, nil
 	case "subcategory":
 		return GetDimensionValuesTagsRequestDimensionSubcategory, nil
+	case "sku":
+		return GetDimensionValuesTagsRequestDimensionSku, nil
 	case "usage_unit":
 		return GetDimensionValuesTagsRequestDimensionUsageUnit, nil
 	case "resource":
 		return GetDimensionValuesTagsRequestDimensionResource, nil
+	case "person":
+		return GetDimensionValuesTagsRequestDimensionPerson, nil
 	case "charge_type":
 		return GetDimensionValuesTagsRequestDimensionChargeType, nil
 	case "marketplace":
 		return GetDimensionValuesTagsRequestDimensionMarketplace, nil
+	case "cluster":
+		return GetDimensionValuesTagsRequestDimensionCluster, nil
+	case "namespace":
+		return GetDimensionValuesTagsRequestDimensionNamespace, nil
+	case "workload":
+		return GetDimensionValuesTagsRequestDimensionWorkload, nil
 	case "tag":
 		return GetDimensionValuesTagsRequestDimensionTag, nil
 	case "tagged":
 		return GetDimensionValuesTagsRequestDimensionTagged, nil
 	case "virtual_tag":
 		return GetDimensionValuesTagsRequestDimensionVirtualTag, nil
+	case "account_name":
+		return GetDimensionValuesTagsRequestDimensionAccountName, nil
+	case "ai_model":
+		return GetDimensionValuesTagsRequestDimensionAiModel, nil
+	case "ai_family":
+		return GetDimensionValuesTagsRequestDimensionAiFamily, nil
+	case "ai_brand":
+		return GetDimensionValuesTagsRequestDimensionAiBrand, nil
+	case "ai_channel":
+		return GetDimensionValuesTagsRequestDimensionAiChannel, nil
+	case "ai_lifecycle":
+		return GetDimensionValuesTagsRequestDimensionAiLifecycle, nil
+	case "ai_token_type":
+		return GetDimensionValuesTagsRequestDimensionAiTokenType, nil
+	case "service_category":
+		return GetDimensionValuesTagsRequestDimensionServiceCategory, nil
+	case "ai_line":
+		return GetDimensionValuesTagsRequestDimensionAiLine, nil
+	case "marketplace_line":
+		return GetDimensionValuesTagsRequestDimensionMarketplaceLine, nil
+	case "taggable_line":
+		return GetDimensionValuesTagsRequestDimensionTaggableLine, nil
+	case "provider_name":
+		return GetDimensionValuesTagsRequestDimensionProviderName, nil
+	case "currency":
+		return GetDimensionValuesTagsRequestDimensionCurrency, nil
+	case "publisher":
+		return GetDimensionValuesTagsRequestDimensionPublisher, nil
+	case "charge_category":
+		return GetDimensionValuesTagsRequestDimensionChargeCategory, nil
+	case "pricing_category":
+		return GetDimensionValuesTagsRequestDimensionPricingCategory, nil
+	case "commitment_discount_type":
+		return GetDimensionValuesTagsRequestDimensionCommitmentDiscountType, nil
 	}
 	var t GetDimensionValuesTagsRequestDimension
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -7945,75 +11426,31 @@ func (g GetDimensionValuesTagsRequestDimension) Ptr() *GetDimensionValuesTagsReq
 	return &g
 }
 
-type GetDimensionValuesTagsRequestProvider string
+type ListCategoryCandidatesTagsRequestCategory string
 
 const (
-	GetDimensionValuesTagsRequestProviderAws GetDimensionValuesTagsRequestProvider = "aws"
-	GetDimensionValuesTagsRequestProviderGcp GetDimensionValuesTagsRequestProvider = "gcp"
-	GetDimensionValuesTagsRequestProviderAll GetDimensionValuesTagsRequestProvider = "all"
+	ListCategoryCandidatesTagsRequestCategoryEnvironment ListCategoryCandidatesTagsRequestCategory = "Environment"
+	ListCategoryCandidatesTagsRequestCategoryApplication ListCategoryCandidatesTagsRequestCategory = "Application"
+	ListCategoryCandidatesTagsRequestCategoryTeam        ListCategoryCandidatesTagsRequestCategory = "Team"
+	ListCategoryCandidatesTagsRequestCategoryCustomer    ListCategoryCandidatesTagsRequestCategory = "Customer"
 )
 
-func NewGetDimensionValuesTagsRequestProviderFromString(s string) (GetDimensionValuesTagsRequestProvider, error) {
+func NewListCategoryCandidatesTagsRequestCategoryFromString(s string) (ListCategoryCandidatesTagsRequestCategory, error) {
 	switch s {
-	case "aws":
-		return GetDimensionValuesTagsRequestProviderAws, nil
-	case "gcp":
-		return GetDimensionValuesTagsRequestProviderGcp, nil
-	case "all":
-		return GetDimensionValuesTagsRequestProviderAll, nil
+	case "Environment":
+		return ListCategoryCandidatesTagsRequestCategoryEnvironment, nil
+	case "Application":
+		return ListCategoryCandidatesTagsRequestCategoryApplication, nil
+	case "Team":
+		return ListCategoryCandidatesTagsRequestCategoryTeam, nil
+	case "Customer":
+		return ListCategoryCandidatesTagsRequestCategoryCustomer, nil
 	}
-	var t GetDimensionValuesTagsRequestProvider
+	var t ListCategoryCandidatesTagsRequestCategory
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (g GetDimensionValuesTagsRequestProvider) Ptr() *GetDimensionValuesTagsRequestProvider {
-	return &g
-}
-
-type GetDimensionsTagsRequestProvider string
-
-const (
-	GetDimensionsTagsRequestProviderAws GetDimensionsTagsRequestProvider = "aws"
-	GetDimensionsTagsRequestProviderGcp GetDimensionsTagsRequestProvider = "gcp"
-	GetDimensionsTagsRequestProviderAll GetDimensionsTagsRequestProvider = "all"
-)
-
-func NewGetDimensionsTagsRequestProviderFromString(s string) (GetDimensionsTagsRequestProvider, error) {
-	switch s {
-	case "aws":
-		return GetDimensionsTagsRequestProviderAws, nil
-	case "gcp":
-		return GetDimensionsTagsRequestProviderGcp, nil
-	case "all":
-		return GetDimensionsTagsRequestProviderAll, nil
-	}
-	var t GetDimensionsTagsRequestProvider
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (g GetDimensionsTagsRequestProvider) Ptr() *GetDimensionsTagsRequestProvider {
-	return &g
-}
-
-type ListKeyResourcesTagsRequestProvider string
-
-const (
-	ListKeyResourcesTagsRequestProviderAws ListKeyResourcesTagsRequestProvider = "aws"
-	ListKeyResourcesTagsRequestProviderGcp ListKeyResourcesTagsRequestProvider = "gcp"
-)
-
-func NewListKeyResourcesTagsRequestProviderFromString(s string) (ListKeyResourcesTagsRequestProvider, error) {
-	switch s {
-	case "aws":
-		return ListKeyResourcesTagsRequestProviderAws, nil
-	case "gcp":
-		return ListKeyResourcesTagsRequestProviderGcp, nil
-	}
-	var t ListKeyResourcesTagsRequestProvider
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (l ListKeyResourcesTagsRequestProvider) Ptr() *ListKeyResourcesTagsRequestProvider {
+func (l ListCategoryCandidatesTagsRequestCategory) Ptr() *ListCategoryCandidatesTagsRequestCategory {
 	return &l
 }
 
@@ -8086,50 +11523,6 @@ func (l ListKeysTagsRequestOrigin) Ptr() *ListKeysTagsRequestOrigin {
 	return &l
 }
 
-type ListKeysTagsRequestProvider string
-
-const (
-	ListKeysTagsRequestProviderAws ListKeysTagsRequestProvider = "aws"
-	ListKeysTagsRequestProviderGcp ListKeysTagsRequestProvider = "gcp"
-)
-
-func NewListKeysTagsRequestProviderFromString(s string) (ListKeysTagsRequestProvider, error) {
-	switch s {
-	case "aws":
-		return ListKeysTagsRequestProviderAws, nil
-	case "gcp":
-		return ListKeysTagsRequestProviderGcp, nil
-	}
-	var t ListKeysTagsRequestProvider
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (l ListKeysTagsRequestProvider) Ptr() *ListKeysTagsRequestProvider {
-	return &l
-}
-
-type SearchResourcesTagsRequestProvider string
-
-const (
-	SearchResourcesTagsRequestProviderAws SearchResourcesTagsRequestProvider = "aws"
-	SearchResourcesTagsRequestProviderGcp SearchResourcesTagsRequestProvider = "gcp"
-)
-
-func NewSearchResourcesTagsRequestProviderFromString(s string) (SearchResourcesTagsRequestProvider, error) {
-	switch s {
-	case "aws":
-		return SearchResourcesTagsRequestProviderAws, nil
-	case "gcp":
-		return SearchResourcesTagsRequestProviderGcp, nil
-	}
-	var t SearchResourcesTagsRequestProvider
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (s SearchResourcesTagsRequestProvider) Ptr() *SearchResourcesTagsRequestProvider {
-	return &s
-}
-
 type UpdateConfigTagsRequest struct {
 	Body *TagConfigWriteRequest `json:"-" url:"-"`
 
@@ -8162,7 +11555,8 @@ var (
 	virtualTagUpdateRequestFieldDescription     = big.NewInt(1 << 1)
 	virtualTagUpdateRequestFieldCanOverride     = big.NewInt(1 << 2)
 	virtualTagUpdateRequestFieldEffectiveFrom   = big.NewInt(1 << 3)
-	virtualTagUpdateRequestFieldExpectedVersion = big.NewInt(1 << 4)
+	virtualTagUpdateRequestFieldUnallocatedName = big.NewInt(1 << 4)
+	virtualTagUpdateRequestFieldExpectedVersion = big.NewInt(1 << 5)
 )
 
 type VirtualTagUpdateRequest struct {
@@ -8170,6 +11564,7 @@ type VirtualTagUpdateRequest struct {
 	Description     *string `json:"description,omitempty" url:"-"`
 	CanOverride     *bool   `json:"can_override,omitempty" url:"-"`
 	EffectiveFrom   *string `json:"effective_from,omitempty" url:"-"`
+	UnallocatedName *string `json:"unallocated_name,omitempty" url:"-"`
 	ExpectedVersion int     `json:"expected_version" url:"-"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
@@ -8209,6 +11604,13 @@ func (v *VirtualTagUpdateRequest) SetCanOverride(canOverride *bool) {
 func (v *VirtualTagUpdateRequest) SetEffectiveFrom(effectiveFrom *string) {
 	v.EffectiveFrom = effectiveFrom
 	v.require(virtualTagUpdateRequestFieldEffectiveFrom)
+}
+
+// SetUnallocatedName sets the UnallocatedName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (v *VirtualTagUpdateRequest) SetUnallocatedName(unallocatedName *string) {
+	v.UnallocatedName = unallocatedName
+	v.require(virtualTagUpdateRequestFieldUnallocatedName)
 }
 
 // SetExpectedVersion sets the ExpectedVersion field and marks it as non-optional;
