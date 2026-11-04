@@ -20,7 +20,7 @@ go run .
 ```
 
 Examples use `replace` directives to reference the local SDK source.
-This means they must be run from inside the cloned repository — they
+This means they must be run from inside the cloned repository, because they
 cannot be copied standalone without updating the `go.mod` to reference
 a published SDK version.
 
@@ -29,6 +29,7 @@ a published SDK version.
 | Example | Description |
 |---------|-------------|
 | [client](client/) | Basic client setup and API call |
+| [cost_alerts](cost_alerts/) | Create, change, pause, resume and delete a cost alert |
 | [error_handling](error_handling/) | Error predicates, status codes, and structured error extraction |
 | [pagination](pagination/) | Auto-paging iterator and `CollectAll` helper |
 | [middleware](middleware/) | HTTP middleware with `ClientFromContext` |

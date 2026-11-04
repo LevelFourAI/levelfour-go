@@ -3,24 +3,49 @@ name: Release
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
-permissions:
-  contents: write
-  pull-requests: write
+permissions: {}
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
-      - uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38  # v4.4.0
+      # A pull request opened with GITHUB_TOKEN never starts CI, so its required checks never report
+      # and it can never merge. The token has to be a real one, and a missing secret has to fail here.
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7  # v5.0.0
         id: release
         with:
-          token: ${{ secrets.AUTOMATION_PAT || github.token }}
+          token: ${{ secrets.AUTOMATION_PAT }}
 
-      - name: Trigger pkg.go.dev indexing
+      - name: Merge the release pull request once CI passes
+        env:
+          GH_TOKEN: ${{ secrets.AUTOMATION_PAT }}
+        run: |
+          # Selected by the exact branch Release Please uses, in this repository and into main. A label
+          # would let anyone who can triage hand any pull request to auto-merge.
+          number=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --base main \
+            --head release-please--branches--main \
+            --json number,isCrossRepository --jq '[.[] | select(.isCrossRepository | not)][0].number // empty')
+          if [ -n "$number" ]; then
+            gh pr merge "$number" --repo "$GITHUB_REPOSITORY" --auto --squash
+          fi
+
+      # The tag alone publishes a Go module. Asking the proxy for it makes the version installable now
+      # and fails this job when the tag cannot be read.
+      - name: Fetch the new version through the Go proxy
         if: steps.release.outputs.release_created == 'true'
         env:
           VERSION: ${{ steps.release.outputs.tag_name }}
         run: |
+          curl -fsS --retry 5 --retry-all-errors --retry-delay 30 \
+            "https://proxy.golang.org/github.com/!level!four!a!i/levelfour-go/@v/${VERSION}.info"
           curl -sf "https://pkg.go.dev/fetch/github.com/LevelFourAI/levelfour-go@${VERSION}" || true
           curl -sf "https://pkg.go.dev/fetch/github.com/LevelFourAI/levelfour-go/levelfour@${VERSION}" || true

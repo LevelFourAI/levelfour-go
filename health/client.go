@@ -32,7 +32,7 @@ func NewClient(options *core.RequestOptions) *Client {
 	}
 }
 
-// Readiness probe — verifies the platform DB pool is reachable.
+// Readiness probe: verifies the platform DB pool is reachable.
 func (c *Client) HealthReady(
 	ctx context.Context,
 	opts ...option.RequestOption,

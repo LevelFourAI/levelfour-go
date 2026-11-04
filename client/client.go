@@ -4,28 +4,60 @@ package client
 
 import (
 	accounts "github.com/LevelFourAI/levelfour-go/accounts"
-	apikeys "github.com/LevelFourAI/levelfour-go/apikeys"
+	anomalies "github.com/LevelFourAI/levelfour-go/anomalies"
+	anthropic "github.com/LevelFourAI/levelfour-go/anthropic"
 	audit "github.com/LevelFourAI/levelfour-go/audit"
 	auth "github.com/LevelFourAI/levelfour-go/auth"
+	azure "github.com/LevelFourAI/levelfour-go/azure"
+	boards "github.com/LevelFourAI/levelfour-go/boards"
+	commitments "github.com/LevelFourAI/levelfour-go/commitments"
 	core "github.com/LevelFourAI/levelfour-go/core"
+	costalerts "github.com/LevelFourAI/levelfour-go/costalerts"
 	costs "github.com/LevelFourAI/levelfour-go/costs"
+	costviews "github.com/LevelFourAI/levelfour-go/costviews"
+	datadog "github.com/LevelFourAI/levelfour-go/datadog"
+	googlecloud "github.com/LevelFourAI/levelfour-go/googlecloud"
 	health "github.com/LevelFourAI/levelfour-go/health"
+	integrations "github.com/LevelFourAI/levelfour-go/integrations"
 	internal "github.com/LevelFourAI/levelfour-go/internal"
 	option "github.com/LevelFourAI/levelfour-go/option"
 	providers "github.com/LevelFourAI/levelfour-go/providers"
 	client "github.com/LevelFourAI/levelfour-go/recommendations/client"
+	repobinding "github.com/LevelFourAI/levelfour-go/repobinding"
+	reports "github.com/LevelFourAI/levelfour-go/reports"
+	savingsgrants "github.com/LevelFourAI/levelfour-go/savingsgrants"
+	suggestions "github.com/LevelFourAI/levelfour-go/suggestions"
+	tags "github.com/LevelFourAI/levelfour-go/tags"
+	twilio "github.com/LevelFourAI/levelfour-go/twilio"
 	webhooks "github.com/LevelFourAI/levelfour-go/webhooks"
+	workspace "github.com/LevelFourAI/levelfour-go/workspace"
 )
 
 type Client struct {
-	APIKeys         *apikeys.Client
+	Workspace       *workspace.Client
 	Accounts        *accounts.Client
+	Integrations    *integrations.Client
 	Auth            *auth.Client
 	Webhooks        *webhooks.Client
 	Recommendations *client.Client
+	SavingsGrants   *savingsgrants.Client
+	RepoBinding     *repobinding.Client
 	Audit           *audit.Client
 	Costs           *costs.Client
+	GoogleCloud     *googlecloud.Client
+	Datadog         *datadog.Client
+	Azure           *azure.Client
+	Anthropic       *anthropic.Client
+	Twilio          *twilio.Client
 	Providers       *providers.Client
+	Boards          *boards.Client
+	CostAlerts      *costalerts.Client
+	Tags            *tags.Client
+	CostViews       *costviews.Client
+	Reports         *reports.Client
+	Suggestions     *suggestions.Client
+	Commitments     *commitments.Client
+	Anomalies       *anomalies.Client
 	Health          *health.Client
 
 	options *core.RequestOptions
@@ -36,14 +68,30 @@ type Client struct {
 func NewClient(opts ...option.RequestOption) *Client {
 	options := core.NewRequestOptions(opts...)
 	return &Client{
-		APIKeys:         apikeys.NewClient(options),
+		Workspace:       workspace.NewClient(options),
 		Accounts:        accounts.NewClient(options),
+		Integrations:    integrations.NewClient(options),
 		Auth:            auth.NewClient(options),
 		Webhooks:        webhooks.NewClient(options),
 		Recommendations: client.NewClient(options),
+		SavingsGrants:   savingsgrants.NewClient(options),
+		RepoBinding:     repobinding.NewClient(options),
 		Audit:           audit.NewClient(options),
 		Costs:           costs.NewClient(options),
+		GoogleCloud:     googlecloud.NewClient(options),
+		Datadog:         datadog.NewClient(options),
+		Azure:           azure.NewClient(options),
+		Anthropic:       anthropic.NewClient(options),
+		Twilio:          twilio.NewClient(options),
 		Providers:       providers.NewClient(options),
+		Boards:          boards.NewClient(options),
+		CostAlerts:      costalerts.NewClient(options),
+		Tags:            tags.NewClient(options),
+		CostViews:       costviews.NewClient(options),
+		Reports:         reports.NewClient(options),
+		Suggestions:     suggestions.NewClient(options),
+		Commitments:     commitments.NewClient(options),
+		Anomalies:       anomalies.NewClient(options),
 		Health:          health.NewClient(options),
 		options:         options,
 		baseURL:         options.BaseURL,

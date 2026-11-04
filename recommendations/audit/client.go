@@ -117,7 +117,7 @@ func (c *Client) List(
 	return pager.GetPage(ctx, &next)
 }
 
-// Returns paginated breakdown of saved recommendations for a specific provider with filtering and sorting
+// Returns saved recommendations for a provider as paginated JSON (format=table) or a CSV download of the full filtered set (format=csv)
 func (c *Client) ListByProvider(
 	ctx context.Context,
 	providerID string,

@@ -5,6 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0](https://github.com/LevelFourAI/levelfour-go/compare/v0.3.0...v0.4.0) (2026-11-04)
+
+
+### Features
+
+* sync generated Go SDK ([#247](https://github.com/LevelFourAI/levelfour-go/issues/247)) ([a238475](https://github.com/LevelFourAI/levelfour-go/commit/a2384757d9238810b289033a95534e43e3474a63))
+
+## [0.3.0](https://github.com/LevelFourAI/levelfour-go/compare/v0.2.1...v0.3.0) (2026-11-04)
+
+
+### Features
+
+* sync generated Go SDK ([#245](https://github.com/LevelFourAI/levelfour-go/issues/245)) ([7f8b5d5](https://github.com/LevelFourAI/levelfour-go/commit/7f8b5d5aa91aa80b35b7dbce2430d7b38fe54ca7))
+
+## [0.2.1](https://github.com/LevelFourAI/levelfour-go/compare/v0.2.0...v0.2.1) (2026-11-04)
+
+
+### Bug Fixes
+
+* **license:** use the canonical Apache 2.0 text and name LevelFour Inc. in NOTICE ([#212](https://github.com/LevelFourAI/levelfour-go/issues/212)) ([647186b](https://github.com/LevelFourAI/levelfour-go/commit/647186bf7c427a44bd2fb9c9b599618639e9e266))
+
+
+### Documentation
+
+* show how to create, change, pause and delete a cost alert ([af3aacf](https://github.com/LevelFourAI/levelfour-go/commit/af3aacfb858022e230f32634b40ebb2c49a6dea7))
+* show how to create, change, pause and delete a cost alert ([a8bbe80](https://github.com/LevelFourAI/levelfour-go/commit/a8bbe80378eb5f335bc8286e968e7278efde3447))
+
+## [0.2.0](https://github.com/LevelFourAI/levelfour-go/compare/v0.1.0...v0.2.0) (2026-09-20)
+
+
+### Features
+
+* sync generated Go SDK ([85c8cd4](https://github.com/LevelFourAI/levelfour-go/commit/85c8cd425eb96d4a05c32371cccead9ea7313590))
+* sync generated Go SDK from levelfour-api ([fca5ce9](https://github.com/LevelFourAI/levelfour-go/commit/fca5ce900dcacafd21f6c16b6e67935986ba1381))
+
+
+### Bug Fixes
+
+* let a feature cut a minor version while pre-1.0 ([789c51c](https://github.com/LevelFourAI/levelfour-go/commit/789c51ca871d31f2980745698831fa257f19c326))
+
+
+### Miscellaneous
+
+* repository hygiene for a public SDK ([16df3c6](https://github.com/LevelFourAI/levelfour-go/commit/16df3c62ce6b808f15853403aae513dc063bba68))
+* repository hygiene for a public SDK ([0a43289](https://github.com/LevelFourAI/levelfour-go/commit/0a43289800599371721983b593294bd49402dd1a))
+
 ## [0.1.0](https://github.com/LevelFourAI/levelfour-go/releases/tag/v0.1.0) (2026-05-26)
 
 Initial public release of the LevelFour Go SDK.
