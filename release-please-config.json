@@ -10,7 +10,6 @@
         { "type": "perf", "section": "Performance" },
         { "type": "refactor", "section": "Refactors" },
         { "type": "docs", "section": "Documentation" },
-        { "type": "chore", "section": "Miscellaneous" },
         { "type": "breaking", "section": "BREAKING CHANGES" }
       ]
     }
