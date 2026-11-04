@@ -29,11 +29,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.AUTOMATION_PAT }}
         run: |
-          # Selected by a branch in this repository, which takes write access to create. A label would
-          # let anyone who can triage hand any pull request to auto-merge.
-          number=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 200 \
-            --json number,headRefName,isCrossRepository \
-            --jq '[.[] | select((.isCrossRepository | not) and (.headRefName | startswith("release-please--")))][0].number // empty')
+          # Selected by the exact branch Release Please uses, in this repository and into main. A label
+          # would let anyone who can triage hand any pull request to auto-merge.
+          number=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --base main \
+            --head release-please--branches--main \
+            --json number,isCrossRepository --jq '[.[] | select(.isCrossRepository | not)][0].number // empty')
           if [ -n "$number" ]; then
             gh pr merge "$number" --repo "$GITHUB_REPOSITORY" --auto --squash
           fi
