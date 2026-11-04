@@ -2483,6 +2483,1498 @@ type AuthenticationError = *ErrorResponse
 type AuthorizationError = *ErrorResponse
 
 var (
+	automationActionFieldID                = big.NewInt(1 << 0)
+	automationActionFieldKind              = big.NewInt(1 << 1)
+	automationActionFieldStatus            = big.NewInt(1 << 2)
+	automationActionFieldRefusalReason     = big.NewInt(1 << 3)
+	automationActionFieldBefore            = big.NewInt(1 << 4)
+	automationActionFieldAfter             = big.NewInt(1 << 5)
+	automationActionFieldApprovedByEmail   = big.NewInt(1 << 6)
+	automationActionFieldRecommendationID  = big.NewInt(1 << 7)
+	automationActionFieldRevertRequestedBy = big.NewInt(1 << 8)
+	automationActionFieldRevertRequestedAt = big.NewInt(1 << 9)
+)
+
+type AutomationAction struct {
+	ID            string                         `json:"id" url:"id"`
+	Kind          AutomationActionKind           `json:"kind" url:"kind"`
+	Status        AutomationActionStatus         `json:"status" url:"status"`
+	RefusalReason *AutomationActionRefusalReason `json:"refusal_reason,omitempty" url:"refusal_reason,omitempty"`
+	Before        *ContainerResources            `json:"before,omitempty" url:"before,omitempty"`
+	After         *ContainerResources            `json:"after,omitempty" url:"after,omitempty"`
+	// The person whose opt-in the change acted on
+	ApprovedByEmail *string `json:"approved_by_email,omitempty" url:"approved_by_email,omitempty"`
+	// The published recommendation the change serves
+	RecommendationID  *string    `json:"recommendation_id,omitempty" url:"recommendation_id,omitempty"`
+	RevertRequestedBy *string    `json:"revert_requested_by,omitempty" url:"revert_requested_by,omitempty"`
+	RevertRequestedAt *time.Time `json:"revert_requested_at,omitempty" url:"revert_requested_at,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AutomationAction) GetID() string {
+	if a == nil {
+		return ""
+	}
+	return a.ID
+}
+
+func (a *AutomationAction) GetKind() AutomationActionKind {
+	if a == nil {
+		return ""
+	}
+	return a.Kind
+}
+
+func (a *AutomationAction) GetStatus() AutomationActionStatus {
+	if a == nil {
+		return ""
+	}
+	return a.Status
+}
+
+func (a *AutomationAction) GetRefusalReason() *AutomationActionRefusalReason {
+	if a == nil {
+		return nil
+	}
+	return a.RefusalReason
+}
+
+func (a *AutomationAction) GetBefore() *ContainerResources {
+	if a == nil {
+		return nil
+	}
+	return a.Before
+}
+
+func (a *AutomationAction) GetAfter() *ContainerResources {
+	if a == nil {
+		return nil
+	}
+	return a.After
+}
+
+func (a *AutomationAction) GetApprovedByEmail() *string {
+	if a == nil {
+		return nil
+	}
+	return a.ApprovedByEmail
+}
+
+func (a *AutomationAction) GetRecommendationID() *string {
+	if a == nil {
+		return nil
+	}
+	return a.RecommendationID
+}
+
+func (a *AutomationAction) GetRevertRequestedBy() *string {
+	if a == nil {
+		return nil
+	}
+	return a.RevertRequestedBy
+}
+
+func (a *AutomationAction) GetRevertRequestedAt() *time.Time {
+	if a == nil {
+		return nil
+	}
+	return a.RevertRequestedAt
+}
+
+func (a *AutomationAction) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AutomationAction) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationAction) SetID(id string) {
+	a.ID = id
+	a.require(automationActionFieldID)
+}
+
+// SetKind sets the Kind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationAction) SetKind(kind AutomationActionKind) {
+	a.Kind = kind
+	a.require(automationActionFieldKind)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationAction) SetStatus(status AutomationActionStatus) {
+	a.Status = status
+	a.require(automationActionFieldStatus)
+}
+
+// SetRefusalReason sets the RefusalReason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationAction) SetRefusalReason(refusalReason *AutomationActionRefusalReason) {
+	a.RefusalReason = refusalReason
+	a.require(automationActionFieldRefusalReason)
+}
+
+// SetBefore sets the Before field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationAction) SetBefore(before *ContainerResources) {
+	a.Before = before
+	a.require(automationActionFieldBefore)
+}
+
+// SetAfter sets the After field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationAction) SetAfter(after *ContainerResources) {
+	a.After = after
+	a.require(automationActionFieldAfter)
+}
+
+// SetApprovedByEmail sets the ApprovedByEmail field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationAction) SetApprovedByEmail(approvedByEmail *string) {
+	a.ApprovedByEmail = approvedByEmail
+	a.require(automationActionFieldApprovedByEmail)
+}
+
+// SetRecommendationID sets the RecommendationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationAction) SetRecommendationID(recommendationID *string) {
+	a.RecommendationID = recommendationID
+	a.require(automationActionFieldRecommendationID)
+}
+
+// SetRevertRequestedBy sets the RevertRequestedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationAction) SetRevertRequestedBy(revertRequestedBy *string) {
+	a.RevertRequestedBy = revertRequestedBy
+	a.require(automationActionFieldRevertRequestedBy)
+}
+
+// SetRevertRequestedAt sets the RevertRequestedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationAction) SetRevertRequestedAt(revertRequestedAt *time.Time) {
+	a.RevertRequestedAt = revertRequestedAt
+	a.require(automationActionFieldRevertRequestedAt)
+}
+
+func (a *AutomationAction) UnmarshalJSON(data []byte) error {
+	type embed AutomationAction
+	var unmarshaler = struct {
+		embed
+		RevertRequestedAt *internal.DateTime `json:"revert_requested_at,omitempty"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*a = AutomationAction(unmarshaler.embed)
+	a.RevertRequestedAt = unmarshaler.RevertRequestedAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AutomationAction) MarshalJSON() ([]byte, error) {
+	type embed AutomationAction
+	var marshaler = struct {
+		embed
+		RevertRequestedAt *internal.DateTime `json:"revert_requested_at,omitempty"`
+	}{
+		embed:             embed(*a),
+		RevertRequestedAt: internal.NewOptionalDateTime(a.RevertRequestedAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AutomationAction) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+type AutomationActionKind string
+
+const (
+	AutomationActionKindOomMemory   AutomationActionKind = "oom_memory"
+	AutomationActionKindThrottleCPU AutomationActionKind = "throttle_cpu"
+)
+
+func NewAutomationActionKindFromString(s string) (AutomationActionKind, error) {
+	switch s {
+	case "oom_memory":
+		return AutomationActionKindOomMemory, nil
+	case "throttle_cpu":
+		return AutomationActionKindThrottleCPU, nil
+	}
+	var t AutomationActionKind
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AutomationActionKind) Ptr() *AutomationActionKind {
+	return &a
+}
+
+type AutomationActionRefusalReason string
+
+const (
+	AutomationActionRefusalReasonAutomationDisabled   AutomationActionRefusalReason = "automation_disabled"
+	AutomationActionRefusalReasonPaused               AutomationActionRefusalReason = "paused"
+	AutomationActionRefusalReasonOutsideWindow        AutomationActionRefusalReason = "outside_window"
+	AutomationActionRefusalReasonNamespaceNotEligible AutomationActionRefusalReason = "namespace_not_eligible"
+	AutomationActionRefusalReasonClusterCap           AutomationActionRefusalReason = "cluster_cap"
+	AutomationActionRefusalReasonWorkloadCap          AutomationActionRefusalReason = "workload_cap"
+	AutomationActionRefusalReasonStepTooLarge         AutomationActionRefusalReason = "step_too_large"
+	AutomationActionRefusalReasonNotAnIncrease        AutomationActionRefusalReason = "not_an_increase"
+	AutomationActionRefusalReasonVpaManaged           AutomationActionRefusalReason = "vpa_managed"
+)
+
+func NewAutomationActionRefusalReasonFromString(s string) (AutomationActionRefusalReason, error) {
+	switch s {
+	case "automation_disabled":
+		return AutomationActionRefusalReasonAutomationDisabled, nil
+	case "paused":
+		return AutomationActionRefusalReasonPaused, nil
+	case "outside_window":
+		return AutomationActionRefusalReasonOutsideWindow, nil
+	case "namespace_not_eligible":
+		return AutomationActionRefusalReasonNamespaceNotEligible, nil
+	case "cluster_cap":
+		return AutomationActionRefusalReasonClusterCap, nil
+	case "workload_cap":
+		return AutomationActionRefusalReasonWorkloadCap, nil
+	case "step_too_large":
+		return AutomationActionRefusalReasonStepTooLarge, nil
+	case "not_an_increase":
+		return AutomationActionRefusalReasonNotAnIncrease, nil
+	case "vpa_managed":
+		return AutomationActionRefusalReasonVpaManaged, nil
+	}
+	var t AutomationActionRefusalReason
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AutomationActionRefusalReason) Ptr() *AutomationActionRefusalReason {
+	return &a
+}
+
+type AutomationActionStatus string
+
+const (
+	AutomationActionStatusApproved             AutomationActionStatus = "approved"
+	AutomationActionStatusRefused              AutomationActionStatus = "refused"
+	AutomationActionStatusApplied              AutomationActionStatus = "applied"
+	AutomationActionStatusDeferredTimeout      AutomationActionStatus = "deferred_timeout"
+	AutomationActionStatusInfeasible           AutomationActionStatus = "infeasible"
+	AutomationActionStatusRejected             AutomationActionStatus = "rejected"
+	AutomationActionStatusActuationError       AutomationActionStatus = "actuation_error"
+	AutomationActionStatusRestartRequired      AutomationActionStatus = "restart_required"
+	AutomationActionStatusStaleTarget          AutomationActionStatus = "stale_target"
+	AutomationActionStatusReverting            AutomationActionStatus = "reverting"
+	AutomationActionStatusReverted             AutomationActionStatus = "reverted"
+	AutomationActionStatusRevertSkippedChanged AutomationActionStatus = "revert_skipped_changed"
+	AutomationActionStatusRevertNotNeeded      AutomationActionStatus = "revert_not_needed"
+	AutomationActionStatusRevertsAtRollout     AutomationActionStatus = "reverts_at_rollout"
+	AutomationActionStatusOverrideExpired      AutomationActionStatus = "override_expired"
+	AutomationActionStatusExhausted            AutomationActionStatus = "exhausted"
+)
+
+func NewAutomationActionStatusFromString(s string) (AutomationActionStatus, error) {
+	switch s {
+	case "approved":
+		return AutomationActionStatusApproved, nil
+	case "refused":
+		return AutomationActionStatusRefused, nil
+	case "applied":
+		return AutomationActionStatusApplied, nil
+	case "deferred_timeout":
+		return AutomationActionStatusDeferredTimeout, nil
+	case "infeasible":
+		return AutomationActionStatusInfeasible, nil
+	case "rejected":
+		return AutomationActionStatusRejected, nil
+	case "actuation_error":
+		return AutomationActionStatusActuationError, nil
+	case "restart_required":
+		return AutomationActionStatusRestartRequired, nil
+	case "stale_target":
+		return AutomationActionStatusStaleTarget, nil
+	case "reverting":
+		return AutomationActionStatusReverting, nil
+	case "reverted":
+		return AutomationActionStatusReverted, nil
+	case "revert_skipped_changed":
+		return AutomationActionStatusRevertSkippedChanged, nil
+	case "revert_not_needed":
+		return AutomationActionStatusRevertNotNeeded, nil
+	case "reverts_at_rollout":
+		return AutomationActionStatusRevertsAtRollout, nil
+	case "override_expired":
+		return AutomationActionStatusOverrideExpired, nil
+	case "exhausted":
+		return AutomationActionStatusExhausted, nil
+	}
+	var t AutomationActionStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AutomationActionStatus) Ptr() *AutomationActionStatus {
+	return &a
+}
+
+var (
+	automationCapsFieldClusterPerHour = big.NewInt(1 << 0)
+	automationCapsFieldWorkloadPerDay = big.NewInt(1 << 1)
+)
+
+type AutomationCaps struct {
+	// Changes the whole cluster may take in one hour
+	ClusterPerHour *int `json:"cluster_per_hour,omitempty" url:"cluster_per_hour,omitempty"`
+	// Changes one workload may take in one day
+	WorkloadPerDay *int `json:"workload_per_day,omitempty" url:"workload_per_day,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AutomationCaps) GetClusterPerHour() *int {
+	if a == nil {
+		return nil
+	}
+	return a.ClusterPerHour
+}
+
+func (a *AutomationCaps) GetWorkloadPerDay() *int {
+	if a == nil {
+		return nil
+	}
+	return a.WorkloadPerDay
+}
+
+func (a *AutomationCaps) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AutomationCaps) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetClusterPerHour sets the ClusterPerHour field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationCaps) SetClusterPerHour(clusterPerHour *int) {
+	a.ClusterPerHour = clusterPerHour
+	a.require(automationCapsFieldClusterPerHour)
+}
+
+// SetWorkloadPerDay sets the WorkloadPerDay field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationCaps) SetWorkloadPerDay(workloadPerDay *int) {
+	a.WorkloadPerDay = workloadPerDay
+	a.require(automationCapsFieldWorkloadPerDay)
+}
+
+func (a *AutomationCaps) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationCaps
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AutomationCaps(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AutomationCaps) MarshalJSON() ([]byte, error) {
+	type embed AutomationCaps
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AutomationCaps) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	automationComponentFieldVersion             = big.NewInt(1 << 0)
+	automationComponentFieldServerVersion       = big.NewInt(1 << 1)
+	automationComponentFieldLastSeenAt          = big.NewInt(1 << 2)
+	automationComponentFieldPermittedNamespaces = big.NewInt(1 << 3)
+	automationComponentFieldPausedAckVersion    = big.NewInt(1 << 4)
+	automationComponentFieldConnected           = big.NewInt(1 << 5)
+)
+
+type AutomationComponent struct {
+	Version       *string   `json:"version,omitempty" url:"version,omitempty"`
+	ServerVersion *string   `json:"server_version,omitempty" url:"server_version,omitempty"`
+	LastSeenAt    time.Time `json:"last_seen_at" url:"last_seen_at"`
+	// The namespaces its RBAC lets it change
+	PermittedNamespaces []string `json:"permitted_namespaces" url:"permitted_namespaces"`
+	// The last stop it confirmed
+	PausedAckVersion int `json:"paused_ack_version" url:"paused_ack_version"`
+	// It synced in the last five minutes
+	Connected bool `json:"connected" url:"connected"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AutomationComponent) GetVersion() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Version
+}
+
+func (a *AutomationComponent) GetServerVersion() *string {
+	if a == nil {
+		return nil
+	}
+	return a.ServerVersion
+}
+
+func (a *AutomationComponent) GetLastSeenAt() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.LastSeenAt
+}
+
+func (a *AutomationComponent) GetPermittedNamespaces() []string {
+	if a == nil {
+		return nil
+	}
+	return a.PermittedNamespaces
+}
+
+func (a *AutomationComponent) GetPausedAckVersion() int {
+	if a == nil {
+		return 0
+	}
+	return a.PausedAckVersion
+}
+
+func (a *AutomationComponent) GetConnected() bool {
+	if a == nil {
+		return false
+	}
+	return a.Connected
+}
+
+func (a *AutomationComponent) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AutomationComponent) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetVersion sets the Version field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationComponent) SetVersion(version *string) {
+	a.Version = version
+	a.require(automationComponentFieldVersion)
+}
+
+// SetServerVersion sets the ServerVersion field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationComponent) SetServerVersion(serverVersion *string) {
+	a.ServerVersion = serverVersion
+	a.require(automationComponentFieldServerVersion)
+}
+
+// SetLastSeenAt sets the LastSeenAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationComponent) SetLastSeenAt(lastSeenAt time.Time) {
+	a.LastSeenAt = lastSeenAt
+	a.require(automationComponentFieldLastSeenAt)
+}
+
+// SetPermittedNamespaces sets the PermittedNamespaces field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationComponent) SetPermittedNamespaces(permittedNamespaces []string) {
+	a.PermittedNamespaces = permittedNamespaces
+	a.require(automationComponentFieldPermittedNamespaces)
+}
+
+// SetPausedAckVersion sets the PausedAckVersion field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationComponent) SetPausedAckVersion(pausedAckVersion int) {
+	a.PausedAckVersion = pausedAckVersion
+	a.require(automationComponentFieldPausedAckVersion)
+}
+
+// SetConnected sets the Connected field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationComponent) SetConnected(connected bool) {
+	a.Connected = connected
+	a.require(automationComponentFieldConnected)
+}
+
+func (a *AutomationComponent) UnmarshalJSON(data []byte) error {
+	type embed AutomationComponent
+	var unmarshaler = struct {
+		embed
+		LastSeenAt *internal.DateTime `json:"last_seen_at"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*a = AutomationComponent(unmarshaler.embed)
+	a.LastSeenAt = unmarshaler.LastSeenAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AutomationComponent) MarshalJSON() ([]byte, error) {
+	type embed AutomationComponent
+	var marshaler = struct {
+		embed
+		LastSeenAt *internal.DateTime `json:"last_seen_at"`
+	}{
+		embed:      embed(*a),
+		LastSeenAt: internal.NewDateTime(a.LastSeenAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AutomationComponent) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	automationEventFieldEventID      = big.NewInt(1 << 0)
+	automationEventFieldType         = big.NewInt(1 << 1)
+	automationEventFieldOccurredAt   = big.NewInt(1 << 2)
+	automationEventFieldActor        = big.NewInt(1 << 3)
+	automationEventFieldNamespace    = big.NewInt(1 << 4)
+	automationEventFieldWorkloadKind = big.NewInt(1 << 5)
+	automationEventFieldWorkloadName = big.NewInt(1 << 6)
+	automationEventFieldContainer    = big.NewInt(1 << 7)
+	automationEventFieldPod          = big.NewInt(1 << 8)
+	automationEventFieldAction       = big.NewInt(1 << 9)
+	automationEventFieldDetail       = big.NewInt(1 << 10)
+)
+
+type AutomationEvent struct {
+	EventID string `json:"event_id" url:"event_id"`
+	// What the component reported (revert_finished, with no pod, ends a revert with detail.outcome and its pod counts) or what a person changed
+	Type       string    `json:"type" url:"type"`
+	OccurredAt time.Time `json:"occurred_at" url:"occurred_at"`
+	// A person's email, or levelfour-automation for the component
+	Actor        *string           `json:"actor,omitempty" url:"actor,omitempty"`
+	Namespace    *string           `json:"namespace,omitempty" url:"namespace,omitempty"`
+	WorkloadKind *string           `json:"workload_kind,omitempty" url:"workload_kind,omitempty"`
+	WorkloadName *string           `json:"workload_name,omitempty" url:"workload_name,omitempty"`
+	Container    *string           `json:"container,omitempty" url:"container,omitempty"`
+	Pod          *string           `json:"pod,omitempty" url:"pod,omitempty"`
+	Action       *AutomationAction `json:"action,omitempty" url:"action,omitempty"`
+	Detail       map[string]any    `json:"detail" url:"detail"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AutomationEvent) GetEventID() string {
+	if a == nil {
+		return ""
+	}
+	return a.EventID
+}
+
+func (a *AutomationEvent) GetType() string {
+	if a == nil {
+		return ""
+	}
+	return a.Type
+}
+
+func (a *AutomationEvent) GetOccurredAt() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.OccurredAt
+}
+
+func (a *AutomationEvent) GetActor() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Actor
+}
+
+func (a *AutomationEvent) GetNamespace() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Namespace
+}
+
+func (a *AutomationEvent) GetWorkloadKind() *string {
+	if a == nil {
+		return nil
+	}
+	return a.WorkloadKind
+}
+
+func (a *AutomationEvent) GetWorkloadName() *string {
+	if a == nil {
+		return nil
+	}
+	return a.WorkloadName
+}
+
+func (a *AutomationEvent) GetContainer() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Container
+}
+
+func (a *AutomationEvent) GetPod() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Pod
+}
+
+func (a *AutomationEvent) GetAction() *AutomationAction {
+	if a == nil {
+		return nil
+	}
+	return a.Action
+}
+
+func (a *AutomationEvent) GetDetail() map[string]any {
+	if a == nil {
+		return nil
+	}
+	return a.Detail
+}
+
+func (a *AutomationEvent) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AutomationEvent) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetEventID sets the EventID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationEvent) SetEventID(eventID string) {
+	a.EventID = eventID
+	a.require(automationEventFieldEventID)
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationEvent) SetType(type_ string) {
+	a.Type = type_
+	a.require(automationEventFieldType)
+}
+
+// SetOccurredAt sets the OccurredAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationEvent) SetOccurredAt(occurredAt time.Time) {
+	a.OccurredAt = occurredAt
+	a.require(automationEventFieldOccurredAt)
+}
+
+// SetActor sets the Actor field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationEvent) SetActor(actor *string) {
+	a.Actor = actor
+	a.require(automationEventFieldActor)
+}
+
+// SetNamespace sets the Namespace field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationEvent) SetNamespace(namespace *string) {
+	a.Namespace = namespace
+	a.require(automationEventFieldNamespace)
+}
+
+// SetWorkloadKind sets the WorkloadKind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationEvent) SetWorkloadKind(workloadKind *string) {
+	a.WorkloadKind = workloadKind
+	a.require(automationEventFieldWorkloadKind)
+}
+
+// SetWorkloadName sets the WorkloadName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationEvent) SetWorkloadName(workloadName *string) {
+	a.WorkloadName = workloadName
+	a.require(automationEventFieldWorkloadName)
+}
+
+// SetContainer sets the Container field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationEvent) SetContainer(container *string) {
+	a.Container = container
+	a.require(automationEventFieldContainer)
+}
+
+// SetPod sets the Pod field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationEvent) SetPod(pod *string) {
+	a.Pod = pod
+	a.require(automationEventFieldPod)
+}
+
+// SetAction sets the Action field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationEvent) SetAction(action *AutomationAction) {
+	a.Action = action
+	a.require(automationEventFieldAction)
+}
+
+// SetDetail sets the Detail field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationEvent) SetDetail(detail map[string]any) {
+	a.Detail = detail
+	a.require(automationEventFieldDetail)
+}
+
+func (a *AutomationEvent) UnmarshalJSON(data []byte) error {
+	type embed AutomationEvent
+	var unmarshaler = struct {
+		embed
+		OccurredAt *internal.DateTime `json:"occurred_at"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*a = AutomationEvent(unmarshaler.embed)
+	a.OccurredAt = unmarshaler.OccurredAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AutomationEvent) MarshalJSON() ([]byte, error) {
+	type embed AutomationEvent
+	var marshaler = struct {
+		embed
+		OccurredAt *internal.DateTime `json:"occurred_at"`
+	}{
+		embed:      embed(*a),
+		OccurredAt: internal.NewDateTime(a.OccurredAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AutomationEvent) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	automationEventListFieldItems      = big.NewInt(1 << 0)
+	automationEventListFieldPagination = big.NewInt(1 << 1)
+)
+
+type AutomationEventList struct {
+	// Newest first
+	Items      []*AutomationEvent `json:"items" url:"items"`
+	Pagination *PaginationMeta    `json:"pagination" url:"pagination"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AutomationEventList) GetItems() []*AutomationEvent {
+	if a == nil {
+		return nil
+	}
+	return a.Items
+}
+
+func (a *AutomationEventList) GetPagination() *PaginationMeta {
+	if a == nil {
+		return nil
+	}
+	return a.Pagination
+}
+
+func (a *AutomationEventList) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AutomationEventList) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationEventList) SetItems(items []*AutomationEvent) {
+	a.Items = items
+	a.require(automationEventListFieldItems)
+}
+
+// SetPagination sets the Pagination field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationEventList) SetPagination(pagination *PaginationMeta) {
+	a.Pagination = pagination
+	a.require(automationEventListFieldPagination)
+}
+
+func (a *AutomationEventList) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationEventList
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AutomationEventList(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AutomationEventList) MarshalJSON() ([]byte, error) {
+	type embed AutomationEventList
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AutomationEventList) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	automationEventListResponseFieldSuccess   = big.NewInt(1 << 0)
+	automationEventListResponseFieldData      = big.NewInt(1 << 1)
+	automationEventListResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type AutomationEventListResponse struct {
+	Success   *bool                `json:"success,omitempty" url:"success,omitempty"`
+	Data      *AutomationEventList `json:"data" url:"data"`
+	Timestamp string               `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AutomationEventListResponse) GetSuccess() *bool {
+	if a == nil {
+		return nil
+	}
+	return a.Success
+}
+
+func (a *AutomationEventListResponse) GetData() *AutomationEventList {
+	if a == nil {
+		return nil
+	}
+	return a.Data
+}
+
+func (a *AutomationEventListResponse) GetTimestamp() string {
+	if a == nil {
+		return ""
+	}
+	return a.Timestamp
+}
+
+func (a *AutomationEventListResponse) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AutomationEventListResponse) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationEventListResponse) SetSuccess(success *bool) {
+	a.Success = success
+	a.require(automationEventListResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationEventListResponse) SetData(data *AutomationEventList) {
+	a.Data = data
+	a.require(automationEventListResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationEventListResponse) SetTimestamp(timestamp string) {
+	a.Timestamp = timestamp
+	a.require(automationEventListResponseFieldTimestamp)
+}
+
+func (a *AutomationEventListResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationEventListResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AutomationEventListResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AutomationEventListResponse) MarshalJSON() ([]byte, error) {
+	type embed AutomationEventListResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AutomationEventListResponse) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	automationSettingsFieldEnabled      = big.NewInt(1 << 0)
+	automationSettingsFieldPaused       = big.NewInt(1 << 1)
+	automationSettingsFieldPausedBy     = big.NewInt(1 << 2)
+	automationSettingsFieldPausedAt     = big.NewInt(1 << 3)
+	automationSettingsFieldPausedReason = big.NewInt(1 << 4)
+	automationSettingsFieldPauseVersion = big.NewInt(1 << 5)
+	automationSettingsFieldWindow       = big.NewInt(1 << 6)
+	automationSettingsFieldCaps         = big.NewInt(1 << 7)
+	automationSettingsFieldSteps        = big.NewInt(1 << 8)
+	automationSettingsFieldVersion      = big.NewInt(1 << 9)
+	automationSettingsFieldUpdatedBy    = big.NewInt(1 << 10)
+	automationSettingsFieldUpdatedAt    = big.NewInt(1 << 11)
+)
+
+type AutomationSettings struct {
+	Enabled      bool       `json:"enabled" url:"enabled"`
+	Paused       bool       `json:"paused" url:"paused"`
+	PausedBy     *string    `json:"paused_by,omitempty" url:"paused_by,omitempty"`
+	PausedAt     *time.Time `json:"paused_at,omitempty" url:"paused_at,omitempty"`
+	PausedReason *string    `json:"paused_reason,omitempty" url:"paused_reason,omitempty"`
+	// Raised by every stop; the component echoes it once it has stopped
+	PauseVersion int `json:"pause_version" url:"pause_version"`
+	// When it may act, in UTC; empty is any time
+	Window []*MaintenanceWindow `json:"window" url:"window"`
+	Caps   *AutomationCaps      `json:"caps" url:"caps"`
+	Steps  *AutomationSteps     `json:"steps" url:"steps"`
+	// Send it back to change the settings; 0 before they were first saved
+	Version   int        `json:"version" url:"version"`
+	UpdatedBy *string    `json:"updated_by,omitempty" url:"updated_by,omitempty"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty" url:"updated_at,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AutomationSettings) GetEnabled() bool {
+	if a == nil {
+		return false
+	}
+	return a.Enabled
+}
+
+func (a *AutomationSettings) GetPaused() bool {
+	if a == nil {
+		return false
+	}
+	return a.Paused
+}
+
+func (a *AutomationSettings) GetPausedBy() *string {
+	if a == nil {
+		return nil
+	}
+	return a.PausedBy
+}
+
+func (a *AutomationSettings) GetPausedAt() *time.Time {
+	if a == nil {
+		return nil
+	}
+	return a.PausedAt
+}
+
+func (a *AutomationSettings) GetPausedReason() *string {
+	if a == nil {
+		return nil
+	}
+	return a.PausedReason
+}
+
+func (a *AutomationSettings) GetPauseVersion() int {
+	if a == nil {
+		return 0
+	}
+	return a.PauseVersion
+}
+
+func (a *AutomationSettings) GetWindow() []*MaintenanceWindow {
+	if a == nil {
+		return nil
+	}
+	return a.Window
+}
+
+func (a *AutomationSettings) GetCaps() *AutomationCaps {
+	if a == nil {
+		return nil
+	}
+	return a.Caps
+}
+
+func (a *AutomationSettings) GetSteps() *AutomationSteps {
+	if a == nil {
+		return nil
+	}
+	return a.Steps
+}
+
+func (a *AutomationSettings) GetVersion() int {
+	if a == nil {
+		return 0
+	}
+	return a.Version
+}
+
+func (a *AutomationSettings) GetUpdatedBy() *string {
+	if a == nil {
+		return nil
+	}
+	return a.UpdatedBy
+}
+
+func (a *AutomationSettings) GetUpdatedAt() *time.Time {
+	if a == nil {
+		return nil
+	}
+	return a.UpdatedAt
+}
+
+func (a *AutomationSettings) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AutomationSettings) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetEnabled sets the Enabled field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationSettings) SetEnabled(enabled bool) {
+	a.Enabled = enabled
+	a.require(automationSettingsFieldEnabled)
+}
+
+// SetPaused sets the Paused field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationSettings) SetPaused(paused bool) {
+	a.Paused = paused
+	a.require(automationSettingsFieldPaused)
+}
+
+// SetPausedBy sets the PausedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationSettings) SetPausedBy(pausedBy *string) {
+	a.PausedBy = pausedBy
+	a.require(automationSettingsFieldPausedBy)
+}
+
+// SetPausedAt sets the PausedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationSettings) SetPausedAt(pausedAt *time.Time) {
+	a.PausedAt = pausedAt
+	a.require(automationSettingsFieldPausedAt)
+}
+
+// SetPausedReason sets the PausedReason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationSettings) SetPausedReason(pausedReason *string) {
+	a.PausedReason = pausedReason
+	a.require(automationSettingsFieldPausedReason)
+}
+
+// SetPauseVersion sets the PauseVersion field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationSettings) SetPauseVersion(pauseVersion int) {
+	a.PauseVersion = pauseVersion
+	a.require(automationSettingsFieldPauseVersion)
+}
+
+// SetWindow sets the Window field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationSettings) SetWindow(window []*MaintenanceWindow) {
+	a.Window = window
+	a.require(automationSettingsFieldWindow)
+}
+
+// SetCaps sets the Caps field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationSettings) SetCaps(caps *AutomationCaps) {
+	a.Caps = caps
+	a.require(automationSettingsFieldCaps)
+}
+
+// SetSteps sets the Steps field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationSettings) SetSteps(steps *AutomationSteps) {
+	a.Steps = steps
+	a.require(automationSettingsFieldSteps)
+}
+
+// SetVersion sets the Version field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationSettings) SetVersion(version int) {
+	a.Version = version
+	a.require(automationSettingsFieldVersion)
+}
+
+// SetUpdatedBy sets the UpdatedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationSettings) SetUpdatedBy(updatedBy *string) {
+	a.UpdatedBy = updatedBy
+	a.require(automationSettingsFieldUpdatedBy)
+}
+
+// SetUpdatedAt sets the UpdatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationSettings) SetUpdatedAt(updatedAt *time.Time) {
+	a.UpdatedAt = updatedAt
+	a.require(automationSettingsFieldUpdatedAt)
+}
+
+func (a *AutomationSettings) UnmarshalJSON(data []byte) error {
+	type embed AutomationSettings
+	var unmarshaler = struct {
+		embed
+		PausedAt  *internal.DateTime `json:"paused_at,omitempty"`
+		UpdatedAt *internal.DateTime `json:"updated_at,omitempty"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*a = AutomationSettings(unmarshaler.embed)
+	a.PausedAt = unmarshaler.PausedAt.TimePtr()
+	a.UpdatedAt = unmarshaler.UpdatedAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AutomationSettings) MarshalJSON() ([]byte, error) {
+	type embed AutomationSettings
+	var marshaler = struct {
+		embed
+		PausedAt  *internal.DateTime `json:"paused_at,omitempty"`
+		UpdatedAt *internal.DateTime `json:"updated_at,omitempty"`
+	}{
+		embed:     embed(*a),
+		PausedAt:  internal.NewOptionalDateTime(a.PausedAt),
+		UpdatedAt: internal.NewOptionalDateTime(a.UpdatedAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AutomationSettings) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	automationStepsFieldMemoryPct = big.NewInt(1 << 0)
+	automationStepsFieldCPUPct    = big.NewInt(1 << 1)
+)
+
+type AutomationSteps struct {
+	// The most one change raises memory, in percent
+	MemoryPct *int `json:"memory_pct,omitempty" url:"memory_pct,omitempty"`
+	// The most one change raises a CPU limit, in percent
+	CPUPct *int `json:"cpu_pct,omitempty" url:"cpu_pct,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AutomationSteps) GetMemoryPct() *int {
+	if a == nil {
+		return nil
+	}
+	return a.MemoryPct
+}
+
+func (a *AutomationSteps) GetCPUPct() *int {
+	if a == nil {
+		return nil
+	}
+	return a.CPUPct
+}
+
+func (a *AutomationSteps) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AutomationSteps) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetMemoryPct sets the MemoryPct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationSteps) SetMemoryPct(memoryPct *int) {
+	a.MemoryPct = memoryPct
+	a.require(automationStepsFieldMemoryPct)
+}
+
+// SetCPUPct sets the CPUPct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationSteps) SetCPUPct(cpuPct *int) {
+	a.CPUPct = cpuPct
+	a.require(automationStepsFieldCPUPct)
+}
+
+func (a *AutomationSteps) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationSteps
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AutomationSteps(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AutomationSteps) MarshalJSON() ([]byte, error) {
+	type embed AutomationSteps
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AutomationSteps) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
 	autoscalerInsightFieldUtilizationTargets = big.NewInt(1 << 0)
 	autoscalerInsightFieldCustomMetric       = big.NewInt(1 << 1)
 	autoscalerInsightFieldHoursAtMax         = big.NewInt(1 << 2)
@@ -4233,6 +5725,240 @@ func (c *ClaimDay) MarshalJSON() ([]byte, error) {
 }
 
 func (c *ClaimDay) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	clusterAutomationFieldSettings   = big.NewInt(1 << 0)
+	clusterAutomationFieldComponent  = big.NewInt(1 << 1)
+	clusterAutomationFieldNamespaces = big.NewInt(1 << 2)
+)
+
+type ClusterAutomation struct {
+	Settings *AutomationSettings `json:"settings" url:"settings"`
+	// Null until the component first syncs
+	Component *AutomationComponent `json:"component,omitempty" url:"component,omitempty"`
+	// Every current namespace but the system ones
+	Namespaces []*NamespaceAutomation `json:"namespaces" url:"namespaces"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ClusterAutomation) GetSettings() *AutomationSettings {
+	if c == nil {
+		return nil
+	}
+	return c.Settings
+}
+
+func (c *ClusterAutomation) GetComponent() *AutomationComponent {
+	if c == nil {
+		return nil
+	}
+	return c.Component
+}
+
+func (c *ClusterAutomation) GetNamespaces() []*NamespaceAutomation {
+	if c == nil {
+		return nil
+	}
+	return c.Namespaces
+}
+
+func (c *ClusterAutomation) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ClusterAutomation) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetSettings sets the Settings field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClusterAutomation) SetSettings(settings *AutomationSettings) {
+	c.Settings = settings
+	c.require(clusterAutomationFieldSettings)
+}
+
+// SetComponent sets the Component field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClusterAutomation) SetComponent(component *AutomationComponent) {
+	c.Component = component
+	c.require(clusterAutomationFieldComponent)
+}
+
+// SetNamespaces sets the Namespaces field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClusterAutomation) SetNamespaces(namespaces []*NamespaceAutomation) {
+	c.Namespaces = namespaces
+	c.require(clusterAutomationFieldNamespaces)
+}
+
+func (c *ClusterAutomation) UnmarshalJSON(data []byte) error {
+	type unmarshaler ClusterAutomation
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ClusterAutomation(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ClusterAutomation) MarshalJSON() ([]byte, error) {
+	type embed ClusterAutomation
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ClusterAutomation) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	clusterAutomationResponseFieldSuccess   = big.NewInt(1 << 0)
+	clusterAutomationResponseFieldData      = big.NewInt(1 << 1)
+	clusterAutomationResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type ClusterAutomationResponse struct {
+	Success   *bool              `json:"success,omitempty" url:"success,omitempty"`
+	Data      *ClusterAutomation `json:"data" url:"data"`
+	Timestamp string             `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ClusterAutomationResponse) GetSuccess() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Success
+}
+
+func (c *ClusterAutomationResponse) GetData() *ClusterAutomation {
+	if c == nil {
+		return nil
+	}
+	return c.Data
+}
+
+func (c *ClusterAutomationResponse) GetTimestamp() string {
+	if c == nil {
+		return ""
+	}
+	return c.Timestamp
+}
+
+func (c *ClusterAutomationResponse) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ClusterAutomationResponse) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClusterAutomationResponse) SetSuccess(success *bool) {
+	c.Success = success
+	c.require(clusterAutomationResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClusterAutomationResponse) SetData(data *ClusterAutomation) {
+	c.Data = data
+	c.require(clusterAutomationResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClusterAutomationResponse) SetTimestamp(timestamp string) {
+	c.Timestamp = timestamp
+	c.require(clusterAutomationResponseFieldTimestamp)
+}
+
+func (c *ClusterAutomationResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler ClusterAutomationResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ClusterAutomationResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ClusterAutomationResponse) MarshalJSON() ([]byte, error) {
+	type embed ClusterAutomationResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ClusterAutomationResponse) String() string {
 	if c == nil {
 		return "<nil>"
 	}
@@ -11260,15 +12986,16 @@ var (
 	containerDetailFieldVpa            = big.NewInt(1 << 5)
 	containerDetailFieldLimits         = big.NewInt(1 << 6)
 	containerDetailFieldProbes         = big.NewInt(1 << 7)
-	containerDetailFieldUsage          = big.NewInt(1 << 8)
-	containerDetailFieldStartup        = big.NewInt(1 << 9)
-	containerDetailFieldGpu            = big.NewInt(1 << 10)
-	containerDetailFieldOomKills       = big.NewInt(1 << 11)
-	containerDetailFieldRestarts       = big.NewInt(1 << 12)
-	containerDetailFieldThrottledRatio = big.NewInt(1 << 13)
-	containerDetailFieldCost           = big.NewInt(1 << 14)
-	containerDetailFieldWaste          = big.NewInt(1 << 15)
-	containerDetailFieldSeries         = big.NewInt(1 << 16)
+	containerDetailFieldJvmHeap        = big.NewInt(1 << 8)
+	containerDetailFieldUsage          = big.NewInt(1 << 9)
+	containerDetailFieldStartup        = big.NewInt(1 << 10)
+	containerDetailFieldGpu            = big.NewInt(1 << 11)
+	containerDetailFieldOomKills       = big.NewInt(1 << 12)
+	containerDetailFieldRestarts       = big.NewInt(1 << 13)
+	containerDetailFieldThrottledRatio = big.NewInt(1 << 14)
+	containerDetailFieldCost           = big.NewInt(1 << 15)
+	containerDetailFieldWaste          = big.NewInt(1 << 16)
+	containerDetailFieldSeries         = big.NewInt(1 << 17)
 )
 
 type ContainerDetail struct {
@@ -11283,7 +13010,9 @@ type ContainerDetail struct {
 	Limits *ResourceList `json:"limits" url:"limits"`
 	// Null where the agent did not report them
 	Probes *ContainerProbes `json:"probes" url:"probes"`
-	Usage  *UsageSummary    `json:"usage" url:"usage"`
+	// Null when the agent reported no JVM heap setting
+	JvmHeap *ContainerJvmHeap `json:"jvm_heap,omitempty" url:"jvm_heap,omitempty"`
+	Usage   *UsageSummary     `json:"usage" url:"usage"`
 	// Usage in containers' first 15 minutes, against the steady state
 	Startup *StartupUsage `json:"startup" url:"startup"`
 	// Null when no DCGM exporter reported the container's GPUs
@@ -11356,6 +13085,13 @@ func (c *ContainerDetail) GetProbes() *ContainerProbes {
 		return nil
 	}
 	return c.Probes
+}
+
+func (c *ContainerDetail) GetJvmHeap() *ContainerJvmHeap {
+	if c == nil {
+		return nil
+	}
+	return c.JvmHeap
 }
 
 func (c *ContainerDetail) GetUsage() *UsageSummary {
@@ -11489,6 +13225,13 @@ func (c *ContainerDetail) SetLimits(limits *ResourceList) {
 func (c *ContainerDetail) SetProbes(probes *ContainerProbes) {
 	c.Probes = probes
 	c.require(containerDetailFieldProbes)
+}
+
+// SetJvmHeap sets the JvmHeap field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerDetail) SetJvmHeap(jvmHeap *ContainerJvmHeap) {
+	c.JvmHeap = jvmHeap
+	c.require(containerDetailFieldJvmHeap)
 }
 
 // SetUsage sets the Usage field and marks it as non-optional;
@@ -11767,6 +13510,333 @@ func (c *ContainerGpu) String() string {
 }
 
 var (
+	containerJvmHeapFieldMaxBytes         = big.NewInt(1 << 0)
+	containerJvmHeapFieldMaxRAMPercentage = big.NewInt(1 << 1)
+	containerJvmHeapFieldInitialBytes     = big.NewInt(1 << 2)
+	containerJvmHeapFieldSource           = big.NewInt(1 << 3)
+	containerJvmHeapFieldFloorBytes       = big.NewInt(1 << 4)
+)
+
+type ContainerJvmHeap struct {
+	// -Xmx or -XX:MaxHeapSize
+	MaxBytes *int `json:"max_bytes,omitempty" url:"max_bytes,omitempty"`
+	// -XX:MaxRAMPercentage, of the memory limit
+	MaxRAMPercentage *float64 `json:"max_ram_percentage,omitempty" url:"max_ram_percentage,omitempty"`
+	// -Xms or -XX:InitialHeapSize
+	InitialBytes *int `json:"initial_bytes,omitempty" url:"initial_bytes,omitempty"`
+	// command when the setting came from the command or arguments, env from a JVM option variable, unresolved for a JVM option variable set from a ConfigMap or Secret, which the agent cannot read
+	Source ContainerJvmHeapSource `json:"source" url:"source"`
+	// The least memory a recommendation leaves this container: the heap maximum, plus 256 MiB and a tenth of the heap for the rest of the JVM. Null when the heap maximum is not known
+	FloorBytes *int `json:"floor_bytes,omitempty" url:"floor_bytes,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ContainerJvmHeap) GetMaxBytes() *int {
+	if c == nil {
+		return nil
+	}
+	return c.MaxBytes
+}
+
+func (c *ContainerJvmHeap) GetMaxRAMPercentage() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.MaxRAMPercentage
+}
+
+func (c *ContainerJvmHeap) GetInitialBytes() *int {
+	if c == nil {
+		return nil
+	}
+	return c.InitialBytes
+}
+
+func (c *ContainerJvmHeap) GetSource() ContainerJvmHeapSource {
+	if c == nil {
+		return ""
+	}
+	return c.Source
+}
+
+func (c *ContainerJvmHeap) GetFloorBytes() *int {
+	if c == nil {
+		return nil
+	}
+	return c.FloorBytes
+}
+
+func (c *ContainerJvmHeap) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ContainerJvmHeap) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetMaxBytes sets the MaxBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmHeap) SetMaxBytes(maxBytes *int) {
+	c.MaxBytes = maxBytes
+	c.require(containerJvmHeapFieldMaxBytes)
+}
+
+// SetMaxRAMPercentage sets the MaxRAMPercentage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmHeap) SetMaxRAMPercentage(maxRAMPercentage *float64) {
+	c.MaxRAMPercentage = maxRAMPercentage
+	c.require(containerJvmHeapFieldMaxRAMPercentage)
+}
+
+// SetInitialBytes sets the InitialBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmHeap) SetInitialBytes(initialBytes *int) {
+	c.InitialBytes = initialBytes
+	c.require(containerJvmHeapFieldInitialBytes)
+}
+
+// SetSource sets the Source field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmHeap) SetSource(source ContainerJvmHeapSource) {
+	c.Source = source
+	c.require(containerJvmHeapFieldSource)
+}
+
+// SetFloorBytes sets the FloorBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmHeap) SetFloorBytes(floorBytes *int) {
+	c.FloorBytes = floorBytes
+	c.require(containerJvmHeapFieldFloorBytes)
+}
+
+func (c *ContainerJvmHeap) UnmarshalJSON(data []byte) error {
+	type unmarshaler ContainerJvmHeap
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ContainerJvmHeap(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ContainerJvmHeap) MarshalJSON() ([]byte, error) {
+	type embed ContainerJvmHeap
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ContainerJvmHeap) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+// command when the setting came from the command or arguments, env from a JVM option variable, unresolved for a JVM option variable set from a ConfigMap or Secret, which the agent cannot read
+type ContainerJvmHeapSource string
+
+const (
+	ContainerJvmHeapSourceCommand    ContainerJvmHeapSource = "command"
+	ContainerJvmHeapSourceEnv        ContainerJvmHeapSource = "env"
+	ContainerJvmHeapSourceUnresolved ContainerJvmHeapSource = "unresolved"
+)
+
+func NewContainerJvmHeapSourceFromString(s string) (ContainerJvmHeapSource, error) {
+	switch s {
+	case "command":
+		return ContainerJvmHeapSourceCommand, nil
+	case "env":
+		return ContainerJvmHeapSourceEnv, nil
+	case "unresolved":
+		return ContainerJvmHeapSourceUnresolved, nil
+	}
+	var t ContainerJvmHeapSource
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c ContainerJvmHeapSource) Ptr() *ContainerJvmHeapSource {
+	return &c
+}
+
+var (
+	containerLimitRangeFieldMin                  = big.NewInt(1 << 0)
+	containerLimitRangeFieldMax                  = big.NewInt(1 << 1)
+	containerLimitRangeFieldDefault              = big.NewInt(1 << 2)
+	containerLimitRangeFieldDefaultRequest       = big.NewInt(1 << 3)
+	containerLimitRangeFieldMaxLimitRequestRatio = big.NewInt(1 << 4)
+)
+
+type ContainerLimitRange struct {
+	Min                  *ResourceList  `json:"min,omitempty" url:"min,omitempty"`
+	Max                  *ResourceList  `json:"max,omitempty" url:"max,omitempty"`
+	Default              *ResourceList  `json:"default,omitempty" url:"default,omitempty"`
+	DefaultRequest       *ResourceList  `json:"default_request,omitempty" url:"default_request,omitempty"`
+	MaxLimitRequestRatio *ResourceRatio `json:"max_limit_request_ratio,omitempty" url:"max_limit_request_ratio,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ContainerLimitRange) GetMin() *ResourceList {
+	if c == nil {
+		return nil
+	}
+	return c.Min
+}
+
+func (c *ContainerLimitRange) GetMax() *ResourceList {
+	if c == nil {
+		return nil
+	}
+	return c.Max
+}
+
+func (c *ContainerLimitRange) GetDefault() *ResourceList {
+	if c == nil {
+		return nil
+	}
+	return c.Default
+}
+
+func (c *ContainerLimitRange) GetDefaultRequest() *ResourceList {
+	if c == nil {
+		return nil
+	}
+	return c.DefaultRequest
+}
+
+func (c *ContainerLimitRange) GetMaxLimitRequestRatio() *ResourceRatio {
+	if c == nil {
+		return nil
+	}
+	return c.MaxLimitRequestRatio
+}
+
+func (c *ContainerLimitRange) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ContainerLimitRange) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetMin sets the Min field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerLimitRange) SetMin(min *ResourceList) {
+	c.Min = min
+	c.require(containerLimitRangeFieldMin)
+}
+
+// SetMax sets the Max field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerLimitRange) SetMax(max *ResourceList) {
+	c.Max = max
+	c.require(containerLimitRangeFieldMax)
+}
+
+// SetDefault sets the Default field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerLimitRange) SetDefault(default_ *ResourceList) {
+	c.Default = default_
+	c.require(containerLimitRangeFieldDefault)
+}
+
+// SetDefaultRequest sets the DefaultRequest field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerLimitRange) SetDefaultRequest(defaultRequest *ResourceList) {
+	c.DefaultRequest = defaultRequest
+	c.require(containerLimitRangeFieldDefaultRequest)
+}
+
+// SetMaxLimitRequestRatio sets the MaxLimitRequestRatio field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerLimitRange) SetMaxLimitRequestRatio(maxLimitRequestRatio *ResourceRatio) {
+	c.MaxLimitRequestRatio = maxLimitRequestRatio
+	c.require(containerLimitRangeFieldMaxLimitRequestRatio)
+}
+
+func (c *ContainerLimitRange) UnmarshalJSON(data []byte) error {
+	type unmarshaler ContainerLimitRange
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ContainerLimitRange(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ContainerLimitRange) MarshalJSON() ([]byte, error) {
+	type embed ContainerLimitRange
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ContainerLimitRange) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
 	containerProbesFieldLiveness  = big.NewInt(1 << 0)
 	containerProbesFieldReadiness = big.NewInt(1 << 1)
 	containerProbesFieldStartup   = big.NewInt(1 << 2)
@@ -11868,6 +13938,106 @@ func (c *ContainerProbes) MarshalJSON() ([]byte, error) {
 }
 
 func (c *ContainerProbes) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	containerResourcesFieldRequests = big.NewInt(1 << 0)
+	containerResourcesFieldLimits   = big.NewInt(1 << 1)
+)
+
+type ContainerResources struct {
+	Requests *ResourceList `json:"requests,omitempty" url:"requests,omitempty"`
+	Limits   *ResourceList `json:"limits,omitempty" url:"limits,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ContainerResources) GetRequests() *ResourceList {
+	if c == nil {
+		return nil
+	}
+	return c.Requests
+}
+
+func (c *ContainerResources) GetLimits() *ResourceList {
+	if c == nil {
+		return nil
+	}
+	return c.Limits
+}
+
+func (c *ContainerResources) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ContainerResources) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetRequests sets the Requests field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerResources) SetRequests(requests *ResourceList) {
+	c.Requests = requests
+	c.require(containerResourcesFieldRequests)
+}
+
+// SetLimits sets the Limits field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerResources) SetLimits(limits *ResourceList) {
+	c.Limits = limits
+	c.require(containerResourcesFieldLimits)
+}
+
+func (c *ContainerResources) UnmarshalJSON(data []byte) error {
+	type unmarshaler ContainerResources
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ContainerResources(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ContainerResources) MarshalJSON() ([]byte, error) {
+	type embed ContainerResources
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ContainerResources) String() string {
 	if c == nil {
 		return "<nil>"
 	}
@@ -31483,6 +33653,126 @@ func (m MachineAccessKind) Ptr() *MachineAccessKind {
 	return &m
 }
 
+// When the component may act, in UTC, within each day it names: a window never crosses midnight, so one that
+// runs overnight is two windows, the second on the next day from 00:00.
+var (
+	maintenanceWindowFieldDays  = big.NewInt(1 << 0)
+	maintenanceWindowFieldStart = big.NewInt(1 << 1)
+	maintenanceWindowFieldEnd   = big.NewInt(1 << 2)
+)
+
+type MaintenanceWindow struct {
+	Days []int `json:"days" url:"days"`
+	// HH:MM, UTC
+	Start string `json:"start" url:"start"`
+	// HH:MM, UTC, later than start; 24:00 is the end of the day
+	End string `json:"end" url:"end"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (m *MaintenanceWindow) GetDays() []int {
+	if m == nil {
+		return nil
+	}
+	return m.Days
+}
+
+func (m *MaintenanceWindow) GetStart() string {
+	if m == nil {
+		return ""
+	}
+	return m.Start
+}
+
+func (m *MaintenanceWindow) GetEnd() string {
+	if m == nil {
+		return ""
+	}
+	return m.End
+}
+
+func (m *MaintenanceWindow) GetExtraProperties() map[string]interface{} {
+	if m == nil {
+		return nil
+	}
+	return m.extraProperties
+}
+
+func (m *MaintenanceWindow) require(field *big.Int) {
+	if m.explicitFields == nil {
+		m.explicitFields = big.NewInt(0)
+	}
+	m.explicitFields.Or(m.explicitFields, field)
+}
+
+// SetDays sets the Days field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (m *MaintenanceWindow) SetDays(days []int) {
+	m.Days = days
+	m.require(maintenanceWindowFieldDays)
+}
+
+// SetStart sets the Start field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (m *MaintenanceWindow) SetStart(start string) {
+	m.Start = start
+	m.require(maintenanceWindowFieldStart)
+}
+
+// SetEnd sets the End field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (m *MaintenanceWindow) SetEnd(end string) {
+	m.End = end
+	m.require(maintenanceWindowFieldEnd)
+}
+
+func (m *MaintenanceWindow) UnmarshalJSON(data []byte) error {
+	type unmarshaler MaintenanceWindow
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*m = MaintenanceWindow(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *m)
+	if err != nil {
+		return err
+	}
+	m.extraProperties = extraProperties
+	m.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (m *MaintenanceWindow) MarshalJSON() ([]byte, error) {
+	type embed MaintenanceWindow
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*m),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, m.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (m *MaintenanceWindow) String() string {
+	if m == nil {
+		return "<nil>"
+	}
+	if len(m.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(m); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", m)
+}
+
 var (
 	memberFieldID           = big.NewInt(1 << 0)
 	memberFieldName         = big.NewInt(1 << 1)
@@ -32760,6 +35050,667 @@ func (n *NamedSpec) String() string {
 }
 
 var (
+	namespaceAutomationFieldNamespace          = big.NewInt(1 << 0)
+	namespaceAutomationFieldRecommendations    = big.NewInt(1 << 1)
+	namespaceAutomationFieldScopeSource        = big.NewInt(1 << 2)
+	namespaceAutomationFieldResizeEnabled      = big.NewInt(1 << 3)
+	namespaceAutomationFieldResizeEnabledBy    = big.NewInt(1 << 4)
+	namespaceAutomationFieldAutomergeClasses   = big.NewInt(1 << 5)
+	namespaceAutomationFieldAutomergeEnabledBy = big.NewInt(1 << 6)
+	namespaceAutomationFieldPausedReason       = big.NewInt(1 << 7)
+	namespaceAutomationFieldPermitted          = big.NewInt(1 << 8)
+	namespaceAutomationFieldVersion            = big.NewInt(1 << 9)
+)
+
+type NamespaceAutomation struct {
+	Namespace string `json:"namespace" url:"namespace"`
+	// Automation acts only where recommendations are on
+	Recommendations NamespaceAutomationRecommendations `json:"recommendations" url:"recommendations"`
+	ScopeSource     NamespaceAutomationScopeSource     `json:"scope_source" url:"scope_source"`
+	ResizeEnabled   bool                               `json:"resize_enabled" url:"resize_enabled"`
+	// The person who turned in-place resize on
+	ResizeEnabledBy  *string                                   `json:"resize_enabled_by,omitempty" url:"resize_enabled_by,omitempty"`
+	AutomergeClasses []NamespaceAutomationAutomergeClassesItem `json:"automerge_classes" url:"automerge_classes"`
+	// The person who turned auto-merge on
+	AutomergeEnabledBy *string `json:"automerge_enabled_by,omitempty" url:"automerge_enabled_by,omitempty"`
+	// approver_left when the person who turned it on lost the role
+	PausedReason *string `json:"paused_reason,omitempty" url:"paused_reason,omitempty"`
+	// Whether the installed component may change this namespace; null with no component
+	Permitted *bool `json:"permitted,omitempty" url:"permitted,omitempty"`
+	// Send it back to change the namespace; 0 before it was first set
+	Version int `json:"version" url:"version"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (n *NamespaceAutomation) GetNamespace() string {
+	if n == nil {
+		return ""
+	}
+	return n.Namespace
+}
+
+func (n *NamespaceAutomation) GetRecommendations() NamespaceAutomationRecommendations {
+	if n == nil {
+		return ""
+	}
+	return n.Recommendations
+}
+
+func (n *NamespaceAutomation) GetScopeSource() NamespaceAutomationScopeSource {
+	if n == nil {
+		return ""
+	}
+	return n.ScopeSource
+}
+
+func (n *NamespaceAutomation) GetResizeEnabled() bool {
+	if n == nil {
+		return false
+	}
+	return n.ResizeEnabled
+}
+
+func (n *NamespaceAutomation) GetResizeEnabledBy() *string {
+	if n == nil {
+		return nil
+	}
+	return n.ResizeEnabledBy
+}
+
+func (n *NamespaceAutomation) GetAutomergeClasses() []NamespaceAutomationAutomergeClassesItem {
+	if n == nil {
+		return nil
+	}
+	return n.AutomergeClasses
+}
+
+func (n *NamespaceAutomation) GetAutomergeEnabledBy() *string {
+	if n == nil {
+		return nil
+	}
+	return n.AutomergeEnabledBy
+}
+
+func (n *NamespaceAutomation) GetPausedReason() *string {
+	if n == nil {
+		return nil
+	}
+	return n.PausedReason
+}
+
+func (n *NamespaceAutomation) GetPermitted() *bool {
+	if n == nil {
+		return nil
+	}
+	return n.Permitted
+}
+
+func (n *NamespaceAutomation) GetVersion() int {
+	if n == nil {
+		return 0
+	}
+	return n.Version
+}
+
+func (n *NamespaceAutomation) GetExtraProperties() map[string]interface{} {
+	if n == nil {
+		return nil
+	}
+	return n.extraProperties
+}
+
+func (n *NamespaceAutomation) require(field *big.Int) {
+	if n.explicitFields == nil {
+		n.explicitFields = big.NewInt(0)
+	}
+	n.explicitFields.Or(n.explicitFields, field)
+}
+
+// SetNamespace sets the Namespace field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceAutomation) SetNamespace(namespace string) {
+	n.Namespace = namespace
+	n.require(namespaceAutomationFieldNamespace)
+}
+
+// SetRecommendations sets the Recommendations field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceAutomation) SetRecommendations(recommendations NamespaceAutomationRecommendations) {
+	n.Recommendations = recommendations
+	n.require(namespaceAutomationFieldRecommendations)
+}
+
+// SetScopeSource sets the ScopeSource field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceAutomation) SetScopeSource(scopeSource NamespaceAutomationScopeSource) {
+	n.ScopeSource = scopeSource
+	n.require(namespaceAutomationFieldScopeSource)
+}
+
+// SetResizeEnabled sets the ResizeEnabled field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceAutomation) SetResizeEnabled(resizeEnabled bool) {
+	n.ResizeEnabled = resizeEnabled
+	n.require(namespaceAutomationFieldResizeEnabled)
+}
+
+// SetResizeEnabledBy sets the ResizeEnabledBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceAutomation) SetResizeEnabledBy(resizeEnabledBy *string) {
+	n.ResizeEnabledBy = resizeEnabledBy
+	n.require(namespaceAutomationFieldResizeEnabledBy)
+}
+
+// SetAutomergeClasses sets the AutomergeClasses field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceAutomation) SetAutomergeClasses(automergeClasses []NamespaceAutomationAutomergeClassesItem) {
+	n.AutomergeClasses = automergeClasses
+	n.require(namespaceAutomationFieldAutomergeClasses)
+}
+
+// SetAutomergeEnabledBy sets the AutomergeEnabledBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceAutomation) SetAutomergeEnabledBy(automergeEnabledBy *string) {
+	n.AutomergeEnabledBy = automergeEnabledBy
+	n.require(namespaceAutomationFieldAutomergeEnabledBy)
+}
+
+// SetPausedReason sets the PausedReason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceAutomation) SetPausedReason(pausedReason *string) {
+	n.PausedReason = pausedReason
+	n.require(namespaceAutomationFieldPausedReason)
+}
+
+// SetPermitted sets the Permitted field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceAutomation) SetPermitted(permitted *bool) {
+	n.Permitted = permitted
+	n.require(namespaceAutomationFieldPermitted)
+}
+
+// SetVersion sets the Version field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceAutomation) SetVersion(version int) {
+	n.Version = version
+	n.require(namespaceAutomationFieldVersion)
+}
+
+func (n *NamespaceAutomation) UnmarshalJSON(data []byte) error {
+	type unmarshaler NamespaceAutomation
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*n = NamespaceAutomation(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *n)
+	if err != nil {
+		return err
+	}
+	n.extraProperties = extraProperties
+	n.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (n *NamespaceAutomation) MarshalJSON() ([]byte, error) {
+	type embed NamespaceAutomation
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*n),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, n.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (n *NamespaceAutomation) String() string {
+	if n == nil {
+		return "<nil>"
+	}
+	if len(n.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(n.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(n); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", n)
+}
+
+type NamespaceAutomationAutomergeClassesItem string
+
+const (
+	NamespaceAutomationAutomergeClassesItemReliabilityFix       NamespaceAutomationAutomergeClassesItem = "reliability_fix"
+	NamespaceAutomationAutomergeClassesItemSmallRequestDecrease NamespaceAutomationAutomergeClassesItem = "small_request_decrease"
+	NamespaceAutomationAutomergeClassesItemAutoscalerTarget     NamespaceAutomationAutomergeClassesItem = "autoscaler_target"
+)
+
+func NewNamespaceAutomationAutomergeClassesItemFromString(s string) (NamespaceAutomationAutomergeClassesItem, error) {
+	switch s {
+	case "reliability_fix":
+		return NamespaceAutomationAutomergeClassesItemReliabilityFix, nil
+	case "small_request_decrease":
+		return NamespaceAutomationAutomergeClassesItemSmallRequestDecrease, nil
+	case "autoscaler_target":
+		return NamespaceAutomationAutomergeClassesItemAutoscalerTarget, nil
+	}
+	var t NamespaceAutomationAutomergeClassesItem
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (n NamespaceAutomationAutomergeClassesItem) Ptr() *NamespaceAutomationAutomergeClassesItem {
+	return &n
+}
+
+// Automation acts only where recommendations are on
+type NamespaceAutomationRecommendations string
+
+const (
+	NamespaceAutomationRecommendationsEnabled  NamespaceAutomationRecommendations = "enabled"
+	NamespaceAutomationRecommendationsDisabled NamespaceAutomationRecommendations = "disabled"
+	NamespaceAutomationRecommendationsSystem   NamespaceAutomationRecommendations = "system"
+)
+
+func NewNamespaceAutomationRecommendationsFromString(s string) (NamespaceAutomationRecommendations, error) {
+	switch s {
+	case "enabled":
+		return NamespaceAutomationRecommendationsEnabled, nil
+	case "disabled":
+		return NamespaceAutomationRecommendationsDisabled, nil
+	case "system":
+		return NamespaceAutomationRecommendationsSystem, nil
+	}
+	var t NamespaceAutomationRecommendations
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (n NamespaceAutomationRecommendations) Ptr() *NamespaceAutomationRecommendations {
+	return &n
+}
+
+var (
+	namespaceAutomationResponseFieldSuccess   = big.NewInt(1 << 0)
+	namespaceAutomationResponseFieldData      = big.NewInt(1 << 1)
+	namespaceAutomationResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type NamespaceAutomationResponse struct {
+	Success   *bool                `json:"success,omitempty" url:"success,omitempty"`
+	Data      *NamespaceAutomation `json:"data" url:"data"`
+	Timestamp string               `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (n *NamespaceAutomationResponse) GetSuccess() *bool {
+	if n == nil {
+		return nil
+	}
+	return n.Success
+}
+
+func (n *NamespaceAutomationResponse) GetData() *NamespaceAutomation {
+	if n == nil {
+		return nil
+	}
+	return n.Data
+}
+
+func (n *NamespaceAutomationResponse) GetTimestamp() string {
+	if n == nil {
+		return ""
+	}
+	return n.Timestamp
+}
+
+func (n *NamespaceAutomationResponse) GetExtraProperties() map[string]interface{} {
+	if n == nil {
+		return nil
+	}
+	return n.extraProperties
+}
+
+func (n *NamespaceAutomationResponse) require(field *big.Int) {
+	if n.explicitFields == nil {
+		n.explicitFields = big.NewInt(0)
+	}
+	n.explicitFields.Or(n.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceAutomationResponse) SetSuccess(success *bool) {
+	n.Success = success
+	n.require(namespaceAutomationResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceAutomationResponse) SetData(data *NamespaceAutomation) {
+	n.Data = data
+	n.require(namespaceAutomationResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceAutomationResponse) SetTimestamp(timestamp string) {
+	n.Timestamp = timestamp
+	n.require(namespaceAutomationResponseFieldTimestamp)
+}
+
+func (n *NamespaceAutomationResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler NamespaceAutomationResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*n = NamespaceAutomationResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *n)
+	if err != nil {
+		return err
+	}
+	n.extraProperties = extraProperties
+	n.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (n *NamespaceAutomationResponse) MarshalJSON() ([]byte, error) {
+	type embed NamespaceAutomationResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*n),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, n.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (n *NamespaceAutomationResponse) String() string {
+	if n == nil {
+		return "<nil>"
+	}
+	if len(n.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(n.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(n); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", n)
+}
+
+type NamespaceAutomationScopeSource string
+
+const (
+	NamespaceAutomationScopeSourceLabel     NamespaceAutomationScopeSource = "label"
+	NamespaceAutomationScopeSourceSystem    NamespaceAutomationScopeSource = "system"
+	NamespaceAutomationScopeSourceDashboard NamespaceAutomationScopeSource = "dashboard"
+	NamespaceAutomationScopeSourceDefault   NamespaceAutomationScopeSource = "default"
+)
+
+func NewNamespaceAutomationScopeSourceFromString(s string) (NamespaceAutomationScopeSource, error) {
+	switch s {
+	case "label":
+		return NamespaceAutomationScopeSourceLabel, nil
+	case "system":
+		return NamespaceAutomationScopeSourceSystem, nil
+	case "dashboard":
+		return NamespaceAutomationScopeSourceDashboard, nil
+	case "default":
+		return NamespaceAutomationScopeSourceDefault, nil
+	}
+	var t NamespaceAutomationScopeSource
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (n NamespaceAutomationScopeSource) Ptr() *NamespaceAutomationScopeSource {
+	return &n
+}
+
+var (
+	namespaceConstraintsFieldNamespace      = big.NewInt(1 << 0)
+	namespaceConstraintsFieldResourceQuotas = big.NewInt(1 << 1)
+	namespaceConstraintsFieldLimitRanges    = big.NewInt(1 << 2)
+)
+
+type NamespaceConstraints struct {
+	Namespace      string                    `json:"namespace" url:"namespace"`
+	ResourceQuotas []*NamespaceResourceQuota `json:"resource_quotas" url:"resource_quotas"`
+	LimitRanges    []*NamespaceLimitRange    `json:"limit_ranges" url:"limit_ranges"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (n *NamespaceConstraints) GetNamespace() string {
+	if n == nil {
+		return ""
+	}
+	return n.Namespace
+}
+
+func (n *NamespaceConstraints) GetResourceQuotas() []*NamespaceResourceQuota {
+	if n == nil {
+		return nil
+	}
+	return n.ResourceQuotas
+}
+
+func (n *NamespaceConstraints) GetLimitRanges() []*NamespaceLimitRange {
+	if n == nil {
+		return nil
+	}
+	return n.LimitRanges
+}
+
+func (n *NamespaceConstraints) GetExtraProperties() map[string]interface{} {
+	if n == nil {
+		return nil
+	}
+	return n.extraProperties
+}
+
+func (n *NamespaceConstraints) require(field *big.Int) {
+	if n.explicitFields == nil {
+		n.explicitFields = big.NewInt(0)
+	}
+	n.explicitFields.Or(n.explicitFields, field)
+}
+
+// SetNamespace sets the Namespace field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceConstraints) SetNamespace(namespace string) {
+	n.Namespace = namespace
+	n.require(namespaceConstraintsFieldNamespace)
+}
+
+// SetResourceQuotas sets the ResourceQuotas field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceConstraints) SetResourceQuotas(resourceQuotas []*NamespaceResourceQuota) {
+	n.ResourceQuotas = resourceQuotas
+	n.require(namespaceConstraintsFieldResourceQuotas)
+}
+
+// SetLimitRanges sets the LimitRanges field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceConstraints) SetLimitRanges(limitRanges []*NamespaceLimitRange) {
+	n.LimitRanges = limitRanges
+	n.require(namespaceConstraintsFieldLimitRanges)
+}
+
+func (n *NamespaceConstraints) UnmarshalJSON(data []byte) error {
+	type unmarshaler NamespaceConstraints
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*n = NamespaceConstraints(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *n)
+	if err != nil {
+		return err
+	}
+	n.extraProperties = extraProperties
+	n.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (n *NamespaceConstraints) MarshalJSON() ([]byte, error) {
+	type embed NamespaceConstraints
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*n),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, n.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (n *NamespaceConstraints) String() string {
+	if n == nil {
+		return "<nil>"
+	}
+	if len(n.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(n.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(n); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", n)
+}
+
+var (
+	namespaceConstraintsResponseFieldSuccess   = big.NewInt(1 << 0)
+	namespaceConstraintsResponseFieldData      = big.NewInt(1 << 1)
+	namespaceConstraintsResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type NamespaceConstraintsResponse struct {
+	Success   *bool                 `json:"success,omitempty" url:"success,omitempty"`
+	Data      *NamespaceConstraints `json:"data" url:"data"`
+	Timestamp string                `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (n *NamespaceConstraintsResponse) GetSuccess() *bool {
+	if n == nil {
+		return nil
+	}
+	return n.Success
+}
+
+func (n *NamespaceConstraintsResponse) GetData() *NamespaceConstraints {
+	if n == nil {
+		return nil
+	}
+	return n.Data
+}
+
+func (n *NamespaceConstraintsResponse) GetTimestamp() string {
+	if n == nil {
+		return ""
+	}
+	return n.Timestamp
+}
+
+func (n *NamespaceConstraintsResponse) GetExtraProperties() map[string]interface{} {
+	if n == nil {
+		return nil
+	}
+	return n.extraProperties
+}
+
+func (n *NamespaceConstraintsResponse) require(field *big.Int) {
+	if n.explicitFields == nil {
+		n.explicitFields = big.NewInt(0)
+	}
+	n.explicitFields.Or(n.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceConstraintsResponse) SetSuccess(success *bool) {
+	n.Success = success
+	n.require(namespaceConstraintsResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceConstraintsResponse) SetData(data *NamespaceConstraints) {
+	n.Data = data
+	n.require(namespaceConstraintsResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceConstraintsResponse) SetTimestamp(timestamp string) {
+	n.Timestamp = timestamp
+	n.require(namespaceConstraintsResponseFieldTimestamp)
+}
+
+func (n *NamespaceConstraintsResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler NamespaceConstraintsResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*n = NamespaceConstraintsResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *n)
+	if err != nil {
+		return err
+	}
+	n.extraProperties = extraProperties
+	n.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (n *NamespaceConstraintsResponse) MarshalJSON() ([]byte, error) {
+	type embed NamespaceConstraintsResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*n),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, n.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (n *NamespaceConstraintsResponse) String() string {
+	if n == nil {
+		return "<nil>"
+	}
+	if len(n.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(n.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(n); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", n)
+}
+
+var (
 	namespaceFacetsFieldRecommendations = big.NewInt(1 << 0)
 )
 
@@ -33543,6 +36494,107 @@ func (n *NamespaceLabelKey) String() string {
 }
 
 var (
+	namespaceLimitRangeFieldName      = big.NewInt(1 << 0)
+	namespaceLimitRangeFieldContainer = big.NewInt(1 << 1)
+)
+
+type NamespaceLimitRange struct {
+	Name string `json:"name" url:"name"`
+	// The LimitRange's container item: min, max, defaults and the largest limit to request ratio
+	Container *ContainerLimitRange `json:"container" url:"container"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (n *NamespaceLimitRange) GetName() string {
+	if n == nil {
+		return ""
+	}
+	return n.Name
+}
+
+func (n *NamespaceLimitRange) GetContainer() *ContainerLimitRange {
+	if n == nil {
+		return nil
+	}
+	return n.Container
+}
+
+func (n *NamespaceLimitRange) GetExtraProperties() map[string]interface{} {
+	if n == nil {
+		return nil
+	}
+	return n.extraProperties
+}
+
+func (n *NamespaceLimitRange) require(field *big.Int) {
+	if n.explicitFields == nil {
+		n.explicitFields = big.NewInt(0)
+	}
+	n.explicitFields.Or(n.explicitFields, field)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceLimitRange) SetName(name string) {
+	n.Name = name
+	n.require(namespaceLimitRangeFieldName)
+}
+
+// SetContainer sets the Container field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceLimitRange) SetContainer(container *ContainerLimitRange) {
+	n.Container = container
+	n.require(namespaceLimitRangeFieldContainer)
+}
+
+func (n *NamespaceLimitRange) UnmarshalJSON(data []byte) error {
+	type unmarshaler NamespaceLimitRange
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*n = NamespaceLimitRange(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *n)
+	if err != nil {
+		return err
+	}
+	n.extraProperties = extraProperties
+	n.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (n *NamespaceLimitRange) MarshalJSON() ([]byte, error) {
+	type embed NamespaceLimitRange
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*n),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, n.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (n *NamespaceLimitRange) String() string {
+	if n == nil {
+		return "<nil>"
+	}
+	if len(n.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(n.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(n); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", n)
+}
+
+var (
 	namespaceListDataFieldItems      = big.NewInt(1 << 0)
 	namespaceListDataFieldPagination = big.NewInt(1 << 1)
 	namespaceListDataFieldTotals     = big.NewInt(1 << 2)
@@ -33942,6 +36994,124 @@ func (n *NamespaceReliability) MarshalJSON() ([]byte, error) {
 }
 
 func (n *NamespaceReliability) String() string {
+	if n == nil {
+		return "<nil>"
+	}
+	if len(n.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(n.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(n); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", n)
+}
+
+var (
+	namespaceResourceQuotaFieldName = big.NewInt(1 << 0)
+	namespaceResourceQuotaFieldHard = big.NewInt(1 << 1)
+	namespaceResourceQuotaFieldUsed = big.NewInt(1 << 2)
+)
+
+type NamespaceResourceQuota struct {
+	Name string `json:"name" url:"name"`
+	// What the quota allows: requests, limits and pods
+	Hard *QuotaResources `json:"hard" url:"hard"`
+	// What the namespace's pods take of it now
+	Used *QuotaResources `json:"used" url:"used"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (n *NamespaceResourceQuota) GetName() string {
+	if n == nil {
+		return ""
+	}
+	return n.Name
+}
+
+func (n *NamespaceResourceQuota) GetHard() *QuotaResources {
+	if n == nil {
+		return nil
+	}
+	return n.Hard
+}
+
+func (n *NamespaceResourceQuota) GetUsed() *QuotaResources {
+	if n == nil {
+		return nil
+	}
+	return n.Used
+}
+
+func (n *NamespaceResourceQuota) GetExtraProperties() map[string]interface{} {
+	if n == nil {
+		return nil
+	}
+	return n.extraProperties
+}
+
+func (n *NamespaceResourceQuota) require(field *big.Int) {
+	if n.explicitFields == nil {
+		n.explicitFields = big.NewInt(0)
+	}
+	n.explicitFields.Or(n.explicitFields, field)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceResourceQuota) SetName(name string) {
+	n.Name = name
+	n.require(namespaceResourceQuotaFieldName)
+}
+
+// SetHard sets the Hard field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceResourceQuota) SetHard(hard *QuotaResources) {
+	n.Hard = hard
+	n.require(namespaceResourceQuotaFieldHard)
+}
+
+// SetUsed sets the Used field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceResourceQuota) SetUsed(used *QuotaResources) {
+	n.Used = used
+	n.require(namespaceResourceQuotaFieldUsed)
+}
+
+func (n *NamespaceResourceQuota) UnmarshalJSON(data []byte) error {
+	type unmarshaler NamespaceResourceQuota
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*n = NamespaceResourceQuota(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *n)
+	if err != nil {
+		return err
+	}
+	n.extraProperties = extraProperties
+	n.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (n *NamespaceResourceQuota) MarshalJSON() ([]byte, error) {
+	type embed NamespaceResourceQuota
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*n),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, n.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (n *NamespaceResourceQuota) String() string {
 	if n == nil {
 		return "<nil>"
 	}
@@ -35505,7 +38675,7 @@ type NodeDetail struct {
 	Network          []*NodeNetworkDay      `json:"network" url:"network"`
 	// The Karpenter NodePool as the agent reports it
 	NodePool map[string]any `json:"node_pool,omitempty" url:"node_pool,omitempty"`
-	// Its Karpenter NodeClass
+	// Its NodePool's class, with its group: karpenter.k8s.aws or eks.amazonaws.com (EKS Auto Mode)
 	NodeClass map[string]any `json:"node_class,omitempty" url:"node_class,omitempty"`
 	// Karpenter's Unconsolidatable and DisruptionBlocked events on it in the last 24 hours
 	KarpenterSays []*KarpenterMessage `json:"karpenter_says" url:"karpenter_says"`
@@ -38108,11 +41278,12 @@ var (
 	nodePoolDetailFieldKind            = big.NewInt(1 << 1)
 	nodePoolDetailFieldSpec            = big.NewInt(1 << 2)
 	nodePoolDetailFieldKarpenter       = big.NewInt(1 << 3)
-	nodePoolDetailFieldNodes           = big.NewInt(1 << 4)
-	nodePoolDetailFieldReview          = big.NewInt(1 << 5)
-	nodePoolDetailFieldInterruptions   = big.NewInt(1 << 6)
-	nodePoolDetailFieldRecommendations = big.NewInt(1 << 7)
-	nodePoolDetailFieldRecommendedFit  = big.NewInt(1 << 8)
+	nodePoolDetailFieldNodeClass       = big.NewInt(1 << 4)
+	nodePoolDetailFieldNodes           = big.NewInt(1 << 5)
+	nodePoolDetailFieldReview          = big.NewInt(1 << 6)
+	nodePoolDetailFieldInterruptions   = big.NewInt(1 << 7)
+	nodePoolDetailFieldRecommendations = big.NewInt(1 << 8)
+	nodePoolDetailFieldRecommendedFit  = big.NewInt(1 << 9)
 )
 
 type NodePoolDetail struct {
@@ -38122,6 +41293,8 @@ type NodePoolDetail struct {
 	Spec map[string]any `json:"spec,omitempty" url:"spec,omitempty"`
 	// The cluster's Karpenter controller, for a NodePool
 	Karpenter *Karpenter `json:"karpenter,omitempty" url:"karpenter,omitempty"`
+	// The class a NodePool launches from, as the agent reports it, with its group: karpenter.k8s.aws for an EC2NodeClass, eks.amazonaws.com for an EKS Auto Mode NodeClass. Null for a node group, or when the agent has not reported the class
+	NodeClass map[string]any `json:"node_class,omitempty" url:"node_class,omitempty"`
 	// Its current nodes
 	Nodes []*NodePoolNode `json:"nodes" url:"nodes"`
 	// The worker's latest review; null before the first
@@ -38164,6 +41337,13 @@ func (n *NodePoolDetail) GetKarpenter() *Karpenter {
 		return nil
 	}
 	return n.Karpenter
+}
+
+func (n *NodePoolDetail) GetNodeClass() map[string]any {
+	if n == nil {
+		return nil
+	}
+	return n.NodeClass
 }
 
 func (n *NodePoolDetail) GetNodes() []*NodePoolNode {
@@ -38241,6 +41421,13 @@ func (n *NodePoolDetail) SetSpec(spec map[string]any) {
 func (n *NodePoolDetail) SetKarpenter(karpenter *Karpenter) {
 	n.Karpenter = karpenter
 	n.require(nodePoolDetailFieldKarpenter)
+}
+
+// SetNodeClass sets the NodeClass field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NodePoolDetail) SetNodeClass(nodeClass map[string]any) {
+	n.NodeClass = nodeClass
+	n.require(nodePoolDetailFieldNodeClass)
 }
 
 // SetNodes sets the Nodes field and marks it as non-optional;
@@ -45637,6 +48824,122 @@ func (p *PurchasingAccountSetting) String() string {
 	return fmt.Sprintf("%#v", p)
 }
 
+var (
+	quotaResourcesFieldRequests = big.NewInt(1 << 0)
+	quotaResourcesFieldLimits   = big.NewInt(1 << 1)
+	quotaResourcesFieldPods     = big.NewInt(1 << 2)
+)
+
+type QuotaResources struct {
+	Requests *ResourceList `json:"requests,omitempty" url:"requests,omitempty"`
+	Limits   *ResourceList `json:"limits,omitempty" url:"limits,omitempty"`
+	Pods     *int          `json:"pods,omitempty" url:"pods,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (q *QuotaResources) GetRequests() *ResourceList {
+	if q == nil {
+		return nil
+	}
+	return q.Requests
+}
+
+func (q *QuotaResources) GetLimits() *ResourceList {
+	if q == nil {
+		return nil
+	}
+	return q.Limits
+}
+
+func (q *QuotaResources) GetPods() *int {
+	if q == nil {
+		return nil
+	}
+	return q.Pods
+}
+
+func (q *QuotaResources) GetExtraProperties() map[string]interface{} {
+	if q == nil {
+		return nil
+	}
+	return q.extraProperties
+}
+
+func (q *QuotaResources) require(field *big.Int) {
+	if q.explicitFields == nil {
+		q.explicitFields = big.NewInt(0)
+	}
+	q.explicitFields.Or(q.explicitFields, field)
+}
+
+// SetRequests sets the Requests field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (q *QuotaResources) SetRequests(requests *ResourceList) {
+	q.Requests = requests
+	q.require(quotaResourcesFieldRequests)
+}
+
+// SetLimits sets the Limits field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (q *QuotaResources) SetLimits(limits *ResourceList) {
+	q.Limits = limits
+	q.require(quotaResourcesFieldLimits)
+}
+
+// SetPods sets the Pods field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (q *QuotaResources) SetPods(pods *int) {
+	q.Pods = pods
+	q.require(quotaResourcesFieldPods)
+}
+
+func (q *QuotaResources) UnmarshalJSON(data []byte) error {
+	type unmarshaler QuotaResources
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*q = QuotaResources(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *q)
+	if err != nil {
+		return err
+	}
+	q.extraProperties = extraProperties
+	q.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (q *QuotaResources) MarshalJSON() ([]byte, error) {
+	type embed QuotaResources
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*q),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, q.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (q *QuotaResources) String() string {
+	if q == nil {
+		return "<nil>"
+	}
+	if len(q.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(q.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(q); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", q)
+}
+
 type RateLimitError = *ErrorResponse
 
 // Reactions of one emoji on a comment, grouped for the requesting user.
@@ -50117,6 +53420,106 @@ func (r *ResourceListResponse) String() string {
 }
 
 var (
+	resourceRatioFieldCPU    = big.NewInt(1 << 0)
+	resourceRatioFieldMemory = big.NewInt(1 << 1)
+)
+
+type ResourceRatio struct {
+	CPU    *float64 `json:"cpu,omitempty" url:"cpu,omitempty"`
+	Memory *float64 `json:"memory,omitempty" url:"memory,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *ResourceRatio) GetCPU() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.CPU
+}
+
+func (r *ResourceRatio) GetMemory() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.Memory
+}
+
+func (r *ResourceRatio) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *ResourceRatio) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetCPU sets the CPU field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceRatio) SetCPU(cpu *float64) {
+	r.CPU = cpu
+	r.require(resourceRatioFieldCPU)
+}
+
+// SetMemory sets the Memory field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceRatio) SetMemory(memory *float64) {
+	r.Memory = memory
+	r.require(resourceRatioFieldMemory)
+}
+
+func (r *ResourceRatio) UnmarshalJSON(data []byte) error {
+	type unmarshaler ResourceRatio
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = ResourceRatio(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *ResourceRatio) MarshalJSON() ([]byte, error) {
+	type embed ResourceRatio
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *ResourceRatio) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
 	resourceSummaryDataFieldSupported       = big.NewInt(1 << 0)
 	resourceSummaryDataFieldLastInventoryAt = big.NewInt(1 << 1)
 	resourceSummaryDataFieldTotals          = big.NewInt(1 << 2)
@@ -54341,6 +57744,295 @@ func (s *SentFromNode) String() string {
 type ServerFault = *ErrorResponse
 
 var (
+	setAutomationRequestFieldEnabled = big.NewInt(1 << 0)
+	setAutomationRequestFieldWindow  = big.NewInt(1 << 1)
+	setAutomationRequestFieldCaps    = big.NewInt(1 << 2)
+	setAutomationRequestFieldSteps   = big.NewInt(1 << 3)
+	setAutomationRequestFieldVersion = big.NewInt(1 << 4)
+)
+
+type SetAutomationRequest struct {
+	Enabled bool                 `json:"enabled" url:"enabled"`
+	Window  []*MaintenanceWindow `json:"window,omitempty" url:"window,omitempty"`
+	Caps    *AutomationCaps      `json:"caps,omitempty" url:"caps,omitempty"`
+	Steps   *AutomationSteps     `json:"steps,omitempty" url:"steps,omitempty"`
+	Version int                  `json:"version" url:"version"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SetAutomationRequest) GetEnabled() bool {
+	if s == nil {
+		return false
+	}
+	return s.Enabled
+}
+
+func (s *SetAutomationRequest) GetWindow() []*MaintenanceWindow {
+	if s == nil {
+		return nil
+	}
+	return s.Window
+}
+
+func (s *SetAutomationRequest) GetCaps() *AutomationCaps {
+	if s == nil {
+		return nil
+	}
+	return s.Caps
+}
+
+func (s *SetAutomationRequest) GetSteps() *AutomationSteps {
+	if s == nil {
+		return nil
+	}
+	return s.Steps
+}
+
+func (s *SetAutomationRequest) GetVersion() int {
+	if s == nil {
+		return 0
+	}
+	return s.Version
+}
+
+func (s *SetAutomationRequest) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *SetAutomationRequest) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetEnabled sets the Enabled field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SetAutomationRequest) SetEnabled(enabled bool) {
+	s.Enabled = enabled
+	s.require(setAutomationRequestFieldEnabled)
+}
+
+// SetWindow sets the Window field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SetAutomationRequest) SetWindow(window []*MaintenanceWindow) {
+	s.Window = window
+	s.require(setAutomationRequestFieldWindow)
+}
+
+// SetCaps sets the Caps field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SetAutomationRequest) SetCaps(caps *AutomationCaps) {
+	s.Caps = caps
+	s.require(setAutomationRequestFieldCaps)
+}
+
+// SetSteps sets the Steps field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SetAutomationRequest) SetSteps(steps *AutomationSteps) {
+	s.Steps = steps
+	s.require(setAutomationRequestFieldSteps)
+}
+
+// SetVersion sets the Version field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SetAutomationRequest) SetVersion(version int) {
+	s.Version = version
+	s.require(setAutomationRequestFieldVersion)
+}
+
+func (s *SetAutomationRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler SetAutomationRequest
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SetAutomationRequest(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SetAutomationRequest) MarshalJSON() ([]byte, error) {
+	type embed SetAutomationRequest
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *SetAutomationRequest) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+var (
+	setNamespaceAutomationRequestFieldResizeEnabled    = big.NewInt(1 << 0)
+	setNamespaceAutomationRequestFieldAutomergeClasses = big.NewInt(1 << 1)
+	setNamespaceAutomationRequestFieldVersion          = big.NewInt(1 << 2)
+)
+
+type SetNamespaceAutomationRequest struct {
+	ResizeEnabled    bool                                                `json:"resize_enabled" url:"resize_enabled"`
+	AutomergeClasses []SetNamespaceAutomationRequestAutomergeClassesItem `json:"automerge_classes,omitempty" url:"automerge_classes,omitempty"`
+	Version          int                                                 `json:"version" url:"version"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SetNamespaceAutomationRequest) GetResizeEnabled() bool {
+	if s == nil {
+		return false
+	}
+	return s.ResizeEnabled
+}
+
+func (s *SetNamespaceAutomationRequest) GetAutomergeClasses() []SetNamespaceAutomationRequestAutomergeClassesItem {
+	if s == nil {
+		return nil
+	}
+	return s.AutomergeClasses
+}
+
+func (s *SetNamespaceAutomationRequest) GetVersion() int {
+	if s == nil {
+		return 0
+	}
+	return s.Version
+}
+
+func (s *SetNamespaceAutomationRequest) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *SetNamespaceAutomationRequest) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetResizeEnabled sets the ResizeEnabled field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SetNamespaceAutomationRequest) SetResizeEnabled(resizeEnabled bool) {
+	s.ResizeEnabled = resizeEnabled
+	s.require(setNamespaceAutomationRequestFieldResizeEnabled)
+}
+
+// SetAutomergeClasses sets the AutomergeClasses field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SetNamespaceAutomationRequest) SetAutomergeClasses(automergeClasses []SetNamespaceAutomationRequestAutomergeClassesItem) {
+	s.AutomergeClasses = automergeClasses
+	s.require(setNamespaceAutomationRequestFieldAutomergeClasses)
+}
+
+// SetVersion sets the Version field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SetNamespaceAutomationRequest) SetVersion(version int) {
+	s.Version = version
+	s.require(setNamespaceAutomationRequestFieldVersion)
+}
+
+func (s *SetNamespaceAutomationRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler SetNamespaceAutomationRequest
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SetNamespaceAutomationRequest(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SetNamespaceAutomationRequest) MarshalJSON() ([]byte, error) {
+	type embed SetNamespaceAutomationRequest
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *SetNamespaceAutomationRequest) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SetNamespaceAutomationRequestAutomergeClassesItem string
+
+const (
+	SetNamespaceAutomationRequestAutomergeClassesItemReliabilityFix       SetNamespaceAutomationRequestAutomergeClassesItem = "reliability_fix"
+	SetNamespaceAutomationRequestAutomergeClassesItemSmallRequestDecrease SetNamespaceAutomationRequestAutomergeClassesItem = "small_request_decrease"
+	SetNamespaceAutomationRequestAutomergeClassesItemAutoscalerTarget     SetNamespaceAutomationRequestAutomergeClassesItem = "autoscaler_target"
+)
+
+func NewSetNamespaceAutomationRequestAutomergeClassesItemFromString(s string) (SetNamespaceAutomationRequestAutomergeClassesItem, error) {
+	switch s {
+	case "reliability_fix":
+		return SetNamespaceAutomationRequestAutomergeClassesItemReliabilityFix, nil
+	case "small_request_decrease":
+		return SetNamespaceAutomationRequestAutomergeClassesItemSmallRequestDecrease, nil
+	case "autoscaler_target":
+		return SetNamespaceAutomationRequestAutomergeClassesItemAutoscalerTarget, nil
+	}
+	var t SetNamespaceAutomationRequestAutomergeClassesItem
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SetNamespaceAutomationRequestAutomergeClassesItem) Ptr() *SetNamespaceAutomationRequestAutomergeClassesItem {
+	return &s
+}
+
+var (
 	setNamespaceScopeRequestFieldEnabled = big.NewInt(1 << 0)
 )
 
@@ -57327,6 +61019,107 @@ func (s *StepStartUIPart) MarshalJSON() ([]byte, error) {
 }
 
 func (s *StepStartUIPart) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+var (
+	stopAutomationRequestFieldRevert = big.NewInt(1 << 0)
+	stopAutomationRequestFieldReason = big.NewInt(1 << 1)
+)
+
+type StopAutomationRequest struct {
+	// Also put back what the component changed on pods still running
+	Revert *bool   `json:"revert,omitempty" url:"revert,omitempty"`
+	Reason *string `json:"reason,omitempty" url:"reason,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *StopAutomationRequest) GetRevert() *bool {
+	if s == nil {
+		return nil
+	}
+	return s.Revert
+}
+
+func (s *StopAutomationRequest) GetReason() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Reason
+}
+
+func (s *StopAutomationRequest) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *StopAutomationRequest) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetRevert sets the Revert field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *StopAutomationRequest) SetRevert(revert *bool) {
+	s.Revert = revert
+	s.require(stopAutomationRequestFieldRevert)
+}
+
+// SetReason sets the Reason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *StopAutomationRequest) SetReason(reason *string) {
+	s.Reason = reason
+	s.require(stopAutomationRequestFieldReason)
+}
+
+func (s *StopAutomationRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler StopAutomationRequest
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = StopAutomationRequest(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *StopAutomationRequest) MarshalJSON() ([]byte, error) {
+	type embed StopAutomationRequest
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *StopAutomationRequest) String() string {
 	if s == nil {
 		return "<nil>"
 	}
