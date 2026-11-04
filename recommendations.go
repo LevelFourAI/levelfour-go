@@ -818,6 +818,127 @@ func (a *AutomatedSavingsResponse) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
+// What a batch parent's children save. The parent stores none of it, so a total over rows
+// counts each saving once.
+var (
+	childrenSavingsFieldMonthlySavings    = big.NewInt(1 << 0)
+	childrenSavingsFieldAnnualSavings     = big.NewInt(1 << 1)
+	childrenSavingsFieldSavingsPercentage = big.NewInt(1 << 2)
+)
+
+type ChildrenSavings struct {
+	// Monthly savings across the parent's children
+	MonthlySavings float64 `json:"monthly_savings" url:"monthly_savings"`
+	// Annual savings across the parent's children
+	AnnualSavings float64 `json:"annual_savings" url:"annual_savings"`
+	// Share of the children's current spending saved, when they report spending
+	SavingsPercentage *float64 `json:"savings_percentage,omitempty" url:"savings_percentage,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ChildrenSavings) GetMonthlySavings() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.MonthlySavings
+}
+
+func (c *ChildrenSavings) GetAnnualSavings() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.AnnualSavings
+}
+
+func (c *ChildrenSavings) GetSavingsPercentage() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.SavingsPercentage
+}
+
+func (c *ChildrenSavings) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ChildrenSavings) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetMonthlySavings sets the MonthlySavings field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ChildrenSavings) SetMonthlySavings(monthlySavings float64) {
+	c.MonthlySavings = monthlySavings
+	c.require(childrenSavingsFieldMonthlySavings)
+}
+
+// SetAnnualSavings sets the AnnualSavings field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ChildrenSavings) SetAnnualSavings(annualSavings float64) {
+	c.AnnualSavings = annualSavings
+	c.require(childrenSavingsFieldAnnualSavings)
+}
+
+// SetSavingsPercentage sets the SavingsPercentage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ChildrenSavings) SetSavingsPercentage(savingsPercentage *float64) {
+	c.SavingsPercentage = savingsPercentage
+	c.require(childrenSavingsFieldSavingsPercentage)
+}
+
+func (c *ChildrenSavings) UnmarshalJSON(data []byte) error {
+	type unmarshaler ChildrenSavings
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ChildrenSavings(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ChildrenSavings) MarshalJSON() ([]byte, error) {
+	type embed ChildrenSavings
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ChildrenSavings) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
 // State of an execution-approval (maker-checker) transition.
 var (
 	executionApprovalDataFieldRecommendationID       = big.NewInt(1 << 0)
@@ -2784,26 +2905,27 @@ var (
 	providerBreakdownItemFieldTag                    = big.NewInt(1 << 5)
 	providerBreakdownItemFieldMonthlySavings         = big.NewInt(1 << 6)
 	providerBreakdownItemFieldSavingsPercentage      = big.NewInt(1 << 7)
-	providerBreakdownItemFieldStatus                 = big.NewInt(1 << 8)
-	providerBreakdownItemFieldDisplayStatus          = big.NewInt(1 << 9)
-	providerBreakdownItemFieldActions                = big.NewInt(1 << 10)
-	providerBreakdownItemFieldTermsAcceptedAt        = big.NewInt(1 << 11)
-	providerBreakdownItemFieldSavingAcceptedBy       = big.NewInt(1 << 12)
-	providerBreakdownItemFieldSavingAcceptance       = big.NewInt(1 << 13)
-	providerBreakdownItemFieldImplementationMethod   = big.NewInt(1 << 14)
-	providerBreakdownItemFieldImplementationStatus   = big.NewInt(1 << 15)
-	providerBreakdownItemFieldImplementationTags     = big.NewInt(1 << 16)
-	providerBreakdownItemFieldCreatedAt              = big.NewInt(1 << 17)
-	providerBreakdownItemFieldUpdatedAt              = big.NewInt(1 << 18)
-	providerBreakdownItemFieldGroupID                = big.NewInt(1 << 19)
-	providerBreakdownItemFieldGroupName              = big.NewInt(1 << 20)
-	providerBreakdownItemFieldLinkedTo               = big.NewInt(1 << 21)
-	providerBreakdownItemFieldExecutionRequestStatus = big.NewInt(1 << 22)
-	providerBreakdownItemFieldExecutionRequestBy     = big.NewInt(1 << 23)
-	providerBreakdownItemFieldExecutionRequestByName = big.NewInt(1 << 24)
-	providerBreakdownItemFieldExecutionRequestAt     = big.NewInt(1 << 25)
-	providerBreakdownItemFieldVirtualTags            = big.NewInt(1 << 26)
-	providerBreakdownItemFieldRiskAssessment         = big.NewInt(1 << 27)
+	providerBreakdownItemFieldChildrenSavings        = big.NewInt(1 << 8)
+	providerBreakdownItemFieldStatus                 = big.NewInt(1 << 9)
+	providerBreakdownItemFieldDisplayStatus          = big.NewInt(1 << 10)
+	providerBreakdownItemFieldActions                = big.NewInt(1 << 11)
+	providerBreakdownItemFieldTermsAcceptedAt        = big.NewInt(1 << 12)
+	providerBreakdownItemFieldSavingAcceptedBy       = big.NewInt(1 << 13)
+	providerBreakdownItemFieldSavingAcceptance       = big.NewInt(1 << 14)
+	providerBreakdownItemFieldImplementationMethod   = big.NewInt(1 << 15)
+	providerBreakdownItemFieldImplementationStatus   = big.NewInt(1 << 16)
+	providerBreakdownItemFieldImplementationTags     = big.NewInt(1 << 17)
+	providerBreakdownItemFieldCreatedAt              = big.NewInt(1 << 18)
+	providerBreakdownItemFieldUpdatedAt              = big.NewInt(1 << 19)
+	providerBreakdownItemFieldGroupID                = big.NewInt(1 << 20)
+	providerBreakdownItemFieldGroupName              = big.NewInt(1 << 21)
+	providerBreakdownItemFieldLinkedTo               = big.NewInt(1 << 22)
+	providerBreakdownItemFieldExecutionRequestStatus = big.NewInt(1 << 23)
+	providerBreakdownItemFieldExecutionRequestBy     = big.NewInt(1 << 24)
+	providerBreakdownItemFieldExecutionRequestByName = big.NewInt(1 << 25)
+	providerBreakdownItemFieldExecutionRequestAt     = big.NewInt(1 << 26)
+	providerBreakdownItemFieldVirtualTags            = big.NewInt(1 << 27)
+	providerBreakdownItemFieldRiskAssessment         = big.NewInt(1 << 28)
 )
 
 type ProviderBreakdownItem struct {
@@ -2823,6 +2945,8 @@ type ProviderBreakdownItem struct {
 	MonthlySavings float64 `json:"monthly_savings" url:"monthly_savings"`
 	// Savings as percentage of current spending
 	SavingsPercentage float64 `json:"savings_percentage" url:"savings_percentage"`
+	// What this batch parent's children save. Null on any other row
+	ChildrenSavings *ChildrenSavings `json:"children_savings,omitempty" url:"children_savings,omitempty"`
 	// Recommendation status
 	Status *ProviderBreakdownItemStatus `json:"status,omitempty" url:"status,omitempty"`
 	// Status the person reads, served once so the dashboard, the CLI and MCP all print the same word. Derived from status, saving_acceptance and execution_request_status; a request waiting on an approver outranks everything else. Prefer this over status for display
@@ -2924,6 +3048,13 @@ func (p *ProviderBreakdownItem) GetSavingsPercentage() float64 {
 		return 0
 	}
 	return p.SavingsPercentage
+}
+
+func (p *ProviderBreakdownItem) GetChildrenSavings() *ChildrenSavings {
+	if p == nil {
+		return nil
+	}
+	return p.ChildrenSavings
 }
 
 func (p *ProviderBreakdownItem) GetStatus() *ProviderBreakdownItemStatus {
@@ -3134,6 +3265,13 @@ func (p *ProviderBreakdownItem) SetMonthlySavings(monthlySavings float64) {
 func (p *ProviderBreakdownItem) SetSavingsPercentage(savingsPercentage float64) {
 	p.SavingsPercentage = savingsPercentage
 	p.require(providerBreakdownItemFieldSavingsPercentage)
+}
+
+// SetChildrenSavings sets the ChildrenSavings field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderBreakdownItem) SetChildrenSavings(childrenSavings *ChildrenSavings) {
+	p.ChildrenSavings = childrenSavings
+	p.require(providerBreakdownItemFieldChildrenSavings)
 }
 
 // SetStatus sets the Status field and marks it as non-optional;

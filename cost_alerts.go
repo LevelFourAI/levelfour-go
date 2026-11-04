@@ -17,6 +17,7 @@ var (
 	createAlertRequestFieldRecipients      = big.NewInt(1 << 3)
 	createAlertRequestFieldSlackChannelIDs = big.NewInt(1 << 4)
 	createAlertRequestFieldSlackChannel    = big.NewInt(1 << 5)
+	createAlertRequestFieldDatadog         = big.NewInt(1 << 6)
 )
 
 type CreateAlertRequest struct {
@@ -28,6 +29,8 @@ type CreateAlertRequest struct {
 	SlackChannelIDs []string `json:"slack_channel_ids,omitempty" url:"-"`
 	// Deprecated and never read: use slack_channel_ids
 	SlackChannel *string `json:"slack_channel,omitempty" url:"-"`
+	// Also send each firing to the organization's connected Datadog as an event
+	Datadog *bool `json:"datadog,omitempty" url:"-"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -80,6 +83,13 @@ func (c *CreateAlertRequest) SetSlackChannelIDs(slackChannelIDs []string) {
 func (c *CreateAlertRequest) SetSlackChannel(slackChannel *string) {
 	c.SlackChannel = slackChannel
 	c.require(createAlertRequestFieldSlackChannel)
+}
+
+// SetDatadog sets the Datadog field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreateAlertRequest) SetDatadog(datadog *bool) {
+	c.Datadog = datadog
+	c.require(createAlertRequestFieldDatadog)
 }
 
 func (c *CreateAlertRequest) UnmarshalJSON(data []byte) error {
@@ -4017,10 +4027,11 @@ var (
 	costAlertFieldRecipients    = big.NewInt(1 << 4)
 	costAlertFieldSlackChannels = big.NewInt(1 << 5)
 	costAlertFieldSlackChannel  = big.NewInt(1 << 6)
-	costAlertFieldEnabled       = big.NewInt(1 << 7)
-	costAlertFieldPausedBy      = big.NewInt(1 << 8)
-	costAlertFieldSentToMe      = big.NewInt(1 << 9)
-	costAlertFieldWatching      = big.NewInt(1 << 10)
+	costAlertFieldDatadog       = big.NewInt(1 << 7)
+	costAlertFieldEnabled       = big.NewInt(1 << 8)
+	costAlertFieldPausedBy      = big.NewInt(1 << 9)
+	costAlertFieldSentToMe      = big.NewInt(1 << 10)
+	costAlertFieldWatching      = big.NewInt(1 << 11)
 )
 
 type CostAlert struct {
@@ -4033,9 +4044,11 @@ type CostAlert struct {
 	SlackChannels []*AlertSlackChannel `json:"slack_channels,omitempty" url:"slack_channels,omitempty"`
 	// Deprecated and always null: read slack_channels
 	SlackChannel *string `json:"slack_channel,omitempty" url:"slack_channel,omitempty"`
-	Enabled      bool    `json:"enabled" url:"enabled"`
-	PausedBy     *string `json:"paused_by,omitempty" url:"paused_by,omitempty"`
-	SentToMe     *bool   `json:"sent_to_me,omitempty" url:"sent_to_me,omitempty"`
+	// Also sends each firing to the organization's Datadog as an event
+	Datadog  *bool   `json:"datadog,omitempty" url:"datadog,omitempty"`
+	Enabled  bool    `json:"enabled" url:"enabled"`
+	PausedBy *string `json:"paused_by,omitempty" url:"paused_by,omitempty"`
+	SentToMe *bool   `json:"sent_to_me,omitempty" url:"sent_to_me,omitempty"`
 	// The live state of each thing this alert watches. Empty until a sweep has measured it
 	Watching []*AlertInstanceState `json:"watching,omitempty" url:"watching,omitempty"`
 
@@ -4093,6 +4106,13 @@ func (c *CostAlert) GetSlackChannel() *string {
 		return nil
 	}
 	return c.SlackChannel
+}
+
+func (c *CostAlert) GetDatadog() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Datadog
 }
 
 func (c *CostAlert) GetEnabled() bool {
@@ -4184,6 +4204,13 @@ func (c *CostAlert) SetSlackChannels(slackChannels []*AlertSlackChannel) {
 func (c *CostAlert) SetSlackChannel(slackChannel *string) {
 	c.SlackChannel = slackChannel
 	c.require(costAlertFieldSlackChannel)
+}
+
+// SetDatadog sets the Datadog field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CostAlert) SetDatadog(datadog *bool) {
+	c.Datadog = datadog
+	c.require(costAlertFieldDatadog)
 }
 
 // SetEnabled sets the Enabled field and marks it as non-optional;
@@ -4421,6 +4448,107 @@ func (c *CostAlertParams) validate() error {
 	return nil
 }
 
+// Where a reliability rule posts for a workload in one namespace, in place of its own channels.
+var (
+	namespaceChannelsFieldNamespace = big.NewInt(1 << 0)
+	namespaceChannelsFieldChannels  = big.NewInt(1 << 1)
+)
+
+type NamespaceChannels struct {
+	Namespace string   `json:"namespace" url:"namespace"`
+	Channels  []string `json:"channels" url:"channels"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (n *NamespaceChannels) GetNamespace() string {
+	if n == nil {
+		return ""
+	}
+	return n.Namespace
+}
+
+func (n *NamespaceChannels) GetChannels() []string {
+	if n == nil {
+		return nil
+	}
+	return n.Channels
+}
+
+func (n *NamespaceChannels) GetExtraProperties() map[string]interface{} {
+	if n == nil {
+		return nil
+	}
+	return n.extraProperties
+}
+
+func (n *NamespaceChannels) require(field *big.Int) {
+	if n.explicitFields == nil {
+		n.explicitFields = big.NewInt(0)
+	}
+	n.explicitFields.Or(n.explicitFields, field)
+}
+
+// SetNamespace sets the Namespace field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceChannels) SetNamespace(namespace string) {
+	n.Namespace = namespace
+	n.require(namespaceChannelsFieldNamespace)
+}
+
+// SetChannels sets the Channels field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceChannels) SetChannels(channels []string) {
+	n.Channels = channels
+	n.require(namespaceChannelsFieldChannels)
+}
+
+func (n *NamespaceChannels) UnmarshalJSON(data []byte) error {
+	type unmarshaler NamespaceChannels
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*n = NamespaceChannels(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *n)
+	if err != nil {
+		return err
+	}
+	n.extraProperties = extraProperties
+	n.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (n *NamespaceChannels) MarshalJSON() ([]byte, error) {
+	type embed NamespaceChannels
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*n),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, n.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (n *NamespaceChannels) String() string {
+	if n == nil {
+		return "<nil>"
+	}
+	if len(n.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(n.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(n); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", n)
+}
+
 // What a reliability rule stays quiet about: a namespace, a workload, an indicator, or the pair of them.
 //
 // Every field given has to match for the ignore to apply, so `indicator` alone mutes that indicator everywhere
@@ -4547,15 +4675,18 @@ func (r *ReliabilityIgnore) String() string {
 // One instance per workload, so each is announced on its own and clears on its own. A workload is announced once
 // when it reaches the rule, and again only after it cleared: a swing between high and medium is the same episode.
 var (
-	reliabilityParamsFieldMinRisk   = big.NewInt(1 << 0)
-	reliabilityParamsFieldIgnore    = big.NewInt(1 << 1)
-	reliabilityParamsFieldCostBasis = big.NewInt(1 << 2)
+	reliabilityParamsFieldMinRisk           = big.NewInt(1 << 0)
+	reliabilityParamsFieldIgnore            = big.NewInt(1 << 1)
+	reliabilityParamsFieldNamespaceChannels = big.NewInt(1 << 2)
+	reliabilityParamsFieldCostBasis         = big.NewInt(1 << 3)
 )
 
 type ReliabilityParams struct {
-	MinRisk   *ReliabilityParamsMinRisk   `json:"min_risk,omitempty" url:"min_risk,omitempty"`
-	Ignore    []*ReliabilityIgnore        `json:"ignore,omitempty" url:"ignore,omitempty"`
-	CostBasis *ReliabilityParamsCostBasis `json:"cost_basis,omitempty" url:"cost_basis,omitempty"`
+	MinRisk *ReliabilityParamsMinRisk `json:"min_risk,omitempty" url:"min_risk,omitempty"`
+	Ignore  []*ReliabilityIgnore      `json:"ignore,omitempty" url:"ignore,omitempty"`
+	// A workload in a namespace listed here is posted to that namespace's channels instead of the rule's own; a namespace not listed keeps the rule's channels
+	NamespaceChannels []*NamespaceChannels        `json:"namespace_channels,omitempty" url:"namespace_channels,omitempty"`
+	CostBasis         *ReliabilityParamsCostBasis `json:"cost_basis,omitempty" url:"cost_basis,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -4576,6 +4707,13 @@ func (r *ReliabilityParams) GetIgnore() []*ReliabilityIgnore {
 		return nil
 	}
 	return r.Ignore
+}
+
+func (r *ReliabilityParams) GetNamespaceChannels() []*NamespaceChannels {
+	if r == nil {
+		return nil
+	}
+	return r.NamespaceChannels
 }
 
 func (r *ReliabilityParams) GetCostBasis() *ReliabilityParamsCostBasis {
@@ -4611,6 +4749,13 @@ func (r *ReliabilityParams) SetMinRisk(minRisk *ReliabilityParamsMinRisk) {
 func (r *ReliabilityParams) SetIgnore(ignore []*ReliabilityIgnore) {
 	r.Ignore = ignore
 	r.require(reliabilityParamsFieldIgnore)
+}
+
+// SetNamespaceChannels sets the NamespaceChannels field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ReliabilityParams) SetNamespaceChannels(namespaceChannels []*NamespaceChannels) {
+	r.NamespaceChannels = namespaceChannels
+	r.require(reliabilityParamsFieldNamespaceChannels)
 }
 
 // SetCostBasis sets the CostBasis field and marks it as non-optional;
@@ -5664,7 +5809,8 @@ var (
 	updateAlertRequestFieldRecipients      = big.NewInt(1 << 3)
 	updateAlertRequestFieldSlackChannelIDs = big.NewInt(1 << 4)
 	updateAlertRequestFieldSlackChannel    = big.NewInt(1 << 5)
-	updateAlertRequestFieldEnabled         = big.NewInt(1 << 6)
+	updateAlertRequestFieldDatadog         = big.NewInt(1 << 6)
+	updateAlertRequestFieldEnabled         = big.NewInt(1 << 7)
 )
 
 type UpdateAlertRequest struct {
@@ -5676,6 +5822,7 @@ type UpdateAlertRequest struct {
 	SlackChannelIDs []string `json:"slack_channel_ids,omitempty" url:"-"`
 	// Deprecated and never read: use slack_channel_ids
 	SlackChannel *string `json:"slack_channel,omitempty" url:"-"`
+	Datadog      *bool   `json:"datadog,omitempty" url:"-"`
 	Enabled      *bool   `json:"enabled,omitempty" url:"-"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
@@ -5729,6 +5876,13 @@ func (u *UpdateAlertRequest) SetSlackChannelIDs(slackChannelIDs []string) {
 func (u *UpdateAlertRequest) SetSlackChannel(slackChannel *string) {
 	u.SlackChannel = slackChannel
 	u.require(updateAlertRequestFieldSlackChannel)
+}
+
+// SetDatadog sets the Datadog field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UpdateAlertRequest) SetDatadog(datadog *bool) {
+	u.Datadog = datadog
+	u.require(updateAlertRequestFieldDatadog)
 }
 
 // SetEnabled sets the Enabled field and marks it as non-optional;
