@@ -32266,6 +32266,14 @@ func TestSettersDatadogRenewalData(t *testing.T) {
 		assert.NotNil(t, obj.explicitFields)
 	})
 
+	t.Run("SetVolumeInForce", func(t *testing.T) {
+		obj := &DatadogRenewalData{}
+		var fernTestValueVolumeInForce bool
+		obj.SetVolumeInForce(fernTestValueVolumeInForce)
+		assert.Equal(t, fernTestValueVolumeInForce, obj.VolumeInForce)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
 	t.Run("SetProducts", func(t *testing.T) {
 		obj := &DatadogRenewalData{}
 		var fernTestValueProducts []*DatadogRenewalProduct
@@ -32298,6 +32306,29 @@ func TestGettersDatadogRenewalData(t *testing.T) {
 			}
 		}()
 		_ = obj.GetAsOf() // Should return zero value
+	})
+
+	t.Run("GetVolumeInForce", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalData{}
+		var expected bool
+		obj.VolumeInForce = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetVolumeInForce(), "getter should return the property value")
+	})
+
+	t.Run("GetVolumeInForce_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *DatadogRenewalData
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetVolumeInForce() // Should return zero value
 	})
 
 	t.Run("GetProducts", func(t *testing.T) {
@@ -32344,6 +32375,37 @@ func TestSettersMarkExplicitDatadogRenewalData(t *testing.T) {
 
 		// Act
 		obj.SetAsOf(fernTestValueAsOf)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetVolumeInForce_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalData{}
+		var fernTestValueVolumeInForce bool
+
+		// Act
+		obj.SetVolumeInForce(fernTestValueVolumeInForce)
 
 		// Assert - object with explicitly set field can be marshaled/unmarshaled
 		bytes, err := json.Marshal(obj)
@@ -34507,6 +34569,201 @@ func TestSettersMarkExplicitDatadogRenewalPlanData(t *testing.T) {
 
 }
 
+func TestSettersDatadogRenewalPlanDatabase(t *testing.T) {
+	t.Run("SetName", func(t *testing.T) {
+		obj := &DatadogRenewalPlanDatabase{}
+		var fernTestValueName string
+		obj.SetName(fernTestValueName)
+		assert.Equal(t, fernTestValueName, obj.Name)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetRegion", func(t *testing.T) {
+		obj := &DatadogRenewalPlanDatabase{}
+		var fernTestValueRegion string
+		obj.SetRegion(fernTestValueRegion)
+		assert.Equal(t, fernTestValueRegion, obj.Region)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetMonthlyUsd", func(t *testing.T) {
+		obj := &DatadogRenewalPlanDatabase{}
+		var fernTestValueMonthlyUsd float64
+		obj.SetMonthlyUsd(fernTestValueMonthlyUsd)
+		assert.Equal(t, fernTestValueMonthlyUsd, obj.MonthlyUsd)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+}
+
+func TestGettersDatadogRenewalPlanDatabase(t *testing.T) {
+	t.Run("GetName", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanDatabase{}
+		var expected string
+		obj.Name = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetName(), "getter should return the property value")
+	})
+
+	t.Run("GetName_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *DatadogRenewalPlanDatabase
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetName() // Should return zero value
+	})
+
+	t.Run("GetRegion", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanDatabase{}
+		var expected string
+		obj.Region = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetRegion(), "getter should return the property value")
+	})
+
+	t.Run("GetRegion_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *DatadogRenewalPlanDatabase
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetRegion() // Should return zero value
+	})
+
+	t.Run("GetMonthlyUsd", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanDatabase{}
+		var expected float64
+		obj.MonthlyUsd = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetMonthlyUsd(), "getter should return the property value")
+	})
+
+	t.Run("GetMonthlyUsd_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *DatadogRenewalPlanDatabase
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetMonthlyUsd() // Should return zero value
+	})
+
+}
+
+func TestSettersMarkExplicitDatadogRenewalPlanDatabase(t *testing.T) {
+	t.Run("SetName_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanDatabase{}
+		var fernTestValueName string
+
+		// Act
+		obj.SetName(fernTestValueName)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetRegion_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanDatabase{}
+		var fernTestValueRegion string
+
+		// Act
+		obj.SetRegion(fernTestValueRegion)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetMonthlyUsd_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanDatabase{}
+		var fernTestValueMonthlyUsd float64
+
+		// Act
+		obj.SetMonthlyUsd(fernTestValueMonthlyUsd)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+}
+
 func TestSettersDatadogRenewalPlanDatabaseBucket(t *testing.T) {
 	t.Run("SetBucket", func(t *testing.T) {
 		obj := &DatadogRenewalPlanDatabaseBucket{}
@@ -34735,6 +34992,14 @@ func TestSettersDatadogRenewalPlanDatabaseMonitoring(t *testing.T) {
 		assert.NotNil(t, obj.explicitFields)
 	})
 
+	t.Run("SetItems", func(t *testing.T) {
+		obj := &DatadogRenewalPlanDatabaseMonitoring{}
+		var fernTestValueItems []*DatadogRenewalPlanDatabase
+		obj.SetItems(fernTestValueItems)
+		assert.Equal(t, fernTestValueItems, obj.Items)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
 }
 
 func TestGettersDatadogRenewalPlanDatabaseMonitoring(t *testing.T) {
@@ -34838,6 +35103,39 @@ func TestGettersDatadogRenewalPlanDatabaseMonitoring(t *testing.T) {
 			}
 		}()
 		_ = obj.GetBuckets() // Should return zero value
+	})
+
+	t.Run("GetItems", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanDatabaseMonitoring{}
+		var expected []*DatadogRenewalPlanDatabase
+		obj.Items = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetItems(), "getter should return the property value")
+	})
+
+	t.Run("GetItems_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanDatabaseMonitoring{}
+		obj.Items = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetItems(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetItems_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *DatadogRenewalPlanDatabaseMonitoring
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetItems() // Should return zero value
 	})
 
 }
@@ -34944,6 +35242,37 @@ func TestSettersMarkExplicitDatadogRenewalPlanDatabaseMonitoring(t *testing.T) {
 
 		// Act
 		obj.SetBuckets(fernTestValueBuckets)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetItems_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanDatabaseMonitoring{}
+		var fernTestValueItems []*DatadogRenewalPlanDatabase
+
+		// Act
+		obj.SetItems(fernTestValueItems)
 
 		// Assert - object with explicitly set field can be marshaled/unmarshaled
 		bytes, err := json.Marshal(obj)
@@ -35167,6 +35496,30 @@ func TestSettersDatadogRenewalPlanPoint(t *testing.T) {
 		assert.NotNil(t, obj.explicitFields)
 	})
 
+	t.Run("SetMonthlyNowUsd", func(t *testing.T) {
+		obj := &DatadogRenewalPlanPoint{}
+		var fernTestValueMonthlyNowUsd float64
+		obj.SetMonthlyNowUsd(fernTestValueMonthlyNowUsd)
+		assert.Equal(t, fernTestValueMonthlyNowUsd, obj.MonthlyNowUsd)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetMedianCostUsd", func(t *testing.T) {
+		obj := &DatadogRenewalPlanPoint{}
+		var fernTestValueMedianCostUsd float64
+		obj.SetMedianCostUsd(fernTestValueMedianCostUsd)
+		assert.Equal(t, fernTestValueMedianCostUsd, obj.MedianCostUsd)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetMonths", func(t *testing.T) {
+		obj := &DatadogRenewalPlanPoint{}
+		var fernTestValueMonths []*DatadogRenewalPlanPointMonth
+		obj.SetMonths(fernTestValueMonths)
+		assert.Equal(t, fernTestValueMonths, obj.Months)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
 }
 
 func TestGettersDatadogRenewalPlanPoint(t *testing.T) {
@@ -35372,6 +35725,85 @@ func TestGettersDatadogRenewalPlanPoint(t *testing.T) {
 			}
 		}()
 		_ = obj.GetTermUsd() // Should return zero value
+	})
+
+	t.Run("GetMonthlyNowUsd", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanPoint{}
+		var expected float64
+		obj.MonthlyNowUsd = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetMonthlyNowUsd(), "getter should return the property value")
+	})
+
+	t.Run("GetMonthlyNowUsd_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *DatadogRenewalPlanPoint
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetMonthlyNowUsd() // Should return zero value
+	})
+
+	t.Run("GetMedianCostUsd", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanPoint{}
+		var expected float64
+		obj.MedianCostUsd = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetMedianCostUsd(), "getter should return the property value")
+	})
+
+	t.Run("GetMedianCostUsd_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *DatadogRenewalPlanPoint
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetMedianCostUsd() // Should return zero value
+	})
+
+	t.Run("GetMonths", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanPoint{}
+		var expected []*DatadogRenewalPlanPointMonth
+		obj.Months = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetMonths(), "getter should return the property value")
+	})
+
+	t.Run("GetMonths_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanPoint{}
+		obj.Months = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetMonths(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetMonths_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *DatadogRenewalPlanPoint
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetMonths() // Should return zero value
 	})
 
 }
@@ -35602,6 +36034,232 @@ func TestSettersMarkExplicitDatadogRenewalPlanPoint(t *testing.T) {
 
 		// Act
 		obj.SetTermUsd(fernTestValueTermUsd)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetMonthlyNowUsd_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanPoint{}
+		var fernTestValueMonthlyNowUsd float64
+
+		// Act
+		obj.SetMonthlyNowUsd(fernTestValueMonthlyNowUsd)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetMedianCostUsd_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanPoint{}
+		var fernTestValueMedianCostUsd float64
+
+		// Act
+		obj.SetMedianCostUsd(fernTestValueMedianCostUsd)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetMonths_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanPoint{}
+		var fernTestValueMonths []*DatadogRenewalPlanPointMonth
+
+		// Act
+		obj.SetMonths(fernTestValueMonths)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+}
+
+func TestSettersDatadogRenewalPlanPointMonth(t *testing.T) {
+	t.Run("SetMonth", func(t *testing.T) {
+		obj := &DatadogRenewalPlanPointMonth{}
+		var fernTestValueMonth time.Time
+		obj.SetMonth(fernTestValueMonth)
+		assert.Equal(t, fernTestValueMonth, obj.Month)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetCostUsd", func(t *testing.T) {
+		obj := &DatadogRenewalPlanPointMonth{}
+		var fernTestValueCostUsd float64
+		obj.SetCostUsd(fernTestValueCostUsd)
+		assert.Equal(t, fernTestValueCostUsd, obj.CostUsd)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+}
+
+func TestGettersDatadogRenewalPlanPointMonth(t *testing.T) {
+	t.Run("GetMonth", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanPointMonth{}
+		var expected time.Time
+		obj.Month = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetMonth(), "getter should return the property value")
+	})
+
+	t.Run("GetMonth_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *DatadogRenewalPlanPointMonth
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetMonth() // Should return zero value
+	})
+
+	t.Run("GetCostUsd", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanPointMonth{}
+		var expected float64
+		obj.CostUsd = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetCostUsd(), "getter should return the property value")
+	})
+
+	t.Run("GetCostUsd_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *DatadogRenewalPlanPointMonth
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetCostUsd() // Should return zero value
+	})
+
+}
+
+func TestSettersMarkExplicitDatadogRenewalPlanPointMonth(t *testing.T) {
+	t.Run("SetMonth_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanPointMonth{}
+		var fernTestValueMonth time.Time
+
+		// Act
+		obj.SetMonth(fernTestValueMonth)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetCostUsd_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanPointMonth{}
+		var fernTestValueCostUsd float64
+
+		// Act
+		obj.SetCostUsd(fernTestValueCostUsd)
 
 		// Assert - object with explicitly set field can be marshaled/unmarshaled
 		bytes, err := json.Marshal(obj)
@@ -49311,6 +49969,39 @@ func TestJSONMarshalingDatadogRenewalPlanData(t *testing.T) {
 	})
 }
 
+func TestJSONMarshalingDatadogRenewalPlanDatabase(t *testing.T) {
+	t.Run("MarshalUnmarshal", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanDatabase{}
+
+		// Act - Marshal to JSON
+		data, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed")
+		assert.NotNil(t, data, "marshaled data should not be nil")
+		assert.NotEmpty(t, data, "marshaled data should not be empty")
+
+		// Unmarshal back and verify round-trip
+		var unmarshaled DatadogRenewalPlanDatabase
+		err = json.Unmarshal(data, &unmarshaled)
+		assert.NoError(t, err, "round-trip unmarshal should succeed")
+	})
+
+	t.Run("UnmarshalInvalidJSON", func(t *testing.T) {
+		t.Parallel()
+		var obj DatadogRenewalPlanDatabase
+		err := json.Unmarshal([]byte(`{invalid json}`), &obj)
+		assert.Error(t, err, "unmarshaling invalid JSON should return an error")
+	})
+
+	t.Run("UnmarshalEmptyObject", func(t *testing.T) {
+		t.Parallel()
+		var obj DatadogRenewalPlanDatabase
+		err := json.Unmarshal([]byte(`{}`), &obj)
+		assert.NoError(t, err, "unmarshaling empty object should succeed")
+	})
+}
+
 func TestJSONMarshalingDatadogRenewalPlanDatabaseBucket(t *testing.T) {
 	t.Run("MarshalUnmarshal", func(t *testing.T) {
 		t.Parallel()
@@ -49438,6 +50129,39 @@ func TestJSONMarshalingDatadogRenewalPlanPoint(t *testing.T) {
 	t.Run("UnmarshalEmptyObject", func(t *testing.T) {
 		t.Parallel()
 		var obj DatadogRenewalPlanPoint
+		err := json.Unmarshal([]byte(`{}`), &obj)
+		assert.NoError(t, err, "unmarshaling empty object should succeed")
+	})
+}
+
+func TestJSONMarshalingDatadogRenewalPlanPointMonth(t *testing.T) {
+	t.Run("MarshalUnmarshal", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &DatadogRenewalPlanPointMonth{}
+
+		// Act - Marshal to JSON
+		data, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed")
+		assert.NotNil(t, data, "marshaled data should not be nil")
+		assert.NotEmpty(t, data, "marshaled data should not be empty")
+
+		// Unmarshal back and verify round-trip
+		var unmarshaled DatadogRenewalPlanPointMonth
+		err = json.Unmarshal(data, &unmarshaled)
+		assert.NoError(t, err, "round-trip unmarshal should succeed")
+	})
+
+	t.Run("UnmarshalInvalidJSON", func(t *testing.T) {
+		t.Parallel()
+		var obj DatadogRenewalPlanPointMonth
+		err := json.Unmarshal([]byte(`{invalid json}`), &obj)
+		assert.Error(t, err, "unmarshaling invalid JSON should return an error")
+	})
+
+	t.Run("UnmarshalEmptyObject", func(t *testing.T) {
+		t.Parallel()
+		var obj DatadogRenewalPlanPointMonth
 		err := json.Unmarshal([]byte(`{}`), &obj)
 		assert.NoError(t, err, "unmarshaling empty object should succeed")
 	})
@@ -51664,6 +52388,22 @@ func TestStringDatadogRenewalPlanData(t *testing.T) {
 	})
 }
 
+func TestStringDatadogRenewalPlanDatabase(t *testing.T) {
+	t.Run("StringMethod", func(t *testing.T) {
+		t.Parallel()
+		obj := &DatadogRenewalPlanDatabase{}
+		result := obj.String()
+		assert.NotEmpty(t, result, "String() should return a non-empty representation")
+	})
+
+	t.Run("StringMethod_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *DatadogRenewalPlanDatabase
+		result := obj.String()
+		assert.Equal(t, "<nil>", result, "String() should return <nil> for nil receiver")
+	})
+}
+
 func TestStringDatadogRenewalPlanDatabaseBucket(t *testing.T) {
 	t.Run("StringMethod", func(t *testing.T) {
 		t.Parallel()
@@ -51723,6 +52463,22 @@ func TestStringDatadogRenewalPlanPoint(t *testing.T) {
 	t.Run("StringMethod_NilReceiver", func(t *testing.T) {
 		t.Parallel()
 		var obj *DatadogRenewalPlanPoint
+		result := obj.String()
+		assert.Equal(t, "<nil>", result, "String() should return <nil> for nil receiver")
+	})
+}
+
+func TestStringDatadogRenewalPlanPointMonth(t *testing.T) {
+	t.Run("StringMethod", func(t *testing.T) {
+		t.Parallel()
+		obj := &DatadogRenewalPlanPointMonth{}
+		result := obj.String()
+		assert.NotEmpty(t, result, "String() should return a non-empty representation")
+	})
+
+	t.Run("StringMethod_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *DatadogRenewalPlanPointMonth
 		result := obj.String()
 		assert.Equal(t, "<nil>", result, "String() should return <nil> for nil receiver")
 	})
@@ -55653,6 +56409,29 @@ func TestExtraPropertiesDatadogRenewalPlanData(t *testing.T) {
 	})
 }
 
+func TestExtraPropertiesDatadogRenewalPlanDatabase(t *testing.T) {
+	t.Run("GetExtraProperties", func(t *testing.T) {
+		t.Parallel()
+		obj := &DatadogRenewalPlanDatabase{}
+		// Should not panic when calling GetExtraProperties()
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("GetExtraProperties() panicked: %v", r)
+			}
+		}()
+		extraProps := obj.GetExtraProperties()
+		// Result can be nil or an empty/non-empty map
+		_ = extraProps
+	})
+
+	t.Run("GetExtraProperties_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *DatadogRenewalPlanDatabase
+		extraProps := obj.GetExtraProperties()
+		assert.Nil(t, extraProps, "nil receiver should return nil without panicking")
+	})
+}
+
 func TestExtraPropertiesDatadogRenewalPlanDatabaseBucket(t *testing.T) {
 	t.Run("GetExtraProperties", func(t *testing.T) {
 		t.Parallel()
@@ -55740,6 +56519,29 @@ func TestExtraPropertiesDatadogRenewalPlanPoint(t *testing.T) {
 	t.Run("GetExtraProperties_NilReceiver", func(t *testing.T) {
 		t.Parallel()
 		var obj *DatadogRenewalPlanPoint
+		extraProps := obj.GetExtraProperties()
+		assert.Nil(t, extraProps, "nil receiver should return nil without panicking")
+	})
+}
+
+func TestExtraPropertiesDatadogRenewalPlanPointMonth(t *testing.T) {
+	t.Run("GetExtraProperties", func(t *testing.T) {
+		t.Parallel()
+		obj := &DatadogRenewalPlanPointMonth{}
+		// Should not panic when calling GetExtraProperties()
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("GetExtraProperties() panicked: %v", r)
+			}
+		}()
+		extraProps := obj.GetExtraProperties()
+		// Result can be nil or an empty/non-empty map
+		_ = extraProps
+	})
+
+	t.Run("GetExtraProperties_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *DatadogRenewalPlanPointMonth
 		extraProps := obj.GetExtraProperties()
 		assert.Nil(t, extraProps, "nil receiver should return nil without panicking")
 	})
