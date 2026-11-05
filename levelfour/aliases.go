@@ -611,12 +611,14 @@ type (
 	DatadogRenewalPlanContract                                                    = rootpkg.DatadogRenewalPlanContract
 	DatadogRenewalPlanContractAfterVolume                                         = rootpkg.DatadogRenewalPlanContractAfterVolume
 	DatadogRenewalPlanData                                                        = rootpkg.DatadogRenewalPlanData
+	DatadogRenewalPlanDatabase                                                    = rootpkg.DatadogRenewalPlanDatabase
 	DatadogRenewalPlanDatabaseBucket                                              = rootpkg.DatadogRenewalPlanDatabaseBucket
 	DatadogRenewalPlanDatabaseBucketBucket                                        = rootpkg.DatadogRenewalPlanDatabaseBucketBucket
 	DatadogRenewalPlanDatabaseMonitoring                                          = rootpkg.DatadogRenewalPlanDatabaseMonitoring
 	DatadogRenewalPlanNowMonth                                                    = rootpkg.DatadogRenewalPlanNowMonth
 	DatadogRenewalPlanNowMonthState                                               = rootpkg.DatadogRenewalPlanNowMonthState
 	DatadogRenewalPlanPoint                                                       = rootpkg.DatadogRenewalPlanPoint
+	DatadogRenewalPlanPointMonth                                                  = rootpkg.DatadogRenewalPlanPointMonth
 	DatadogRenewalPlanPointRule                                                   = rootpkg.DatadogRenewalPlanPointRule
 	DatadogRenewalPlanProduct                                                     = rootpkg.DatadogRenewalPlanProduct
 	DatadogRenewalPlanProductRule                                                 = rootpkg.DatadogRenewalPlanProductRule

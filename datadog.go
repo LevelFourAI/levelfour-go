@@ -13469,13 +13469,16 @@ func (d *DatadogReconciledMonth) String() string {
 }
 
 var (
-	datadogRenewalDataFieldAsOf     = big.NewInt(1 << 0)
-	datadogRenewalDataFieldProducts = big.NewInt(1 << 1)
+	datadogRenewalDataFieldAsOf          = big.NewInt(1 << 0)
+	datadogRenewalDataFieldVolumeInForce = big.NewInt(1 << 1)
+	datadogRenewalDataFieldProducts      = big.NewInt(1 << 2)
 )
 
 type DatadogRenewalData struct {
-	AsOf     time.Time                `json:"as_of" url:"as_of" format:"date"`
-	Products []*DatadogRenewalProduct `json:"products" url:"products"`
+	AsOf time.Time `json:"as_of" url:"as_of" format:"date"`
+	// Whether a contract with a dollar volume is in force, so the bill's charges draw from it
+	VolumeInForce bool                     `json:"volume_in_force" url:"volume_in_force"`
+	Products      []*DatadogRenewalProduct `json:"products" url:"products"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -13489,6 +13492,13 @@ func (d *DatadogRenewalData) GetAsOf() time.Time {
 		return time.Time{}
 	}
 	return d.AsOf
+}
+
+func (d *DatadogRenewalData) GetVolumeInForce() bool {
+	if d == nil {
+		return false
+	}
+	return d.VolumeInForce
 }
 
 func (d *DatadogRenewalData) GetProducts() []*DatadogRenewalProduct {
@@ -13517,6 +13527,13 @@ func (d *DatadogRenewalData) require(field *big.Int) {
 func (d *DatadogRenewalData) SetAsOf(asOf time.Time) {
 	d.AsOf = asOf
 	d.require(datadogRenewalDataFieldAsOf)
+}
+
+// SetVolumeInForce sets the VolumeInForce field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DatadogRenewalData) SetVolumeInForce(volumeInForce bool) {
+	d.VolumeInForce = volumeInForce
+	d.require(datadogRenewalDataFieldVolumeInForce)
 }
 
 // SetProducts sets the Products field and marks it as non-optional;
@@ -14348,6 +14365,124 @@ func (d *DatadogRenewalPlanData) String() string {
 }
 
 var (
+	datadogRenewalPlanDatabaseFieldName       = big.NewInt(1 << 0)
+	datadogRenewalPlanDatabaseFieldRegion     = big.NewInt(1 << 1)
+	datadogRenewalPlanDatabaseFieldMonthlyUsd = big.NewInt(1 << 2)
+)
+
+type DatadogRenewalPlanDatabase struct {
+	// The RDS identifier
+	Name   string `json:"name" url:"name"`
+	Region string `json:"region" url:"region"`
+	// What the last closed AWS bill charged it
+	MonthlyUsd float64 `json:"monthly_usd" url:"monthly_usd"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (d *DatadogRenewalPlanDatabase) GetName() string {
+	if d == nil {
+		return ""
+	}
+	return d.Name
+}
+
+func (d *DatadogRenewalPlanDatabase) GetRegion() string {
+	if d == nil {
+		return ""
+	}
+	return d.Region
+}
+
+func (d *DatadogRenewalPlanDatabase) GetMonthlyUsd() float64 {
+	if d == nil {
+		return 0
+	}
+	return d.MonthlyUsd
+}
+
+func (d *DatadogRenewalPlanDatabase) GetExtraProperties() map[string]interface{} {
+	if d == nil {
+		return nil
+	}
+	return d.extraProperties
+}
+
+func (d *DatadogRenewalPlanDatabase) require(field *big.Int) {
+	if d.explicitFields == nil {
+		d.explicitFields = big.NewInt(0)
+	}
+	d.explicitFields.Or(d.explicitFields, field)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DatadogRenewalPlanDatabase) SetName(name string) {
+	d.Name = name
+	d.require(datadogRenewalPlanDatabaseFieldName)
+}
+
+// SetRegion sets the Region field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DatadogRenewalPlanDatabase) SetRegion(region string) {
+	d.Region = region
+	d.require(datadogRenewalPlanDatabaseFieldRegion)
+}
+
+// SetMonthlyUsd sets the MonthlyUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DatadogRenewalPlanDatabase) SetMonthlyUsd(monthlyUsd float64) {
+	d.MonthlyUsd = monthlyUsd
+	d.require(datadogRenewalPlanDatabaseFieldMonthlyUsd)
+}
+
+func (d *DatadogRenewalPlanDatabase) UnmarshalJSON(data []byte) error {
+	type unmarshaler DatadogRenewalPlanDatabase
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*d = DatadogRenewalPlanDatabase(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *d)
+	if err != nil {
+		return err
+	}
+	d.extraProperties = extraProperties
+	d.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (d *DatadogRenewalPlanDatabase) MarshalJSON() ([]byte, error) {
+	type embed DatadogRenewalPlanDatabase
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*d),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, d.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (d *DatadogRenewalPlanDatabase) String() string {
+	if d == nil {
+		return "<nil>"
+	}
+	if len(d.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(d.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(d); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", d)
+}
+
+var (
 	datadogRenewalPlanDatabaseBucketFieldBucket             = big.NewInt(1 << 0)
 	datadogRenewalPlanDatabaseBucketFieldDatabases          = big.NewInt(1 << 1)
 	datadogRenewalPlanDatabaseBucketFieldDatabaseMonthlyUsd = big.NewInt(1 << 2)
@@ -14498,6 +14633,7 @@ var (
 	datadogRenewalPlanDatabaseMonitoringFieldDatabases          = big.NewInt(1 << 1)
 	datadogRenewalPlanDatabaseMonitoringFieldDatabaseMonthlyUsd = big.NewInt(1 << 2)
 	datadogRenewalPlanDatabaseMonitoringFieldBuckets            = big.NewInt(1 << 3)
+	datadogRenewalPlanDatabaseMonitoringFieldItems              = big.NewInt(1 << 4)
 )
 
 type DatadogRenewalPlanDatabaseMonitoring struct {
@@ -14507,6 +14643,8 @@ type DatadogRenewalPlanDatabaseMonitoring struct {
 	Databases          int                                 `json:"databases" url:"databases"`
 	DatabaseMonthlyUsd float64                             `json:"database_monthly_usd" url:"database_monthly_usd"`
 	Buckets            []*DatadogRenewalPlanDatabaseBucket `json:"buckets" url:"buckets"`
+	// Every database, the cheapest first
+	Items []*DatadogRenewalPlanDatabase `json:"items" url:"items"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -14541,6 +14679,13 @@ func (d *DatadogRenewalPlanDatabaseMonitoring) GetBuckets() []*DatadogRenewalPla
 		return nil
 	}
 	return d.Buckets
+}
+
+func (d *DatadogRenewalPlanDatabaseMonitoring) GetItems() []*DatadogRenewalPlanDatabase {
+	if d == nil {
+		return nil
+	}
+	return d.Items
 }
 
 func (d *DatadogRenewalPlanDatabaseMonitoring) GetExtraProperties() map[string]interface{} {
@@ -14583,6 +14728,13 @@ func (d *DatadogRenewalPlanDatabaseMonitoring) SetDatabaseMonthlyUsd(databaseMon
 func (d *DatadogRenewalPlanDatabaseMonitoring) SetBuckets(buckets []*DatadogRenewalPlanDatabaseBucket) {
 	d.Buckets = buckets
 	d.require(datadogRenewalPlanDatabaseMonitoringFieldBuckets)
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DatadogRenewalPlanDatabaseMonitoring) SetItems(items []*DatadogRenewalPlanDatabase) {
+	d.Items = items
+	d.require(datadogRenewalPlanDatabaseMonitoringFieldItems)
 }
 
 func (d *DatadogRenewalPlanDatabaseMonitoring) UnmarshalJSON(data []byte) error {
@@ -14759,14 +14911,17 @@ func (d DatadogRenewalPlanNowMonthState) Ptr() *DatadogRenewalPlanNowMonthState 
 }
 
 var (
-	datadogRenewalPlanPointFieldProduct     = big.NewInt(1 << 0)
-	datadogRenewalPlanPointFieldLabel       = big.NewInt(1 << 1)
-	datadogRenewalPlanPointFieldUnit        = big.NewInt(1 << 2)
-	datadogRenewalPlanPointFieldRule        = big.NewInt(1 << 3)
-	datadogRenewalPlanPointFieldUsageMedian = big.NewInt(1 << 4)
-	datadogRenewalPlanPointFieldUsageNow    = big.NewInt(1 << 5)
-	datadogRenewalPlanPointFieldMonthlyUsd  = big.NewInt(1 << 6)
-	datadogRenewalPlanPointFieldTermUsd     = big.NewInt(1 << 7)
+	datadogRenewalPlanPointFieldProduct       = big.NewInt(1 << 0)
+	datadogRenewalPlanPointFieldLabel         = big.NewInt(1 << 1)
+	datadogRenewalPlanPointFieldUnit          = big.NewInt(1 << 2)
+	datadogRenewalPlanPointFieldRule          = big.NewInt(1 << 3)
+	datadogRenewalPlanPointFieldUsageMedian   = big.NewInt(1 << 4)
+	datadogRenewalPlanPointFieldUsageNow      = big.NewInt(1 << 5)
+	datadogRenewalPlanPointFieldMonthlyUsd    = big.NewInt(1 << 6)
+	datadogRenewalPlanPointFieldTermUsd       = big.NewInt(1 << 7)
+	datadogRenewalPlanPointFieldMonthlyNowUsd = big.NewInt(1 << 8)
+	datadogRenewalPlanPointFieldMedianCostUsd = big.NewInt(1 << 9)
+	datadogRenewalPlanPointFieldMonths        = big.NewInt(1 << 10)
 )
 
 type DatadogRenewalPlanPoint struct {
@@ -14780,6 +14935,12 @@ type DatadogRenewalPlanPoint struct {
 	// What it would save a month, in USD. Never add it to realized savings
 	MonthlyUsd float64 `json:"monthly_usd" url:"monthly_usd"`
 	TermUsd    float64 `json:"term_usd" url:"term_usd"`
+	// What the product costs a month today
+	MonthlyNowUsd float64 `json:"monthly_now_usd" url:"monthly_now_usd"`
+	// What its median month of the window cost
+	MedianCostUsd float64 `json:"median_cost_usd" url:"median_cost_usd"`
+	// The window, month by month, oldest first
+	Months []*DatadogRenewalPlanPointMonth `json:"months" url:"months"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -14842,6 +15003,27 @@ func (d *DatadogRenewalPlanPoint) GetTermUsd() float64 {
 		return 0
 	}
 	return d.TermUsd
+}
+
+func (d *DatadogRenewalPlanPoint) GetMonthlyNowUsd() float64 {
+	if d == nil {
+		return 0
+	}
+	return d.MonthlyNowUsd
+}
+
+func (d *DatadogRenewalPlanPoint) GetMedianCostUsd() float64 {
+	if d == nil {
+		return 0
+	}
+	return d.MedianCostUsd
+}
+
+func (d *DatadogRenewalPlanPoint) GetMonths() []*DatadogRenewalPlanPointMonth {
+	if d == nil {
+		return nil
+	}
+	return d.Months
 }
 
 func (d *DatadogRenewalPlanPoint) GetExtraProperties() map[string]interface{} {
@@ -14914,6 +15096,27 @@ func (d *DatadogRenewalPlanPoint) SetTermUsd(termUsd float64) {
 	d.require(datadogRenewalPlanPointFieldTermUsd)
 }
 
+// SetMonthlyNowUsd sets the MonthlyNowUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DatadogRenewalPlanPoint) SetMonthlyNowUsd(monthlyNowUsd float64) {
+	d.MonthlyNowUsd = monthlyNowUsd
+	d.require(datadogRenewalPlanPointFieldMonthlyNowUsd)
+}
+
+// SetMedianCostUsd sets the MedianCostUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DatadogRenewalPlanPoint) SetMedianCostUsd(medianCostUsd float64) {
+	d.MedianCostUsd = medianCostUsd
+	d.require(datadogRenewalPlanPointFieldMedianCostUsd)
+}
+
+// SetMonths sets the Months field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DatadogRenewalPlanPoint) SetMonths(months []*DatadogRenewalPlanPointMonth) {
+	d.Months = months
+	d.require(datadogRenewalPlanPointFieldMonths)
+}
+
 func (d *DatadogRenewalPlanPoint) UnmarshalJSON(data []byte) error {
 	type unmarshaler DatadogRenewalPlanPoint
 	var value unmarshaler
@@ -14942,6 +15145,115 @@ func (d *DatadogRenewalPlanPoint) MarshalJSON() ([]byte, error) {
 }
 
 func (d *DatadogRenewalPlanPoint) String() string {
+	if d == nil {
+		return "<nil>"
+	}
+	if len(d.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(d.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(d); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", d)
+}
+
+var (
+	datadogRenewalPlanPointMonthFieldMonth   = big.NewInt(1 << 0)
+	datadogRenewalPlanPointMonthFieldCostUsd = big.NewInt(1 << 1)
+)
+
+type DatadogRenewalPlanPointMonth struct {
+	Month time.Time `json:"month" url:"month" format:"date"`
+	// What the month cost. The last reads at what a month costs today
+	CostUsd float64 `json:"cost_usd" url:"cost_usd"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (d *DatadogRenewalPlanPointMonth) GetMonth() time.Time {
+	if d == nil {
+		return time.Time{}
+	}
+	return d.Month
+}
+
+func (d *DatadogRenewalPlanPointMonth) GetCostUsd() float64 {
+	if d == nil {
+		return 0
+	}
+	return d.CostUsd
+}
+
+func (d *DatadogRenewalPlanPointMonth) GetExtraProperties() map[string]interface{} {
+	if d == nil {
+		return nil
+	}
+	return d.extraProperties
+}
+
+func (d *DatadogRenewalPlanPointMonth) require(field *big.Int) {
+	if d.explicitFields == nil {
+		d.explicitFields = big.NewInt(0)
+	}
+	d.explicitFields.Or(d.explicitFields, field)
+}
+
+// SetMonth sets the Month field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DatadogRenewalPlanPointMonth) SetMonth(month time.Time) {
+	d.Month = month
+	d.require(datadogRenewalPlanPointMonthFieldMonth)
+}
+
+// SetCostUsd sets the CostUsd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DatadogRenewalPlanPointMonth) SetCostUsd(costUsd float64) {
+	d.CostUsd = costUsd
+	d.require(datadogRenewalPlanPointMonthFieldCostUsd)
+}
+
+func (d *DatadogRenewalPlanPointMonth) UnmarshalJSON(data []byte) error {
+	type embed DatadogRenewalPlanPointMonth
+	var unmarshaler = struct {
+		embed
+		Month *internal.Date `json:"month"`
+	}{
+		embed: embed(*d),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*d = DatadogRenewalPlanPointMonth(unmarshaler.embed)
+	d.Month = unmarshaler.Month.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *d)
+	if err != nil {
+		return err
+	}
+	d.extraProperties = extraProperties
+	d.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (d *DatadogRenewalPlanPointMonth) MarshalJSON() ([]byte, error) {
+	type embed DatadogRenewalPlanPointMonth
+	var marshaler = struct {
+		embed
+		Month *internal.Date `json:"month"`
+	}{
+		embed: embed(*d),
+		Month: internal.NewDate(d.Month),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, d.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (d *DatadogRenewalPlanPointMonth) String() string {
 	if d == nil {
 		return "<nil>"
 	}
