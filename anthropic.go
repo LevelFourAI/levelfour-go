@@ -191,6 +191,142 @@ func (g *GetListPriceAPIV1ProvidersAnthropicCostsListPriceGetRequest) SetEnd(end
 }
 
 var (
+	getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldPage           = big.NewInt(1 << 0)
+	getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldPageSize       = big.NewInt(1 << 1)
+	getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldSearch         = big.NewInt(1 << 2)
+	getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldSeat           = big.NewInt(1 << 3)
+	getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldProduct        = big.NewInt(1 << 4)
+	getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldRecommendation = big.NewInt(1 << 5)
+	getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldSort           = big.NewInt(1 << 6)
+	getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldOrder          = big.NewInt(1 << 7)
+	getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldFormat         = big.NewInt(1 << 8)
+)
+
+type GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequest struct {
+	Page     *int `json:"-" url:"page,omitempty"`
+	PageSize *int `json:"-" url:"page_size,omitempty"`
+	// Keep the people whose email or name holds this
+	Search *string                                                       `json:"-" url:"search,omitempty"`
+	Seat   *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSeat `json:"-" url:"seat,omitempty"`
+	// Keep the people whose main product this is
+	Product        *string                                                                 `json:"-" url:"product,omitempty"`
+	Recommendation *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestRecommendation `json:"-" url:"recommendation,omitempty"`
+	Sort           *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort           `json:"-" url:"sort,omitempty"`
+	Order          *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestOrder          `json:"-" url:"order,omitempty"`
+	// csv answers every row the filters keep
+	Format *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFormat `json:"-" url:"format,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (g *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequest) require(field *big.Int) {
+	if g.explicitFields == nil {
+		g.explicitFields = big.NewInt(0)
+	}
+	g.explicitFields.Or(g.explicitFields, field)
+}
+
+// SetPage sets the Page field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequest) SetPage(page *int) {
+	g.Page = page
+	g.require(getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldPage)
+}
+
+// SetPageSize sets the PageSize field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequest) SetPageSize(pageSize *int) {
+	g.PageSize = pageSize
+	g.require(getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldPageSize)
+}
+
+// SetSearch sets the Search field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequest) SetSearch(search *string) {
+	g.Search = search
+	g.require(getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldSearch)
+}
+
+// SetSeat sets the Seat field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequest) SetSeat(seat *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSeat) {
+	g.Seat = seat
+	g.require(getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldSeat)
+}
+
+// SetProduct sets the Product field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequest) SetProduct(product *string) {
+	g.Product = product
+	g.require(getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldProduct)
+}
+
+// SetRecommendation sets the Recommendation field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequest) SetRecommendation(recommendation *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestRecommendation) {
+	g.Recommendation = recommendation
+	g.require(getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldRecommendation)
+}
+
+// SetSort sets the Sort field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequest) SetSort(sort *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort) {
+	g.Sort = sort
+	g.require(getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldSort)
+}
+
+// SetOrder sets the Order field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequest) SetOrder(order *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestOrder) {
+	g.Order = order
+	g.require(getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldOrder)
+}
+
+// SetFormat sets the Format field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequest) SetFormat(format *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFormat) {
+	g.Format = format
+	g.require(getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldFormat)
+}
+
+var (
+	getTeamSummaryAPIV1ProvidersAnthropicTeamSummaryGetRequestFieldStart = big.NewInt(1 << 0)
+	getTeamSummaryAPIV1ProvidersAnthropicTeamSummaryGetRequestFieldEnd   = big.NewInt(1 << 1)
+)
+
+type GetTeamSummaryAPIV1ProvidersAnthropicTeamSummaryGetRequest struct {
+	// First day, ISO 8601 (YYYY-MM-DD or a datetime)
+	Start string `json:"-" url:"start"`
+	// Last day, ISO 8601 (YYYY-MM-DD or a datetime), included
+	End string `json:"-" url:"end"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (g *GetTeamSummaryAPIV1ProvidersAnthropicTeamSummaryGetRequest) require(field *big.Int) {
+	if g.explicitFields == nil {
+		g.explicitFields = big.NewInt(0)
+	}
+	g.explicitFields.Or(g.explicitFields, field)
+}
+
+// SetStart sets the Start field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetTeamSummaryAPIV1ProvidersAnthropicTeamSummaryGetRequest) SetStart(start string) {
+	g.Start = start
+	g.require(getTeamSummaryAPIV1ProvidersAnthropicTeamSummaryGetRequestFieldStart)
+}
+
+// SetEnd sets the End field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetTeamSummaryAPIV1ProvidersAnthropicTeamSummaryGetRequest) SetEnd(end string) {
+	g.End = end
+	g.require(getTeamSummaryAPIV1ProvidersAnthropicTeamSummaryGetRequestFieldEnd)
+}
+
+var (
 	getUsageAPIV1ProvidersAnthropicUsageGetRequestFieldStart = big.NewInt(1 << 0)
 	getUsageAPIV1ProvidersAnthropicUsageGetRequestFieldEnd   = big.NewInt(1 << 1)
 )
@@ -7294,6 +7430,2261 @@ func (a *AnthropicWithoutManagedSettings) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	claudeTeamDowngradeRuleFieldPeople           = big.NewInt(1 << 0)
+	claudeTeamDowngradeRuleFieldSaving           = big.NewInt(1 << 1)
+	claudeTeamDowngradeRuleFieldAvailable        = big.NewInt(1 << 2)
+	claudeTeamDowngradeRuleFieldLowTokensPerWeek = big.NewInt(1 << 3)
+)
+
+type ClaudeTeamDowngradeRule struct {
+	People int     `json:"people" url:"people"`
+	Saving float64 `json:"saving" url:"saving"`
+	// false when the files cannot tell this rule, and it names nobody
+	Available        bool `json:"available" url:"available"`
+	LowTokensPerWeek int  `json:"low_tokens_per_week" url:"low_tokens_per_week"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ClaudeTeamDowngradeRule) GetPeople() int {
+	if c == nil {
+		return 0
+	}
+	return c.People
+}
+
+func (c *ClaudeTeamDowngradeRule) GetSaving() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.Saving
+}
+
+func (c *ClaudeTeamDowngradeRule) GetAvailable() bool {
+	if c == nil {
+		return false
+	}
+	return c.Available
+}
+
+func (c *ClaudeTeamDowngradeRule) GetLowTokensPerWeek() int {
+	if c == nil {
+		return 0
+	}
+	return c.LowTokensPerWeek
+}
+
+func (c *ClaudeTeamDowngradeRule) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ClaudeTeamDowngradeRule) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetPeople sets the People field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamDowngradeRule) SetPeople(people int) {
+	c.People = people
+	c.require(claudeTeamDowngradeRuleFieldPeople)
+}
+
+// SetSaving sets the Saving field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamDowngradeRule) SetSaving(saving float64) {
+	c.Saving = saving
+	c.require(claudeTeamDowngradeRuleFieldSaving)
+}
+
+// SetAvailable sets the Available field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamDowngradeRule) SetAvailable(available bool) {
+	c.Available = available
+	c.require(claudeTeamDowngradeRuleFieldAvailable)
+}
+
+// SetLowTokensPerWeek sets the LowTokensPerWeek field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamDowngradeRule) SetLowTokensPerWeek(lowTokensPerWeek int) {
+	c.LowTokensPerWeek = lowTokensPerWeek
+	c.require(claudeTeamDowngradeRuleFieldLowTokensPerWeek)
+}
+
+func (c *ClaudeTeamDowngradeRule) UnmarshalJSON(data []byte) error {
+	type unmarshaler ClaudeTeamDowngradeRule
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ClaudeTeamDowngradeRule(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ClaudeTeamDowngradeRule) MarshalJSON() ([]byte, error) {
+	type embed ClaudeTeamDowngradeRule
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ClaudeTeamDowngradeRule) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	claudeTeamMonthFieldMonth      = big.NewInt(1 << 0)
+	claudeTeamMonthFieldSeats      = big.NewInt(1 << 1)
+	claudeTeamMonthFieldExtraUsage = big.NewInt(1 << 2)
+)
+
+type ClaudeTeamMonth struct {
+	// The first day of the month
+	Month      time.Time `json:"month" url:"month" format:"date"`
+	Seats      float64   `json:"seats" url:"seats"`
+	ExtraUsage float64   `json:"extra_usage" url:"extra_usage"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ClaudeTeamMonth) GetMonth() time.Time {
+	if c == nil {
+		return time.Time{}
+	}
+	return c.Month
+}
+
+func (c *ClaudeTeamMonth) GetSeats() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.Seats
+}
+
+func (c *ClaudeTeamMonth) GetExtraUsage() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.ExtraUsage
+}
+
+func (c *ClaudeTeamMonth) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ClaudeTeamMonth) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetMonth sets the Month field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamMonth) SetMonth(month time.Time) {
+	c.Month = month
+	c.require(claudeTeamMonthFieldMonth)
+}
+
+// SetSeats sets the Seats field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamMonth) SetSeats(seats float64) {
+	c.Seats = seats
+	c.require(claudeTeamMonthFieldSeats)
+}
+
+// SetExtraUsage sets the ExtraUsage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamMonth) SetExtraUsage(extraUsage float64) {
+	c.ExtraUsage = extraUsage
+	c.require(claudeTeamMonthFieldExtraUsage)
+}
+
+func (c *ClaudeTeamMonth) UnmarshalJSON(data []byte) error {
+	type embed ClaudeTeamMonth
+	var unmarshaler = struct {
+		embed
+		Month *internal.Date `json:"month"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = ClaudeTeamMonth(unmarshaler.embed)
+	c.Month = unmarshaler.Month.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ClaudeTeamMonth) MarshalJSON() ([]byte, error) {
+	type embed ClaudeTeamMonth
+	var marshaler = struct {
+		embed
+		Month *internal.Date `json:"month"`
+	}{
+		embed: embed(*c),
+		Month: internal.NewDate(c.Month),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ClaudeTeamMonth) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	claudeTeamPeopleDataFieldItems      = big.NewInt(1 << 0)
+	claudeTeamPeopleDataFieldPagination = big.NewInt(1 << 1)
+	claudeTeamPeopleDataFieldRules      = big.NewInt(1 << 2)
+)
+
+type ClaudeTeamPeopleData struct {
+	Items      []*ClaudeTeamPerson `json:"items" url:"items"`
+	Pagination *PaginationMeta     `json:"pagination" url:"pagination"`
+	Rules      *ClaudeTeamRules    `json:"rules" url:"rules"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ClaudeTeamPeopleData) GetItems() []*ClaudeTeamPerson {
+	if c == nil {
+		return nil
+	}
+	return c.Items
+}
+
+func (c *ClaudeTeamPeopleData) GetPagination() *PaginationMeta {
+	if c == nil {
+		return nil
+	}
+	return c.Pagination
+}
+
+func (c *ClaudeTeamPeopleData) GetRules() *ClaudeTeamRules {
+	if c == nil {
+		return nil
+	}
+	return c.Rules
+}
+
+func (c *ClaudeTeamPeopleData) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ClaudeTeamPeopleData) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPeopleData) SetItems(items []*ClaudeTeamPerson) {
+	c.Items = items
+	c.require(claudeTeamPeopleDataFieldItems)
+}
+
+// SetPagination sets the Pagination field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPeopleData) SetPagination(pagination *PaginationMeta) {
+	c.Pagination = pagination
+	c.require(claudeTeamPeopleDataFieldPagination)
+}
+
+// SetRules sets the Rules field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPeopleData) SetRules(rules *ClaudeTeamRules) {
+	c.Rules = rules
+	c.require(claudeTeamPeopleDataFieldRules)
+}
+
+func (c *ClaudeTeamPeopleData) UnmarshalJSON(data []byte) error {
+	type unmarshaler ClaudeTeamPeopleData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ClaudeTeamPeopleData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ClaudeTeamPeopleData) MarshalJSON() ([]byte, error) {
+	type embed ClaudeTeamPeopleData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ClaudeTeamPeopleData) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	claudeTeamPeopleResponseFieldSuccess   = big.NewInt(1 << 0)
+	claudeTeamPeopleResponseFieldData      = big.NewInt(1 << 1)
+	claudeTeamPeopleResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type ClaudeTeamPeopleResponse struct {
+	Success   *bool                 `json:"success,omitempty" url:"success,omitempty"`
+	Data      *ClaudeTeamPeopleData `json:"data" url:"data"`
+	Timestamp string                `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ClaudeTeamPeopleResponse) GetSuccess() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Success
+}
+
+func (c *ClaudeTeamPeopleResponse) GetData() *ClaudeTeamPeopleData {
+	if c == nil {
+		return nil
+	}
+	return c.Data
+}
+
+func (c *ClaudeTeamPeopleResponse) GetTimestamp() string {
+	if c == nil {
+		return ""
+	}
+	return c.Timestamp
+}
+
+func (c *ClaudeTeamPeopleResponse) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ClaudeTeamPeopleResponse) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPeopleResponse) SetSuccess(success *bool) {
+	c.Success = success
+	c.require(claudeTeamPeopleResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPeopleResponse) SetData(data *ClaudeTeamPeopleData) {
+	c.Data = data
+	c.require(claudeTeamPeopleResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPeopleResponse) SetTimestamp(timestamp string) {
+	c.Timestamp = timestamp
+	c.require(claudeTeamPeopleResponseFieldTimestamp)
+}
+
+func (c *ClaudeTeamPeopleResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler ClaudeTeamPeopleResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ClaudeTeamPeopleResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ClaudeTeamPeopleResponse) MarshalJSON() ([]byte, error) {
+	type embed ClaudeTeamPeopleResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ClaudeTeamPeopleResponse) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	claudeTeamPersonFieldPerson           = big.NewInt(1 << 0)
+	claudeTeamPersonFieldName             = big.NewInt(1 << 1)
+	claudeTeamPersonFieldArea             = big.NewInt(1 << 2)
+	claudeTeamPersonFieldSeat             = big.NewInt(1 << 3)
+	claudeTeamPersonFieldMainProduct      = big.NewInt(1 << 4)
+	claudeTeamPersonFieldTokens7D         = big.NewInt(1 << 5)
+	claudeTeamPersonFieldTokens30D        = big.NewInt(1 << 6)
+	claudeTeamPersonFieldExtraUsage30D    = big.NewInt(1 << 7)
+	claudeTeamPersonFieldUsageValue30D    = big.NewInt(1 << 8)
+	claudeTeamPersonFieldLastActive       = big.NewInt(1 << 9)
+	claudeTeamPersonFieldIdleWeeks        = big.NewInt(1 << 10)
+	claudeTeamPersonFieldRecommendation   = big.NewInt(1 << 11)
+	claudeTeamPersonFieldRecommendationID = big.NewInt(1 << 12)
+	claudeTeamPersonFieldSaving           = big.NewInt(1 << 13)
+)
+
+type ClaudeTeamPerson struct {
+	// The person's email
+	Person string `json:"person" url:"person"`
+	Name   string `json:"name" url:"name"`
+	// The area the people map gives the person
+	Area *string `json:"area,omitempty" url:"area,omitempty"`
+	// null for someone the latest Members list does not name
+	Seat *ClaudeTeamPersonSeat `json:"seat,omitempty" url:"seat,omitempty"`
+	// The product the person used most in 30 days, by tokens
+	MainProduct *string `json:"main_product,omitempty" url:"main_product,omitempty"`
+	Tokens7D    int     `json:"tokens_7d" url:"tokens_7d"`
+	Tokens30D   int     `json:"tokens_30d" url:"tokens_30d"`
+	// null until a spend report is uploaded
+	ExtraUsage30D *float64 `json:"extra_usage_30d,omitempty" url:"extra_usage_30d,omitempty"`
+	// Claude Code and Cowork usage at API list price
+	UsageValue30D float64    `json:"usage_value_30d" url:"usage_value_30d"`
+	LastActive    *time.Time `json:"last_active,omitempty" url:"last_active,omitempty" format:"date"`
+	// Whole weeks since the person last used Claude
+	IdleWeeks      *int                            `json:"idle_weeks,omitempty" url:"idle_weeks,omitempty"`
+	Recommendation *ClaudeTeamPersonRecommendation `json:"recommendation,omitempty" url:"recommendation,omitempty"`
+	// The savings recommendation that carries it, once raised
+	RecommendationID *string `json:"recommendation_id,omitempty" url:"recommendation_id,omitempty"`
+	// What the recommendation saves a month
+	Saving *float64 `json:"saving,omitempty" url:"saving,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ClaudeTeamPerson) GetPerson() string {
+	if c == nil {
+		return ""
+	}
+	return c.Person
+}
+
+func (c *ClaudeTeamPerson) GetName() string {
+	if c == nil {
+		return ""
+	}
+	return c.Name
+}
+
+func (c *ClaudeTeamPerson) GetArea() *string {
+	if c == nil {
+		return nil
+	}
+	return c.Area
+}
+
+func (c *ClaudeTeamPerson) GetSeat() *ClaudeTeamPersonSeat {
+	if c == nil {
+		return nil
+	}
+	return c.Seat
+}
+
+func (c *ClaudeTeamPerson) GetMainProduct() *string {
+	if c == nil {
+		return nil
+	}
+	return c.MainProduct
+}
+
+func (c *ClaudeTeamPerson) GetTokens7D() int {
+	if c == nil {
+		return 0
+	}
+	return c.Tokens7D
+}
+
+func (c *ClaudeTeamPerson) GetTokens30D() int {
+	if c == nil {
+		return 0
+	}
+	return c.Tokens30D
+}
+
+func (c *ClaudeTeamPerson) GetExtraUsage30D() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.ExtraUsage30D
+}
+
+func (c *ClaudeTeamPerson) GetUsageValue30D() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.UsageValue30D
+}
+
+func (c *ClaudeTeamPerson) GetLastActive() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.LastActive
+}
+
+func (c *ClaudeTeamPerson) GetIdleWeeks() *int {
+	if c == nil {
+		return nil
+	}
+	return c.IdleWeeks
+}
+
+func (c *ClaudeTeamPerson) GetRecommendation() *ClaudeTeamPersonRecommendation {
+	if c == nil {
+		return nil
+	}
+	return c.Recommendation
+}
+
+func (c *ClaudeTeamPerson) GetRecommendationID() *string {
+	if c == nil {
+		return nil
+	}
+	return c.RecommendationID
+}
+
+func (c *ClaudeTeamPerson) GetSaving() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.Saving
+}
+
+func (c *ClaudeTeamPerson) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ClaudeTeamPerson) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetPerson sets the Person field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPerson) SetPerson(person string) {
+	c.Person = person
+	c.require(claudeTeamPersonFieldPerson)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPerson) SetName(name string) {
+	c.Name = name
+	c.require(claudeTeamPersonFieldName)
+}
+
+// SetArea sets the Area field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPerson) SetArea(area *string) {
+	c.Area = area
+	c.require(claudeTeamPersonFieldArea)
+}
+
+// SetSeat sets the Seat field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPerson) SetSeat(seat *ClaudeTeamPersonSeat) {
+	c.Seat = seat
+	c.require(claudeTeamPersonFieldSeat)
+}
+
+// SetMainProduct sets the MainProduct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPerson) SetMainProduct(mainProduct *string) {
+	c.MainProduct = mainProduct
+	c.require(claudeTeamPersonFieldMainProduct)
+}
+
+// SetTokens7D sets the Tokens7D field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPerson) SetTokens7D(tokens7D int) {
+	c.Tokens7D = tokens7D
+	c.require(claudeTeamPersonFieldTokens7D)
+}
+
+// SetTokens30D sets the Tokens30D field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPerson) SetTokens30D(tokens30D int) {
+	c.Tokens30D = tokens30D
+	c.require(claudeTeamPersonFieldTokens30D)
+}
+
+// SetExtraUsage30D sets the ExtraUsage30D field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPerson) SetExtraUsage30D(extraUsage30D *float64) {
+	c.ExtraUsage30D = extraUsage30D
+	c.require(claudeTeamPersonFieldExtraUsage30D)
+}
+
+// SetUsageValue30D sets the UsageValue30D field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPerson) SetUsageValue30D(usageValue30D float64) {
+	c.UsageValue30D = usageValue30D
+	c.require(claudeTeamPersonFieldUsageValue30D)
+}
+
+// SetLastActive sets the LastActive field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPerson) SetLastActive(lastActive *time.Time) {
+	c.LastActive = lastActive
+	c.require(claudeTeamPersonFieldLastActive)
+}
+
+// SetIdleWeeks sets the IdleWeeks field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPerson) SetIdleWeeks(idleWeeks *int) {
+	c.IdleWeeks = idleWeeks
+	c.require(claudeTeamPersonFieldIdleWeeks)
+}
+
+// SetRecommendation sets the Recommendation field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPerson) SetRecommendation(recommendation *ClaudeTeamPersonRecommendation) {
+	c.Recommendation = recommendation
+	c.require(claudeTeamPersonFieldRecommendation)
+}
+
+// SetRecommendationID sets the RecommendationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPerson) SetRecommendationID(recommendationID *string) {
+	c.RecommendationID = recommendationID
+	c.require(claudeTeamPersonFieldRecommendationID)
+}
+
+// SetSaving sets the Saving field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPerson) SetSaving(saving *float64) {
+	c.Saving = saving
+	c.require(claudeTeamPersonFieldSaving)
+}
+
+func (c *ClaudeTeamPerson) UnmarshalJSON(data []byte) error {
+	type embed ClaudeTeamPerson
+	var unmarshaler = struct {
+		embed
+		LastActive *internal.Date `json:"last_active,omitempty"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = ClaudeTeamPerson(unmarshaler.embed)
+	c.LastActive = unmarshaler.LastActive.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ClaudeTeamPerson) MarshalJSON() ([]byte, error) {
+	type embed ClaudeTeamPerson
+	var marshaler = struct {
+		embed
+		LastActive *internal.Date `json:"last_active,omitempty"`
+	}{
+		embed:      embed(*c),
+		LastActive: internal.NewOptionalDate(c.LastActive),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ClaudeTeamPerson) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type ClaudeTeamPersonRecommendation string
+
+const (
+	ClaudeTeamPersonRecommendationUpgrade   ClaudeTeamPersonRecommendation = "upgrade"
+	ClaudeTeamPersonRecommendationDowngrade ClaudeTeamPersonRecommendation = "downgrade"
+	ClaudeTeamPersonRecommendationRemove    ClaudeTeamPersonRecommendation = "remove"
+)
+
+func NewClaudeTeamPersonRecommendationFromString(s string) (ClaudeTeamPersonRecommendation, error) {
+	switch s {
+	case "upgrade":
+		return ClaudeTeamPersonRecommendationUpgrade, nil
+	case "downgrade":
+		return ClaudeTeamPersonRecommendationDowngrade, nil
+	case "remove":
+		return ClaudeTeamPersonRecommendationRemove, nil
+	}
+	var t ClaudeTeamPersonRecommendation
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c ClaudeTeamPersonRecommendation) Ptr() *ClaudeTeamPersonRecommendation {
+	return &c
+}
+
+type ClaudeTeamPersonSeat string
+
+const (
+	ClaudeTeamPersonSeatStandard ClaudeTeamPersonSeat = "Standard"
+	ClaudeTeamPersonSeatPremium  ClaudeTeamPersonSeat = "Premium"
+)
+
+func NewClaudeTeamPersonSeatFromString(s string) (ClaudeTeamPersonSeat, error) {
+	switch s {
+	case "Standard":
+		return ClaudeTeamPersonSeatStandard, nil
+	case "Premium":
+		return ClaudeTeamPersonSeatPremium, nil
+	}
+	var t ClaudeTeamPersonSeat
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c ClaudeTeamPersonSeat) Ptr() *ClaudeTeamPersonSeat {
+	return &c
+}
+
+var (
+	claudeTeamRemoveRuleFieldPeople    = big.NewInt(1 << 0)
+	claudeTeamRemoveRuleFieldSaving    = big.NewInt(1 << 1)
+	claudeTeamRemoveRuleFieldAvailable = big.NewInt(1 << 2)
+	claudeTeamRemoveRuleFieldIdleWeeks = big.NewInt(1 << 3)
+)
+
+type ClaudeTeamRemoveRule struct {
+	People int     `json:"people" url:"people"`
+	Saving float64 `json:"saving" url:"saving"`
+	// false when the files cannot tell this rule, and it names nobody
+	Available bool `json:"available" url:"available"`
+	IdleWeeks int  `json:"idle_weeks" url:"idle_weeks"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ClaudeTeamRemoveRule) GetPeople() int {
+	if c == nil {
+		return 0
+	}
+	return c.People
+}
+
+func (c *ClaudeTeamRemoveRule) GetSaving() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.Saving
+}
+
+func (c *ClaudeTeamRemoveRule) GetAvailable() bool {
+	if c == nil {
+		return false
+	}
+	return c.Available
+}
+
+func (c *ClaudeTeamRemoveRule) GetIdleWeeks() int {
+	if c == nil {
+		return 0
+	}
+	return c.IdleWeeks
+}
+
+func (c *ClaudeTeamRemoveRule) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ClaudeTeamRemoveRule) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetPeople sets the People field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamRemoveRule) SetPeople(people int) {
+	c.People = people
+	c.require(claudeTeamRemoveRuleFieldPeople)
+}
+
+// SetSaving sets the Saving field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamRemoveRule) SetSaving(saving float64) {
+	c.Saving = saving
+	c.require(claudeTeamRemoveRuleFieldSaving)
+}
+
+// SetAvailable sets the Available field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamRemoveRule) SetAvailable(available bool) {
+	c.Available = available
+	c.require(claudeTeamRemoveRuleFieldAvailable)
+}
+
+// SetIdleWeeks sets the IdleWeeks field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamRemoveRule) SetIdleWeeks(idleWeeks int) {
+	c.IdleWeeks = idleWeeks
+	c.require(claudeTeamRemoveRuleFieldIdleWeeks)
+}
+
+func (c *ClaudeTeamRemoveRule) UnmarshalJSON(data []byte) error {
+	type unmarshaler ClaudeTeamRemoveRule
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ClaudeTeamRemoveRule(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ClaudeTeamRemoveRule) MarshalJSON() ([]byte, error) {
+	type embed ClaudeTeamRemoveRule
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ClaudeTeamRemoveRule) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	claudeTeamRulesFieldUpgrade   = big.NewInt(1 << 0)
+	claudeTeamRulesFieldDowngrade = big.NewInt(1 << 1)
+	claudeTeamRulesFieldRemove    = big.NewInt(1 << 2)
+)
+
+type ClaudeTeamRules struct {
+	Upgrade   *ClaudeTeamUpgradeRule   `json:"upgrade" url:"upgrade"`
+	Downgrade *ClaudeTeamDowngradeRule `json:"downgrade" url:"downgrade"`
+	Remove    *ClaudeTeamRemoveRule    `json:"remove" url:"remove"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ClaudeTeamRules) GetUpgrade() *ClaudeTeamUpgradeRule {
+	if c == nil {
+		return nil
+	}
+	return c.Upgrade
+}
+
+func (c *ClaudeTeamRules) GetDowngrade() *ClaudeTeamDowngradeRule {
+	if c == nil {
+		return nil
+	}
+	return c.Downgrade
+}
+
+func (c *ClaudeTeamRules) GetRemove() *ClaudeTeamRemoveRule {
+	if c == nil {
+		return nil
+	}
+	return c.Remove
+}
+
+func (c *ClaudeTeamRules) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ClaudeTeamRules) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetUpgrade sets the Upgrade field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamRules) SetUpgrade(upgrade *ClaudeTeamUpgradeRule) {
+	c.Upgrade = upgrade
+	c.require(claudeTeamRulesFieldUpgrade)
+}
+
+// SetDowngrade sets the Downgrade field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamRules) SetDowngrade(downgrade *ClaudeTeamDowngradeRule) {
+	c.Downgrade = downgrade
+	c.require(claudeTeamRulesFieldDowngrade)
+}
+
+// SetRemove sets the Remove field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamRules) SetRemove(remove *ClaudeTeamRemoveRule) {
+	c.Remove = remove
+	c.require(claudeTeamRulesFieldRemove)
+}
+
+func (c *ClaudeTeamRules) UnmarshalJSON(data []byte) error {
+	type unmarshaler ClaudeTeamRules
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ClaudeTeamRules(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ClaudeTeamRules) MarshalJSON() ([]byte, error) {
+	type embed ClaudeTeamRules
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ClaudeTeamRules) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	claudeTeamSeatsFieldTotal    = big.NewInt(1 << 0)
+	claudeTeamSeatsFieldPremium  = big.NewInt(1 << 1)
+	claudeTeamSeatsFieldStandard = big.NewInt(1 << 2)
+)
+
+type ClaudeTeamSeats struct {
+	Total    int `json:"total" url:"total"`
+	Premium  int `json:"premium" url:"premium"`
+	Standard int `json:"standard" url:"standard"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ClaudeTeamSeats) GetTotal() int {
+	if c == nil {
+		return 0
+	}
+	return c.Total
+}
+
+func (c *ClaudeTeamSeats) GetPremium() int {
+	if c == nil {
+		return 0
+	}
+	return c.Premium
+}
+
+func (c *ClaudeTeamSeats) GetStandard() int {
+	if c == nil {
+		return 0
+	}
+	return c.Standard
+}
+
+func (c *ClaudeTeamSeats) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ClaudeTeamSeats) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetTotal sets the Total field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSeats) SetTotal(total int) {
+	c.Total = total
+	c.require(claudeTeamSeatsFieldTotal)
+}
+
+// SetPremium sets the Premium field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSeats) SetPremium(premium int) {
+	c.Premium = premium
+	c.require(claudeTeamSeatsFieldPremium)
+}
+
+// SetStandard sets the Standard field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSeats) SetStandard(standard int) {
+	c.Standard = standard
+	c.require(claudeTeamSeatsFieldStandard)
+}
+
+func (c *ClaudeTeamSeats) UnmarshalJSON(data []byte) error {
+	type unmarshaler ClaudeTeamSeats
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ClaudeTeamSeats(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ClaudeTeamSeats) MarshalJSON() ([]byte, error) {
+	type embed ClaudeTeamSeats
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ClaudeTeamSeats) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	claudeTeamSettingsDataFieldBillingCycle     = big.NewInt(1 << 0)
+	claudeTeamSettingsDataFieldStandardPrice    = big.NewInt(1 << 1)
+	claudeTeamSettingsDataFieldPremiumPrice     = big.NewInt(1 << 2)
+	claudeTeamSettingsDataFieldRenewalDay       = big.NewInt(1 << 3)
+	claudeTeamSettingsDataFieldLowTokensPerWeek = big.NewInt(1 << 4)
+)
+
+type ClaudeTeamSettingsData struct {
+	BillingCycle ClaudeTeamSettingsDataBillingCycle `json:"billing_cycle" url:"billing_cycle"`
+	// Per seat per month, in USD, to the cent
+	StandardPrice float64 `json:"standard_price" url:"standard_price"`
+	// Per seat per month, in USD, to the cent
+	PremiumPrice float64 `json:"premium_price" url:"premium_price"`
+	// The day of the month the plan renews
+	RenewalDay int `json:"renewal_day" url:"renewal_day"`
+	// Below this many tokens a week, a Premium seat is worth a look at Standard
+	LowTokensPerWeek int `json:"low_tokens_per_week" url:"low_tokens_per_week"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ClaudeTeamSettingsData) GetBillingCycle() ClaudeTeamSettingsDataBillingCycle {
+	if c == nil {
+		return ""
+	}
+	return c.BillingCycle
+}
+
+func (c *ClaudeTeamSettingsData) GetStandardPrice() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.StandardPrice
+}
+
+func (c *ClaudeTeamSettingsData) GetPremiumPrice() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.PremiumPrice
+}
+
+func (c *ClaudeTeamSettingsData) GetRenewalDay() int {
+	if c == nil {
+		return 0
+	}
+	return c.RenewalDay
+}
+
+func (c *ClaudeTeamSettingsData) GetLowTokensPerWeek() int {
+	if c == nil {
+		return 0
+	}
+	return c.LowTokensPerWeek
+}
+
+func (c *ClaudeTeamSettingsData) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ClaudeTeamSettingsData) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetBillingCycle sets the BillingCycle field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSettingsData) SetBillingCycle(billingCycle ClaudeTeamSettingsDataBillingCycle) {
+	c.BillingCycle = billingCycle
+	c.require(claudeTeamSettingsDataFieldBillingCycle)
+}
+
+// SetStandardPrice sets the StandardPrice field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSettingsData) SetStandardPrice(standardPrice float64) {
+	c.StandardPrice = standardPrice
+	c.require(claudeTeamSettingsDataFieldStandardPrice)
+}
+
+// SetPremiumPrice sets the PremiumPrice field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSettingsData) SetPremiumPrice(premiumPrice float64) {
+	c.PremiumPrice = premiumPrice
+	c.require(claudeTeamSettingsDataFieldPremiumPrice)
+}
+
+// SetRenewalDay sets the RenewalDay field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSettingsData) SetRenewalDay(renewalDay int) {
+	c.RenewalDay = renewalDay
+	c.require(claudeTeamSettingsDataFieldRenewalDay)
+}
+
+// SetLowTokensPerWeek sets the LowTokensPerWeek field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSettingsData) SetLowTokensPerWeek(lowTokensPerWeek int) {
+	c.LowTokensPerWeek = lowTokensPerWeek
+	c.require(claudeTeamSettingsDataFieldLowTokensPerWeek)
+}
+
+func (c *ClaudeTeamSettingsData) UnmarshalJSON(data []byte) error {
+	type unmarshaler ClaudeTeamSettingsData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ClaudeTeamSettingsData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ClaudeTeamSettingsData) MarshalJSON() ([]byte, error) {
+	type embed ClaudeTeamSettingsData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ClaudeTeamSettingsData) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type ClaudeTeamSettingsDataBillingCycle string
+
+const (
+	ClaudeTeamSettingsDataBillingCycleMonthly ClaudeTeamSettingsDataBillingCycle = "monthly"
+	ClaudeTeamSettingsDataBillingCycleAnnual  ClaudeTeamSettingsDataBillingCycle = "annual"
+)
+
+func NewClaudeTeamSettingsDataBillingCycleFromString(s string) (ClaudeTeamSettingsDataBillingCycle, error) {
+	switch s {
+	case "monthly":
+		return ClaudeTeamSettingsDataBillingCycleMonthly, nil
+	case "annual":
+		return ClaudeTeamSettingsDataBillingCycleAnnual, nil
+	}
+	var t ClaudeTeamSettingsDataBillingCycle
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c ClaudeTeamSettingsDataBillingCycle) Ptr() *ClaudeTeamSettingsDataBillingCycle {
+	return &c
+}
+
+var (
+	claudeTeamSettingsResponseFieldSuccess   = big.NewInt(1 << 0)
+	claudeTeamSettingsResponseFieldData      = big.NewInt(1 << 1)
+	claudeTeamSettingsResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type ClaudeTeamSettingsResponse struct {
+	Success   *bool                   `json:"success,omitempty" url:"success,omitempty"`
+	Data      *ClaudeTeamSettingsData `json:"data" url:"data"`
+	Timestamp string                  `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ClaudeTeamSettingsResponse) GetSuccess() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Success
+}
+
+func (c *ClaudeTeamSettingsResponse) GetData() *ClaudeTeamSettingsData {
+	if c == nil {
+		return nil
+	}
+	return c.Data
+}
+
+func (c *ClaudeTeamSettingsResponse) GetTimestamp() string {
+	if c == nil {
+		return ""
+	}
+	return c.Timestamp
+}
+
+func (c *ClaudeTeamSettingsResponse) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ClaudeTeamSettingsResponse) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSettingsResponse) SetSuccess(success *bool) {
+	c.Success = success
+	c.require(claudeTeamSettingsResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSettingsResponse) SetData(data *ClaudeTeamSettingsData) {
+	c.Data = data
+	c.require(claudeTeamSettingsResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSettingsResponse) SetTimestamp(timestamp string) {
+	c.Timestamp = timestamp
+	c.require(claudeTeamSettingsResponseFieldTimestamp)
+}
+
+func (c *ClaudeTeamSettingsResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler ClaudeTeamSettingsResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ClaudeTeamSettingsResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ClaudeTeamSettingsResponse) MarshalJSON() ([]byte, error) {
+	type embed ClaudeTeamSettingsResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ClaudeTeamSettingsResponse) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	claudeTeamSummaryDataFieldHasMembers    = big.NewInt(1 << 0)
+	claudeTeamSummaryDataFieldHasSpend      = big.NewInt(1 << 1)
+	claudeTeamSummaryDataFieldCoverage      = big.NewInt(1 << 2)
+	claudeTeamSummaryDataFieldMembersAsOf   = big.NewInt(1 << 3)
+	claudeTeamSummaryDataFieldSpendPeriod   = big.NewInt(1 << 4)
+	claudeTeamSummaryDataFieldSeats         = big.NewInt(1 << 5)
+	claudeTeamSummaryDataFieldActiveSeats   = big.NewInt(1 << 6)
+	claudeTeamSummaryDataFieldSeatCost      = big.NewInt(1 << 7)
+	claudeTeamSummaryDataFieldExtraUsage    = big.NewInt(1 << 8)
+	claudeTeamSummaryDataFieldBill          = big.NewInt(1 << 9)
+	claudeTeamSummaryDataFieldBillChangePct = big.NewInt(1 << 10)
+	claudeTeamSummaryDataFieldSavingsFound  = big.NewInt(1 << 11)
+	claudeTeamSummaryDataFieldBillingCycle  = big.NewInt(1 << 12)
+	claudeTeamSummaryDataFieldPriceGap      = big.NewInt(1 << 13)
+	claudeTeamSummaryDataFieldMonthly       = big.NewInt(1 << 14)
+)
+
+type ClaudeTeamSummaryData struct {
+	// A Members list has been uploaded
+	HasMembers bool `json:"has_members" url:"has_members"`
+	// A spend report covering any of the last 120 days has been uploaded
+	HasSpend bool `json:"has_spend" url:"has_spend"`
+	// full when the spend report holds every token, overage_only when it holds extra usage alone
+	Coverage *ClaudeTeamSummaryDataCoverage `json:"coverage,omitempty" url:"coverage,omitempty"`
+	// The day the latest Members list was uploaded
+	MembersAsOf *time.Time `json:"members_as_of,omitempty" url:"members_as_of,omitempty" format:"date"`
+	// The first and last day of the unbroken run of days the spend reports cover
+	SpendPeriod []time.Time      `json:"spend_period,omitempty" url:"spend_period,omitempty" format:"date"`
+	Seats       *ClaudeTeamSeats `json:"seats" url:"seats"`
+	// Seats whose holder used Claude in the last 30 days the reports cover
+	ActiveSeats int `json:"active_seats" url:"active_seats"`
+	// What seats cost in the range
+	SeatCost float64 `json:"seat_cost" url:"seat_cost"`
+	// What usage beyond the seats' allowance cost in the range
+	ExtraUsage float64 `json:"extra_usage" url:"extra_usage"`
+	// seat_cost plus extra_usage
+	Bill float64 `json:"bill" url:"bill"`
+	// How the bill moved against the range of the same length before it, null when that one is empty
+	BillChangePct *float64 `json:"bill_change_pct,omitempty" url:"bill_change_pct,omitempty"`
+	// What the seat changes recommended now save a month
+	SavingsFound float64                           `json:"savings_found" url:"savings_found"`
+	BillingCycle ClaudeTeamSummaryDataBillingCycle `json:"billing_cycle" url:"billing_cycle"`
+	// What a Premium seat costs above a Standard one each month
+	PriceGap float64 `json:"price_gap" url:"price_gap"`
+	// The last six months through the end of the range
+	Monthly []*ClaudeTeamMonth `json:"monthly" url:"monthly"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ClaudeTeamSummaryData) GetHasMembers() bool {
+	if c == nil {
+		return false
+	}
+	return c.HasMembers
+}
+
+func (c *ClaudeTeamSummaryData) GetHasSpend() bool {
+	if c == nil {
+		return false
+	}
+	return c.HasSpend
+}
+
+func (c *ClaudeTeamSummaryData) GetCoverage() *ClaudeTeamSummaryDataCoverage {
+	if c == nil {
+		return nil
+	}
+	return c.Coverage
+}
+
+func (c *ClaudeTeamSummaryData) GetMembersAsOf() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.MembersAsOf
+}
+
+func (c *ClaudeTeamSummaryData) GetSpendPeriod() []time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.SpendPeriod
+}
+
+func (c *ClaudeTeamSummaryData) GetSeats() *ClaudeTeamSeats {
+	if c == nil {
+		return nil
+	}
+	return c.Seats
+}
+
+func (c *ClaudeTeamSummaryData) GetActiveSeats() int {
+	if c == nil {
+		return 0
+	}
+	return c.ActiveSeats
+}
+
+func (c *ClaudeTeamSummaryData) GetSeatCost() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.SeatCost
+}
+
+func (c *ClaudeTeamSummaryData) GetExtraUsage() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.ExtraUsage
+}
+
+func (c *ClaudeTeamSummaryData) GetBill() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.Bill
+}
+
+func (c *ClaudeTeamSummaryData) GetBillChangePct() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.BillChangePct
+}
+
+func (c *ClaudeTeamSummaryData) GetSavingsFound() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.SavingsFound
+}
+
+func (c *ClaudeTeamSummaryData) GetBillingCycle() ClaudeTeamSummaryDataBillingCycle {
+	if c == nil {
+		return ""
+	}
+	return c.BillingCycle
+}
+
+func (c *ClaudeTeamSummaryData) GetPriceGap() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.PriceGap
+}
+
+func (c *ClaudeTeamSummaryData) GetMonthly() []*ClaudeTeamMonth {
+	if c == nil {
+		return nil
+	}
+	return c.Monthly
+}
+
+func (c *ClaudeTeamSummaryData) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ClaudeTeamSummaryData) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetHasMembers sets the HasMembers field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryData) SetHasMembers(hasMembers bool) {
+	c.HasMembers = hasMembers
+	c.require(claudeTeamSummaryDataFieldHasMembers)
+}
+
+// SetHasSpend sets the HasSpend field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryData) SetHasSpend(hasSpend bool) {
+	c.HasSpend = hasSpend
+	c.require(claudeTeamSummaryDataFieldHasSpend)
+}
+
+// SetCoverage sets the Coverage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryData) SetCoverage(coverage *ClaudeTeamSummaryDataCoverage) {
+	c.Coverage = coverage
+	c.require(claudeTeamSummaryDataFieldCoverage)
+}
+
+// SetMembersAsOf sets the MembersAsOf field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryData) SetMembersAsOf(membersAsOf *time.Time) {
+	c.MembersAsOf = membersAsOf
+	c.require(claudeTeamSummaryDataFieldMembersAsOf)
+}
+
+// SetSpendPeriod sets the SpendPeriod field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryData) SetSpendPeriod(spendPeriod []time.Time) {
+	c.SpendPeriod = spendPeriod
+	c.require(claudeTeamSummaryDataFieldSpendPeriod)
+}
+
+// SetSeats sets the Seats field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryData) SetSeats(seats *ClaudeTeamSeats) {
+	c.Seats = seats
+	c.require(claudeTeamSummaryDataFieldSeats)
+}
+
+// SetActiveSeats sets the ActiveSeats field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryData) SetActiveSeats(activeSeats int) {
+	c.ActiveSeats = activeSeats
+	c.require(claudeTeamSummaryDataFieldActiveSeats)
+}
+
+// SetSeatCost sets the SeatCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryData) SetSeatCost(seatCost float64) {
+	c.SeatCost = seatCost
+	c.require(claudeTeamSummaryDataFieldSeatCost)
+}
+
+// SetExtraUsage sets the ExtraUsage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryData) SetExtraUsage(extraUsage float64) {
+	c.ExtraUsage = extraUsage
+	c.require(claudeTeamSummaryDataFieldExtraUsage)
+}
+
+// SetBill sets the Bill field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryData) SetBill(bill float64) {
+	c.Bill = bill
+	c.require(claudeTeamSummaryDataFieldBill)
+}
+
+// SetBillChangePct sets the BillChangePct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryData) SetBillChangePct(billChangePct *float64) {
+	c.BillChangePct = billChangePct
+	c.require(claudeTeamSummaryDataFieldBillChangePct)
+}
+
+// SetSavingsFound sets the SavingsFound field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryData) SetSavingsFound(savingsFound float64) {
+	c.SavingsFound = savingsFound
+	c.require(claudeTeamSummaryDataFieldSavingsFound)
+}
+
+// SetBillingCycle sets the BillingCycle field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryData) SetBillingCycle(billingCycle ClaudeTeamSummaryDataBillingCycle) {
+	c.BillingCycle = billingCycle
+	c.require(claudeTeamSummaryDataFieldBillingCycle)
+}
+
+// SetPriceGap sets the PriceGap field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryData) SetPriceGap(priceGap float64) {
+	c.PriceGap = priceGap
+	c.require(claudeTeamSummaryDataFieldPriceGap)
+}
+
+// SetMonthly sets the Monthly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryData) SetMonthly(monthly []*ClaudeTeamMonth) {
+	c.Monthly = monthly
+	c.require(claudeTeamSummaryDataFieldMonthly)
+}
+
+func (c *ClaudeTeamSummaryData) UnmarshalJSON(data []byte) error {
+	type embed ClaudeTeamSummaryData
+	var unmarshaler = struct {
+		embed
+		MembersAsOf *internal.Date `json:"members_as_of,omitempty"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = ClaudeTeamSummaryData(unmarshaler.embed)
+	c.MembersAsOf = unmarshaler.MembersAsOf.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ClaudeTeamSummaryData) MarshalJSON() ([]byte, error) {
+	type embed ClaudeTeamSummaryData
+	var marshaler = struct {
+		embed
+		MembersAsOf *internal.Date `json:"members_as_of,omitempty"`
+	}{
+		embed:       embed(*c),
+		MembersAsOf: internal.NewOptionalDate(c.MembersAsOf),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ClaudeTeamSummaryData) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type ClaudeTeamSummaryDataBillingCycle string
+
+const (
+	ClaudeTeamSummaryDataBillingCycleMonthly ClaudeTeamSummaryDataBillingCycle = "monthly"
+	ClaudeTeamSummaryDataBillingCycleAnnual  ClaudeTeamSummaryDataBillingCycle = "annual"
+)
+
+func NewClaudeTeamSummaryDataBillingCycleFromString(s string) (ClaudeTeamSummaryDataBillingCycle, error) {
+	switch s {
+	case "monthly":
+		return ClaudeTeamSummaryDataBillingCycleMonthly, nil
+	case "annual":
+		return ClaudeTeamSummaryDataBillingCycleAnnual, nil
+	}
+	var t ClaudeTeamSummaryDataBillingCycle
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c ClaudeTeamSummaryDataBillingCycle) Ptr() *ClaudeTeamSummaryDataBillingCycle {
+	return &c
+}
+
+type ClaudeTeamSummaryDataCoverage string
+
+const (
+	ClaudeTeamSummaryDataCoverageFull        ClaudeTeamSummaryDataCoverage = "full"
+	ClaudeTeamSummaryDataCoverageOverageOnly ClaudeTeamSummaryDataCoverage = "overage_only"
+)
+
+func NewClaudeTeamSummaryDataCoverageFromString(s string) (ClaudeTeamSummaryDataCoverage, error) {
+	switch s {
+	case "full":
+		return ClaudeTeamSummaryDataCoverageFull, nil
+	case "overage_only":
+		return ClaudeTeamSummaryDataCoverageOverageOnly, nil
+	}
+	var t ClaudeTeamSummaryDataCoverage
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c ClaudeTeamSummaryDataCoverage) Ptr() *ClaudeTeamSummaryDataCoverage {
+	return &c
+}
+
+var (
+	claudeTeamSummaryResponseFieldSuccess   = big.NewInt(1 << 0)
+	claudeTeamSummaryResponseFieldData      = big.NewInt(1 << 1)
+	claudeTeamSummaryResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type ClaudeTeamSummaryResponse struct {
+	Success   *bool                  `json:"success,omitempty" url:"success,omitempty"`
+	Data      *ClaudeTeamSummaryData `json:"data" url:"data"`
+	Timestamp string                 `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ClaudeTeamSummaryResponse) GetSuccess() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Success
+}
+
+func (c *ClaudeTeamSummaryResponse) GetData() *ClaudeTeamSummaryData {
+	if c == nil {
+		return nil
+	}
+	return c.Data
+}
+
+func (c *ClaudeTeamSummaryResponse) GetTimestamp() string {
+	if c == nil {
+		return ""
+	}
+	return c.Timestamp
+}
+
+func (c *ClaudeTeamSummaryResponse) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ClaudeTeamSummaryResponse) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryResponse) SetSuccess(success *bool) {
+	c.Success = success
+	c.require(claudeTeamSummaryResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryResponse) SetData(data *ClaudeTeamSummaryData) {
+	c.Data = data
+	c.require(claudeTeamSummaryResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryResponse) SetTimestamp(timestamp string) {
+	c.Timestamp = timestamp
+	c.require(claudeTeamSummaryResponseFieldTimestamp)
+}
+
+func (c *ClaudeTeamSummaryResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler ClaudeTeamSummaryResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ClaudeTeamSummaryResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ClaudeTeamSummaryResponse) MarshalJSON() ([]byte, error) {
+	type embed ClaudeTeamSummaryResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ClaudeTeamSummaryResponse) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	claudeTeamUpgradeRuleFieldPeople    = big.NewInt(1 << 0)
+	claudeTeamUpgradeRuleFieldSaving    = big.NewInt(1 << 1)
+	claudeTeamUpgradeRuleFieldAvailable = big.NewInt(1 << 2)
+	claudeTeamUpgradeRuleFieldPriceGap  = big.NewInt(1 << 3)
+)
+
+type ClaudeTeamUpgradeRule struct {
+	People int     `json:"people" url:"people"`
+	Saving float64 `json:"saving" url:"saving"`
+	// false when the files cannot tell this rule, and it names nobody
+	Available bool    `json:"available" url:"available"`
+	PriceGap  float64 `json:"price_gap" url:"price_gap"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ClaudeTeamUpgradeRule) GetPeople() int {
+	if c == nil {
+		return 0
+	}
+	return c.People
+}
+
+func (c *ClaudeTeamUpgradeRule) GetSaving() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.Saving
+}
+
+func (c *ClaudeTeamUpgradeRule) GetAvailable() bool {
+	if c == nil {
+		return false
+	}
+	return c.Available
+}
+
+func (c *ClaudeTeamUpgradeRule) GetPriceGap() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.PriceGap
+}
+
+func (c *ClaudeTeamUpgradeRule) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ClaudeTeamUpgradeRule) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetPeople sets the People field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamUpgradeRule) SetPeople(people int) {
+	c.People = people
+	c.require(claudeTeamUpgradeRuleFieldPeople)
+}
+
+// SetSaving sets the Saving field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamUpgradeRule) SetSaving(saving float64) {
+	c.Saving = saving
+	c.require(claudeTeamUpgradeRuleFieldSaving)
+}
+
+// SetAvailable sets the Available field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamUpgradeRule) SetAvailable(available bool) {
+	c.Available = available
+	c.require(claudeTeamUpgradeRuleFieldAvailable)
+}
+
+// SetPriceGap sets the PriceGap field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamUpgradeRule) SetPriceGap(priceGap float64) {
+	c.PriceGap = priceGap
+	c.require(claudeTeamUpgradeRuleFieldPriceGap)
+}
+
+func (c *ClaudeTeamUpgradeRule) UnmarshalJSON(data []byte) error {
+	type unmarshaler ClaudeTeamUpgradeRule
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ClaudeTeamUpgradeRule(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ClaudeTeamUpgradeRule) MarshalJSON() ([]byte, error) {
+	type embed ClaudeTeamUpgradeRule
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ClaudeTeamUpgradeRule) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+// csv answers every row the filters keep
+type GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFormat string
+
+const (
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFormatJSON GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFormat = "json"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFormatCsv  GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFormat = "csv"
+)
+
+func NewGetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFormatFromString(s string) (GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFormat, error) {
+	switch s {
+	case "json":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFormatJSON, nil
+	case "csv":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFormatCsv, nil
+	}
+	var t GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFormat
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFormat) Ptr() *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFormat {
+	return &g
+}
+
+type GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestOrder string
+
+const (
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestOrderAsc  GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestOrder = "asc"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestOrderDesc GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestOrder = "desc"
+)
+
+func NewGetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestOrderFromString(s string) (GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestOrder, error) {
+	switch s {
+	case "asc":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestOrderAsc, nil
+	case "desc":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestOrderDesc, nil
+	}
+	var t GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestOrder
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestOrder) Ptr() *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestOrder {
+	return &g
+}
+
+type GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestRecommendation string
+
+const (
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestRecommendationUpgrade   GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestRecommendation = "upgrade"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestRecommendationDowngrade GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestRecommendation = "downgrade"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestRecommendationRemove    GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestRecommendation = "remove"
+)
+
+func NewGetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestRecommendationFromString(s string) (GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestRecommendation, error) {
+	switch s {
+	case "upgrade":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestRecommendationUpgrade, nil
+	case "downgrade":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestRecommendationDowngrade, nil
+	case "remove":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestRecommendationRemove, nil
+	}
+	var t GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestRecommendation
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestRecommendation) Ptr() *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestRecommendation {
+	return &g
+}
+
+type GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSeat string
+
+const (
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSeatStandard GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSeat = "Standard"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSeatPremium  GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSeat = "Premium"
+)
+
+func NewGetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSeatFromString(s string) (GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSeat, error) {
+	switch s {
+	case "Standard":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSeatStandard, nil
+	case "Premium":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSeatPremium, nil
+	}
+	var t GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSeat
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSeat) Ptr() *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSeat {
+	return &g
+}
+
+type GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort string
+
+const (
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortPerson        GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "person"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortSeat          GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "seat"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortMainProduct   GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "main_product"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortTokens7D      GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "tokens_7d"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortExtraUsage30D GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "extra_usage_30d"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortUsageValue30D GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "usage_value_30d"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortLastActive    GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "last_active"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortSaving        GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "saving"
+)
+
+func NewGetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortFromString(s string) (GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort, error) {
+	switch s {
+	case "person":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortPerson, nil
+	case "seat":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortSeat, nil
+	case "main_product":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortMainProduct, nil
+	case "tokens_7d":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortTokens7D, nil
+	case "extra_usage_30d":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortExtraUsage30D, nil
+	case "usage_value_30d":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortUsageValue30D, nil
+	case "last_active":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortLastActive, nil
+	case "saving":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortSaving, nil
+	}
+	var t GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort) Ptr() *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort {
+	return &g
 }
 
 // What each row is
