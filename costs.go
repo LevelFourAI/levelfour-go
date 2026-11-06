@@ -11396,6 +11396,7 @@ var (
 	virtualTagKeyOptionFieldID              = big.NewInt(1 << 0)
 	virtualTagKeyOptionFieldName            = big.NewInt(1 << 1)
 	virtualTagKeyOptionFieldUnallocatedName = big.NewInt(1 << 2)
+	virtualTagKeyOptionFieldManaged         = big.NewInt(1 << 3)
 )
 
 type VirtualTagKeyOption struct {
@@ -11405,6 +11406,8 @@ type VirtualTagKeyOption struct {
 	Name string `json:"name" url:"name"`
 	// What this tag calls the spend no rule claimed, shown for __unallocated__
 	UnallocatedName *string `json:"unallocated_name,omitempty" url:"unallocated_name,omitempty"`
+	// A predefined tag LevelFour keeps, so nothing should pick it by default
+	Managed *bool `json:"managed,omitempty" url:"managed,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -11432,6 +11435,13 @@ func (v *VirtualTagKeyOption) GetUnallocatedName() *string {
 		return nil
 	}
 	return v.UnallocatedName
+}
+
+func (v *VirtualTagKeyOption) GetManaged() *bool {
+	if v == nil {
+		return nil
+	}
+	return v.Managed
 }
 
 func (v *VirtualTagKeyOption) GetExtraProperties() map[string]interface{} {
@@ -11467,6 +11477,13 @@ func (v *VirtualTagKeyOption) SetName(name string) {
 func (v *VirtualTagKeyOption) SetUnallocatedName(unallocatedName *string) {
 	v.UnallocatedName = unallocatedName
 	v.require(virtualTagKeyOptionFieldUnallocatedName)
+}
+
+// SetManaged sets the Managed field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (v *VirtualTagKeyOption) SetManaged(managed *bool) {
+	v.Managed = managed
+	v.require(virtualTagKeyOptionFieldManaged)
 }
 
 func (v *VirtualTagKeyOption) UnmarshalJSON(data []byte) error {

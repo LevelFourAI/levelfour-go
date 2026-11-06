@@ -214,3 +214,52 @@ func (c *Client) GetUsageAdoption(
 	}
 	return response.Body, nil
 }
+
+// What a Claude Team plan cost in the range, seats and extra usage apart, from the Members lists and spend reports uploaded for it, and how that moved against the range of the same length before. seats is the latest Members list. savings_found adds up what the seat changes /team/people recommends save a month. monthly is the last six months through the end of the range. Before the first upload, has_members and has_spend are false and every figure is zero.
+func (c *Client) GetTeamSummary(
+	ctx context.Context,
+	request *levelfour.GetTeamSummaryAPIV1ProvidersAnthropicTeamSummaryGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.ClaudeTeamSummaryResponse, error) {
+	response, err := c.WithRawResponse.GetTeamSummary(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// One row per person the latest Members list names, the spend reports count or Claude Code reported, over the 7 and 30 days that end on the last day the spend reports cover. Tokens count every product the spend report names, and a product telemetry also counts is taken at whichever counted more. recommendation is the one rule a seat meets: remove for a seat unused for more than two weeks in a row, upgrade for a Standard seat whose extra usage in 30 days passed what Premium costs above it, downgrade for a Premium seat used less than the weekly token threshold in /team/settings. rules counts each rule over everyone, whatever the filters keep. A spend report that holds overage alone hides Chat inside the allowance: on one, downgrade reads Claude Code and Cowork telemetry for the people who report it, and remove is not available. The largest saving comes first. format=csv answers every row the filters keep. The answer names people, so it is sent with Cache-Control: no-store.
+func (c *Client) GetTeamPeople(
+	ctx context.Context,
+	request *levelfour.GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.ClaudeTeamPeopleResponse, error) {
+	response, err := c.WithRawResponse.GetTeamPeople(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// The billing cycle, the price of each seat per month, the day the plan renews and the weekly token threshold below which a Premium seat is worth a look at Standard. Until someone sets them, Anthropic's US list prices on monthly billing and 200,000 tokens a week.
+func (c *Client) GetTeamSettings(
+	ctx context.Context,
+	opts ...option.RequestOption,
+) (*levelfour.ClaudeTeamSettingsResponse, error) {
+	response, err := c.WithRawResponse.GetTeamSettings(
+		ctx,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}

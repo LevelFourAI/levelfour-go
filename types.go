@@ -26505,12 +26505,12 @@ var (
 )
 
 type FlowReconciliation struct {
-	// GiB the netflow component measured to another zone or out
-	FlowGb *float64 `json:"flow_gb,omitempty" url:"flow_gb,omitempty"`
-	// GiB the bill charged as cross-zone or internet transfer
-	BilledGb *float64 `json:"billed_gb,omitempty" url:"billed_gb,omitempty"`
+	// GiB of the bill the netflow component accounts for: a byte that crosses zones counts twice, since the bill charges it on both nodes
+	FlowGb float64 `json:"flow_gb" url:"flow_gb"`
+	// GiB the bill charged as cross-zone or internet transfer, on the days the flows measured
+	BilledGb float64 `json:"billed_gb" url:"billed_gb"`
 	// flow_gb over billed_gb; near 1 when the flows cover the bill
-	Ratio *float64 `json:"ratio,omitempty" url:"ratio,omitempty"`
+	Ratio float64 `json:"ratio" url:"ratio"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -26519,23 +26519,23 @@ type FlowReconciliation struct {
 	rawJSON         json.RawMessage
 }
 
-func (f *FlowReconciliation) GetFlowGb() *float64 {
+func (f *FlowReconciliation) GetFlowGb() float64 {
 	if f == nil {
-		return nil
+		return 0
 	}
 	return f.FlowGb
 }
 
-func (f *FlowReconciliation) GetBilledGb() *float64 {
+func (f *FlowReconciliation) GetBilledGb() float64 {
 	if f == nil {
-		return nil
+		return 0
 	}
 	return f.BilledGb
 }
 
-func (f *FlowReconciliation) GetRatio() *float64 {
+func (f *FlowReconciliation) GetRatio() float64 {
 	if f == nil {
-		return nil
+		return 0
 	}
 	return f.Ratio
 }
@@ -26556,21 +26556,21 @@ func (f *FlowReconciliation) require(field *big.Int) {
 
 // SetFlowGb sets the FlowGb field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (f *FlowReconciliation) SetFlowGb(flowGb *float64) {
+func (f *FlowReconciliation) SetFlowGb(flowGb float64) {
 	f.FlowGb = flowGb
 	f.require(flowReconciliationFieldFlowGb)
 }
 
 // SetBilledGb sets the BilledGb field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (f *FlowReconciliation) SetBilledGb(billedGb *float64) {
+func (f *FlowReconciliation) SetBilledGb(billedGb float64) {
 	f.BilledGb = billedGb
 	f.require(flowReconciliationFieldBilledGb)
 }
 
 // SetRatio sets the Ratio field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (f *FlowReconciliation) SetRatio(ratio *float64) {
+func (f *FlowReconciliation) SetRatio(ratio float64) {
 	f.Ratio = ratio
 	f.require(flowReconciliationFieldRatio)
 }
@@ -37746,9 +37746,10 @@ var (
 type NetworkDestinations struct {
 	Pairs []*ZonePair `json:"pairs" url:"pairs"`
 	// The busiest 50 workload-to-workload flows across zones
-	WorkloadPairs  []*WorkloadPair     `json:"workload_pairs" url:"workload_pairs"`
-	Internet       []*InternetEgress   `json:"internet" url:"internet"`
-	Reconciliation *FlowReconciliation `json:"reconciliation" url:"reconciliation"`
+	WorkloadPairs []*WorkloadPair   `json:"workload_pairs" url:"workload_pairs"`
+	Internet      []*InternetEgress `json:"internet" url:"internet"`
+	// None until the bill has charged a day the flows measured
+	Reconciliation *FlowReconciliation `json:"reconciliation,omitempty" url:"reconciliation,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -60449,11 +60450,17 @@ func (s *StartUploadData) String() string {
 var (
 	startUploadRequestFieldConnectionID = big.NewInt(1 << 0)
 	startUploadRequestFieldFileName     = big.NewInt(1 << 1)
+	startUploadRequestFieldPeriodStart  = big.NewInt(1 << 2)
+	startUploadRequestFieldPeriodEnd    = big.NewInt(1 << 3)
 )
 
 type StartUploadRequest struct {
 	ConnectionID string  `json:"connection_id" url:"connection_id"`
 	FileName     *string `json:"file_name,omitempty" url:"file_name,omitempty"`
+	// The first day the file covers, for a file that names no day of its own. Only the Claude Team spend report reads it. Send it with period_end.
+	PeriodStart *time.Time `json:"period_start,omitempty" url:"period_start,omitempty" format:"date"`
+	// The last day the file covers, included.
+	PeriodEnd *time.Time `json:"period_end,omitempty" url:"period_end,omitempty" format:"date"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -60474,6 +60481,20 @@ func (s *StartUploadRequest) GetFileName() *string {
 		return nil
 	}
 	return s.FileName
+}
+
+func (s *StartUploadRequest) GetPeriodStart() *time.Time {
+	if s == nil {
+		return nil
+	}
+	return s.PeriodStart
+}
+
+func (s *StartUploadRequest) GetPeriodEnd() *time.Time {
+	if s == nil {
+		return nil
+	}
+	return s.PeriodEnd
 }
 
 func (s *StartUploadRequest) GetExtraProperties() map[string]interface{} {
@@ -60504,13 +60525,35 @@ func (s *StartUploadRequest) SetFileName(fileName *string) {
 	s.require(startUploadRequestFieldFileName)
 }
 
+// SetPeriodStart sets the PeriodStart field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *StartUploadRequest) SetPeriodStart(periodStart *time.Time) {
+	s.PeriodStart = periodStart
+	s.require(startUploadRequestFieldPeriodStart)
+}
+
+// SetPeriodEnd sets the PeriodEnd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *StartUploadRequest) SetPeriodEnd(periodEnd *time.Time) {
+	s.PeriodEnd = periodEnd
+	s.require(startUploadRequestFieldPeriodEnd)
+}
+
 func (s *StartUploadRequest) UnmarshalJSON(data []byte) error {
-	type unmarshaler StartUploadRequest
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
+	type embed StartUploadRequest
+	var unmarshaler = struct {
+		embed
+		PeriodStart *internal.Date `json:"period_start,omitempty"`
+		PeriodEnd   *internal.Date `json:"period_end,omitempty"`
+	}{
+		embed: embed(*s),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*s = StartUploadRequest(value)
+	*s = StartUploadRequest(unmarshaler.embed)
+	s.PeriodStart = unmarshaler.PeriodStart.TimePtr()
+	s.PeriodEnd = unmarshaler.PeriodEnd.TimePtr()
 	extraProperties, err := internal.ExtractExtraProperties(data, *s)
 	if err != nil {
 		return err
@@ -60524,8 +60567,12 @@ func (s *StartUploadRequest) MarshalJSON() ([]byte, error) {
 	type embed StartUploadRequest
 	var marshaler = struct {
 		embed
+		PeriodStart *internal.Date `json:"period_start,omitempty"`
+		PeriodEnd   *internal.Date `json:"period_end,omitempty"`
 	}{
-		embed: embed(*s),
+		embed:       embed(*s),
+		PeriodStart: internal.NewOptionalDate(s.PeriodStart),
+		PeriodEnd:   internal.NewOptionalDate(s.PeriodEnd),
 	}
 	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
 	return json.Marshal(explicitMarshaler)
@@ -73515,27 +73562,18 @@ func (w *WorkloadListResponse) String() string {
 }
 
 var (
-	workloadPairFieldSourceNamespace      = big.NewInt(1 << 0)
-	workloadPairFieldSourceKind           = big.NewInt(1 << 1)
-	workloadPairFieldSourceName           = big.NewInt(1 << 2)
-	workloadPairFieldSourceZone           = big.NewInt(1 << 3)
-	workloadPairFieldDestinationNamespace = big.NewInt(1 << 4)
-	workloadPairFieldDestinationKind      = big.NewInt(1 << 5)
-	workloadPairFieldDestinationName      = big.NewInt(1 << 6)
-	workloadPairFieldDestinationZone      = big.NewInt(1 << 7)
-	workloadPairFieldBytes                = big.NewInt(1 << 8)
+	workloadPairFieldSource      = big.NewInt(1 << 0)
+	workloadPairFieldDestination = big.NewInt(1 << 1)
+	workloadPairFieldBytes       = big.NewInt(1 << 2)
+	workloadPairFieldCost        = big.NewInt(1 << 3)
 )
 
 type WorkloadPair struct {
-	SourceNamespace      string `json:"source_namespace" url:"source_namespace"`
-	SourceKind           string `json:"source_kind" url:"source_kind"`
-	SourceName           string `json:"source_name" url:"source_name"`
-	SourceZone           string `json:"source_zone" url:"source_zone"`
-	DestinationNamespace string `json:"destination_namespace" url:"destination_namespace"`
-	DestinationKind      string `json:"destination_kind" url:"destination_kind"`
-	DestinationName      string `json:"destination_name" url:"destination_name"`
-	DestinationZone      string `json:"destination_zone" url:"destination_zone"`
-	Bytes                int    `json:"bytes" url:"bytes"`
+	Source      *WorkloadPairEnd `json:"source" url:"source"`
+	Destination *WorkloadPairEnd `json:"destination" url:"destination"`
+	Bytes       int              `json:"bytes" url:"bytes"`
+	// This flow's share of its zone pair's cost, by bytes
+	Cost *float64 `json:"cost,omitempty" url:"cost,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -73544,60 +73582,18 @@ type WorkloadPair struct {
 	rawJSON         json.RawMessage
 }
 
-func (w *WorkloadPair) GetSourceNamespace() string {
+func (w *WorkloadPair) GetSource() *WorkloadPairEnd {
 	if w == nil {
-		return ""
+		return nil
 	}
-	return w.SourceNamespace
+	return w.Source
 }
 
-func (w *WorkloadPair) GetSourceKind() string {
+func (w *WorkloadPair) GetDestination() *WorkloadPairEnd {
 	if w == nil {
-		return ""
+		return nil
 	}
-	return w.SourceKind
-}
-
-func (w *WorkloadPair) GetSourceName() string {
-	if w == nil {
-		return ""
-	}
-	return w.SourceName
-}
-
-func (w *WorkloadPair) GetSourceZone() string {
-	if w == nil {
-		return ""
-	}
-	return w.SourceZone
-}
-
-func (w *WorkloadPair) GetDestinationNamespace() string {
-	if w == nil {
-		return ""
-	}
-	return w.DestinationNamespace
-}
-
-func (w *WorkloadPair) GetDestinationKind() string {
-	if w == nil {
-		return ""
-	}
-	return w.DestinationKind
-}
-
-func (w *WorkloadPair) GetDestinationName() string {
-	if w == nil {
-		return ""
-	}
-	return w.DestinationName
-}
-
-func (w *WorkloadPair) GetDestinationZone() string {
-	if w == nil {
-		return ""
-	}
-	return w.DestinationZone
+	return w.Destination
 }
 
 func (w *WorkloadPair) GetBytes() int {
@@ -73605,6 +73601,13 @@ func (w *WorkloadPair) GetBytes() int {
 		return 0
 	}
 	return w.Bytes
+}
+
+func (w *WorkloadPair) GetCost() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.Cost
 }
 
 func (w *WorkloadPair) GetExtraProperties() map[string]interface{} {
@@ -73621,60 +73624,18 @@ func (w *WorkloadPair) require(field *big.Int) {
 	w.explicitFields.Or(w.explicitFields, field)
 }
 
-// SetSourceNamespace sets the SourceNamespace field and marks it as non-optional;
+// SetSource sets the Source field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (w *WorkloadPair) SetSourceNamespace(sourceNamespace string) {
-	w.SourceNamespace = sourceNamespace
-	w.require(workloadPairFieldSourceNamespace)
+func (w *WorkloadPair) SetSource(source *WorkloadPairEnd) {
+	w.Source = source
+	w.require(workloadPairFieldSource)
 }
 
-// SetSourceKind sets the SourceKind field and marks it as non-optional;
+// SetDestination sets the Destination field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (w *WorkloadPair) SetSourceKind(sourceKind string) {
-	w.SourceKind = sourceKind
-	w.require(workloadPairFieldSourceKind)
-}
-
-// SetSourceName sets the SourceName field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (w *WorkloadPair) SetSourceName(sourceName string) {
-	w.SourceName = sourceName
-	w.require(workloadPairFieldSourceName)
-}
-
-// SetSourceZone sets the SourceZone field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (w *WorkloadPair) SetSourceZone(sourceZone string) {
-	w.SourceZone = sourceZone
-	w.require(workloadPairFieldSourceZone)
-}
-
-// SetDestinationNamespace sets the DestinationNamespace field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (w *WorkloadPair) SetDestinationNamespace(destinationNamespace string) {
-	w.DestinationNamespace = destinationNamespace
-	w.require(workloadPairFieldDestinationNamespace)
-}
-
-// SetDestinationKind sets the DestinationKind field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (w *WorkloadPair) SetDestinationKind(destinationKind string) {
-	w.DestinationKind = destinationKind
-	w.require(workloadPairFieldDestinationKind)
-}
-
-// SetDestinationName sets the DestinationName field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (w *WorkloadPair) SetDestinationName(destinationName string) {
-	w.DestinationName = destinationName
-	w.require(workloadPairFieldDestinationName)
-}
-
-// SetDestinationZone sets the DestinationZone field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (w *WorkloadPair) SetDestinationZone(destinationZone string) {
-	w.DestinationZone = destinationZone
-	w.require(workloadPairFieldDestinationZone)
+func (w *WorkloadPair) SetDestination(destination *WorkloadPairEnd) {
+	w.Destination = destination
+	w.require(workloadPairFieldDestination)
 }
 
 // SetBytes sets the Bytes field and marks it as non-optional;
@@ -73682,6 +73643,13 @@ func (w *WorkloadPair) SetDestinationZone(destinationZone string) {
 func (w *WorkloadPair) SetBytes(bytes int) {
 	w.Bytes = bytes
 	w.require(workloadPairFieldBytes)
+}
+
+// SetCost sets the Cost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadPair) SetCost(cost *float64) {
+	w.Cost = cost
+	w.require(workloadPairFieldCost)
 }
 
 func (w *WorkloadPair) UnmarshalJSON(data []byte) error {
@@ -73712,6 +73680,138 @@ func (w *WorkloadPair) MarshalJSON() ([]byte, error) {
 }
 
 func (w *WorkloadPair) String() string {
+	if w == nil {
+		return "<nil>"
+	}
+	if len(w.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(w.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(w); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", w)
+}
+
+var (
+	workloadPairEndFieldNamespace = big.NewInt(1 << 0)
+	workloadPairEndFieldKind      = big.NewInt(1 << 1)
+	workloadPairEndFieldName      = big.NewInt(1 << 2)
+	workloadPairEndFieldZone      = big.NewInt(1 << 3)
+)
+
+type WorkloadPairEnd struct {
+	Namespace string `json:"namespace" url:"namespace"`
+	Kind      string `json:"kind" url:"kind"`
+	Name      string `json:"name" url:"name"`
+	Zone      string `json:"zone" url:"zone"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (w *WorkloadPairEnd) GetNamespace() string {
+	if w == nil {
+		return ""
+	}
+	return w.Namespace
+}
+
+func (w *WorkloadPairEnd) GetKind() string {
+	if w == nil {
+		return ""
+	}
+	return w.Kind
+}
+
+func (w *WorkloadPairEnd) GetName() string {
+	if w == nil {
+		return ""
+	}
+	return w.Name
+}
+
+func (w *WorkloadPairEnd) GetZone() string {
+	if w == nil {
+		return ""
+	}
+	return w.Zone
+}
+
+func (w *WorkloadPairEnd) GetExtraProperties() map[string]interface{} {
+	if w == nil {
+		return nil
+	}
+	return w.extraProperties
+}
+
+func (w *WorkloadPairEnd) require(field *big.Int) {
+	if w.explicitFields == nil {
+		w.explicitFields = big.NewInt(0)
+	}
+	w.explicitFields.Or(w.explicitFields, field)
+}
+
+// SetNamespace sets the Namespace field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadPairEnd) SetNamespace(namespace string) {
+	w.Namespace = namespace
+	w.require(workloadPairEndFieldNamespace)
+}
+
+// SetKind sets the Kind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadPairEnd) SetKind(kind string) {
+	w.Kind = kind
+	w.require(workloadPairEndFieldKind)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadPairEnd) SetName(name string) {
+	w.Name = name
+	w.require(workloadPairEndFieldName)
+}
+
+// SetZone sets the Zone field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadPairEnd) SetZone(zone string) {
+	w.Zone = zone
+	w.require(workloadPairEndFieldZone)
+}
+
+func (w *WorkloadPairEnd) UnmarshalJSON(data []byte) error {
+	type unmarshaler WorkloadPairEnd
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*w = WorkloadPairEnd(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *w)
+	if err != nil {
+		return err
+	}
+	w.extraProperties = extraProperties
+	w.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (w *WorkloadPairEnd) MarshalJSON() ([]byte, error) {
+	type embed WorkloadPairEnd
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*w),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, w.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (w *WorkloadPairEnd) String() string {
 	if w == nil {
 		return "<nil>"
 	}
@@ -74256,7 +74356,7 @@ type ZonePair struct {
 	DestinationZone string `json:"destination_zone" url:"destination_zone"`
 	// Measured by the netflow component
 	Bytes *int `json:"bytes,omitempty" url:"bytes,omitempty"`
-	// The bill's cross-zone transfer, split by those bytes
+	// The bill's cross-zone transfer for those bytes, on the sending and the receiving node
 	Cost *float64 `json:"cost,omitempty" url:"cost,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
