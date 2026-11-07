@@ -5184,6 +5184,106 @@ func (b *BoardPreferencesResponse) String() string {
 }
 
 var (
+	bodyPutTeamAreasAPIV1ProvidersAnthropicTeamAreasPutFieldFile = big.NewInt(1 << 0)
+	bodyPutTeamAreasAPIV1ProvidersAnthropicTeamAreasPutFieldKey  = big.NewInt(1 << 1)
+)
+
+type BodyPutTeamAreasAPIV1ProvidersAnthropicTeamAreasPut struct {
+	File string  `json:"file" url:"file"`
+	Key  *string `json:"key,omitempty" url:"key,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (b *BodyPutTeamAreasAPIV1ProvidersAnthropicTeamAreasPut) GetFile() string {
+	if b == nil {
+		return ""
+	}
+	return b.File
+}
+
+func (b *BodyPutTeamAreasAPIV1ProvidersAnthropicTeamAreasPut) GetKey() *string {
+	if b == nil {
+		return nil
+	}
+	return b.Key
+}
+
+func (b *BodyPutTeamAreasAPIV1ProvidersAnthropicTeamAreasPut) GetExtraProperties() map[string]interface{} {
+	if b == nil {
+		return nil
+	}
+	return b.extraProperties
+}
+
+func (b *BodyPutTeamAreasAPIV1ProvidersAnthropicTeamAreasPut) require(field *big.Int) {
+	if b.explicitFields == nil {
+		b.explicitFields = big.NewInt(0)
+	}
+	b.explicitFields.Or(b.explicitFields, field)
+}
+
+// SetFile sets the File field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BodyPutTeamAreasAPIV1ProvidersAnthropicTeamAreasPut) SetFile(file string) {
+	b.File = file
+	b.require(bodyPutTeamAreasAPIV1ProvidersAnthropicTeamAreasPutFieldFile)
+}
+
+// SetKey sets the Key field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BodyPutTeamAreasAPIV1ProvidersAnthropicTeamAreasPut) SetKey(key *string) {
+	b.Key = key
+	b.require(bodyPutTeamAreasAPIV1ProvidersAnthropicTeamAreasPutFieldKey)
+}
+
+func (b *BodyPutTeamAreasAPIV1ProvidersAnthropicTeamAreasPut) UnmarshalJSON(data []byte) error {
+	type unmarshaler BodyPutTeamAreasAPIV1ProvidersAnthropicTeamAreasPut
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*b = BodyPutTeamAreasAPIV1ProvidersAnthropicTeamAreasPut(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *b)
+	if err != nil {
+		return err
+	}
+	b.extraProperties = extraProperties
+	b.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (b *BodyPutTeamAreasAPIV1ProvidersAnthropicTeamAreasPut) MarshalJSON() ([]byte, error) {
+	type embed BodyPutTeamAreasAPIV1ProvidersAnthropicTeamAreasPut
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*b),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, b.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (b *BodyPutTeamAreasAPIV1ProvidersAnthropicTeamAreasPut) String() string {
+	if b == nil {
+		return "<nil>"
+	}
+	if len(b.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(b.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(b); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", b)
+}
+
+var (
 	bodyUploadAttachmentAPIV1CommitmentsDetailCommitmentIDAttachmentsPostFieldFile = big.NewInt(1 << 0)
 )
 
@@ -5725,6 +5825,255 @@ func (c *ClaimDay) MarshalJSON() ([]byte, error) {
 }
 
 func (c *ClaimDay) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	claudeTeamAreasSavedFieldTagID  = big.NewInt(1 << 0)
+	claudeTeamAreasSavedFieldKey    = big.NewInt(1 << 1)
+	claudeTeamAreasSavedFieldValues = big.NewInt(1 << 2)
+	claudeTeamAreasSavedFieldPeople = big.NewInt(1 << 3)
+)
+
+type ClaudeTeamAreasSaved struct {
+	TagID string `json:"tag_id" url:"tag_id"`
+	Key   string `json:"key" url:"key"`
+	// Areas
+	Values int `json:"values" url:"values"`
+	People int `json:"people" url:"people"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ClaudeTeamAreasSaved) GetTagID() string {
+	if c == nil {
+		return ""
+	}
+	return c.TagID
+}
+
+func (c *ClaudeTeamAreasSaved) GetKey() string {
+	if c == nil {
+		return ""
+	}
+	return c.Key
+}
+
+func (c *ClaudeTeamAreasSaved) GetValues() int {
+	if c == nil {
+		return 0
+	}
+	return c.Values
+}
+
+func (c *ClaudeTeamAreasSaved) GetPeople() int {
+	if c == nil {
+		return 0
+	}
+	return c.People
+}
+
+func (c *ClaudeTeamAreasSaved) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ClaudeTeamAreasSaved) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetTagID sets the TagID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamAreasSaved) SetTagID(tagID string) {
+	c.TagID = tagID
+	c.require(claudeTeamAreasSavedFieldTagID)
+}
+
+// SetKey sets the Key field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamAreasSaved) SetKey(key string) {
+	c.Key = key
+	c.require(claudeTeamAreasSavedFieldKey)
+}
+
+// SetValues sets the Values field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamAreasSaved) SetValues(values int) {
+	c.Values = values
+	c.require(claudeTeamAreasSavedFieldValues)
+}
+
+// SetPeople sets the People field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamAreasSaved) SetPeople(people int) {
+	c.People = people
+	c.require(claudeTeamAreasSavedFieldPeople)
+}
+
+func (c *ClaudeTeamAreasSaved) UnmarshalJSON(data []byte) error {
+	type unmarshaler ClaudeTeamAreasSaved
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ClaudeTeamAreasSaved(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ClaudeTeamAreasSaved) MarshalJSON() ([]byte, error) {
+	type embed ClaudeTeamAreasSaved
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ClaudeTeamAreasSaved) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	claudeTeamAreasSavedResponseFieldSuccess   = big.NewInt(1 << 0)
+	claudeTeamAreasSavedResponseFieldData      = big.NewInt(1 << 1)
+	claudeTeamAreasSavedResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type ClaudeTeamAreasSavedResponse struct {
+	Success   *bool                 `json:"success,omitempty" url:"success,omitempty"`
+	Data      *ClaudeTeamAreasSaved `json:"data" url:"data"`
+	Timestamp string                `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ClaudeTeamAreasSavedResponse) GetSuccess() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Success
+}
+
+func (c *ClaudeTeamAreasSavedResponse) GetData() *ClaudeTeamAreasSaved {
+	if c == nil {
+		return nil
+	}
+	return c.Data
+}
+
+func (c *ClaudeTeamAreasSavedResponse) GetTimestamp() string {
+	if c == nil {
+		return ""
+	}
+	return c.Timestamp
+}
+
+func (c *ClaudeTeamAreasSavedResponse) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ClaudeTeamAreasSavedResponse) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamAreasSavedResponse) SetSuccess(success *bool) {
+	c.Success = success
+	c.require(claudeTeamAreasSavedResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamAreasSavedResponse) SetData(data *ClaudeTeamAreasSaved) {
+	c.Data = data
+	c.require(claudeTeamAreasSavedResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamAreasSavedResponse) SetTimestamp(timestamp string) {
+	c.Timestamp = timestamp
+	c.require(claudeTeamAreasSavedResponseFieldTimestamp)
+}
+
+func (c *ClaudeTeamAreasSavedResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler ClaudeTeamAreasSavedResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ClaudeTeamAreasSavedResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ClaudeTeamAreasSavedResponse) MarshalJSON() ([]byte, error) {
+	type embed ClaudeTeamAreasSavedResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ClaudeTeamAreasSavedResponse) String() string {
 	if c == nil {
 		return "<nil>"
 	}
@@ -52119,7 +52468,7 @@ var (
 )
 
 type ResourceEfficiency struct {
-	// Average over the window; the fleet and a cluster only
+	// Average over the time the clusters existed in the window; the fleet and a cluster only
 	Provisioned *float64 `json:"provisioned,omitempty" url:"provisioned,omitempty"`
 	Requested   *float64 `json:"requested,omitempty" url:"requested,omitempty"`
 	Used        *float64 `json:"used,omitempty" url:"used,omitempty"`

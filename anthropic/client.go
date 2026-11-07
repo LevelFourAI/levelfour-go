@@ -215,6 +215,59 @@ func (c *Client) GetUsageAdoption(
 	return response.Body, nil
 }
 
+// One row per person usage or activity was reported for in the range, however many products they report through: the largest usage value first, then the most requests, then the name. summary covers the whole range whatever search, group and page narrow the rows to, and its group keys, with anonymous for installs that reported neither an email nor an account, are what group takes. first_seen and last_seen are the first and last day anything was reported for the person, inside the range or not. format=csv answers every row search and group keep, as a spreadsheet. The answer names people, so it is sent with Cache-Control: no-store.
+func (c *Client) GetUsagePeople(
+	ctx context.Context,
+	request *levelfour.GetUsagePeopleAPIV1ProvidersAnthropicUsagePeopleGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.AnthropicDevelopersResponse, error) {
+	response, err := c.WithRawResponse.GetUsagePeople(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Usage is what Claude Code and Cowork reported about themselves, valued at API list price. It is not what the organization is billed, and it includes the current day. The last twelve weeks of tokens by product, and the person's tokens in 7 and 30 days, usage value, last use and idle weeks. A Claude Team plan adds the person's seat and its price, their area, extra usage and the seat change their use calls for, as /team/people reads them. 404 person_not_found for someone the tenant never heard of. The answer names a person, so it is sent with Cache-Control: no-store.
+func (c *Client) GetUsagePerson(
+	ctx context.Context,
+	person string,
+	opts ...option.RequestOption,
+) (*levelfour.AiPersonResponse, error) {
+	response, err := c.WithRawResponse.GetUsagePerson(
+		ctx,
+		person,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Each session or conversation the person's tool named in the range, the latest first: when it started, its product, model and repository, its requests, tokens and usage value, and how long it ran from the first request to the last. What was said in it is never kept. Empty until the tool reports sessions. The answer names a person, so it is sent with Cache-Control: no-store.
+func (c *Client) GetUsagePersonSessions(
+	ctx context.Context,
+	person string,
+	request *levelfour.GetUsagePersonSessionsAPIV1ProvidersAnthropicUsagePeoplePersonSessionsGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.AiSessionsResponse, error) {
+	response, err := c.WithRawResponse.GetUsagePersonSessions(
+		ctx,
+		person,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
 // What a Claude Team plan cost in the range, seats and extra usage apart, from the Members lists and spend reports uploaded for it, and how that moved against the range of the same length before. seats is the latest Members list. savings_found adds up what the seat changes /team/people recommends save a month. monthly is the last six months through the end of the range. Before the first upload, has_members and has_spend are false and every figure is zero.
 func (c *Client) GetTeamSummary(
 	ctx context.Context,
@@ -256,6 +309,38 @@ func (c *Client) GetTeamSettings(
 ) (*levelfour.ClaudeTeamSettingsResponse, error) {
 	response, err := c.WithRawResponse.GetTeamSettings(
 		ctx,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// One row per area of the spreadsheet uploaded with PUT /team/areas, and one with area null for the people it leaves out: seats, Premium seats, active seats and adoption, what the seats cost a month, extra usage in 30 days, their total, extra usage per active seat, usage value, and Claude Code's pull requests and commits. has_areas is false before the first spreadsheet.
+func (c *Client) GetTeamAreas(
+	ctx context.Context,
+	opts ...option.RequestOption,
+) (*levelfour.ClaudeTeamAreasResponse, error) {
+	response, err := c.WithRawResponse.GetTeamAreas(
+		ctx,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Reads a CSV of email and area (at most 1 MB; the area column may be called area, team, department or cost center) and says who it names that the tenant knows, who it names that nobody reported, how many people it leaves without an area and what they cost a month, and each area's people and cost. Nothing is kept. The answer names people, so it is sent with Cache-Control: no-store.
+func (c *Client) PreviewTeamAreas(
+	ctx context.Context,
+	request *levelfour.BodyPreviewTeamAreasAPIV1ProvidersAnthropicTeamAreasPreviewPost,
+	opts ...option.RequestOption,
+) (*levelfour.ClaudeTeamAreasPreviewResponse, error) {
+	response, err := c.WithRawResponse.PreviewTeamAreas(
+		ctx,
+		request,
 		opts...,
 	)
 	if err != nil {
