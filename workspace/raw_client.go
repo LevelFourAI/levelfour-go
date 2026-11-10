@@ -72,6 +72,7 @@ func (r *RawClient) GetWorkspace(
 
 func (r *RawClient) CreateWorkspace(
 	ctx context.Context,
+	request *levelfour.CreateWorkspaceRequest,
 	opts ...option.RequestOption,
 ) (*core.Response[*levelfour.WorkspaceResponse], error) {
 	options := core.NewRequestOptions(opts...)
@@ -85,6 +86,7 @@ func (r *RawClient) CreateWorkspace(
 		r.options.ToHeader(),
 		options.ToHeader(),
 	)
+	headers.Add("Content-Type", "application/json")
 	var response *levelfour.WorkspaceResponse
 	raw, err := r.caller.Call(
 		ctx,
@@ -96,6 +98,7 @@ func (r *RawClient) CreateWorkspace(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Request:         request,
 			Response:        &response,
 			ErrorDecoder:    internal.NewErrorDecoder(levelfour.ErrorCodes),
 		},

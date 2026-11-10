@@ -7854,7 +7854,7 @@ var (
 )
 
 type DatadogHygieneData struct {
-	// 100 less the open monthly savings of the failing Datadog rules as a percentage of monthly_spend, rounded down, so any open Datadog finding keeps it under 100. An index both log index rules found counts once, at the larger saving. The share of rules passing when monthly_spend is 0
+	// 100 less the open monthly savings of the failing Datadog rules as a percentage of monthly_spend, rounded down, so any open Datadog finding keeps it under 100. An index both log index rules found counts once, at the larger saving. The share of the checked rules passing when monthly_spend is 0, and 0 when none is checked
 	Score int `json:"score" url:"score"`
 	// Datadog spend over the last 30 days, in USD: what the score weighs by
 	MonthlySpend float64               `json:"monthly_spend" url:"monthly_spend"`
@@ -8085,10 +8085,11 @@ var (
 	datadogHygieneRuleFieldKey               = big.NewInt(1 << 0)
 	datadogHygieneRuleFieldLabel             = big.NewInt(1 << 1)
 	datadogHygieneRuleFieldPassed            = big.NewInt(1 << 2)
-	datadogHygieneRuleFieldFindingCount      = big.NewInt(1 << 3)
-	datadogHygieneRuleFieldMonthlySavings    = big.NewInt(1 << 4)
-	datadogHygieneRuleFieldRecommendationIDs = big.NewInt(1 << 5)
-	datadogHygieneRuleFieldBill              = big.NewInt(1 << 6)
+	datadogHygieneRuleFieldChecked           = big.NewInt(1 << 3)
+	datadogHygieneRuleFieldFindingCount      = big.NewInt(1 << 4)
+	datadogHygieneRuleFieldMonthlySavings    = big.NewInt(1 << 5)
+	datadogHygieneRuleFieldRecommendationIDs = big.NewInt(1 << 6)
+	datadogHygieneRuleFieldBill              = big.NewInt(1 << 7)
 )
 
 type DatadogHygieneRule struct {
@@ -8096,8 +8097,10 @@ type DatadogHygieneRule struct {
 	Key string `json:"key" url:"key"`
 	// What the rule looks for, in the words the savings list uses
 	Label string `json:"label" url:"label"`
-	// True when the detector has no open finding
+	// True when the detector ran and has no open finding
 	Passed bool `json:"passed" url:"passed"`
+	// False when the scan does not run this detector, so nothing says whether the rule holds. Such a rule never passes and stays out of the score
+	Checked bool `json:"checked" url:"checked"`
 	// Open findings: savings neither applied nor rejected, and shadow ones
 	FindingCount int `json:"finding_count" url:"finding_count"`
 	// What those findings would save a month, in USD
@@ -8133,6 +8136,13 @@ func (d *DatadogHygieneRule) GetPassed() bool {
 		return false
 	}
 	return d.Passed
+}
+
+func (d *DatadogHygieneRule) GetChecked() bool {
+	if d == nil {
+		return false
+	}
+	return d.Checked
 }
 
 func (d *DatadogHygieneRule) GetFindingCount() int {
@@ -8196,6 +8206,13 @@ func (d *DatadogHygieneRule) SetLabel(label string) {
 func (d *DatadogHygieneRule) SetPassed(passed bool) {
 	d.Passed = passed
 	d.require(datadogHygieneRuleFieldPassed)
+}
+
+// SetChecked sets the Checked field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DatadogHygieneRule) SetChecked(checked bool) {
+	d.Checked = checked
+	d.require(datadogHygieneRuleFieldChecked)
 }
 
 // SetFindingCount sets the FindingCount field and marks it as non-optional;

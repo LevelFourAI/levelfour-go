@@ -845,6 +845,14 @@ func TestSettersCostGroup(t *testing.T) {
 		assert.NotNil(t, obj.explicitFields)
 	})
 
+	t.Run("SetCostNet", func(t *testing.T) {
+		obj := &CostGroup{}
+		var fernTestValueCostNet *float64
+		obj.SetCostNet(fernTestValueCostNet)
+		assert.Equal(t, fernTestValueCostNet, obj.CostNet)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
 }
 
 func TestGettersCostGroup(t *testing.T) {
@@ -894,6 +902,39 @@ func TestGettersCostGroup(t *testing.T) {
 		_ = obj.GetCost() // Should return zero value
 	})
 
+	t.Run("GetCostNet", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &CostGroup{}
+		var expected *float64
+		obj.CostNet = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetCostNet(), "getter should return the property value")
+	})
+
+	t.Run("GetCostNet_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &CostGroup{}
+		obj.CostNet = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetCostNet(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetCostNet_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *CostGroup
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetCostNet() // Should return zero value
+	})
+
 }
 
 func TestSettersMarkExplicitCostGroup(t *testing.T) {
@@ -936,6 +977,37 @@ func TestSettersMarkExplicitCostGroup(t *testing.T) {
 
 		// Act
 		obj.SetCost(fernTestValueCost)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetCostNet_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &CostGroup{}
+		var fernTestValueCostNet *float64
+
+		// Act
+		obj.SetCostNet(fernTestValueCostNet)
 
 		// Assert - object with explicitly set field can be marshaled/unmarshaled
 		bytes, err := json.Marshal(obj)

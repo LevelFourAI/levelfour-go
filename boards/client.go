@@ -32,13 +32,15 @@ func NewClient(options *core.RequestOptions) *Client {
 	}
 }
 
-// Each board without its document, which `GET /boards/{board_id}` returns.
+// Each board without its document, which `GET /boards/{board_id}` returns, unless `include_content` asks for every board's document in the same answer.
 func (c *Client) List(
 	ctx context.Context,
+	request *levelfour.ListBoardsRequest,
 	opts ...option.RequestOption,
 ) (*levelfour.BoardListResponse, error) {
 	response, err := c.WithRawResponse.List(
 		ctx,
+		request,
 		opts...,
 	)
 	if err != nil {
