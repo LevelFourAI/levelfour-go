@@ -6,10 +6,15 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
+    # A major version can break the build, and in a group it holds every other update back with it,
+    # so majors come one per pull request.
     groups:
       go-modules:
         patterns:
           - "*"
+        update-types:
+          - minor
+          - patch
   - package-ecosystem: github-actions
     directory: /
     schedule:
