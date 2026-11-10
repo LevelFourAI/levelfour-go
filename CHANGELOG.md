@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0](https://github.com/LevelFourAI/levelfour-go/compare/v0.7.0...v0.8.0) (2026-11-10)
+
+
+### Features
+
+* sync generated Go SDK ([#260](https://github.com/LevelFourAI/levelfour-go/issues/260)) ([affba8e](https://github.com/LevelFourAI/levelfour-go/commit/affba8eceb84c81a46d3f9ef022150f8f42f1994))
+
 ## [0.7.0](https://github.com/LevelFourAI/levelfour-go/compare/v0.6.0...v0.7.0) (2026-11-07)
 
 
