@@ -11,6 +11,73 @@ import (
 )
 
 var (
+	createWorkspaceRequestFieldCompany  = big.NewInt(1 << 0)
+	createWorkspaceRequestFieldJobTitle = big.NewInt(1 << 1)
+	createWorkspaceRequestFieldSpend    = big.NewInt(1 << 2)
+)
+
+type CreateWorkspaceRequest struct {
+	// The company's name
+	Company *string `json:"company,omitempty" url:"-"`
+	// The person's job title
+	JobTitle *string `json:"job_title,omitempty" url:"-"`
+	// What the company spends on, each category at most once
+	Spend []CreateWorkspaceRequestSpendItem `json:"spend,omitempty" url:"-"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (c *CreateWorkspaceRequest) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetCompany sets the Company field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreateWorkspaceRequest) SetCompany(company *string) {
+	c.Company = company
+	c.require(createWorkspaceRequestFieldCompany)
+}
+
+// SetJobTitle sets the JobTitle field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreateWorkspaceRequest) SetJobTitle(jobTitle *string) {
+	c.JobTitle = jobTitle
+	c.require(createWorkspaceRequestFieldJobTitle)
+}
+
+// SetSpend sets the Spend field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CreateWorkspaceRequest) SetSpend(spend []CreateWorkspaceRequestSpendItem) {
+	c.Spend = spend
+	c.require(createWorkspaceRequestFieldSpend)
+}
+
+func (c *CreateWorkspaceRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler CreateWorkspaceRequest
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*c = CreateWorkspaceRequest(body)
+	return nil
+}
+
+func (c *CreateWorkspaceRequest) MarshalJSON() ([]byte, error) {
+	type embed CreateWorkspaceRequest
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+var (
 	workspaceFieldStatus   = big.NewInt(1 << 0)
 	workspaceFieldTenantID = big.NewInt(1 << 1)
 )
@@ -261,4 +328,29 @@ func NewWorkspaceStatusFromString(s string) (WorkspaceStatus, error) {
 
 func (w WorkspaceStatus) Ptr() *WorkspaceStatus {
 	return &w
+}
+
+type CreateWorkspaceRequestSpendItem string
+
+const (
+	CreateWorkspaceRequestSpendItemCloud CreateWorkspaceRequestSpendItem = "cloud"
+	CreateWorkspaceRequestSpendItemSaas  CreateWorkspaceRequestSpendItem = "saas"
+	CreateWorkspaceRequestSpendItemAi    CreateWorkspaceRequestSpendItem = "ai"
+)
+
+func NewCreateWorkspaceRequestSpendItemFromString(s string) (CreateWorkspaceRequestSpendItem, error) {
+	switch s {
+	case "cloud":
+		return CreateWorkspaceRequestSpendItemCloud, nil
+	case "saas":
+		return CreateWorkspaceRequestSpendItemSaas, nil
+	case "ai":
+		return CreateWorkspaceRequestSpendItemAi, nil
+	}
+	var t CreateWorkspaceRequestSpendItem
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CreateWorkspaceRequestSpendItem) Ptr() *CreateWorkspaceRequestSpendItem {
+	return &c
 }

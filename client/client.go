@@ -20,6 +20,7 @@ import (
 	health "github.com/LevelFourAI/levelfour-go/health"
 	integrations "github.com/LevelFourAI/levelfour-go/integrations"
 	internal "github.com/LevelFourAI/levelfour-go/internal"
+	kubernetes "github.com/LevelFourAI/levelfour-go/kubernetes"
 	option "github.com/LevelFourAI/levelfour-go/option"
 	providers "github.com/LevelFourAI/levelfour-go/providers"
 	client "github.com/LevelFourAI/levelfour-go/recommendations/client"
@@ -58,6 +59,7 @@ type Client struct {
 	Suggestions     *suggestions.Client
 	Commitments     *commitments.Client
 	Anomalies       *anomalies.Client
+	Kubernetes      *kubernetes.Client
 	Health          *health.Client
 
 	options *core.RequestOptions
@@ -92,6 +94,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 		Suggestions:     suggestions.NewClient(options),
 		Commitments:     commitments.NewClient(options),
 		Anomalies:       anomalies.NewClient(options),
+		Kubernetes:      kubernetes.NewClient(options),
 		Health:          health.NewClient(options),
 		options:         options,
 		baseURL:         options.BaseURL,

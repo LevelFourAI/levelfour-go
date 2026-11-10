@@ -48,10 +48,12 @@ func (c *Client) GetWorkspace(
 
 func (c *Client) CreateWorkspace(
 	ctx context.Context,
+	request *levelfour.CreateWorkspaceRequest,
 	opts ...option.RequestOption,
 ) (*levelfour.WorkspaceResponse, error) {
 	response, err := c.WithRawResponse.CreateWorkspace(
 		ctx,
+		request,
 		opts...,
 	)
 	if err != nil {

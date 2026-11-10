@@ -350,13 +350,16 @@ func (c *CostDay) String() string {
 }
 
 var (
-	costGroupFieldKey  = big.NewInt(1 << 0)
-	costGroupFieldCost = big.NewInt(1 << 1)
+	costGroupFieldKey     = big.NewInt(1 << 0)
+	costGroupFieldCost    = big.NewInt(1 << 1)
+	costGroupFieldCostNet = big.NewInt(1 << 2)
 )
 
 type CostGroup struct {
 	Key  string  `json:"key" url:"key"`
 	Cost float64 `json:"cost" url:"cost"`
+	// The same after the enterprise discount and the commitments; null for risk and virtual tags
+	CostNet *float64 `json:"cost_net,omitempty" url:"cost_net,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -377,6 +380,13 @@ func (c *CostGroup) GetCost() float64 {
 		return 0
 	}
 	return c.Cost
+}
+
+func (c *CostGroup) GetCostNet() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.CostNet
 }
 
 func (c *CostGroup) GetExtraProperties() map[string]interface{} {
@@ -405,6 +415,13 @@ func (c *CostGroup) SetKey(key string) {
 func (c *CostGroup) SetCost(cost float64) {
 	c.Cost = cost
 	c.require(costGroupFieldCost)
+}
+
+// SetCostNet sets the CostNet field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CostGroup) SetCostNet(costNet *float64) {
+	c.CostNet = costNet
+	c.require(costGroupFieldCostNet)
 }
 
 func (c *CostGroup) UnmarshalJSON(data []byte) error {

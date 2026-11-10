@@ -112,6 +112,32 @@ func (c *CreateBoardRequest) MarshalJSON() ([]byte, error) {
 }
 
 var (
+	listBoardsRequestFieldIncludeContent = big.NewInt(1 << 0)
+)
+
+type ListBoardsRequest struct {
+	// Return each board's `content` as well, so one request reads every board whole.
+	IncludeContent *bool `json:"-" url:"include_content,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (l *ListBoardsRequest) require(field *big.Int) {
+	if l.explicitFields == nil {
+		l.explicitFields = big.NewInt(0)
+	}
+	l.explicitFields.Or(l.explicitFields, field)
+}
+
+// SetIncludeContent sets the IncludeContent field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListBoardsRequest) SetIncludeContent(includeContent *bool) {
+	l.IncludeContent = includeContent
+	l.require(listBoardsRequestFieldIncludeContent)
+}
+
+var (
 	boardFieldID             = big.NewInt(1 << 0)
 	boardFieldName           = big.NewInt(1 << 1)
 	boardFieldTemplateID     = big.NewInt(1 << 2)
@@ -136,7 +162,7 @@ type Board struct {
 	SeedKey      *string  `json:"seed_key,omitempty" url:"seed_key,omitempty"`
 	Providers    []string `json:"providers" url:"providers"`
 	AllProviders bool     `json:"all_providers" url:"all_providers"`
-	// The dashboard's board document. Left out of a list.
+	// The dashboard's board document. Left out of a list unless it is read with `include_content`.
 	Content        map[string]any `json:"content,omitempty" url:"content,omitempty"`
 	ContentVersion int            `json:"content_version" url:"content_version"`
 	Version        int            `json:"version" url:"version"`
