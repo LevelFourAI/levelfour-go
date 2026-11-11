@@ -48,6 +48,51 @@ func (g *GetActivityAPIV1ProvidersAnthropicActivityGetRequest) SetEnd(end string
 }
 
 var (
+	getActivityBreakdownAPIV1ProvidersAnthropicActivityBreakdownGetRequestFieldAsked = big.NewInt(1 << 0)
+	getActivityBreakdownAPIV1ProvidersAnthropicActivityBreakdownGetRequestFieldStart = big.NewInt(1 << 1)
+	getActivityBreakdownAPIV1ProvidersAnthropicActivityBreakdownGetRequestFieldEnd   = big.NewInt(1 << 2)
+)
+
+type GetActivityBreakdownAPIV1ProvidersAnthropicActivityBreakdownGetRequest struct {
+	Asked *BreakdownAsked `json:"-" url:"asked"`
+	// First day, ISO 8601 (YYYY-MM-DD or a datetime)
+	Start string `json:"-" url:"start"`
+	// Last day, ISO 8601 (YYYY-MM-DD or a datetime), included
+	End string `json:"-" url:"end"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (g *GetActivityBreakdownAPIV1ProvidersAnthropicActivityBreakdownGetRequest) require(field *big.Int) {
+	if g.explicitFields == nil {
+		g.explicitFields = big.NewInt(0)
+	}
+	g.explicitFields.Or(g.explicitFields, field)
+}
+
+// SetAsked sets the Asked field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetActivityBreakdownAPIV1ProvidersAnthropicActivityBreakdownGetRequest) SetAsked(asked *BreakdownAsked) {
+	g.Asked = asked
+	g.require(getActivityBreakdownAPIV1ProvidersAnthropicActivityBreakdownGetRequestFieldAsked)
+}
+
+// SetStart sets the Start field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetActivityBreakdownAPIV1ProvidersAnthropicActivityBreakdownGetRequest) SetStart(start string) {
+	g.Start = start
+	g.require(getActivityBreakdownAPIV1ProvidersAnthropicActivityBreakdownGetRequestFieldStart)
+}
+
+// SetEnd sets the End field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetActivityBreakdownAPIV1ProvidersAnthropicActivityBreakdownGetRequest) SetEnd(end string) {
+	g.End = end
+	g.require(getActivityBreakdownAPIV1ProvidersAnthropicActivityBreakdownGetRequestFieldEnd)
+}
+
+var (
 	getActivityDailyAPIV1ProvidersAnthropicActivityDailyGetRequestFieldStart = big.NewInt(1 << 0)
 	getActivityDailyAPIV1ProvidersAnthropicActivityDailyGetRequestFieldEnd   = big.NewInt(1 << 1)
 )
@@ -81,6 +126,42 @@ func (g *GetActivityDailyAPIV1ProvidersAnthropicActivityDailyGetRequest) SetStar
 func (g *GetActivityDailyAPIV1ProvidersAnthropicActivityDailyGetRequest) SetEnd(end string) {
 	g.End = end
 	g.require(getActivityDailyAPIV1ProvidersAnthropicActivityDailyGetRequestFieldEnd)
+}
+
+var (
+	getActivityFailuresAPIV1ProvidersAnthropicActivityFailuresGetRequestFieldStart = big.NewInt(1 << 0)
+	getActivityFailuresAPIV1ProvidersAnthropicActivityFailuresGetRequestFieldEnd   = big.NewInt(1 << 1)
+)
+
+type GetActivityFailuresAPIV1ProvidersAnthropicActivityFailuresGetRequest struct {
+	// First day, ISO 8601 (YYYY-MM-DD or a datetime)
+	Start string `json:"-" url:"start"`
+	// Last day, ISO 8601 (YYYY-MM-DD or a datetime), included
+	End string `json:"-" url:"end"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (g *GetActivityFailuresAPIV1ProvidersAnthropicActivityFailuresGetRequest) require(field *big.Int) {
+	if g.explicitFields == nil {
+		g.explicitFields = big.NewInt(0)
+	}
+	g.explicitFields.Or(g.explicitFields, field)
+}
+
+// SetStart sets the Start field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetActivityFailuresAPIV1ProvidersAnthropicActivityFailuresGetRequest) SetStart(start string) {
+	g.Start = start
+	g.require(getActivityFailuresAPIV1ProvidersAnthropicActivityFailuresGetRequestFieldStart)
+}
+
+// SetEnd sets the End field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetActivityFailuresAPIV1ProvidersAnthropicActivityFailuresGetRequest) SetEnd(end string) {
+	g.End = end
+	g.require(getActivityFailuresAPIV1ProvidersAnthropicActivityFailuresGetRequestFieldEnd)
 }
 
 var (
@@ -120,6 +201,42 @@ func (g *GetActivityFleetAPIV1ProvidersAnthropicActivityFleetGetRequest) SetEnd(
 }
 
 var (
+	getActivityMcpAPIV1ProvidersAnthropicActivityMcpGetRequestFieldStart = big.NewInt(1 << 0)
+	getActivityMcpAPIV1ProvidersAnthropicActivityMcpGetRequestFieldEnd   = big.NewInt(1 << 1)
+)
+
+type GetActivityMcpAPIV1ProvidersAnthropicActivityMcpGetRequest struct {
+	// First day, ISO 8601 (YYYY-MM-DD or a datetime)
+	Start string `json:"-" url:"start"`
+	// Last day, ISO 8601 (YYYY-MM-DD or a datetime), included
+	End string `json:"-" url:"end"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (g *GetActivityMcpAPIV1ProvidersAnthropicActivityMcpGetRequest) require(field *big.Int) {
+	if g.explicitFields == nil {
+		g.explicitFields = big.NewInt(0)
+	}
+	g.explicitFields.Or(g.explicitFields, field)
+}
+
+// SetStart sets the Start field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetActivityMcpAPIV1ProvidersAnthropicActivityMcpGetRequest) SetStart(start string) {
+	g.Start = start
+	g.require(getActivityMcpAPIV1ProvidersAnthropicActivityMcpGetRequestFieldStart)
+}
+
+// SetEnd sets the End field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetActivityMcpAPIV1ProvidersAnthropicActivityMcpGetRequest) SetEnd(end string) {
+	g.End = end
+	g.require(getActivityMcpAPIV1ProvidersAnthropicActivityMcpGetRequestFieldEnd)
+}
+
+var (
 	getActivityPeopleAPIV1ProvidersAnthropicActivityPeopleGetRequestFieldStart = big.NewInt(1 << 0)
 	getActivityPeopleAPIV1ProvidersAnthropicActivityPeopleGetRequestFieldEnd   = big.NewInt(1 << 1)
 )
@@ -153,6 +270,42 @@ func (g *GetActivityPeopleAPIV1ProvidersAnthropicActivityPeopleGetRequest) SetSt
 func (g *GetActivityPeopleAPIV1ProvidersAnthropicActivityPeopleGetRequest) SetEnd(end string) {
 	g.End = end
 	g.require(getActivityPeopleAPIV1ProvidersAnthropicActivityPeopleGetRequestFieldEnd)
+}
+
+var (
+	getActivityPermissionModesAPIV1ProvidersAnthropicActivityPermissionModesGetRequestFieldStart = big.NewInt(1 << 0)
+	getActivityPermissionModesAPIV1ProvidersAnthropicActivityPermissionModesGetRequestFieldEnd   = big.NewInt(1 << 1)
+)
+
+type GetActivityPermissionModesAPIV1ProvidersAnthropicActivityPermissionModesGetRequest struct {
+	// First day, ISO 8601 (YYYY-MM-DD or a datetime)
+	Start string `json:"-" url:"start"`
+	// Last day, ISO 8601 (YYYY-MM-DD or a datetime), included
+	End string `json:"-" url:"end"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (g *GetActivityPermissionModesAPIV1ProvidersAnthropicActivityPermissionModesGetRequest) require(field *big.Int) {
+	if g.explicitFields == nil {
+		g.explicitFields = big.NewInt(0)
+	}
+	g.explicitFields.Or(g.explicitFields, field)
+}
+
+// SetStart sets the Start field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetActivityPermissionModesAPIV1ProvidersAnthropicActivityPermissionModesGetRequest) SetStart(start string) {
+	g.Start = start
+	g.require(getActivityPermissionModesAPIV1ProvidersAnthropicActivityPermissionModesGetRequestFieldStart)
+}
+
+// SetEnd sets the End field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetActivityPermissionModesAPIV1ProvidersAnthropicActivityPermissionModesGetRequest) SetEnd(end string) {
+	g.End = end
+	g.require(getActivityPermissionModesAPIV1ProvidersAnthropicActivityPermissionModesGetRequestFieldEnd)
 }
 
 var (
@@ -199,9 +352,10 @@ var (
 	getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldSeat           = big.NewInt(1 << 4)
 	getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldProduct        = big.NewInt(1 << 5)
 	getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldRecommendation = big.NewInt(1 << 6)
-	getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldSort           = big.NewInt(1 << 7)
-	getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldOrder          = big.NewInt(1 << 8)
-	getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldFormat         = big.NewInt(1 << 9)
+	getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldState          = big.NewInt(1 << 7)
+	getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldSort           = big.NewInt(1 << 8)
+	getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldOrder          = big.NewInt(1 << 9)
+	getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldFormat         = big.NewInt(1 << 10)
 )
 
 type GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequest struct {
@@ -215,8 +369,10 @@ type GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequest struct {
 	// Keep the people whose main product this is
 	Product        *string                                                                 `json:"-" url:"product,omitempty"`
 	Recommendation *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestRecommendation `json:"-" url:"recommendation,omitempty"`
-	Sort           *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort           `json:"-" url:"sort,omitempty"`
-	Order          *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestOrder          `json:"-" url:"order,omitempty"`
+	// Keep the people in this state
+	State *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestState `json:"-" url:"state,omitempty"`
+	Sort  *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort  `json:"-" url:"sort,omitempty"`
+	Order *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestOrder `json:"-" url:"order,omitempty"`
 	// csv answers every row the filters keep
 	Format *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFormat `json:"-" url:"format,omitempty"`
 
@@ -278,6 +434,13 @@ func (g *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequest) SetProduct(pr
 func (g *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequest) SetRecommendation(recommendation *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestRecommendation) {
 	g.Recommendation = recommendation
 	g.require(getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldRecommendation)
+}
+
+// SetState sets the State field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequest) SetState(state *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestState) {
+	g.State = state
+	g.require(getTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestFieldState)
 }
 
 // SetSort sets the Sort field and marks it as non-optional;
@@ -484,11 +647,14 @@ func (g *GetUsageBreakdownAPIV1ProvidersAnthropicUsageBreakdownGetRequest) SetEn
 }
 
 var (
-	getUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequestFieldStart = big.NewInt(1 << 0)
-	getUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequestFieldEnd   = big.NewInt(1 << 1)
+	getUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequestFieldBasis = big.NewInt(1 << 0)
+	getUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequestFieldStart = big.NewInt(1 << 1)
+	getUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequestFieldEnd   = big.NewInt(1 << 2)
 )
 
 type GetUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequest struct {
+	// What the bands are by
+	Basis *GetUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequestBasis `json:"-" url:"basis,omitempty"`
 	// First day, ISO 8601 (YYYY-MM-DD or a datetime)
 	Start string `json:"-" url:"start"`
 	// Last day, ISO 8601 (YYYY-MM-DD or a datetime), included
@@ -503,6 +669,13 @@ func (g *GetUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequest)
 		g.explicitFields = big.NewInt(0)
 	}
 	g.explicitFields.Or(g.explicitFields, field)
+}
+
+// SetBasis sets the Basis field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequest) SetBasis(basis *GetUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequestBasis) {
+	g.Basis = basis
+	g.require(getUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequestFieldBasis)
 }
 
 // SetStart sets the Start field and marks it as non-optional;
@@ -609,6 +782,42 @@ func (g *GetUsagePersonSessionsAPIV1ProvidersAnthropicUsagePeoplePersonSessionsG
 	g.require(getUsagePersonSessionsAPIV1ProvidersAnthropicUsagePeoplePersonSessionsGetRequestFieldEnd)
 }
 
+var (
+	getUsagePersonToolsAPIV1ProvidersAnthropicUsagePeoplePersonToolsGetRequestFieldStart = big.NewInt(1 << 0)
+	getUsagePersonToolsAPIV1ProvidersAnthropicUsagePeoplePersonToolsGetRequestFieldEnd   = big.NewInt(1 << 1)
+)
+
+type GetUsagePersonToolsAPIV1ProvidersAnthropicUsagePeoplePersonToolsGetRequest struct {
+	// First day, ISO 8601 (YYYY-MM-DD or a datetime)
+	Start string `json:"-" url:"start"`
+	// Last day, ISO 8601 (YYYY-MM-DD or a datetime), included
+	End string `json:"-" url:"end"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (g *GetUsagePersonToolsAPIV1ProvidersAnthropicUsagePeoplePersonToolsGetRequest) require(field *big.Int) {
+	if g.explicitFields == nil {
+		g.explicitFields = big.NewInt(0)
+	}
+	g.explicitFields.Or(g.explicitFields, field)
+}
+
+// SetStart sets the Start field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetUsagePersonToolsAPIV1ProvidersAnthropicUsagePeoplePersonToolsGetRequest) SetStart(start string) {
+	g.Start = start
+	g.require(getUsagePersonToolsAPIV1ProvidersAnthropicUsagePeoplePersonToolsGetRequestFieldStart)
+}
+
+// SetEnd sets the End field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetUsagePersonToolsAPIV1ProvidersAnthropicUsagePeoplePersonToolsGetRequest) SetEnd(end string) {
+	g.End = end
+	g.require(getUsagePersonToolsAPIV1ProvidersAnthropicUsagePeoplePersonToolsGetRequestFieldEnd)
+}
+
 type BodyPreviewTeamAreasAPIV1ProvidersAnthropicTeamAreasPreviewPost struct {
 	File io.Reader `json:"-" url:"-"`
 	Key  *string   `json:"key,omitempty" url:"-"`
@@ -625,18 +834,1754 @@ func (b *BodyPreviewTeamAreasAPIV1ProvidersAnthropicTeamAreasPreviewPost) requir
 }
 
 var (
-	aiPersonDataFieldPerson         = big.NewInt(1 << 0)
-	aiPersonDataFieldArea           = big.NewInt(1 << 1)
-	aiPersonDataFieldSeat           = big.NewInt(1 << 2)
-	aiPersonDataFieldSeatPrice      = big.NewInt(1 << 3)
-	aiPersonDataFieldExtraUsage30D  = big.NewInt(1 << 4)
-	aiPersonDataFieldTokens7D       = big.NewInt(1 << 5)
-	aiPersonDataFieldTokens30D      = big.NewInt(1 << 6)
-	aiPersonDataFieldUsageValue30D  = big.NewInt(1 << 7)
-	aiPersonDataFieldLastActive     = big.NewInt(1 << 8)
-	aiPersonDataFieldIdleWeeks      = big.NewInt(1 << 9)
-	aiPersonDataFieldWeekly         = big.NewInt(1 << 10)
-	aiPersonDataFieldRecommendation = big.NewInt(1 << 11)
+	aiBreakdownDataFieldMeasure = big.NewInt(1 << 0)
+	aiBreakdownDataFieldGroupBy = big.NewInt(1 << 1)
+	aiBreakdownDataFieldItems   = big.NewInt(1 << 2)
+	aiBreakdownDataFieldDays    = big.NewInt(1 << 3)
+	aiBreakdownDataFieldTotal   = big.NewInt(1 << 4)
+)
+
+type AiBreakdownData struct {
+	Measure AiBreakdownDataMeasure `json:"measure" url:"measure"`
+	GroupBy AiBreakdownDataGroupBy `json:"group_by" url:"group_by"`
+	// The 50 largest keys, the largest first
+	Items []*AiBreakdownItem `json:"items" url:"items"`
+	// Every day of the range, on granularity=daily alone, null otherwise
+	Days []*AiBreakdownDay `json:"days,omitempty" url:"days,omitempty"`
+	// The measure over the range for every key, listed or not
+	Total int `json:"total" url:"total"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiBreakdownData) GetMeasure() AiBreakdownDataMeasure {
+	if a == nil {
+		return ""
+	}
+	return a.Measure
+}
+
+func (a *AiBreakdownData) GetGroupBy() AiBreakdownDataGroupBy {
+	if a == nil {
+		return ""
+	}
+	return a.GroupBy
+}
+
+func (a *AiBreakdownData) GetItems() []*AiBreakdownItem {
+	if a == nil {
+		return nil
+	}
+	return a.Items
+}
+
+func (a *AiBreakdownData) GetDays() []*AiBreakdownDay {
+	if a == nil {
+		return nil
+	}
+	return a.Days
+}
+
+func (a *AiBreakdownData) GetTotal() int {
+	if a == nil {
+		return 0
+	}
+	return a.Total
+}
+
+func (a *AiBreakdownData) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiBreakdownData) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetMeasure sets the Measure field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiBreakdownData) SetMeasure(measure AiBreakdownDataMeasure) {
+	a.Measure = measure
+	a.require(aiBreakdownDataFieldMeasure)
+}
+
+// SetGroupBy sets the GroupBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiBreakdownData) SetGroupBy(groupBy AiBreakdownDataGroupBy) {
+	a.GroupBy = groupBy
+	a.require(aiBreakdownDataFieldGroupBy)
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiBreakdownData) SetItems(items []*AiBreakdownItem) {
+	a.Items = items
+	a.require(aiBreakdownDataFieldItems)
+}
+
+// SetDays sets the Days field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiBreakdownData) SetDays(days []*AiBreakdownDay) {
+	a.Days = days
+	a.require(aiBreakdownDataFieldDays)
+}
+
+// SetTotal sets the Total field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiBreakdownData) SetTotal(total int) {
+	a.Total = total
+	a.require(aiBreakdownDataFieldTotal)
+}
+
+func (a *AiBreakdownData) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiBreakdownData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiBreakdownData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiBreakdownData) MarshalJSON() ([]byte, error) {
+	type embed AiBreakdownData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiBreakdownData) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+type AiBreakdownDataGroupBy string
+
+const (
+	AiBreakdownDataGroupByPerson     AiBreakdownDataGroupBy = "person"
+	AiBreakdownDataGroupByArea       AiBreakdownDataGroupBy = "area"
+	AiBreakdownDataGroupByRepository AiBreakdownDataGroupBy = "repository"
+)
+
+func NewAiBreakdownDataGroupByFromString(s string) (AiBreakdownDataGroupBy, error) {
+	switch s {
+	case "person":
+		return AiBreakdownDataGroupByPerson, nil
+	case "area":
+		return AiBreakdownDataGroupByArea, nil
+	case "repository":
+		return AiBreakdownDataGroupByRepository, nil
+	}
+	var t AiBreakdownDataGroupBy
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AiBreakdownDataGroupBy) Ptr() *AiBreakdownDataGroupBy {
+	return &a
+}
+
+type AiBreakdownDataMeasure string
+
+const (
+	AiBreakdownDataMeasurePullRequests   AiBreakdownDataMeasure = "pull_requests"
+	AiBreakdownDataMeasureCommits        AiBreakdownDataMeasure = "commits"
+	AiBreakdownDataMeasureLinesAdded     AiBreakdownDataMeasure = "lines_added"
+	AiBreakdownDataMeasureLinesRemoved   AiBreakdownDataMeasure = "lines_removed"
+	AiBreakdownDataMeasureFailedRequests AiBreakdownDataMeasure = "failed_requests"
+	AiBreakdownDataMeasureRateLimits     AiBreakdownDataMeasure = "rate_limits"
+)
+
+func NewAiBreakdownDataMeasureFromString(s string) (AiBreakdownDataMeasure, error) {
+	switch s {
+	case "pull_requests":
+		return AiBreakdownDataMeasurePullRequests, nil
+	case "commits":
+		return AiBreakdownDataMeasureCommits, nil
+	case "lines_added":
+		return AiBreakdownDataMeasureLinesAdded, nil
+	case "lines_removed":
+		return AiBreakdownDataMeasureLinesRemoved, nil
+	case "failed_requests":
+		return AiBreakdownDataMeasureFailedRequests, nil
+	case "rate_limits":
+		return AiBreakdownDataMeasureRateLimits, nil
+	}
+	var t AiBreakdownDataMeasure
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AiBreakdownDataMeasure) Ptr() *AiBreakdownDataMeasure {
+	return &a
+}
+
+var (
+	aiBreakdownDayFieldDay    = big.NewInt(1 << 0)
+	aiBreakdownDayFieldValues = big.NewInt(1 << 1)
+)
+
+type AiBreakdownDay struct {
+	Day time.Time `json:"day" url:"day" format:"date"`
+	// The measure that day for each key listed, by key, with none for a null key
+	Values map[string]int `json:"values" url:"values"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiBreakdownDay) GetDay() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.Day
+}
+
+func (a *AiBreakdownDay) GetValues() map[string]int {
+	if a == nil {
+		return nil
+	}
+	return a.Values
+}
+
+func (a *AiBreakdownDay) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiBreakdownDay) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetDay sets the Day field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiBreakdownDay) SetDay(day time.Time) {
+	a.Day = day
+	a.require(aiBreakdownDayFieldDay)
+}
+
+// SetValues sets the Values field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiBreakdownDay) SetValues(values map[string]int) {
+	a.Values = values
+	a.require(aiBreakdownDayFieldValues)
+}
+
+func (a *AiBreakdownDay) UnmarshalJSON(data []byte) error {
+	type embed AiBreakdownDay
+	var unmarshaler = struct {
+		embed
+		Day *internal.Date `json:"day"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*a = AiBreakdownDay(unmarshaler.embed)
+	a.Day = unmarshaler.Day.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiBreakdownDay) MarshalJSON() ([]byte, error) {
+	type embed AiBreakdownDay
+	var marshaler = struct {
+		embed
+		Day *internal.Date `json:"day"`
+	}{
+		embed: embed(*a),
+		Day:   internal.NewDate(a.Day),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiBreakdownDay) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	aiBreakdownItemFieldKey      = big.NewInt(1 << 0)
+	aiBreakdownItemFieldLabel    = big.NewInt(1 << 1)
+	aiBreakdownItemFieldValue    = big.NewInt(1 << 2)
+	aiBreakdownItemFieldPrevious = big.NewInt(1 << 3)
+	aiBreakdownItemFieldPeople   = big.NewInt(1 << 4)
+)
+
+type AiBreakdownItem struct {
+	// The person, the area or the repository, null for no area or no repository
+	Key *string `json:"key,omitempty" url:"key,omitempty"`
+	// The key as the board shows it: No area or No repository for a null key
+	Label string `json:"label" url:"label"`
+	// The measure over the range
+	Value int `json:"value" url:"value"`
+	// The measure over the range of the same length just before it
+	Previous int `json:"previous" url:"previous"`
+	// The people whose measure it holds
+	People int `json:"people" url:"people"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiBreakdownItem) GetKey() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Key
+}
+
+func (a *AiBreakdownItem) GetLabel() string {
+	if a == nil {
+		return ""
+	}
+	return a.Label
+}
+
+func (a *AiBreakdownItem) GetValue() int {
+	if a == nil {
+		return 0
+	}
+	return a.Value
+}
+
+func (a *AiBreakdownItem) GetPrevious() int {
+	if a == nil {
+		return 0
+	}
+	return a.Previous
+}
+
+func (a *AiBreakdownItem) GetPeople() int {
+	if a == nil {
+		return 0
+	}
+	return a.People
+}
+
+func (a *AiBreakdownItem) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiBreakdownItem) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetKey sets the Key field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiBreakdownItem) SetKey(key *string) {
+	a.Key = key
+	a.require(aiBreakdownItemFieldKey)
+}
+
+// SetLabel sets the Label field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiBreakdownItem) SetLabel(label string) {
+	a.Label = label
+	a.require(aiBreakdownItemFieldLabel)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiBreakdownItem) SetValue(value int) {
+	a.Value = value
+	a.require(aiBreakdownItemFieldValue)
+}
+
+// SetPrevious sets the Previous field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiBreakdownItem) SetPrevious(previous int) {
+	a.Previous = previous
+	a.require(aiBreakdownItemFieldPrevious)
+}
+
+// SetPeople sets the People field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiBreakdownItem) SetPeople(people int) {
+	a.People = people
+	a.require(aiBreakdownItemFieldPeople)
+}
+
+func (a *AiBreakdownItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiBreakdownItem
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiBreakdownItem(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiBreakdownItem) MarshalJSON() ([]byte, error) {
+	type embed AiBreakdownItem
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiBreakdownItem) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	aiBreakdownResponseFieldSuccess   = big.NewInt(1 << 0)
+	aiBreakdownResponseFieldData      = big.NewInt(1 << 1)
+	aiBreakdownResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type AiBreakdownResponse struct {
+	Success   *bool            `json:"success,omitempty" url:"success,omitempty"`
+	Data      *AiBreakdownData `json:"data" url:"data"`
+	Timestamp string           `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiBreakdownResponse) GetSuccess() *bool {
+	if a == nil {
+		return nil
+	}
+	return a.Success
+}
+
+func (a *AiBreakdownResponse) GetData() *AiBreakdownData {
+	if a == nil {
+		return nil
+	}
+	return a.Data
+}
+
+func (a *AiBreakdownResponse) GetTimestamp() string {
+	if a == nil {
+		return ""
+	}
+	return a.Timestamp
+}
+
+func (a *AiBreakdownResponse) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiBreakdownResponse) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiBreakdownResponse) SetSuccess(success *bool) {
+	a.Success = success
+	a.require(aiBreakdownResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiBreakdownResponse) SetData(data *AiBreakdownData) {
+	a.Data = data
+	a.require(aiBreakdownResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiBreakdownResponse) SetTimestamp(timestamp string) {
+	a.Timestamp = timestamp
+	a.require(aiBreakdownResponseFieldTimestamp)
+}
+
+func (a *AiBreakdownResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiBreakdownResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiBreakdownResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiBreakdownResponse) MarshalJSON() ([]byte, error) {
+	type embed AiBreakdownResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiBreakdownResponse) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	aiFailureKindFieldKind     = big.NewInt(1 << 0)
+	aiFailureKindFieldRequests = big.NewInt(1 << 1)
+)
+
+type AiFailureKind struct {
+	Kind     AiFailureKindKind `json:"kind" url:"kind"`
+	Requests int               `json:"requests" url:"requests"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiFailureKind) GetKind() AiFailureKindKind {
+	if a == nil {
+		return ""
+	}
+	return a.Kind
+}
+
+func (a *AiFailureKind) GetRequests() int {
+	if a == nil {
+		return 0
+	}
+	return a.Requests
+}
+
+func (a *AiFailureKind) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiFailureKind) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetKind sets the Kind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiFailureKind) SetKind(kind AiFailureKindKind) {
+	a.Kind = kind
+	a.require(aiFailureKindFieldKind)
+}
+
+// SetRequests sets the Requests field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiFailureKind) SetRequests(requests int) {
+	a.Requests = requests
+	a.require(aiFailureKindFieldRequests)
+}
+
+func (a *AiFailureKind) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiFailureKind
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiFailureKind(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiFailureKind) MarshalJSON() ([]byte, error) {
+	type embed AiFailureKind
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiFailureKind) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+type AiFailureKindKind string
+
+const (
+	AiFailureKindKindFourHundred           AiFailureKindKind = "400"
+	AiFailureKindKindFourHundredTwentyNine AiFailureKindKind = "429"
+	AiFailureKindKindFiveHundredTwentyNine AiFailureKindKind = "529"
+	AiFailureKindKindConnection            AiFailureKindKind = "connection"
+	AiFailureKindKindOther                 AiFailureKindKind = "other"
+)
+
+func NewAiFailureKindKindFromString(s string) (AiFailureKindKind, error) {
+	switch s {
+	case "400":
+		return AiFailureKindKindFourHundred, nil
+	case "429":
+		return AiFailureKindKindFourHundredTwentyNine, nil
+	case "529":
+		return AiFailureKindKindFiveHundredTwentyNine, nil
+	case "connection":
+		return AiFailureKindKindConnection, nil
+	case "other":
+		return AiFailureKindKindOther, nil
+	}
+	var t AiFailureKindKind
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AiFailureKindKind) Ptr() *AiFailureKindKind {
+	return &a
+}
+
+var (
+	aiFailuresDataFieldKinds    = big.NewInt(1 << 0)
+	aiFailuresDataFieldPeople   = big.NewInt(1 << 1)
+	aiFailuresDataFieldSessions = big.NewInt(1 << 2)
+)
+
+type AiFailuresData struct {
+	// Each kind that failed in the range, the most first
+	Kinds []*AiFailureKind `json:"kinds" url:"kinds"`
+	// The 100 people with the most failed requests, the most first
+	People []*AiPersonFailing `json:"people" url:"people"`
+	// The 100 sessions with the most failed requests, the most first
+	Sessions []*AiSessionFailing `json:"sessions" url:"sessions"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiFailuresData) GetKinds() []*AiFailureKind {
+	if a == nil {
+		return nil
+	}
+	return a.Kinds
+}
+
+func (a *AiFailuresData) GetPeople() []*AiPersonFailing {
+	if a == nil {
+		return nil
+	}
+	return a.People
+}
+
+func (a *AiFailuresData) GetSessions() []*AiSessionFailing {
+	if a == nil {
+		return nil
+	}
+	return a.Sessions
+}
+
+func (a *AiFailuresData) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiFailuresData) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetKinds sets the Kinds field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiFailuresData) SetKinds(kinds []*AiFailureKind) {
+	a.Kinds = kinds
+	a.require(aiFailuresDataFieldKinds)
+}
+
+// SetPeople sets the People field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiFailuresData) SetPeople(people []*AiPersonFailing) {
+	a.People = people
+	a.require(aiFailuresDataFieldPeople)
+}
+
+// SetSessions sets the Sessions field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiFailuresData) SetSessions(sessions []*AiSessionFailing) {
+	a.Sessions = sessions
+	a.require(aiFailuresDataFieldSessions)
+}
+
+func (a *AiFailuresData) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiFailuresData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiFailuresData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiFailuresData) MarshalJSON() ([]byte, error) {
+	type embed AiFailuresData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiFailuresData) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	aiFailuresResponseFieldSuccess   = big.NewInt(1 << 0)
+	aiFailuresResponseFieldData      = big.NewInt(1 << 1)
+	aiFailuresResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type AiFailuresResponse struct {
+	Success   *bool           `json:"success,omitempty" url:"success,omitempty"`
+	Data      *AiFailuresData `json:"data" url:"data"`
+	Timestamp string          `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiFailuresResponse) GetSuccess() *bool {
+	if a == nil {
+		return nil
+	}
+	return a.Success
+}
+
+func (a *AiFailuresResponse) GetData() *AiFailuresData {
+	if a == nil {
+		return nil
+	}
+	return a.Data
+}
+
+func (a *AiFailuresResponse) GetTimestamp() string {
+	if a == nil {
+		return ""
+	}
+	return a.Timestamp
+}
+
+func (a *AiFailuresResponse) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiFailuresResponse) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiFailuresResponse) SetSuccess(success *bool) {
+	a.Success = success
+	a.require(aiFailuresResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiFailuresResponse) SetData(data *AiFailuresData) {
+	a.Data = data
+	a.require(aiFailuresResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiFailuresResponse) SetTimestamp(timestamp string) {
+	a.Timestamp = timestamp
+	a.require(aiFailuresResponseFieldTimestamp)
+}
+
+func (a *AiFailuresResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiFailuresResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiFailuresResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiFailuresResponse) MarshalJSON() ([]byte, error) {
+	type embed AiFailuresResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiFailuresResponse) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	aiMcpConnectionsFieldServer      = big.NewInt(1 << 0)
+	aiMcpConnectionsFieldConnections = big.NewInt(1 << 1)
+	aiMcpConnectionsFieldFailures    = big.NewInt(1 << 2)
+)
+
+type AiMcpConnections struct {
+	// The MCP server, null when the install sends no server names
+	Server *string `json:"server,omitempty" url:"server,omitempty"`
+	// Connections that opened
+	Connections int `json:"connections" url:"connections"`
+	// Connections that failed to open
+	Failures int `json:"failures" url:"failures"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiMcpConnections) GetServer() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Server
+}
+
+func (a *AiMcpConnections) GetConnections() int {
+	if a == nil {
+		return 0
+	}
+	return a.Connections
+}
+
+func (a *AiMcpConnections) GetFailures() int {
+	if a == nil {
+		return 0
+	}
+	return a.Failures
+}
+
+func (a *AiMcpConnections) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiMcpConnections) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetServer sets the Server field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiMcpConnections) SetServer(server *string) {
+	a.Server = server
+	a.require(aiMcpConnectionsFieldServer)
+}
+
+// SetConnections sets the Connections field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiMcpConnections) SetConnections(connections int) {
+	a.Connections = connections
+	a.require(aiMcpConnectionsFieldConnections)
+}
+
+// SetFailures sets the Failures field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiMcpConnections) SetFailures(failures int) {
+	a.Failures = failures
+	a.require(aiMcpConnectionsFieldFailures)
+}
+
+func (a *AiMcpConnections) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiMcpConnections
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiMcpConnections(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiMcpConnections) MarshalJSON() ([]byte, error) {
+	type embed AiMcpConnections
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiMcpConnections) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	aiMcpServerFieldServer      = big.NewInt(1 << 0)
+	aiMcpServerFieldPeople      = big.NewInt(1 << 1)
+	aiMcpServerFieldConnections = big.NewInt(1 << 2)
+	aiMcpServerFieldFailures    = big.NewInt(1 << 3)
+	aiMcpServerFieldFailing     = big.NewInt(1 << 4)
+)
+
+type AiMcpServer struct {
+	// The MCP server, null for connections whose install sends no server names
+	Server *string `json:"server,omitempty" url:"server,omitempty"`
+	// People who connected to it or called a tool through it
+	People int `json:"people" url:"people"`
+	// Connections that opened
+	Connections int `json:"connections" url:"connections"`
+	// Connections that failed to open
+	Failures int `json:"failures" url:"failures"`
+	// true when a connection failed in the range
+	Failing bool `json:"failing" url:"failing"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiMcpServer) GetServer() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Server
+}
+
+func (a *AiMcpServer) GetPeople() int {
+	if a == nil {
+		return 0
+	}
+	return a.People
+}
+
+func (a *AiMcpServer) GetConnections() int {
+	if a == nil {
+		return 0
+	}
+	return a.Connections
+}
+
+func (a *AiMcpServer) GetFailures() int {
+	if a == nil {
+		return 0
+	}
+	return a.Failures
+}
+
+func (a *AiMcpServer) GetFailing() bool {
+	if a == nil {
+		return false
+	}
+	return a.Failing
+}
+
+func (a *AiMcpServer) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiMcpServer) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetServer sets the Server field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiMcpServer) SetServer(server *string) {
+	a.Server = server
+	a.require(aiMcpServerFieldServer)
+}
+
+// SetPeople sets the People field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiMcpServer) SetPeople(people int) {
+	a.People = people
+	a.require(aiMcpServerFieldPeople)
+}
+
+// SetConnections sets the Connections field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiMcpServer) SetConnections(connections int) {
+	a.Connections = connections
+	a.require(aiMcpServerFieldConnections)
+}
+
+// SetFailures sets the Failures field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiMcpServer) SetFailures(failures int) {
+	a.Failures = failures
+	a.require(aiMcpServerFieldFailures)
+}
+
+// SetFailing sets the Failing field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiMcpServer) SetFailing(failing bool) {
+	a.Failing = failing
+	a.require(aiMcpServerFieldFailing)
+}
+
+func (a *AiMcpServer) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiMcpServer
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiMcpServer(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiMcpServer) MarshalJSON() ([]byte, error) {
+	type embed AiMcpServer
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiMcpServer) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	aiMcpServersDataFieldItems = big.NewInt(1 << 0)
+)
+
+type AiMcpServersData struct {
+	// The failing servers first, then the most connections
+	Items []*AiMcpServer `json:"items" url:"items"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiMcpServersData) GetItems() []*AiMcpServer {
+	if a == nil {
+		return nil
+	}
+	return a.Items
+}
+
+func (a *AiMcpServersData) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiMcpServersData) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiMcpServersData) SetItems(items []*AiMcpServer) {
+	a.Items = items
+	a.require(aiMcpServersDataFieldItems)
+}
+
+func (a *AiMcpServersData) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiMcpServersData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiMcpServersData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiMcpServersData) MarshalJSON() ([]byte, error) {
+	type embed AiMcpServersData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiMcpServersData) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	aiMcpServersResponseFieldSuccess   = big.NewInt(1 << 0)
+	aiMcpServersResponseFieldData      = big.NewInt(1 << 1)
+	aiMcpServersResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type AiMcpServersResponse struct {
+	Success   *bool             `json:"success,omitempty" url:"success,omitempty"`
+	Data      *AiMcpServersData `json:"data" url:"data"`
+	Timestamp string            `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiMcpServersResponse) GetSuccess() *bool {
+	if a == nil {
+		return nil
+	}
+	return a.Success
+}
+
+func (a *AiMcpServersResponse) GetData() *AiMcpServersData {
+	if a == nil {
+		return nil
+	}
+	return a.Data
+}
+
+func (a *AiMcpServersResponse) GetTimestamp() string {
+	if a == nil {
+		return ""
+	}
+	return a.Timestamp
+}
+
+func (a *AiMcpServersResponse) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiMcpServersResponse) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiMcpServersResponse) SetSuccess(success *bool) {
+	a.Success = success
+	a.require(aiMcpServersResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiMcpServersResponse) SetData(data *AiMcpServersData) {
+	a.Data = data
+	a.require(aiMcpServersResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiMcpServersResponse) SetTimestamp(timestamp string) {
+	a.Timestamp = timestamp
+	a.require(aiMcpServersResponseFieldTimestamp)
+}
+
+func (a *AiMcpServersResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiMcpServersResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiMcpServersResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiMcpServersResponse) MarshalJSON() ([]byte, error) {
+	type embed AiMcpServersResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiMcpServersResponse) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	aiPermissionModeFieldMode     = big.NewInt(1 << 0)
+	aiPermissionModeFieldSessions = big.NewInt(1 << 1)
+)
+
+type AiPermissionMode struct {
+	// The mode as the tool names it, such as default, plan, acceptEdits or auto
+	Mode     string `json:"mode" url:"mode"`
+	Sessions int    `json:"sessions" url:"sessions"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiPermissionMode) GetMode() string {
+	if a == nil {
+		return ""
+	}
+	return a.Mode
+}
+
+func (a *AiPermissionMode) GetSessions() int {
+	if a == nil {
+		return 0
+	}
+	return a.Sessions
+}
+
+func (a *AiPermissionMode) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiPermissionMode) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetMode sets the Mode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPermissionMode) SetMode(mode string) {
+	a.Mode = mode
+	a.require(aiPermissionModeFieldMode)
+}
+
+// SetSessions sets the Sessions field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPermissionMode) SetSessions(sessions int) {
+	a.Sessions = sessions
+	a.require(aiPermissionModeFieldSessions)
+}
+
+func (a *AiPermissionMode) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiPermissionMode
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiPermissionMode(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiPermissionMode) MarshalJSON() ([]byte, error) {
+	type embed AiPermissionMode
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiPermissionMode) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	aiPermissionModesDataFieldItems = big.NewInt(1 << 0)
+)
+
+type AiPermissionModesData struct {
+	// The mode with the most sessions first
+	Items []*AiPermissionMode `json:"items" url:"items"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiPermissionModesData) GetItems() []*AiPermissionMode {
+	if a == nil {
+		return nil
+	}
+	return a.Items
+}
+
+func (a *AiPermissionModesData) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiPermissionModesData) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPermissionModesData) SetItems(items []*AiPermissionMode) {
+	a.Items = items
+	a.require(aiPermissionModesDataFieldItems)
+}
+
+func (a *AiPermissionModesData) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiPermissionModesData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiPermissionModesData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiPermissionModesData) MarshalJSON() ([]byte, error) {
+	type embed AiPermissionModesData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiPermissionModesData) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	aiPermissionModesResponseFieldSuccess   = big.NewInt(1 << 0)
+	aiPermissionModesResponseFieldData      = big.NewInt(1 << 1)
+	aiPermissionModesResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type AiPermissionModesResponse struct {
+	Success   *bool                  `json:"success,omitempty" url:"success,omitempty"`
+	Data      *AiPermissionModesData `json:"data" url:"data"`
+	Timestamp string                 `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiPermissionModesResponse) GetSuccess() *bool {
+	if a == nil {
+		return nil
+	}
+	return a.Success
+}
+
+func (a *AiPermissionModesResponse) GetData() *AiPermissionModesData {
+	if a == nil {
+		return nil
+	}
+	return a.Data
+}
+
+func (a *AiPermissionModesResponse) GetTimestamp() string {
+	if a == nil {
+		return ""
+	}
+	return a.Timestamp
+}
+
+func (a *AiPermissionModesResponse) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiPermissionModesResponse) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPermissionModesResponse) SetSuccess(success *bool) {
+	a.Success = success
+	a.require(aiPermissionModesResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPermissionModesResponse) SetData(data *AiPermissionModesData) {
+	a.Data = data
+	a.require(aiPermissionModesResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPermissionModesResponse) SetTimestamp(timestamp string) {
+	a.Timestamp = timestamp
+	a.require(aiPermissionModesResponseFieldTimestamp)
+}
+
+func (a *AiPermissionModesResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiPermissionModesResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiPermissionModesResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiPermissionModesResponse) MarshalJSON() ([]byte, error) {
+	type embed AiPermissionModesResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiPermissionModesResponse) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	aiPersonDataFieldPerson            = big.NewInt(1 << 0)
+	aiPersonDataFieldArea              = big.NewInt(1 << 1)
+	aiPersonDataFieldSeat              = big.NewInt(1 << 2)
+	aiPersonDataFieldSeatPrice         = big.NewInt(1 << 3)
+	aiPersonDataFieldExtraUsage30D     = big.NewInt(1 << 4)
+	aiPersonDataFieldTokens7D          = big.NewInt(1 << 5)
+	aiPersonDataFieldTokens30D         = big.NewInt(1 << 6)
+	aiPersonDataFieldUsageValue30D     = big.NewInt(1 << 7)
+	aiPersonDataFieldLastActive        = big.NewInt(1 << 8)
+	aiPersonDataFieldIdleWeeks         = big.NewInt(1 << 9)
+	aiPersonDataFieldWeekly            = big.NewInt(1 << 10)
+	aiPersonDataFieldRecommendation    = big.NewInt(1 << 11)
+	aiPersonDataFieldVersion           = big.NewInt(1 << 12)
+	aiPersonDataFieldVersionState      = big.NewInt(1 << 13)
+	aiPersonDataFieldManagedSettings   = big.NewInt(1 << 14)
+	aiPersonDataFieldFailedRequests30D = big.NewInt(1 << 15)
+	aiPersonDataFieldTokensByType      = big.NewInt(1 << 16)
+	aiPersonDataFieldModels            = big.NewInt(1 << 17)
+	aiPersonDataFieldFailuresDaily     = big.NewInt(1 << 18)
 )
 
 type AiPersonData struct {
@@ -659,6 +2604,20 @@ type AiPersonData struct {
 	Weekly []*AiPersonWeek `json:"weekly" url:"weekly"`
 	// The seat change the person's use calls for
 	Recommendation *AiPersonRecommendation `json:"recommendation,omitempty" url:"recommendation,omitempty"`
+	// The version the person's install reported last, null before it did
+	Version *string `json:"version,omitempty" url:"version,omitempty"`
+	// current on the newest version an install seen in the last 30 days is on, minor 1 to 5 releases behind it, old more than 5. A release is a distinct version those installs are on, 2.1 and 2.1.0 being one
+	VersionState *AiPersonDataVersionState `json:"version_state,omitempty" url:"version_state,omitempty"`
+	// Whether the install's settings are managed, null until it said
+	ManagedSettings *bool `json:"managed_settings,omitempty" url:"managed_settings,omitempty"`
+	// Model requests that failed in the 30 days
+	FailedRequests30D int `json:"failed_requests_30d" url:"failed_requests_30d"`
+	// Tokens in the 30 days, by kind
+	TokensByType *AiTokensByType `json:"tokens_by_type" url:"tokens_by_type"`
+	// Each model used in the 30 days, the largest usage value first
+	Models []*AiPersonModel `json:"models" url:"models"`
+	// The failed requests of each day of the 30 that had any, by kind. A day whose failures were kept before sessions were, or named no session, has its rate limits as 429 and the rest as other
+	FailuresDaily []*AiPersonFailures `json:"failures_daily" url:"failures_daily"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -749,6 +2708,55 @@ func (a *AiPersonData) GetRecommendation() *AiPersonRecommendation {
 		return nil
 	}
 	return a.Recommendation
+}
+
+func (a *AiPersonData) GetVersion() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Version
+}
+
+func (a *AiPersonData) GetVersionState() *AiPersonDataVersionState {
+	if a == nil {
+		return nil
+	}
+	return a.VersionState
+}
+
+func (a *AiPersonData) GetManagedSettings() *bool {
+	if a == nil {
+		return nil
+	}
+	return a.ManagedSettings
+}
+
+func (a *AiPersonData) GetFailedRequests30D() int {
+	if a == nil {
+		return 0
+	}
+	return a.FailedRequests30D
+}
+
+func (a *AiPersonData) GetTokensByType() *AiTokensByType {
+	if a == nil {
+		return nil
+	}
+	return a.TokensByType
+}
+
+func (a *AiPersonData) GetModels() []*AiPersonModel {
+	if a == nil {
+		return nil
+	}
+	return a.Models
+}
+
+func (a *AiPersonData) GetFailuresDaily() []*AiPersonFailures {
+	if a == nil {
+		return nil
+	}
+	return a.FailuresDaily
 }
 
 func (a *AiPersonData) GetExtraProperties() map[string]interface{} {
@@ -849,6 +2857,55 @@ func (a *AiPersonData) SetRecommendation(recommendation *AiPersonRecommendation)
 	a.require(aiPersonDataFieldRecommendation)
 }
 
+// SetVersion sets the Version field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonData) SetVersion(version *string) {
+	a.Version = version
+	a.require(aiPersonDataFieldVersion)
+}
+
+// SetVersionState sets the VersionState field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonData) SetVersionState(versionState *AiPersonDataVersionState) {
+	a.VersionState = versionState
+	a.require(aiPersonDataFieldVersionState)
+}
+
+// SetManagedSettings sets the ManagedSettings field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonData) SetManagedSettings(managedSettings *bool) {
+	a.ManagedSettings = managedSettings
+	a.require(aiPersonDataFieldManagedSettings)
+}
+
+// SetFailedRequests30D sets the FailedRequests30D field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonData) SetFailedRequests30D(failedRequests30D int) {
+	a.FailedRequests30D = failedRequests30D
+	a.require(aiPersonDataFieldFailedRequests30D)
+}
+
+// SetTokensByType sets the TokensByType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonData) SetTokensByType(tokensByType *AiTokensByType) {
+	a.TokensByType = tokensByType
+	a.require(aiPersonDataFieldTokensByType)
+}
+
+// SetModels sets the Models field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonData) SetModels(models []*AiPersonModel) {
+	a.Models = models
+	a.require(aiPersonDataFieldModels)
+}
+
+// SetFailuresDaily sets the FailuresDaily field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonData) SetFailuresDaily(failuresDaily []*AiPersonFailures) {
+	a.FailuresDaily = failuresDaily
+	a.require(aiPersonDataFieldFailuresDaily)
+}
+
 func (a *AiPersonData) UnmarshalJSON(data []byte) error {
 	type embed AiPersonData
 	var unmarshaler = struct {
@@ -919,6 +2976,472 @@ func NewAiPersonDataSeatFromString(s string) (AiPersonDataSeat, error) {
 
 func (a AiPersonDataSeat) Ptr() *AiPersonDataSeat {
 	return &a
+}
+
+type AiPersonDataVersionState string
+
+const (
+	AiPersonDataVersionStateCurrent AiPersonDataVersionState = "current"
+	AiPersonDataVersionStateMinor   AiPersonDataVersionState = "minor"
+	AiPersonDataVersionStateOld     AiPersonDataVersionState = "old"
+)
+
+func NewAiPersonDataVersionStateFromString(s string) (AiPersonDataVersionState, error) {
+	switch s {
+	case "current":
+		return AiPersonDataVersionStateCurrent, nil
+	case "minor":
+		return AiPersonDataVersionStateMinor, nil
+	case "old":
+		return AiPersonDataVersionStateOld, nil
+	}
+	var t AiPersonDataVersionState
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AiPersonDataVersionState) Ptr() *AiPersonDataVersionState {
+	return &a
+}
+
+var (
+	aiPersonFailingFieldPerson         = big.NewInt(1 << 0)
+	aiPersonFailingFieldFailedRequests = big.NewInt(1 << 1)
+	aiPersonFailingFieldTopKind        = big.NewInt(1 << 2)
+)
+
+type AiPersonFailing struct {
+	Person         string `json:"person" url:"person"`
+	FailedRequests int    `json:"failed_requests" url:"failed_requests"`
+	// The kind most of the person's failures were
+	TopKind AiPersonFailingTopKind `json:"top_kind" url:"top_kind"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiPersonFailing) GetPerson() string {
+	if a == nil {
+		return ""
+	}
+	return a.Person
+}
+
+func (a *AiPersonFailing) GetFailedRequests() int {
+	if a == nil {
+		return 0
+	}
+	return a.FailedRequests
+}
+
+func (a *AiPersonFailing) GetTopKind() AiPersonFailingTopKind {
+	if a == nil {
+		return ""
+	}
+	return a.TopKind
+}
+
+func (a *AiPersonFailing) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiPersonFailing) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetPerson sets the Person field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonFailing) SetPerson(person string) {
+	a.Person = person
+	a.require(aiPersonFailingFieldPerson)
+}
+
+// SetFailedRequests sets the FailedRequests field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonFailing) SetFailedRequests(failedRequests int) {
+	a.FailedRequests = failedRequests
+	a.require(aiPersonFailingFieldFailedRequests)
+}
+
+// SetTopKind sets the TopKind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonFailing) SetTopKind(topKind AiPersonFailingTopKind) {
+	a.TopKind = topKind
+	a.require(aiPersonFailingFieldTopKind)
+}
+
+func (a *AiPersonFailing) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiPersonFailing
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiPersonFailing(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiPersonFailing) MarshalJSON() ([]byte, error) {
+	type embed AiPersonFailing
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiPersonFailing) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+// The kind most of the person's failures were
+type AiPersonFailingTopKind string
+
+const (
+	AiPersonFailingTopKindFourHundred           AiPersonFailingTopKind = "400"
+	AiPersonFailingTopKindFourHundredTwentyNine AiPersonFailingTopKind = "429"
+	AiPersonFailingTopKindFiveHundredTwentyNine AiPersonFailingTopKind = "529"
+	AiPersonFailingTopKindConnection            AiPersonFailingTopKind = "connection"
+	AiPersonFailingTopKindOther                 AiPersonFailingTopKind = "other"
+)
+
+func NewAiPersonFailingTopKindFromString(s string) (AiPersonFailingTopKind, error) {
+	switch s {
+	case "400":
+		return AiPersonFailingTopKindFourHundred, nil
+	case "429":
+		return AiPersonFailingTopKindFourHundredTwentyNine, nil
+	case "529":
+		return AiPersonFailingTopKindFiveHundredTwentyNine, nil
+	case "connection":
+		return AiPersonFailingTopKindConnection, nil
+	case "other":
+		return AiPersonFailingTopKindOther, nil
+	}
+	var t AiPersonFailingTopKind
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AiPersonFailingTopKind) Ptr() *AiPersonFailingTopKind {
+	return &a
+}
+
+var (
+	aiPersonFailuresFieldDay      = big.NewInt(1 << 0)
+	aiPersonFailuresFieldKind     = big.NewInt(1 << 1)
+	aiPersonFailuresFieldRequests = big.NewInt(1 << 2)
+)
+
+type AiPersonFailures struct {
+	Day time.Time `json:"day" url:"day" format:"date"`
+	// What the API answered: 400 invalid request, 429 rate limited, 529 overloaded, connection when no answer came, other for the rest
+	Kind     AiPersonFailuresKind `json:"kind" url:"kind"`
+	Requests int                  `json:"requests" url:"requests"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiPersonFailures) GetDay() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.Day
+}
+
+func (a *AiPersonFailures) GetKind() AiPersonFailuresKind {
+	if a == nil {
+		return ""
+	}
+	return a.Kind
+}
+
+func (a *AiPersonFailures) GetRequests() int {
+	if a == nil {
+		return 0
+	}
+	return a.Requests
+}
+
+func (a *AiPersonFailures) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiPersonFailures) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetDay sets the Day field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonFailures) SetDay(day time.Time) {
+	a.Day = day
+	a.require(aiPersonFailuresFieldDay)
+}
+
+// SetKind sets the Kind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonFailures) SetKind(kind AiPersonFailuresKind) {
+	a.Kind = kind
+	a.require(aiPersonFailuresFieldKind)
+}
+
+// SetRequests sets the Requests field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonFailures) SetRequests(requests int) {
+	a.Requests = requests
+	a.require(aiPersonFailuresFieldRequests)
+}
+
+func (a *AiPersonFailures) UnmarshalJSON(data []byte) error {
+	type embed AiPersonFailures
+	var unmarshaler = struct {
+		embed
+		Day *internal.Date `json:"day"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*a = AiPersonFailures(unmarshaler.embed)
+	a.Day = unmarshaler.Day.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiPersonFailures) MarshalJSON() ([]byte, error) {
+	type embed AiPersonFailures
+	var marshaler = struct {
+		embed
+		Day *internal.Date `json:"day"`
+	}{
+		embed: embed(*a),
+		Day:   internal.NewDate(a.Day),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiPersonFailures) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+// What the API answered: 400 invalid request, 429 rate limited, 529 overloaded, connection when no answer came, other for the rest
+type AiPersonFailuresKind string
+
+const (
+	AiPersonFailuresKindFourHundred           AiPersonFailuresKind = "400"
+	AiPersonFailuresKindFourHundredTwentyNine AiPersonFailuresKind = "429"
+	AiPersonFailuresKindFiveHundredTwentyNine AiPersonFailuresKind = "529"
+	AiPersonFailuresKindConnection            AiPersonFailuresKind = "connection"
+	AiPersonFailuresKindOther                 AiPersonFailuresKind = "other"
+)
+
+func NewAiPersonFailuresKindFromString(s string) (AiPersonFailuresKind, error) {
+	switch s {
+	case "400":
+		return AiPersonFailuresKindFourHundred, nil
+	case "429":
+		return AiPersonFailuresKindFourHundredTwentyNine, nil
+	case "529":
+		return AiPersonFailuresKindFiveHundredTwentyNine, nil
+	case "connection":
+		return AiPersonFailuresKindConnection, nil
+	case "other":
+		return AiPersonFailuresKindOther, nil
+	}
+	var t AiPersonFailuresKind
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AiPersonFailuresKind) Ptr() *AiPersonFailuresKind {
+	return &a
+}
+
+var (
+	aiPersonModelFieldModel      = big.NewInt(1 << 0)
+	aiPersonModelFieldUsageValue = big.NewInt(1 << 1)
+	aiPersonModelFieldTokens     = big.NewInt(1 << 2)
+	aiPersonModelFieldShare      = big.NewInt(1 << 3)
+)
+
+type AiPersonModel struct {
+	Model string `json:"model" url:"model"`
+	// What the tools reported for it, at API list price
+	UsageValue float64 `json:"usage_value" url:"usage_value"`
+	// Its tokens, cache reads left out
+	Tokens int `json:"tokens" url:"tokens"`
+	// Its part of the person's usage value, 0 to 1
+	Share float64 `json:"share" url:"share"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiPersonModel) GetModel() string {
+	if a == nil {
+		return ""
+	}
+	return a.Model
+}
+
+func (a *AiPersonModel) GetUsageValue() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.UsageValue
+}
+
+func (a *AiPersonModel) GetTokens() int {
+	if a == nil {
+		return 0
+	}
+	return a.Tokens
+}
+
+func (a *AiPersonModel) GetShare() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.Share
+}
+
+func (a *AiPersonModel) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiPersonModel) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetModel sets the Model field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonModel) SetModel(model string) {
+	a.Model = model
+	a.require(aiPersonModelFieldModel)
+}
+
+// SetUsageValue sets the UsageValue field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonModel) SetUsageValue(usageValue float64) {
+	a.UsageValue = usageValue
+	a.require(aiPersonModelFieldUsageValue)
+}
+
+// SetTokens sets the Tokens field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonModel) SetTokens(tokens int) {
+	a.Tokens = tokens
+	a.require(aiPersonModelFieldTokens)
+}
+
+// SetShare sets the Share field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonModel) SetShare(share float64) {
+	a.Share = share
+	a.require(aiPersonModelFieldShare)
+}
+
+func (a *AiPersonModel) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiPersonModel
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiPersonModel(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiPersonModel) MarshalJSON() ([]byte, error) {
+	type embed AiPersonModel
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiPersonModel) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
 }
 
 var (
@@ -1215,6 +3738,375 @@ func (a *AiPersonResponse) String() string {
 }
 
 var (
+	aiPersonToolUseFieldTool        = big.NewInt(1 << 0)
+	aiPersonToolUseFieldMcpServer   = big.NewInt(1 << 1)
+	aiPersonToolUseFieldCalls       = big.NewInt(1 << 2)
+	aiPersonToolUseFieldErrors      = big.NewInt(1 << 3)
+	aiPersonToolUseFieldSuccessRate = big.NewInt(1 << 4)
+)
+
+type AiPersonToolUse struct {
+	// The tool's name. An MCP tool keeps the name after its server's, and one the install did not name is MCP tools
+	Tool string `json:"tool" url:"tool"`
+	// The MCP server it was called through, null for any other tool
+	McpServer *string `json:"mcp_server,omitempty" url:"mcp_server,omitempty"`
+	Calls     int     `json:"calls" url:"calls"`
+	Errors    int     `json:"errors" url:"errors"`
+	// Calls that did not fail, 0 to 1
+	SuccessRate float64 `json:"success_rate" url:"success_rate"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiPersonToolUse) GetTool() string {
+	if a == nil {
+		return ""
+	}
+	return a.Tool
+}
+
+func (a *AiPersonToolUse) GetMcpServer() *string {
+	if a == nil {
+		return nil
+	}
+	return a.McpServer
+}
+
+func (a *AiPersonToolUse) GetCalls() int {
+	if a == nil {
+		return 0
+	}
+	return a.Calls
+}
+
+func (a *AiPersonToolUse) GetErrors() int {
+	if a == nil {
+		return 0
+	}
+	return a.Errors
+}
+
+func (a *AiPersonToolUse) GetSuccessRate() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.SuccessRate
+}
+
+func (a *AiPersonToolUse) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiPersonToolUse) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetTool sets the Tool field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonToolUse) SetTool(tool string) {
+	a.Tool = tool
+	a.require(aiPersonToolUseFieldTool)
+}
+
+// SetMcpServer sets the McpServer field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonToolUse) SetMcpServer(mcpServer *string) {
+	a.McpServer = mcpServer
+	a.require(aiPersonToolUseFieldMcpServer)
+}
+
+// SetCalls sets the Calls field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonToolUse) SetCalls(calls int) {
+	a.Calls = calls
+	a.require(aiPersonToolUseFieldCalls)
+}
+
+// SetErrors sets the Errors field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonToolUse) SetErrors(errors int) {
+	a.Errors = errors
+	a.require(aiPersonToolUseFieldErrors)
+}
+
+// SetSuccessRate sets the SuccessRate field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonToolUse) SetSuccessRate(successRate float64) {
+	a.SuccessRate = successRate
+	a.require(aiPersonToolUseFieldSuccessRate)
+}
+
+func (a *AiPersonToolUse) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiPersonToolUse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiPersonToolUse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiPersonToolUse) MarshalJSON() ([]byte, error) {
+	type embed AiPersonToolUse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiPersonToolUse) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	aiPersonToolsDataFieldItems      = big.NewInt(1 << 0)
+	aiPersonToolsDataFieldMcpServers = big.NewInt(1 << 1)
+)
+
+type AiPersonToolsData struct {
+	// Every tool the person called in the range, the most calls first
+	Items []*AiPersonToolUse `json:"items" url:"items"`
+	// The MCP servers the person connected to in the range
+	McpServers []*AiMcpConnections `json:"mcp_servers" url:"mcp_servers"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiPersonToolsData) GetItems() []*AiPersonToolUse {
+	if a == nil {
+		return nil
+	}
+	return a.Items
+}
+
+func (a *AiPersonToolsData) GetMcpServers() []*AiMcpConnections {
+	if a == nil {
+		return nil
+	}
+	return a.McpServers
+}
+
+func (a *AiPersonToolsData) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiPersonToolsData) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonToolsData) SetItems(items []*AiPersonToolUse) {
+	a.Items = items
+	a.require(aiPersonToolsDataFieldItems)
+}
+
+// SetMcpServers sets the McpServers field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonToolsData) SetMcpServers(mcpServers []*AiMcpConnections) {
+	a.McpServers = mcpServers
+	a.require(aiPersonToolsDataFieldMcpServers)
+}
+
+func (a *AiPersonToolsData) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiPersonToolsData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiPersonToolsData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiPersonToolsData) MarshalJSON() ([]byte, error) {
+	type embed AiPersonToolsData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiPersonToolsData) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	aiPersonToolsResponseFieldSuccess   = big.NewInt(1 << 0)
+	aiPersonToolsResponseFieldData      = big.NewInt(1 << 1)
+	aiPersonToolsResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type AiPersonToolsResponse struct {
+	Success   *bool              `json:"success,omitempty" url:"success,omitempty"`
+	Data      *AiPersonToolsData `json:"data" url:"data"`
+	Timestamp string             `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiPersonToolsResponse) GetSuccess() *bool {
+	if a == nil {
+		return nil
+	}
+	return a.Success
+}
+
+func (a *AiPersonToolsResponse) GetData() *AiPersonToolsData {
+	if a == nil {
+		return nil
+	}
+	return a.Data
+}
+
+func (a *AiPersonToolsResponse) GetTimestamp() string {
+	if a == nil {
+		return ""
+	}
+	return a.Timestamp
+}
+
+func (a *AiPersonToolsResponse) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiPersonToolsResponse) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonToolsResponse) SetSuccess(success *bool) {
+	a.Success = success
+	a.require(aiPersonToolsResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonToolsResponse) SetData(data *AiPersonToolsData) {
+	a.Data = data
+	a.require(aiPersonToolsResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiPersonToolsResponse) SetTimestamp(timestamp string) {
+	a.Timestamp = timestamp
+	a.require(aiPersonToolsResponseFieldTimestamp)
+}
+
+func (a *AiPersonToolsResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiPersonToolsResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiPersonToolsResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiPersonToolsResponse) MarshalJSON() ([]byte, error) {
+	type embed AiPersonToolsResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiPersonToolsResponse) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
 	aiPersonWeekFieldWeekStart = big.NewInt(1 << 0)
 	aiPersonWeekFieldTokens    = big.NewInt(1 << 1)
 )
@@ -1325,44 +4217,51 @@ func (a *AiPersonWeek) String() string {
 }
 
 var (
-	aiSessionFieldSession         = big.NewInt(1 << 0)
-	aiSessionFieldStartedAt       = big.NewInt(1 << 1)
-	aiSessionFieldProduct         = big.NewInt(1 << 2)
-	aiSessionFieldModel           = big.NewInt(1 << 3)
-	aiSessionFieldRepository      = big.NewInt(1 << 4)
-	aiSessionFieldRequests        = big.NewInt(1 << 5)
-	aiSessionFieldTokens          = big.NewInt(1 << 6)
+	aiSessionFieldStartedAt       = big.NewInt(1 << 0)
+	aiSessionFieldProduct         = big.NewInt(1 << 1)
+	aiSessionFieldModel           = big.NewInt(1 << 2)
+	aiSessionFieldRepository      = big.NewInt(1 << 3)
+	aiSessionFieldRequests        = big.NewInt(1 << 4)
+	aiSessionFieldTokens          = big.NewInt(1 << 5)
+	aiSessionFieldTokensByType    = big.NewInt(1 << 6)
 	aiSessionFieldUsageValue      = big.NewInt(1 << 7)
-	aiSessionFieldDurationSeconds = big.NewInt(1 << 8)
+	aiSessionFieldActiveSeconds   = big.NewInt(1 << 8)
+	aiSessionFieldSession         = big.NewInt(1 << 9)
+	aiSessionFieldDurationSeconds = big.NewInt(1 << 10)
+	aiSessionFieldFailedRequests  = big.NewInt(1 << 11)
+	aiSessionFieldOutcome         = big.NewInt(1 << 12)
 )
 
 type AiSession struct {
-	// The session or conversation id the tool sent
-	Session   string    `json:"session" url:"session"`
+	// When its first request was sent
 	StartedAt time.Time `json:"started_at" url:"started_at"`
 	Product   string    `json:"product" url:"product"`
 	// The model most of its requests used
 	Model string `json:"model" url:"model"`
 	// Sent only when the developer turned repository names on
 	Repository *string `json:"repository,omitempty" url:"repository,omitempty"`
-	Requests   int     `json:"requests" url:"requests"`
-	Tokens     int     `json:"tokens" url:"tokens"`
-	UsageValue float64 `json:"usage_value" url:"usage_value"`
+	// Its model requests that succeeded
+	Requests int `json:"requests" url:"requests"`
+	// Its tokens, cache reads left out
+	Tokens       int             `json:"tokens" url:"tokens"`
+	TokensByType *AiTokensByType `json:"tokens_by_type" url:"tokens_by_type"`
+	UsageValue   float64         `json:"usage_value" url:"usage_value"`
+	// Its active time, null until its metrics reported any
+	ActiveSeconds *int `json:"active_seconds,omitempty" url:"active_seconds,omitempty"`
+	// The session or conversation id the tool sent
+	Session string `json:"session" url:"session"`
 	// From the first request to the last
 	DurationSeconds int `json:"duration_seconds" url:"duration_seconds"`
+	// Its requests that failed, null when its detail was not collected
+	FailedRequests *int `json:"failed_requests,omitempty" url:"failed_requests,omitempty"`
+	// no_failures, recovered when a request succeeded after the last one that failed, stopped when the last request failed, and unknown for a session whose detail was not collected
+	Outcome AiSessionOutcome `json:"outcome" url:"outcome"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
-}
-
-func (a *AiSession) GetSession() string {
-	if a == nil {
-		return ""
-	}
-	return a.Session
 }
 
 func (a *AiSession) GetStartedAt() time.Time {
@@ -1407,6 +4306,13 @@ func (a *AiSession) GetTokens() int {
 	return a.Tokens
 }
 
+func (a *AiSession) GetTokensByType() *AiTokensByType {
+	if a == nil {
+		return nil
+	}
+	return a.TokensByType
+}
+
 func (a *AiSession) GetUsageValue() float64 {
 	if a == nil {
 		return 0
@@ -1414,11 +4320,39 @@ func (a *AiSession) GetUsageValue() float64 {
 	return a.UsageValue
 }
 
+func (a *AiSession) GetActiveSeconds() *int {
+	if a == nil {
+		return nil
+	}
+	return a.ActiveSeconds
+}
+
+func (a *AiSession) GetSession() string {
+	if a == nil {
+		return ""
+	}
+	return a.Session
+}
+
 func (a *AiSession) GetDurationSeconds() int {
 	if a == nil {
 		return 0
 	}
 	return a.DurationSeconds
+}
+
+func (a *AiSession) GetFailedRequests() *int {
+	if a == nil {
+		return nil
+	}
+	return a.FailedRequests
+}
+
+func (a *AiSession) GetOutcome() AiSessionOutcome {
+	if a == nil {
+		return ""
+	}
+	return a.Outcome
 }
 
 func (a *AiSession) GetExtraProperties() map[string]interface{} {
@@ -1433,13 +4367,6 @@ func (a *AiSession) require(field *big.Int) {
 		a.explicitFields = big.NewInt(0)
 	}
 	a.explicitFields.Or(a.explicitFields, field)
-}
-
-// SetSession sets the Session field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (a *AiSession) SetSession(session string) {
-	a.Session = session
-	a.require(aiSessionFieldSession)
 }
 
 // SetStartedAt sets the StartedAt field and marks it as non-optional;
@@ -1484,6 +4411,13 @@ func (a *AiSession) SetTokens(tokens int) {
 	a.require(aiSessionFieldTokens)
 }
 
+// SetTokensByType sets the TokensByType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSession) SetTokensByType(tokensByType *AiTokensByType) {
+	a.TokensByType = tokensByType
+	a.require(aiSessionFieldTokensByType)
+}
+
 // SetUsageValue sets the UsageValue field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (a *AiSession) SetUsageValue(usageValue float64) {
@@ -1491,11 +4425,39 @@ func (a *AiSession) SetUsageValue(usageValue float64) {
 	a.require(aiSessionFieldUsageValue)
 }
 
+// SetActiveSeconds sets the ActiveSeconds field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSession) SetActiveSeconds(activeSeconds *int) {
+	a.ActiveSeconds = activeSeconds
+	a.require(aiSessionFieldActiveSeconds)
+}
+
+// SetSession sets the Session field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSession) SetSession(session string) {
+	a.Session = session
+	a.require(aiSessionFieldSession)
+}
+
 // SetDurationSeconds sets the DurationSeconds field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (a *AiSession) SetDurationSeconds(durationSeconds int) {
 	a.DurationSeconds = durationSeconds
 	a.require(aiSessionFieldDurationSeconds)
+}
+
+// SetFailedRequests sets the FailedRequests field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSession) SetFailedRequests(failedRequests *int) {
+	a.FailedRequests = failedRequests
+	a.require(aiSessionFieldFailedRequests)
+}
+
+// SetOutcome sets the Outcome field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSession) SetOutcome(outcome AiSessionOutcome) {
+	a.Outcome = outcome
+	a.require(aiSessionFieldOutcome)
 }
 
 func (a *AiSession) UnmarshalJSON(data []byte) error {
@@ -1534,6 +4496,1034 @@ func (a *AiSession) MarshalJSON() ([]byte, error) {
 }
 
 func (a *AiSession) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	aiSessionBucketFieldBucketStart = big.NewInt(1 << 0)
+	aiSessionBucketFieldRequests    = big.NewInt(1 << 1)
+	aiSessionBucketFieldFailures    = big.NewInt(1 << 2)
+)
+
+type AiSessionBucket struct {
+	// The start of its ten minutes
+	BucketStart time.Time `json:"bucket_start" url:"bucket_start"`
+	// Requests that succeeded in them
+	Requests int `json:"requests" url:"requests"`
+	// Requests that failed in them, by kind: 400, 429, 529, connection and other, every kind named
+	Failures map[string]int `json:"failures" url:"failures"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiSessionBucket) GetBucketStart() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.BucketStart
+}
+
+func (a *AiSessionBucket) GetRequests() int {
+	if a == nil {
+		return 0
+	}
+	return a.Requests
+}
+
+func (a *AiSessionBucket) GetFailures() map[string]int {
+	if a == nil {
+		return nil
+	}
+	return a.Failures
+}
+
+func (a *AiSessionBucket) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiSessionBucket) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetBucketStart sets the BucketStart field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionBucket) SetBucketStart(bucketStart time.Time) {
+	a.BucketStart = bucketStart
+	a.require(aiSessionBucketFieldBucketStart)
+}
+
+// SetRequests sets the Requests field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionBucket) SetRequests(requests int) {
+	a.Requests = requests
+	a.require(aiSessionBucketFieldRequests)
+}
+
+// SetFailures sets the Failures field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionBucket) SetFailures(failures map[string]int) {
+	a.Failures = failures
+	a.require(aiSessionBucketFieldFailures)
+}
+
+func (a *AiSessionBucket) UnmarshalJSON(data []byte) error {
+	type embed AiSessionBucket
+	var unmarshaler = struct {
+		embed
+		BucketStart *internal.DateTime `json:"bucket_start"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*a = AiSessionBucket(unmarshaler.embed)
+	a.BucketStart = unmarshaler.BucketStart.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiSessionBucket) MarshalJSON() ([]byte, error) {
+	type embed AiSessionBucket
+	var marshaler = struct {
+		embed
+		BucketStart *internal.DateTime `json:"bucket_start"`
+	}{
+		embed:       embed(*a),
+		BucketStart: internal.NewDateTime(a.BucketStart),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiSessionBucket) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	aiSessionDetailFieldStartedAt      = big.NewInt(1 << 0)
+	aiSessionDetailFieldProduct        = big.NewInt(1 << 1)
+	aiSessionDetailFieldModel          = big.NewInt(1 << 2)
+	aiSessionDetailFieldRepository     = big.NewInt(1 << 3)
+	aiSessionDetailFieldRequests       = big.NewInt(1 << 4)
+	aiSessionDetailFieldTokens         = big.NewInt(1 << 5)
+	aiSessionDetailFieldTokensByType   = big.NewInt(1 << 6)
+	aiSessionDetailFieldUsageValue     = big.NewInt(1 << 7)
+	aiSessionDetailFieldActiveSeconds  = big.NewInt(1 << 8)
+	aiSessionDetailFieldSession        = big.NewInt(1 << 9)
+	aiSessionDetailFieldEndedAt        = big.NewInt(1 << 10)
+	aiSessionDetailFieldFailedRequests = big.NewInt(1 << 11)
+	aiSessionDetailFieldOutcome        = big.NewInt(1 << 12)
+	aiSessionDetailFieldPermissionMode = big.NewInt(1 << 13)
+	aiSessionDetailFieldCollected      = big.NewInt(1 << 14)
+	aiSessionDetailFieldTimeline       = big.NewInt(1 << 15)
+	aiSessionDetailFieldTools          = big.NewInt(1 << 16)
+	aiSessionDetailFieldMcpServers     = big.NewInt(1 << 17)
+)
+
+type AiSessionDetail struct {
+	// When its first request was sent
+	StartedAt time.Time `json:"started_at" url:"started_at"`
+	Product   string    `json:"product" url:"product"`
+	// The model most of its requests used
+	Model string `json:"model" url:"model"`
+	// Sent only when the developer turned repository names on
+	Repository *string `json:"repository,omitempty" url:"repository,omitempty"`
+	// Its model requests that succeeded
+	Requests int `json:"requests" url:"requests"`
+	// Its tokens, cache reads left out
+	Tokens       int             `json:"tokens" url:"tokens"`
+	TokensByType *AiTokensByType `json:"tokens_by_type" url:"tokens_by_type"`
+	UsageValue   float64         `json:"usage_value" url:"usage_value"`
+	// Its active time, null until its metrics reported any
+	ActiveSeconds *int   `json:"active_seconds,omitempty" url:"active_seconds,omitempty"`
+	Session       string `json:"session" url:"session"`
+	// When its last request was sent
+	EndedAt time.Time `json:"ended_at" url:"ended_at"`
+	// Its requests that failed, null when its detail was not collected
+	FailedRequests *int `json:"failed_requests,omitempty" url:"failed_requests,omitempty"`
+	// no_failures, recovered when a request succeeded after the last one that failed, stopped when the last request failed, and unknown for a session whose detail was not collected
+	Outcome AiSessionDetailOutcome `json:"outcome" url:"outcome"`
+	// The mode it last switched to, default when it never switched, null when its detail was not collected
+	PermissionMode *string `json:"permission_mode,omitempty" url:"permission_mode,omitempty"`
+	// false for a session from before its detail was kept: timeline and tools are empty
+	Collected bool `json:"collected" url:"collected"`
+	// Its ten minutes that had a request, the earliest first
+	Timeline []*AiSessionBucket `json:"timeline" url:"timeline"`
+	// Its tools, the most calls first
+	Tools []*AiSessionTool `json:"tools" url:"tools"`
+	// The MCP servers it connected to, the most attempts first
+	McpServers []*AiMcpConnections `json:"mcp_servers" url:"mcp_servers"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiSessionDetail) GetStartedAt() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.StartedAt
+}
+
+func (a *AiSessionDetail) GetProduct() string {
+	if a == nil {
+		return ""
+	}
+	return a.Product
+}
+
+func (a *AiSessionDetail) GetModel() string {
+	if a == nil {
+		return ""
+	}
+	return a.Model
+}
+
+func (a *AiSessionDetail) GetRepository() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Repository
+}
+
+func (a *AiSessionDetail) GetRequests() int {
+	if a == nil {
+		return 0
+	}
+	return a.Requests
+}
+
+func (a *AiSessionDetail) GetTokens() int {
+	if a == nil {
+		return 0
+	}
+	return a.Tokens
+}
+
+func (a *AiSessionDetail) GetTokensByType() *AiTokensByType {
+	if a == nil {
+		return nil
+	}
+	return a.TokensByType
+}
+
+func (a *AiSessionDetail) GetUsageValue() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.UsageValue
+}
+
+func (a *AiSessionDetail) GetActiveSeconds() *int {
+	if a == nil {
+		return nil
+	}
+	return a.ActiveSeconds
+}
+
+func (a *AiSessionDetail) GetSession() string {
+	if a == nil {
+		return ""
+	}
+	return a.Session
+}
+
+func (a *AiSessionDetail) GetEndedAt() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.EndedAt
+}
+
+func (a *AiSessionDetail) GetFailedRequests() *int {
+	if a == nil {
+		return nil
+	}
+	return a.FailedRequests
+}
+
+func (a *AiSessionDetail) GetOutcome() AiSessionDetailOutcome {
+	if a == nil {
+		return ""
+	}
+	return a.Outcome
+}
+
+func (a *AiSessionDetail) GetPermissionMode() *string {
+	if a == nil {
+		return nil
+	}
+	return a.PermissionMode
+}
+
+func (a *AiSessionDetail) GetCollected() bool {
+	if a == nil {
+		return false
+	}
+	return a.Collected
+}
+
+func (a *AiSessionDetail) GetTimeline() []*AiSessionBucket {
+	if a == nil {
+		return nil
+	}
+	return a.Timeline
+}
+
+func (a *AiSessionDetail) GetTools() []*AiSessionTool {
+	if a == nil {
+		return nil
+	}
+	return a.Tools
+}
+
+func (a *AiSessionDetail) GetMcpServers() []*AiMcpConnections {
+	if a == nil {
+		return nil
+	}
+	return a.McpServers
+}
+
+func (a *AiSessionDetail) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiSessionDetail) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetStartedAt sets the StartedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionDetail) SetStartedAt(startedAt time.Time) {
+	a.StartedAt = startedAt
+	a.require(aiSessionDetailFieldStartedAt)
+}
+
+// SetProduct sets the Product field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionDetail) SetProduct(product string) {
+	a.Product = product
+	a.require(aiSessionDetailFieldProduct)
+}
+
+// SetModel sets the Model field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionDetail) SetModel(model string) {
+	a.Model = model
+	a.require(aiSessionDetailFieldModel)
+}
+
+// SetRepository sets the Repository field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionDetail) SetRepository(repository *string) {
+	a.Repository = repository
+	a.require(aiSessionDetailFieldRepository)
+}
+
+// SetRequests sets the Requests field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionDetail) SetRequests(requests int) {
+	a.Requests = requests
+	a.require(aiSessionDetailFieldRequests)
+}
+
+// SetTokens sets the Tokens field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionDetail) SetTokens(tokens int) {
+	a.Tokens = tokens
+	a.require(aiSessionDetailFieldTokens)
+}
+
+// SetTokensByType sets the TokensByType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionDetail) SetTokensByType(tokensByType *AiTokensByType) {
+	a.TokensByType = tokensByType
+	a.require(aiSessionDetailFieldTokensByType)
+}
+
+// SetUsageValue sets the UsageValue field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionDetail) SetUsageValue(usageValue float64) {
+	a.UsageValue = usageValue
+	a.require(aiSessionDetailFieldUsageValue)
+}
+
+// SetActiveSeconds sets the ActiveSeconds field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionDetail) SetActiveSeconds(activeSeconds *int) {
+	a.ActiveSeconds = activeSeconds
+	a.require(aiSessionDetailFieldActiveSeconds)
+}
+
+// SetSession sets the Session field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionDetail) SetSession(session string) {
+	a.Session = session
+	a.require(aiSessionDetailFieldSession)
+}
+
+// SetEndedAt sets the EndedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionDetail) SetEndedAt(endedAt time.Time) {
+	a.EndedAt = endedAt
+	a.require(aiSessionDetailFieldEndedAt)
+}
+
+// SetFailedRequests sets the FailedRequests field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionDetail) SetFailedRequests(failedRequests *int) {
+	a.FailedRequests = failedRequests
+	a.require(aiSessionDetailFieldFailedRequests)
+}
+
+// SetOutcome sets the Outcome field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionDetail) SetOutcome(outcome AiSessionDetailOutcome) {
+	a.Outcome = outcome
+	a.require(aiSessionDetailFieldOutcome)
+}
+
+// SetPermissionMode sets the PermissionMode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionDetail) SetPermissionMode(permissionMode *string) {
+	a.PermissionMode = permissionMode
+	a.require(aiSessionDetailFieldPermissionMode)
+}
+
+// SetCollected sets the Collected field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionDetail) SetCollected(collected bool) {
+	a.Collected = collected
+	a.require(aiSessionDetailFieldCollected)
+}
+
+// SetTimeline sets the Timeline field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionDetail) SetTimeline(timeline []*AiSessionBucket) {
+	a.Timeline = timeline
+	a.require(aiSessionDetailFieldTimeline)
+}
+
+// SetTools sets the Tools field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionDetail) SetTools(tools []*AiSessionTool) {
+	a.Tools = tools
+	a.require(aiSessionDetailFieldTools)
+}
+
+// SetMcpServers sets the McpServers field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionDetail) SetMcpServers(mcpServers []*AiMcpConnections) {
+	a.McpServers = mcpServers
+	a.require(aiSessionDetailFieldMcpServers)
+}
+
+func (a *AiSessionDetail) UnmarshalJSON(data []byte) error {
+	type embed AiSessionDetail
+	var unmarshaler = struct {
+		embed
+		StartedAt *internal.DateTime `json:"started_at"`
+		EndedAt   *internal.DateTime `json:"ended_at"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*a = AiSessionDetail(unmarshaler.embed)
+	a.StartedAt = unmarshaler.StartedAt.Time()
+	a.EndedAt = unmarshaler.EndedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiSessionDetail) MarshalJSON() ([]byte, error) {
+	type embed AiSessionDetail
+	var marshaler = struct {
+		embed
+		StartedAt *internal.DateTime `json:"started_at"`
+		EndedAt   *internal.DateTime `json:"ended_at"`
+	}{
+		embed:     embed(*a),
+		StartedAt: internal.NewDateTime(a.StartedAt),
+		EndedAt:   internal.NewDateTime(a.EndedAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiSessionDetail) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+// no_failures, recovered when a request succeeded after the last one that failed, stopped when the last request failed, and unknown for a session whose detail was not collected
+type AiSessionDetailOutcome string
+
+const (
+	AiSessionDetailOutcomeNoFailures AiSessionDetailOutcome = "no_failures"
+	AiSessionDetailOutcomeRecovered  AiSessionDetailOutcome = "recovered"
+	AiSessionDetailOutcomeStopped    AiSessionDetailOutcome = "stopped"
+	AiSessionDetailOutcomeUnknown    AiSessionDetailOutcome = "unknown"
+)
+
+func NewAiSessionDetailOutcomeFromString(s string) (AiSessionDetailOutcome, error) {
+	switch s {
+	case "no_failures":
+		return AiSessionDetailOutcomeNoFailures, nil
+	case "recovered":
+		return AiSessionDetailOutcomeRecovered, nil
+	case "stopped":
+		return AiSessionDetailOutcomeStopped, nil
+	case "unknown":
+		return AiSessionDetailOutcomeUnknown, nil
+	}
+	var t AiSessionDetailOutcome
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AiSessionDetailOutcome) Ptr() *AiSessionDetailOutcome {
+	return &a
+}
+
+var (
+	aiSessionDetailResponseFieldSuccess   = big.NewInt(1 << 0)
+	aiSessionDetailResponseFieldData      = big.NewInt(1 << 1)
+	aiSessionDetailResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type AiSessionDetailResponse struct {
+	Success   *bool            `json:"success,omitempty" url:"success,omitempty"`
+	Data      *AiSessionDetail `json:"data" url:"data"`
+	Timestamp string           `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiSessionDetailResponse) GetSuccess() *bool {
+	if a == nil {
+		return nil
+	}
+	return a.Success
+}
+
+func (a *AiSessionDetailResponse) GetData() *AiSessionDetail {
+	if a == nil {
+		return nil
+	}
+	return a.Data
+}
+
+func (a *AiSessionDetailResponse) GetTimestamp() string {
+	if a == nil {
+		return ""
+	}
+	return a.Timestamp
+}
+
+func (a *AiSessionDetailResponse) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiSessionDetailResponse) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionDetailResponse) SetSuccess(success *bool) {
+	a.Success = success
+	a.require(aiSessionDetailResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionDetailResponse) SetData(data *AiSessionDetail) {
+	a.Data = data
+	a.require(aiSessionDetailResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionDetailResponse) SetTimestamp(timestamp string) {
+	a.Timestamp = timestamp
+	a.require(aiSessionDetailResponseFieldTimestamp)
+}
+
+func (a *AiSessionDetailResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiSessionDetailResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiSessionDetailResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiSessionDetailResponse) MarshalJSON() ([]byte, error) {
+	type embed AiSessionDetailResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiSessionDetailResponse) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	aiSessionFailingFieldPerson         = big.NewInt(1 << 0)
+	aiSessionFailingFieldFailedRequests = big.NewInt(1 << 1)
+	aiSessionFailingFieldTopKind        = big.NewInt(1 << 2)
+	aiSessionFailingFieldSession        = big.NewInt(1 << 3)
+	aiSessionFailingFieldOutcome        = big.NewInt(1 << 4)
+)
+
+type AiSessionFailing struct {
+	Person         string `json:"person" url:"person"`
+	FailedRequests int    `json:"failed_requests" url:"failed_requests"`
+	// The kind most of the session's failures were
+	TopKind AiSessionFailingTopKind `json:"top_kind" url:"top_kind"`
+	Session string                  `json:"session" url:"session"`
+	// recovered when a request succeeded after its last failure in the range, stopped otherwise
+	Outcome AiSessionFailingOutcome `json:"outcome" url:"outcome"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiSessionFailing) GetPerson() string {
+	if a == nil {
+		return ""
+	}
+	return a.Person
+}
+
+func (a *AiSessionFailing) GetFailedRequests() int {
+	if a == nil {
+		return 0
+	}
+	return a.FailedRequests
+}
+
+func (a *AiSessionFailing) GetTopKind() AiSessionFailingTopKind {
+	if a == nil {
+		return ""
+	}
+	return a.TopKind
+}
+
+func (a *AiSessionFailing) GetSession() string {
+	if a == nil {
+		return ""
+	}
+	return a.Session
+}
+
+func (a *AiSessionFailing) GetOutcome() AiSessionFailingOutcome {
+	if a == nil {
+		return ""
+	}
+	return a.Outcome
+}
+
+func (a *AiSessionFailing) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiSessionFailing) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetPerson sets the Person field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionFailing) SetPerson(person string) {
+	a.Person = person
+	a.require(aiSessionFailingFieldPerson)
+}
+
+// SetFailedRequests sets the FailedRequests field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionFailing) SetFailedRequests(failedRequests int) {
+	a.FailedRequests = failedRequests
+	a.require(aiSessionFailingFieldFailedRequests)
+}
+
+// SetTopKind sets the TopKind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionFailing) SetTopKind(topKind AiSessionFailingTopKind) {
+	a.TopKind = topKind
+	a.require(aiSessionFailingFieldTopKind)
+}
+
+// SetSession sets the Session field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionFailing) SetSession(session string) {
+	a.Session = session
+	a.require(aiSessionFailingFieldSession)
+}
+
+// SetOutcome sets the Outcome field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionFailing) SetOutcome(outcome AiSessionFailingOutcome) {
+	a.Outcome = outcome
+	a.require(aiSessionFailingFieldOutcome)
+}
+
+func (a *AiSessionFailing) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiSessionFailing
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiSessionFailing(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiSessionFailing) MarshalJSON() ([]byte, error) {
+	type embed AiSessionFailing
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiSessionFailing) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+// recovered when a request succeeded after its last failure in the range, stopped otherwise
+type AiSessionFailingOutcome string
+
+const (
+	AiSessionFailingOutcomeNoFailures AiSessionFailingOutcome = "no_failures"
+	AiSessionFailingOutcomeRecovered  AiSessionFailingOutcome = "recovered"
+	AiSessionFailingOutcomeStopped    AiSessionFailingOutcome = "stopped"
+	AiSessionFailingOutcomeUnknown    AiSessionFailingOutcome = "unknown"
+)
+
+func NewAiSessionFailingOutcomeFromString(s string) (AiSessionFailingOutcome, error) {
+	switch s {
+	case "no_failures":
+		return AiSessionFailingOutcomeNoFailures, nil
+	case "recovered":
+		return AiSessionFailingOutcomeRecovered, nil
+	case "stopped":
+		return AiSessionFailingOutcomeStopped, nil
+	case "unknown":
+		return AiSessionFailingOutcomeUnknown, nil
+	}
+	var t AiSessionFailingOutcome
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AiSessionFailingOutcome) Ptr() *AiSessionFailingOutcome {
+	return &a
+}
+
+// The kind most of the session's failures were
+type AiSessionFailingTopKind string
+
+const (
+	AiSessionFailingTopKindFourHundred           AiSessionFailingTopKind = "400"
+	AiSessionFailingTopKindFourHundredTwentyNine AiSessionFailingTopKind = "429"
+	AiSessionFailingTopKindFiveHundredTwentyNine AiSessionFailingTopKind = "529"
+	AiSessionFailingTopKindConnection            AiSessionFailingTopKind = "connection"
+	AiSessionFailingTopKindOther                 AiSessionFailingTopKind = "other"
+)
+
+func NewAiSessionFailingTopKindFromString(s string) (AiSessionFailingTopKind, error) {
+	switch s {
+	case "400":
+		return AiSessionFailingTopKindFourHundred, nil
+	case "429":
+		return AiSessionFailingTopKindFourHundredTwentyNine, nil
+	case "529":
+		return AiSessionFailingTopKindFiveHundredTwentyNine, nil
+	case "connection":
+		return AiSessionFailingTopKindConnection, nil
+	case "other":
+		return AiSessionFailingTopKindOther, nil
+	}
+	var t AiSessionFailingTopKind
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AiSessionFailingTopKind) Ptr() *AiSessionFailingTopKind {
+	return &a
+}
+
+// no_failures, recovered when a request succeeded after the last one that failed, stopped when the last request failed, and unknown for a session whose detail was not collected
+type AiSessionOutcome string
+
+const (
+	AiSessionOutcomeNoFailures AiSessionOutcome = "no_failures"
+	AiSessionOutcomeRecovered  AiSessionOutcome = "recovered"
+	AiSessionOutcomeStopped    AiSessionOutcome = "stopped"
+	AiSessionOutcomeUnknown    AiSessionOutcome = "unknown"
+)
+
+func NewAiSessionOutcomeFromString(s string) (AiSessionOutcome, error) {
+	switch s {
+	case "no_failures":
+		return AiSessionOutcomeNoFailures, nil
+	case "recovered":
+		return AiSessionOutcomeRecovered, nil
+	case "stopped":
+		return AiSessionOutcomeStopped, nil
+	case "unknown":
+		return AiSessionOutcomeUnknown, nil
+	}
+	var t AiSessionOutcome
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AiSessionOutcome) Ptr() *AiSessionOutcome {
+	return &a
+}
+
+var (
+	aiSessionToolFieldTool      = big.NewInt(1 << 0)
+	aiSessionToolFieldMcpServer = big.NewInt(1 << 1)
+	aiSessionToolFieldCalls     = big.NewInt(1 << 2)
+	aiSessionToolFieldErrors    = big.NewInt(1 << 3)
+)
+
+type AiSessionTool struct {
+	// The tool's name. An MCP tool keeps the name after its server's, and one the install did not name is MCP tools
+	Tool string `json:"tool" url:"tool"`
+	// The MCP server it was called through, null for any other tool
+	McpServer *string `json:"mcp_server,omitempty" url:"mcp_server,omitempty"`
+	Calls     int     `json:"calls" url:"calls"`
+	Errors    int     `json:"errors" url:"errors"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiSessionTool) GetTool() string {
+	if a == nil {
+		return ""
+	}
+	return a.Tool
+}
+
+func (a *AiSessionTool) GetMcpServer() *string {
+	if a == nil {
+		return nil
+	}
+	return a.McpServer
+}
+
+func (a *AiSessionTool) GetCalls() int {
+	if a == nil {
+		return 0
+	}
+	return a.Calls
+}
+
+func (a *AiSessionTool) GetErrors() int {
+	if a == nil {
+		return 0
+	}
+	return a.Errors
+}
+
+func (a *AiSessionTool) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiSessionTool) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetTool sets the Tool field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionTool) SetTool(tool string) {
+	a.Tool = tool
+	a.require(aiSessionToolFieldTool)
+}
+
+// SetMcpServer sets the McpServer field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionTool) SetMcpServer(mcpServer *string) {
+	a.McpServer = mcpServer
+	a.require(aiSessionToolFieldMcpServer)
+}
+
+// SetCalls sets the Calls field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionTool) SetCalls(calls int) {
+	a.Calls = calls
+	a.require(aiSessionToolFieldCalls)
+}
+
+// SetErrors sets the Errors field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiSessionTool) SetErrors(errors int) {
+	a.Errors = errors
+	a.require(aiSessionToolFieldErrors)
+}
+
+func (a *AiSessionTool) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiSessionTool
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiSessionTool(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiSessionTool) MarshalJSON() ([]byte, error) {
+	type embed AiSessionTool
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiSessionTool) String() string {
 	if a == nil {
 		return "<nil>"
 	}
@@ -1750,6 +5740,141 @@ func (a *AiSessionsResponse) MarshalJSON() ([]byte, error) {
 }
 
 func (a *AiSessionsResponse) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
+	aiTokensByTypeFieldInput         = big.NewInt(1 << 0)
+	aiTokensByTypeFieldOutput        = big.NewInt(1 << 1)
+	aiTokensByTypeFieldCacheRead     = big.NewInt(1 << 2)
+	aiTokensByTypeFieldCacheCreation = big.NewInt(1 << 3)
+)
+
+type AiTokensByType struct {
+	// Input read from no cache
+	Input  int `json:"input" url:"input"`
+	Output int `json:"output" url:"output"`
+	// Input read from the prompt cache
+	CacheRead int `json:"cache_read" url:"cache_read"`
+	// Input written to the prompt cache
+	CacheCreation int `json:"cache_creation" url:"cache_creation"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AiTokensByType) GetInput() int {
+	if a == nil {
+		return 0
+	}
+	return a.Input
+}
+
+func (a *AiTokensByType) GetOutput() int {
+	if a == nil {
+		return 0
+	}
+	return a.Output
+}
+
+func (a *AiTokensByType) GetCacheRead() int {
+	if a == nil {
+		return 0
+	}
+	return a.CacheRead
+}
+
+func (a *AiTokensByType) GetCacheCreation() int {
+	if a == nil {
+		return 0
+	}
+	return a.CacheCreation
+}
+
+func (a *AiTokensByType) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AiTokensByType) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetInput sets the Input field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiTokensByType) SetInput(input int) {
+	a.Input = input
+	a.require(aiTokensByTypeFieldInput)
+}
+
+// SetOutput sets the Output field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiTokensByType) SetOutput(output int) {
+	a.Output = output
+	a.require(aiTokensByTypeFieldOutput)
+}
+
+// SetCacheRead sets the CacheRead field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiTokensByType) SetCacheRead(cacheRead int) {
+	a.CacheRead = cacheRead
+	a.require(aiTokensByTypeFieldCacheRead)
+}
+
+// SetCacheCreation sets the CacheCreation field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AiTokensByType) SetCacheCreation(cacheCreation int) {
+	a.CacheCreation = cacheCreation
+	a.require(aiTokensByTypeFieldCacheCreation)
+}
+
+func (a *AiTokensByType) UnmarshalJSON(data []byte) error {
+	type unmarshaler AiTokensByType
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AiTokensByType(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AiTokensByType) MarshalJSON() ([]byte, error) {
+	type embed AiTokensByType
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AiTokensByType) String() string {
 	if a == nil {
 		return "<nil>"
 	}
@@ -2476,7 +6601,8 @@ func (a *AnthropicActivityDailyResponse) String() string {
 var (
 	anthropicActivityDataFieldSections      = big.NewInt(1 << 0)
 	anthropicActivityDataFieldResponseTimes = big.NewInt(1 << 1)
-	anthropicActivityDataFieldPeople        = big.NewInt(1 << 2)
+	anthropicActivityDataFieldOverall       = big.NewInt(1 << 2)
+	anthropicActivityDataFieldPeople        = big.NewInt(1 << 3)
 )
 
 type AnthropicActivityData struct {
@@ -2484,6 +6610,8 @@ type AnthropicActivityData struct {
 	Sections []*AnthropicActivitySection `json:"sections" url:"sections"`
 	// One entry per model that was timed, the model with the most requests first, at most 50
 	ResponseTimes []*AnthropicResponseTimes `json:"response_times" url:"response_times"`
+	// The same estimates over every request timed in the range, whatever its model
+	Overall *AnthropicOverallResponseTimes `json:"overall" url:"overall"`
 	// How many people each kind of activity reached, each person counted once
 	People *AnthropicActivityPeople `json:"people" url:"people"`
 
@@ -2506,6 +6634,13 @@ func (a *AnthropicActivityData) GetResponseTimes() []*AnthropicResponseTimes {
 		return nil
 	}
 	return a.ResponseTimes
+}
+
+func (a *AnthropicActivityData) GetOverall() *AnthropicOverallResponseTimes {
+	if a == nil {
+		return nil
+	}
+	return a.Overall
 }
 
 func (a *AnthropicActivityData) GetPeople() *AnthropicActivityPeople {
@@ -2541,6 +6676,13 @@ func (a *AnthropicActivityData) SetSections(sections []*AnthropicActivitySection
 func (a *AnthropicActivityData) SetResponseTimes(responseTimes []*AnthropicResponseTimes) {
 	a.ResponseTimes = responseTimes
 	a.require(anthropicActivityDataFieldResponseTimes)
+}
+
+// SetOverall sets the Overall field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AnthropicActivityData) SetOverall(overall *AnthropicOverallResponseTimes) {
+	a.Overall = overall
+	a.require(anthropicActivityDataFieldOverall)
 }
 
 // SetPeople sets the People field and marks it as non-optional;
@@ -7466,6 +11608,142 @@ func (a *AnthropicOrganizations) String() string {
 }
 
 var (
+	anthropicOverallResponseTimesFieldP50TotalMs      = big.NewInt(1 << 0)
+	anthropicOverallResponseTimesFieldP90TotalMs      = big.NewInt(1 << 1)
+	anthropicOverallResponseTimesFieldP50FirstTokenMs = big.NewInt(1 << 2)
+	anthropicOverallResponseTimesFieldP90FirstTokenMs = big.NewInt(1 << 3)
+)
+
+type AnthropicOverallResponseTimes struct {
+	// Estimated median time of a whole request over every model, in ms
+	P50TotalMs *int `json:"p50_total_ms,omitempty" url:"p50_total_ms,omitempty"`
+	// Estimated time of a whole request that 9 in 10 requests of every model stayed under, in ms
+	P90TotalMs *int `json:"p90_total_ms,omitempty" url:"p90_total_ms,omitempty"`
+	// Estimated median time to the first token over every model, in ms. Null when no request said it
+	P50FirstTokenMs *int `json:"p50_first_token_ms,omitempty" url:"p50_first_token_ms,omitempty"`
+	// Estimated time to the first token that 9 in 10 requests of every model stayed under, in ms
+	P90FirstTokenMs *int `json:"p90_first_token_ms,omitempty" url:"p90_first_token_ms,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AnthropicOverallResponseTimes) GetP50TotalMs() *int {
+	if a == nil {
+		return nil
+	}
+	return a.P50TotalMs
+}
+
+func (a *AnthropicOverallResponseTimes) GetP90TotalMs() *int {
+	if a == nil {
+		return nil
+	}
+	return a.P90TotalMs
+}
+
+func (a *AnthropicOverallResponseTimes) GetP50FirstTokenMs() *int {
+	if a == nil {
+		return nil
+	}
+	return a.P50FirstTokenMs
+}
+
+func (a *AnthropicOverallResponseTimes) GetP90FirstTokenMs() *int {
+	if a == nil {
+		return nil
+	}
+	return a.P90FirstTokenMs
+}
+
+func (a *AnthropicOverallResponseTimes) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AnthropicOverallResponseTimes) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetP50TotalMs sets the P50TotalMs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AnthropicOverallResponseTimes) SetP50TotalMs(p50TotalMs *int) {
+	a.P50TotalMs = p50TotalMs
+	a.require(anthropicOverallResponseTimesFieldP50TotalMs)
+}
+
+// SetP90TotalMs sets the P90TotalMs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AnthropicOverallResponseTimes) SetP90TotalMs(p90TotalMs *int) {
+	a.P90TotalMs = p90TotalMs
+	a.require(anthropicOverallResponseTimesFieldP90TotalMs)
+}
+
+// SetP50FirstTokenMs sets the P50FirstTokenMs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AnthropicOverallResponseTimes) SetP50FirstTokenMs(p50FirstTokenMs *int) {
+	a.P50FirstTokenMs = p50FirstTokenMs
+	a.require(anthropicOverallResponseTimesFieldP50FirstTokenMs)
+}
+
+// SetP90FirstTokenMs sets the P90FirstTokenMs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AnthropicOverallResponseTimes) SetP90FirstTokenMs(p90FirstTokenMs *int) {
+	a.P90FirstTokenMs = p90FirstTokenMs
+	a.require(anthropicOverallResponseTimesFieldP90FirstTokenMs)
+}
+
+func (a *AnthropicOverallResponseTimes) UnmarshalJSON(data []byte) error {
+	type unmarshaler AnthropicOverallResponseTimes
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AnthropicOverallResponseTimes(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AnthropicOverallResponseTimes) MarshalJSON() ([]byte, error) {
+	type embed AnthropicOverallResponseTimes
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AnthropicOverallResponseTimes) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
 	anthropicPersonNamedFieldPerson = big.NewInt(1 << 0)
 )
 
@@ -7820,18 +12098,24 @@ func (a *AnthropicResponseTimes) String() string {
 }
 
 var (
-	anthropicUsageBandFieldFloor      = big.NewInt(1 << 0)
-	anthropicUsageBandFieldCeiling    = big.NewInt(1 << 1)
-	anthropicUsageBandFieldPeople     = big.NewInt(1 << 2)
-	anthropicUsageBandFieldUsageValue = big.NewInt(1 << 3)
+	anthropicUsageBandFieldFloor         = big.NewInt(1 << 0)
+	anthropicUsageBandFieldCeiling       = big.NewInt(1 << 1)
+	anthropicUsageBandFieldFloorTokens   = big.NewInt(1 << 2)
+	anthropicUsageBandFieldCeilingTokens = big.NewInt(1 << 3)
+	anthropicUsageBandFieldPeople        = big.NewInt(1 << 4)
+	anthropicUsageBandFieldUsageValue    = big.NewInt(1 << 5)
 )
 
 type AnthropicUsageBand struct {
-	// Smallest usage value in the band, in USD
-	Floor int `json:"floor" url:"floor"`
-	// Usage value the band stops short of, in USD. Null for the last band
+	// Smallest usage value in the band, in USD. Null on basis=tokens
+	Floor *int `json:"floor,omitempty" url:"floor,omitempty"`
+	// Usage value the band stops short of, in USD. Null for the last band and on basis=tokens
 	Ceiling *int `json:"ceiling,omitempty" url:"ceiling,omitempty"`
-	// People whose usage value over the range is in the band
+	// Smallest number of tokens a week in the band, cache reads left out. Null on basis=usage_value
+	FloorTokens *int `json:"floor_tokens,omitempty" url:"floor_tokens,omitempty"`
+	// Tokens a week the band stops short of, null for the top band and on basis=usage_value. The band of people with no use has 0 for both
+	CeilingTokens *int `json:"ceiling_tokens,omitempty" url:"ceiling_tokens,omitempty"`
+	// People whose usage value, or tokens a week, over the range is in the band
 	People int `json:"people" url:"people"`
 	// Their usage value added up, in USD
 	UsageValue float64 `json:"usage_value" url:"usage_value"`
@@ -7843,9 +12127,9 @@ type AnthropicUsageBand struct {
 	rawJSON         json.RawMessage
 }
 
-func (a *AnthropicUsageBand) GetFloor() int {
+func (a *AnthropicUsageBand) GetFloor() *int {
 	if a == nil {
-		return 0
+		return nil
 	}
 	return a.Floor
 }
@@ -7855,6 +12139,20 @@ func (a *AnthropicUsageBand) GetCeiling() *int {
 		return nil
 	}
 	return a.Ceiling
+}
+
+func (a *AnthropicUsageBand) GetFloorTokens() *int {
+	if a == nil {
+		return nil
+	}
+	return a.FloorTokens
+}
+
+func (a *AnthropicUsageBand) GetCeilingTokens() *int {
+	if a == nil {
+		return nil
+	}
+	return a.CeilingTokens
 }
 
 func (a *AnthropicUsageBand) GetPeople() int {
@@ -7887,7 +12185,7 @@ func (a *AnthropicUsageBand) require(field *big.Int) {
 
 // SetFloor sets the Floor field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (a *AnthropicUsageBand) SetFloor(floor int) {
+func (a *AnthropicUsageBand) SetFloor(floor *int) {
 	a.Floor = floor
 	a.require(anthropicUsageBandFieldFloor)
 }
@@ -7897,6 +12195,20 @@ func (a *AnthropicUsageBand) SetFloor(floor int) {
 func (a *AnthropicUsageBand) SetCeiling(ceiling *int) {
 	a.Ceiling = ceiling
 	a.require(anthropicUsageBandFieldCeiling)
+}
+
+// SetFloorTokens sets the FloorTokens field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AnthropicUsageBand) SetFloorTokens(floorTokens *int) {
+	a.FloorTokens = floorTokens
+	a.require(anthropicUsageBandFieldFloorTokens)
+}
+
+// SetCeilingTokens sets the CeilingTokens field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AnthropicUsageBand) SetCeilingTokens(ceilingTokens *int) {
+	a.CeilingTokens = ceilingTokens
+	a.require(anthropicUsageBandFieldCeilingTokens)
 }
 
 // SetPeople sets the People field and marks it as non-optional;
@@ -8393,8 +12705,8 @@ var (
 )
 
 type AnthropicUsageData struct {
-	Totals *AnthropicUsageMeasures `json:"totals" url:"totals"`
-	Daily  []*AnthropicUsageDay    `json:"daily" url:"daily"`
+	Totals *AnthropicUsageTotals `json:"totals" url:"totals"`
+	Daily  []*AnthropicUsageDay  `json:"daily" url:"daily"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -8403,7 +12715,7 @@ type AnthropicUsageData struct {
 	rawJSON         json.RawMessage
 }
 
-func (a *AnthropicUsageData) GetTotals() *AnthropicUsageMeasures {
+func (a *AnthropicUsageData) GetTotals() *AnthropicUsageTotals {
 	if a == nil {
 		return nil
 	}
@@ -8433,7 +12745,7 @@ func (a *AnthropicUsageData) require(field *big.Int) {
 
 // SetTotals sets the Totals field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (a *AnthropicUsageData) SetTotals(totals *AnthropicUsageMeasures) {
+func (a *AnthropicUsageData) SetTotals(totals *AnthropicUsageTotals) {
 	a.Totals = totals
 	a.require(anthropicUsageDataFieldTotals)
 }
@@ -8701,7 +13013,7 @@ var (
 type AnthropicUsageDistributionData struct {
 	// People who reported usage in the range
 	People int `json:"people" url:"people"`
-	// Every band, smallest first, including one with nobody in it
+	// Every band, including one with nobody in it: smallest first by usage value, or on basis=tokens over 5M, 1M to 5M, 200K to 1M and under 200K tokens a week, then no use
 	Bands []*AnthropicUsageBand `json:"bands" url:"bands"`
 	// The tenth of the people with the largest usage value, a half rounding up, and at least one once anyone has reported usage
 	TopDecile *AnthropicUsageGroup `json:"top_decile" url:"top_decile"`
@@ -9062,186 +13374,6 @@ func (a *AnthropicUsageGroup) String() string {
 }
 
 var (
-	anthropicUsageMeasuresFieldUsageValue          = big.NewInt(1 << 0)
-	anthropicUsageMeasuresFieldRequests            = big.NewInt(1 << 1)
-	anthropicUsageMeasuresFieldActivePeople        = big.NewInt(1 << 2)
-	anthropicUsageMeasuresFieldInputTokens         = big.NewInt(1 << 3)
-	anthropicUsageMeasuresFieldOutputTokens        = big.NewInt(1 << 4)
-	anthropicUsageMeasuresFieldCacheReadTokens     = big.NewInt(1 << 5)
-	anthropicUsageMeasuresFieldCacheCreationTokens = big.NewInt(1 << 6)
-)
-
-type AnthropicUsageMeasures struct {
-	UsageValue          float64 `json:"usage_value" url:"usage_value"`
-	Requests            int     `json:"requests" url:"requests"`
-	ActivePeople        int     `json:"active_people" url:"active_people"`
-	InputTokens         int     `json:"input_tokens" url:"input_tokens"`
-	OutputTokens        int     `json:"output_tokens" url:"output_tokens"`
-	CacheReadTokens     int     `json:"cache_read_tokens" url:"cache_read_tokens"`
-	CacheCreationTokens int     `json:"cache_creation_tokens" url:"cache_creation_tokens"`
-
-	// Private bitmask of fields set to an explicit value and therefore not to be omitted
-	explicitFields *big.Int `json:"-" url:"-"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AnthropicUsageMeasures) GetUsageValue() float64 {
-	if a == nil {
-		return 0
-	}
-	return a.UsageValue
-}
-
-func (a *AnthropicUsageMeasures) GetRequests() int {
-	if a == nil {
-		return 0
-	}
-	return a.Requests
-}
-
-func (a *AnthropicUsageMeasures) GetActivePeople() int {
-	if a == nil {
-		return 0
-	}
-	return a.ActivePeople
-}
-
-func (a *AnthropicUsageMeasures) GetInputTokens() int {
-	if a == nil {
-		return 0
-	}
-	return a.InputTokens
-}
-
-func (a *AnthropicUsageMeasures) GetOutputTokens() int {
-	if a == nil {
-		return 0
-	}
-	return a.OutputTokens
-}
-
-func (a *AnthropicUsageMeasures) GetCacheReadTokens() int {
-	if a == nil {
-		return 0
-	}
-	return a.CacheReadTokens
-}
-
-func (a *AnthropicUsageMeasures) GetCacheCreationTokens() int {
-	if a == nil {
-		return 0
-	}
-	return a.CacheCreationTokens
-}
-
-func (a *AnthropicUsageMeasures) GetExtraProperties() map[string]interface{} {
-	if a == nil {
-		return nil
-	}
-	return a.extraProperties
-}
-
-func (a *AnthropicUsageMeasures) require(field *big.Int) {
-	if a.explicitFields == nil {
-		a.explicitFields = big.NewInt(0)
-	}
-	a.explicitFields.Or(a.explicitFields, field)
-}
-
-// SetUsageValue sets the UsageValue field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (a *AnthropicUsageMeasures) SetUsageValue(usageValue float64) {
-	a.UsageValue = usageValue
-	a.require(anthropicUsageMeasuresFieldUsageValue)
-}
-
-// SetRequests sets the Requests field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (a *AnthropicUsageMeasures) SetRequests(requests int) {
-	a.Requests = requests
-	a.require(anthropicUsageMeasuresFieldRequests)
-}
-
-// SetActivePeople sets the ActivePeople field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (a *AnthropicUsageMeasures) SetActivePeople(activePeople int) {
-	a.ActivePeople = activePeople
-	a.require(anthropicUsageMeasuresFieldActivePeople)
-}
-
-// SetInputTokens sets the InputTokens field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (a *AnthropicUsageMeasures) SetInputTokens(inputTokens int) {
-	a.InputTokens = inputTokens
-	a.require(anthropicUsageMeasuresFieldInputTokens)
-}
-
-// SetOutputTokens sets the OutputTokens field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (a *AnthropicUsageMeasures) SetOutputTokens(outputTokens int) {
-	a.OutputTokens = outputTokens
-	a.require(anthropicUsageMeasuresFieldOutputTokens)
-}
-
-// SetCacheReadTokens sets the CacheReadTokens field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (a *AnthropicUsageMeasures) SetCacheReadTokens(cacheReadTokens int) {
-	a.CacheReadTokens = cacheReadTokens
-	a.require(anthropicUsageMeasuresFieldCacheReadTokens)
-}
-
-// SetCacheCreationTokens sets the CacheCreationTokens field and marks it as non-optional;
-// this prevents an empty or null value for this field from being omitted during serialization.
-func (a *AnthropicUsageMeasures) SetCacheCreationTokens(cacheCreationTokens int) {
-	a.CacheCreationTokens = cacheCreationTokens
-	a.require(anthropicUsageMeasuresFieldCacheCreationTokens)
-}
-
-func (a *AnthropicUsageMeasures) UnmarshalJSON(data []byte) error {
-	type unmarshaler AnthropicUsageMeasures
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AnthropicUsageMeasures(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AnthropicUsageMeasures) MarshalJSON() ([]byte, error) {
-	type embed AnthropicUsageMeasures
-	var marshaler = struct {
-		embed
-	}{
-		embed: embed(*a),
-	}
-	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
-	return json.Marshal(explicitMarshaler)
-}
-
-func (a *AnthropicUsageMeasures) String() string {
-	if a == nil {
-		return "<nil>"
-	}
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-var (
 	anthropicUsageResponseFieldSuccess   = big.NewInt(1 << 0)
 	anthropicUsageResponseFieldData      = big.NewInt(1 << 1)
 	anthropicUsageResponseFieldTimestamp = big.NewInt(1 << 2)
@@ -9358,6 +13490,237 @@ func (a *AnthropicUsageResponse) String() string {
 }
 
 var (
+	anthropicUsageTotalsFieldUsageValue          = big.NewInt(1 << 0)
+	anthropicUsageTotalsFieldRequests            = big.NewInt(1 << 1)
+	anthropicUsageTotalsFieldActivePeople        = big.NewInt(1 << 2)
+	anthropicUsageTotalsFieldInputTokens         = big.NewInt(1 << 3)
+	anthropicUsageTotalsFieldOutputTokens        = big.NewInt(1 << 4)
+	anthropicUsageTotalsFieldCacheReadTokens     = big.NewInt(1 << 5)
+	anthropicUsageTotalsFieldCacheCreationTokens = big.NewInt(1 << 6)
+	anthropicUsageTotalsFieldCacheHitRate        = big.NewInt(1 << 7)
+	anthropicUsageTotalsFieldCacheSavings        = big.NewInt(1 << 8)
+	anthropicUsageTotalsFieldCacheWriteCost      = big.NewInt(1 << 9)
+)
+
+type AnthropicUsageTotals struct {
+	UsageValue          float64 `json:"usage_value" url:"usage_value"`
+	Requests            int     `json:"requests" url:"requests"`
+	ActivePeople        int     `json:"active_people" url:"active_people"`
+	InputTokens         int     `json:"input_tokens" url:"input_tokens"`
+	OutputTokens        int     `json:"output_tokens" url:"output_tokens"`
+	CacheReadTokens     int     `json:"cache_read_tokens" url:"cache_read_tokens"`
+	CacheCreationTokens int     `json:"cache_creation_tokens" url:"cache_creation_tokens"`
+	// cache_read_tokens over every input token: cache reads, input and cache writes. 0 to 1, null with no input in the range
+	CacheHitRate *float64 `json:"cache_hit_rate,omitempty" url:"cache_hit_rate,omitempty"`
+	// What reading from the prompt cache saved against sending the same tokens as input, in USD at each model's list rates. Null with no input, or when no model that used the cache has a list rate
+	CacheSavings *float64 `json:"cache_savings,omitempty" url:"cache_savings,omitempty"`
+	// What writing to the prompt cache cost, in USD at each model's list rates, null as cache_savings
+	CacheWriteCost *float64 `json:"cache_write_cost,omitempty" url:"cache_write_cost,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AnthropicUsageTotals) GetUsageValue() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.UsageValue
+}
+
+func (a *AnthropicUsageTotals) GetRequests() int {
+	if a == nil {
+		return 0
+	}
+	return a.Requests
+}
+
+func (a *AnthropicUsageTotals) GetActivePeople() int {
+	if a == nil {
+		return 0
+	}
+	return a.ActivePeople
+}
+
+func (a *AnthropicUsageTotals) GetInputTokens() int {
+	if a == nil {
+		return 0
+	}
+	return a.InputTokens
+}
+
+func (a *AnthropicUsageTotals) GetOutputTokens() int {
+	if a == nil {
+		return 0
+	}
+	return a.OutputTokens
+}
+
+func (a *AnthropicUsageTotals) GetCacheReadTokens() int {
+	if a == nil {
+		return 0
+	}
+	return a.CacheReadTokens
+}
+
+func (a *AnthropicUsageTotals) GetCacheCreationTokens() int {
+	if a == nil {
+		return 0
+	}
+	return a.CacheCreationTokens
+}
+
+func (a *AnthropicUsageTotals) GetCacheHitRate() *float64 {
+	if a == nil {
+		return nil
+	}
+	return a.CacheHitRate
+}
+
+func (a *AnthropicUsageTotals) GetCacheSavings() *float64 {
+	if a == nil {
+		return nil
+	}
+	return a.CacheSavings
+}
+
+func (a *AnthropicUsageTotals) GetCacheWriteCost() *float64 {
+	if a == nil {
+		return nil
+	}
+	return a.CacheWriteCost
+}
+
+func (a *AnthropicUsageTotals) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AnthropicUsageTotals) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetUsageValue sets the UsageValue field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AnthropicUsageTotals) SetUsageValue(usageValue float64) {
+	a.UsageValue = usageValue
+	a.require(anthropicUsageTotalsFieldUsageValue)
+}
+
+// SetRequests sets the Requests field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AnthropicUsageTotals) SetRequests(requests int) {
+	a.Requests = requests
+	a.require(anthropicUsageTotalsFieldRequests)
+}
+
+// SetActivePeople sets the ActivePeople field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AnthropicUsageTotals) SetActivePeople(activePeople int) {
+	a.ActivePeople = activePeople
+	a.require(anthropicUsageTotalsFieldActivePeople)
+}
+
+// SetInputTokens sets the InputTokens field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AnthropicUsageTotals) SetInputTokens(inputTokens int) {
+	a.InputTokens = inputTokens
+	a.require(anthropicUsageTotalsFieldInputTokens)
+}
+
+// SetOutputTokens sets the OutputTokens field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AnthropicUsageTotals) SetOutputTokens(outputTokens int) {
+	a.OutputTokens = outputTokens
+	a.require(anthropicUsageTotalsFieldOutputTokens)
+}
+
+// SetCacheReadTokens sets the CacheReadTokens field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AnthropicUsageTotals) SetCacheReadTokens(cacheReadTokens int) {
+	a.CacheReadTokens = cacheReadTokens
+	a.require(anthropicUsageTotalsFieldCacheReadTokens)
+}
+
+// SetCacheCreationTokens sets the CacheCreationTokens field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AnthropicUsageTotals) SetCacheCreationTokens(cacheCreationTokens int) {
+	a.CacheCreationTokens = cacheCreationTokens
+	a.require(anthropicUsageTotalsFieldCacheCreationTokens)
+}
+
+// SetCacheHitRate sets the CacheHitRate field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AnthropicUsageTotals) SetCacheHitRate(cacheHitRate *float64) {
+	a.CacheHitRate = cacheHitRate
+	a.require(anthropicUsageTotalsFieldCacheHitRate)
+}
+
+// SetCacheSavings sets the CacheSavings field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AnthropicUsageTotals) SetCacheSavings(cacheSavings *float64) {
+	a.CacheSavings = cacheSavings
+	a.require(anthropicUsageTotalsFieldCacheSavings)
+}
+
+// SetCacheWriteCost sets the CacheWriteCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AnthropicUsageTotals) SetCacheWriteCost(cacheWriteCost *float64) {
+	a.CacheWriteCost = cacheWriteCost
+	a.require(anthropicUsageTotalsFieldCacheWriteCost)
+}
+
+func (a *AnthropicUsageTotals) UnmarshalJSON(data []byte) error {
+	type unmarshaler AnthropicUsageTotals
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AnthropicUsageTotals(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AnthropicUsageTotals) MarshalJSON() ([]byte, error) {
+	type embed AnthropicUsageTotals
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AnthropicUsageTotals) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
 	anthropicWithoutManagedSettingsFieldPeople = big.NewInt(1 << 0)
 	anthropicWithoutManagedSettingsFieldItems  = big.NewInt(1 << 1)
 )
@@ -9457,6 +13820,519 @@ func (a *AnthropicWithoutManagedSettings) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", a)
+}
+
+// What a measure is split by, and what keeps its rows, beside its range.
+var (
+	breakdownAskedFieldMeasure     = big.NewInt(1 << 0)
+	breakdownAskedFieldGroupBy     = big.NewInt(1 << 1)
+	breakdownAskedFieldArea        = big.NewInt(1 << 2)
+	breakdownAskedFieldRepository  = big.NewInt(1 << 3)
+	breakdownAskedFieldGranularity = big.NewInt(1 << 4)
+)
+
+type BreakdownAsked struct {
+	Measure BreakdownAskedMeasure `json:"measure" url:"measure"`
+	GroupBy BreakdownAskedGroupBy `json:"group_by" url:"group_by"`
+	// Keep one area, or none for the people with none
+	Area *string `json:"area,omitempty" url:"area,omitempty"`
+	// Keep one repository, or none for no repository
+	Repository *string `json:"repository,omitempty" url:"repository,omitempty"`
+	// daily adds the measure day by day
+	Granularity *BreakdownAskedGranularity `json:"granularity,omitempty" url:"granularity,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (b *BreakdownAsked) GetMeasure() BreakdownAskedMeasure {
+	if b == nil {
+		return ""
+	}
+	return b.Measure
+}
+
+func (b *BreakdownAsked) GetGroupBy() BreakdownAskedGroupBy {
+	if b == nil {
+		return ""
+	}
+	return b.GroupBy
+}
+
+func (b *BreakdownAsked) GetArea() *string {
+	if b == nil {
+		return nil
+	}
+	return b.Area
+}
+
+func (b *BreakdownAsked) GetRepository() *string {
+	if b == nil {
+		return nil
+	}
+	return b.Repository
+}
+
+func (b *BreakdownAsked) GetGranularity() *BreakdownAskedGranularity {
+	if b == nil {
+		return nil
+	}
+	return b.Granularity
+}
+
+func (b *BreakdownAsked) GetExtraProperties() map[string]interface{} {
+	if b == nil {
+		return nil
+	}
+	return b.extraProperties
+}
+
+func (b *BreakdownAsked) require(field *big.Int) {
+	if b.explicitFields == nil {
+		b.explicitFields = big.NewInt(0)
+	}
+	b.explicitFields.Or(b.explicitFields, field)
+}
+
+// SetMeasure sets the Measure field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BreakdownAsked) SetMeasure(measure BreakdownAskedMeasure) {
+	b.Measure = measure
+	b.require(breakdownAskedFieldMeasure)
+}
+
+// SetGroupBy sets the GroupBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BreakdownAsked) SetGroupBy(groupBy BreakdownAskedGroupBy) {
+	b.GroupBy = groupBy
+	b.require(breakdownAskedFieldGroupBy)
+}
+
+// SetArea sets the Area field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BreakdownAsked) SetArea(area *string) {
+	b.Area = area
+	b.require(breakdownAskedFieldArea)
+}
+
+// SetRepository sets the Repository field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BreakdownAsked) SetRepository(repository *string) {
+	b.Repository = repository
+	b.require(breakdownAskedFieldRepository)
+}
+
+// SetGranularity sets the Granularity field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BreakdownAsked) SetGranularity(granularity *BreakdownAskedGranularity) {
+	b.Granularity = granularity
+	b.require(breakdownAskedFieldGranularity)
+}
+
+func (b *BreakdownAsked) UnmarshalJSON(data []byte) error {
+	type unmarshaler BreakdownAsked
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*b = BreakdownAsked(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *b)
+	if err != nil {
+		return err
+	}
+	b.extraProperties = extraProperties
+	b.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (b *BreakdownAsked) MarshalJSON() ([]byte, error) {
+	type embed BreakdownAsked
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*b),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, b.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (b *BreakdownAsked) String() string {
+	if b == nil {
+		return "<nil>"
+	}
+	if len(b.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(b.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(b); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", b)
+}
+
+// daily adds the measure day by day
+type BreakdownAskedGranularity string
+
+const (
+	BreakdownAskedGranularityTotal BreakdownAskedGranularity = "total"
+	BreakdownAskedGranularityDaily BreakdownAskedGranularity = "daily"
+)
+
+func NewBreakdownAskedGranularityFromString(s string) (BreakdownAskedGranularity, error) {
+	switch s {
+	case "total":
+		return BreakdownAskedGranularityTotal, nil
+	case "daily":
+		return BreakdownAskedGranularityDaily, nil
+	}
+	var t BreakdownAskedGranularity
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (b BreakdownAskedGranularity) Ptr() *BreakdownAskedGranularity {
+	return &b
+}
+
+type BreakdownAskedGroupBy string
+
+const (
+	BreakdownAskedGroupByPerson     BreakdownAskedGroupBy = "person"
+	BreakdownAskedGroupByArea       BreakdownAskedGroupBy = "area"
+	BreakdownAskedGroupByRepository BreakdownAskedGroupBy = "repository"
+)
+
+func NewBreakdownAskedGroupByFromString(s string) (BreakdownAskedGroupBy, error) {
+	switch s {
+	case "person":
+		return BreakdownAskedGroupByPerson, nil
+	case "area":
+		return BreakdownAskedGroupByArea, nil
+	case "repository":
+		return BreakdownAskedGroupByRepository, nil
+	}
+	var t BreakdownAskedGroupBy
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (b BreakdownAskedGroupBy) Ptr() *BreakdownAskedGroupBy {
+	return &b
+}
+
+type BreakdownAskedMeasure string
+
+const (
+	BreakdownAskedMeasurePullRequests   BreakdownAskedMeasure = "pull_requests"
+	BreakdownAskedMeasureCommits        BreakdownAskedMeasure = "commits"
+	BreakdownAskedMeasureLinesAdded     BreakdownAskedMeasure = "lines_added"
+	BreakdownAskedMeasureLinesRemoved   BreakdownAskedMeasure = "lines_removed"
+	BreakdownAskedMeasureFailedRequests BreakdownAskedMeasure = "failed_requests"
+	BreakdownAskedMeasureRateLimits     BreakdownAskedMeasure = "rate_limits"
+)
+
+func NewBreakdownAskedMeasureFromString(s string) (BreakdownAskedMeasure, error) {
+	switch s {
+	case "pull_requests":
+		return BreakdownAskedMeasurePullRequests, nil
+	case "commits":
+		return BreakdownAskedMeasureCommits, nil
+	case "lines_added":
+		return BreakdownAskedMeasureLinesAdded, nil
+	case "lines_removed":
+		return BreakdownAskedMeasureLinesRemoved, nil
+	case "failed_requests":
+		return BreakdownAskedMeasureFailedRequests, nil
+	case "rate_limits":
+		return BreakdownAskedMeasureRateLimits, nil
+	}
+	var t BreakdownAskedMeasure
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (b BreakdownAskedMeasure) Ptr() *BreakdownAskedMeasure {
+	return &b
+}
+
+var (
+	claudeTeamAdoptionFieldSeats     = big.NewInt(1 << 0)
+	claudeTeamAdoptionFieldActive7D  = big.NewInt(1 << 1)
+	claudeTeamAdoptionFieldEngaged7D = big.NewInt(1 << 2)
+	claudeTeamAdoptionFieldDaily     = big.NewInt(1 << 3)
+)
+
+type ClaudeTeamAdoption struct {
+	// Seats on the latest Members list
+	Seats int `json:"seats" url:"seats"`
+	// active_7d on the last day of the range
+	Active7D int `json:"active_7d" url:"active_7d"`
+	// engaged_7d on the last day of the range
+	Engaged7D int `json:"engaged_7d" url:"engaged_7d"`
+	// Every day of the range, the earliest first
+	Daily []*ClaudeTeamAdoptionDay `json:"daily" url:"daily"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ClaudeTeamAdoption) GetSeats() int {
+	if c == nil {
+		return 0
+	}
+	return c.Seats
+}
+
+func (c *ClaudeTeamAdoption) GetActive7D() int {
+	if c == nil {
+		return 0
+	}
+	return c.Active7D
+}
+
+func (c *ClaudeTeamAdoption) GetEngaged7D() int {
+	if c == nil {
+		return 0
+	}
+	return c.Engaged7D
+}
+
+func (c *ClaudeTeamAdoption) GetDaily() []*ClaudeTeamAdoptionDay {
+	if c == nil {
+		return nil
+	}
+	return c.Daily
+}
+
+func (c *ClaudeTeamAdoption) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ClaudeTeamAdoption) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetSeats sets the Seats field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamAdoption) SetSeats(seats int) {
+	c.Seats = seats
+	c.require(claudeTeamAdoptionFieldSeats)
+}
+
+// SetActive7D sets the Active7D field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamAdoption) SetActive7D(active7D int) {
+	c.Active7D = active7D
+	c.require(claudeTeamAdoptionFieldActive7D)
+}
+
+// SetEngaged7D sets the Engaged7D field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamAdoption) SetEngaged7D(engaged7D int) {
+	c.Engaged7D = engaged7D
+	c.require(claudeTeamAdoptionFieldEngaged7D)
+}
+
+// SetDaily sets the Daily field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamAdoption) SetDaily(daily []*ClaudeTeamAdoptionDay) {
+	c.Daily = daily
+	c.require(claudeTeamAdoptionFieldDaily)
+}
+
+func (c *ClaudeTeamAdoption) UnmarshalJSON(data []byte) error {
+	type unmarshaler ClaudeTeamAdoption
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ClaudeTeamAdoption(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ClaudeTeamAdoption) MarshalJSON() ([]byte, error) {
+	type embed ClaudeTeamAdoption
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ClaudeTeamAdoption) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	claudeTeamAdoptionDayFieldDay       = big.NewInt(1 << 0)
+	claudeTeamAdoptionDayFieldSeats     = big.NewInt(1 << 1)
+	claudeTeamAdoptionDayFieldActive7D  = big.NewInt(1 << 2)
+	claudeTeamAdoptionDayFieldEngaged7D = big.NewInt(1 << 3)
+)
+
+type ClaudeTeamAdoptionDay struct {
+	Day time.Time `json:"day" url:"day" format:"date"`
+	// Seats the Members lists held that day, null before the first list
+	Seats *int `json:"seats,omitempty" url:"seats,omitempty"`
+	// People who sent a request in the 7 days that end that day
+	Active7D int `json:"active_7d" url:"active_7d"`
+	// People who sent a request on 3 or more of those 7 days
+	Engaged7D int `json:"engaged_7d" url:"engaged_7d"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ClaudeTeamAdoptionDay) GetDay() time.Time {
+	if c == nil {
+		return time.Time{}
+	}
+	return c.Day
+}
+
+func (c *ClaudeTeamAdoptionDay) GetSeats() *int {
+	if c == nil {
+		return nil
+	}
+	return c.Seats
+}
+
+func (c *ClaudeTeamAdoptionDay) GetActive7D() int {
+	if c == nil {
+		return 0
+	}
+	return c.Active7D
+}
+
+func (c *ClaudeTeamAdoptionDay) GetEngaged7D() int {
+	if c == nil {
+		return 0
+	}
+	return c.Engaged7D
+}
+
+func (c *ClaudeTeamAdoptionDay) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ClaudeTeamAdoptionDay) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetDay sets the Day field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamAdoptionDay) SetDay(day time.Time) {
+	c.Day = day
+	c.require(claudeTeamAdoptionDayFieldDay)
+}
+
+// SetSeats sets the Seats field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamAdoptionDay) SetSeats(seats *int) {
+	c.Seats = seats
+	c.require(claudeTeamAdoptionDayFieldSeats)
+}
+
+// SetActive7D sets the Active7D field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamAdoptionDay) SetActive7D(active7D int) {
+	c.Active7D = active7D
+	c.require(claudeTeamAdoptionDayFieldActive7D)
+}
+
+// SetEngaged7D sets the Engaged7D field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamAdoptionDay) SetEngaged7D(engaged7D int) {
+	c.Engaged7D = engaged7D
+	c.require(claudeTeamAdoptionDayFieldEngaged7D)
+}
+
+func (c *ClaudeTeamAdoptionDay) UnmarshalJSON(data []byte) error {
+	type embed ClaudeTeamAdoptionDay
+	var unmarshaler = struct {
+		embed
+		Day *internal.Date `json:"day"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = ClaudeTeamAdoptionDay(unmarshaler.embed)
+	c.Day = unmarshaler.Day.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ClaudeTeamAdoptionDay) MarshalJSON() ([]byte, error) {
+	type embed ClaudeTeamAdoptionDay
+	var marshaler = struct {
+		embed
+		Day *internal.Date `json:"day"`
+	}{
+		embed: embed(*c),
+		Day:   internal.NewDate(c.Day),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ClaudeTeamAdoptionDay) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
 }
 
 var (
@@ -10937,15 +15813,21 @@ func (c *ClaudeTeamMonth) String() string {
 }
 
 var (
-	claudeTeamPeopleDataFieldItems      = big.NewInt(1 << 0)
-	claudeTeamPeopleDataFieldPagination = big.NewInt(1 << 1)
-	claudeTeamPeopleDataFieldRules      = big.NewInt(1 << 2)
+	claudeTeamPeopleDataFieldItems         = big.NewInt(1 << 0)
+	claudeTeamPeopleDataFieldPagination    = big.NewInt(1 << 1)
+	claudeTeamPeopleDataFieldRules         = big.NewInt(1 << 2)
+	claudeTeamPeopleDataFieldStates        = big.NewInt(1 << 3)
+	claudeTeamPeopleDataFieldLatestVersion = big.NewInt(1 << 4)
 )
 
 type ClaudeTeamPeopleData struct {
 	Items      []*ClaudeTeamPerson `json:"items" url:"items"`
 	Pagination *PaginationMeta     `json:"pagination" url:"pagination"`
 	Rules      *ClaudeTeamRules    `json:"rules" url:"rules"`
+	// How many people each state names, counted before the state filter
+	States *ClaudeTeamStates `json:"states" url:"states"`
+	// The newest version an install seen in the 30 days that end on the spend reports' last day is on
+	LatestVersion *string `json:"latest_version,omitempty" url:"latest_version,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -10973,6 +15855,20 @@ func (c *ClaudeTeamPeopleData) GetRules() *ClaudeTeamRules {
 		return nil
 	}
 	return c.Rules
+}
+
+func (c *ClaudeTeamPeopleData) GetStates() *ClaudeTeamStates {
+	if c == nil {
+		return nil
+	}
+	return c.States
+}
+
+func (c *ClaudeTeamPeopleData) GetLatestVersion() *string {
+	if c == nil {
+		return nil
+	}
+	return c.LatestVersion
 }
 
 func (c *ClaudeTeamPeopleData) GetExtraProperties() map[string]interface{} {
@@ -11008,6 +15904,20 @@ func (c *ClaudeTeamPeopleData) SetPagination(pagination *PaginationMeta) {
 func (c *ClaudeTeamPeopleData) SetRules(rules *ClaudeTeamRules) {
 	c.Rules = rules
 	c.require(claudeTeamPeopleDataFieldRules)
+}
+
+// SetStates sets the States field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPeopleData) SetStates(states *ClaudeTeamStates) {
+	c.States = states
+	c.require(claudeTeamPeopleDataFieldStates)
+}
+
+// SetLatestVersion sets the LatestVersion field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPeopleData) SetLatestVersion(latestVersion *string) {
+	c.LatestVersion = latestVersion
+	c.require(claudeTeamPeopleDataFieldLatestVersion)
 }
 
 func (c *ClaudeTeamPeopleData) UnmarshalJSON(data []byte) error {
@@ -11169,20 +16079,26 @@ func (c *ClaudeTeamPeopleResponse) String() string {
 }
 
 var (
-	claudeTeamPersonFieldPerson           = big.NewInt(1 << 0)
-	claudeTeamPersonFieldName             = big.NewInt(1 << 1)
-	claudeTeamPersonFieldArea             = big.NewInt(1 << 2)
-	claudeTeamPersonFieldSeat             = big.NewInt(1 << 3)
-	claudeTeamPersonFieldMainProduct      = big.NewInt(1 << 4)
-	claudeTeamPersonFieldTokens7D         = big.NewInt(1 << 5)
-	claudeTeamPersonFieldTokens30D        = big.NewInt(1 << 6)
-	claudeTeamPersonFieldExtraUsage30D    = big.NewInt(1 << 7)
-	claudeTeamPersonFieldUsageValue30D    = big.NewInt(1 << 8)
-	claudeTeamPersonFieldLastActive       = big.NewInt(1 << 9)
-	claudeTeamPersonFieldIdleWeeks        = big.NewInt(1 << 10)
-	claudeTeamPersonFieldRecommendation   = big.NewInt(1 << 11)
-	claudeTeamPersonFieldRecommendationID = big.NewInt(1 << 12)
-	claudeTeamPersonFieldSaving           = big.NewInt(1 << 13)
+	claudeTeamPersonFieldPerson            = big.NewInt(1 << 0)
+	claudeTeamPersonFieldName              = big.NewInt(1 << 1)
+	claudeTeamPersonFieldArea              = big.NewInt(1 << 2)
+	claudeTeamPersonFieldSeat              = big.NewInt(1 << 3)
+	claudeTeamPersonFieldMainProduct       = big.NewInt(1 << 4)
+	claudeTeamPersonFieldTokens7D          = big.NewInt(1 << 5)
+	claudeTeamPersonFieldTokens30D         = big.NewInt(1 << 6)
+	claudeTeamPersonFieldExtraUsage30D     = big.NewInt(1 << 7)
+	claudeTeamPersonFieldUsageValue30D     = big.NewInt(1 << 8)
+	claudeTeamPersonFieldLastActive        = big.NewInt(1 << 9)
+	claudeTeamPersonFieldIdleWeeks         = big.NewInt(1 << 10)
+	claudeTeamPersonFieldRecommendation    = big.NewInt(1 << 11)
+	claudeTeamPersonFieldRecommendationID  = big.NewInt(1 << 12)
+	claudeTeamPersonFieldSaving            = big.NewInt(1 << 13)
+	claudeTeamPersonFieldFailedRequests30D = big.NewInt(1 << 14)
+	claudeTeamPersonFieldRateLimits30D     = big.NewInt(1 << 15)
+	claudeTeamPersonFieldVersion           = big.NewInt(1 << 16)
+	claudeTeamPersonFieldVersionState      = big.NewInt(1 << 17)
+	claudeTeamPersonFieldManagedSettings   = big.NewInt(1 << 18)
+	claudeTeamPersonFieldStates            = big.NewInt(1 << 19)
 )
 
 type ClaudeTeamPerson struct {
@@ -11209,6 +16125,18 @@ type ClaudeTeamPerson struct {
 	RecommendationID *string `json:"recommendation_id,omitempty" url:"recommendation_id,omitempty"`
 	// What the recommendation saves a month
 	Saving *float64 `json:"saving,omitempty" url:"saving,omitempty"`
+	// Claude Code and Cowork requests that failed them in 30 days
+	FailedRequests30D int `json:"failed_requests_30d" url:"failed_requests_30d"`
+	// Those that the API refused with 429, rate limited
+	RateLimits30D int `json:"rate_limits_30d" url:"rate_limits_30d"`
+	// The version their install reported last, null before it did
+	Version *string `json:"version,omitempty" url:"version,omitempty"`
+	// current on latest_version, minor 1 to 5 releases behind it, old more
+	VersionState *ClaudeTeamPersonVersionState `json:"version_state,omitempty" url:"version_state,omitempty"`
+	// Whether their install's settings are managed
+	ManagedSettings *bool `json:"managed_settings,omitempty" url:"managed_settings,omitempty"`
+	// What the row needs a look for: errors and rate_limited for a request that failed in 30 days, behind for a version under the newest, unmanaged, idle for more than two weeks without use, and upgrade or downgrade for the seat change it recommends
+	States []ClaudeTeamPersonStatesItem `json:"states" url:"states"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -11313,6 +16241,48 @@ func (c *ClaudeTeamPerson) GetSaving() *float64 {
 		return nil
 	}
 	return c.Saving
+}
+
+func (c *ClaudeTeamPerson) GetFailedRequests30D() int {
+	if c == nil {
+		return 0
+	}
+	return c.FailedRequests30D
+}
+
+func (c *ClaudeTeamPerson) GetRateLimits30D() int {
+	if c == nil {
+		return 0
+	}
+	return c.RateLimits30D
+}
+
+func (c *ClaudeTeamPerson) GetVersion() *string {
+	if c == nil {
+		return nil
+	}
+	return c.Version
+}
+
+func (c *ClaudeTeamPerson) GetVersionState() *ClaudeTeamPersonVersionState {
+	if c == nil {
+		return nil
+	}
+	return c.VersionState
+}
+
+func (c *ClaudeTeamPerson) GetManagedSettings() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.ManagedSettings
+}
+
+func (c *ClaudeTeamPerson) GetStates() []ClaudeTeamPersonStatesItem {
+	if c == nil {
+		return nil
+	}
+	return c.States
 }
 
 func (c *ClaudeTeamPerson) GetExtraProperties() map[string]interface{} {
@@ -11427,6 +16397,48 @@ func (c *ClaudeTeamPerson) SetSaving(saving *float64) {
 	c.require(claudeTeamPersonFieldSaving)
 }
 
+// SetFailedRequests30D sets the FailedRequests30D field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPerson) SetFailedRequests30D(failedRequests30D int) {
+	c.FailedRequests30D = failedRequests30D
+	c.require(claudeTeamPersonFieldFailedRequests30D)
+}
+
+// SetRateLimits30D sets the RateLimits30D field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPerson) SetRateLimits30D(rateLimits30D int) {
+	c.RateLimits30D = rateLimits30D
+	c.require(claudeTeamPersonFieldRateLimits30D)
+}
+
+// SetVersion sets the Version field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPerson) SetVersion(version *string) {
+	c.Version = version
+	c.require(claudeTeamPersonFieldVersion)
+}
+
+// SetVersionState sets the VersionState field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPerson) SetVersionState(versionState *ClaudeTeamPersonVersionState) {
+	c.VersionState = versionState
+	c.require(claudeTeamPersonFieldVersionState)
+}
+
+// SetManagedSettings sets the ManagedSettings field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPerson) SetManagedSettings(managedSettings *bool) {
+	c.ManagedSettings = managedSettings
+	c.require(claudeTeamPersonFieldManagedSettings)
+}
+
+// SetStates sets the States field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamPerson) SetStates(states []ClaudeTeamPersonStatesItem) {
+	c.States = states
+	c.require(claudeTeamPersonFieldStates)
+}
+
 func (c *ClaudeTeamPerson) UnmarshalJSON(data []byte) error {
 	type embed ClaudeTeamPerson
 	var unmarshaler = struct {
@@ -11521,6 +16533,68 @@ func NewClaudeTeamPersonSeatFromString(s string) (ClaudeTeamPersonSeat, error) {
 }
 
 func (c ClaudeTeamPersonSeat) Ptr() *ClaudeTeamPersonSeat {
+	return &c
+}
+
+type ClaudeTeamPersonStatesItem string
+
+const (
+	ClaudeTeamPersonStatesItemErrors      ClaudeTeamPersonStatesItem = "errors"
+	ClaudeTeamPersonStatesItemRateLimited ClaudeTeamPersonStatesItem = "rate_limited"
+	ClaudeTeamPersonStatesItemBehind      ClaudeTeamPersonStatesItem = "behind"
+	ClaudeTeamPersonStatesItemUnmanaged   ClaudeTeamPersonStatesItem = "unmanaged"
+	ClaudeTeamPersonStatesItemIdle        ClaudeTeamPersonStatesItem = "idle"
+	ClaudeTeamPersonStatesItemUpgrade     ClaudeTeamPersonStatesItem = "upgrade"
+	ClaudeTeamPersonStatesItemDowngrade   ClaudeTeamPersonStatesItem = "downgrade"
+)
+
+func NewClaudeTeamPersonStatesItemFromString(s string) (ClaudeTeamPersonStatesItem, error) {
+	switch s {
+	case "errors":
+		return ClaudeTeamPersonStatesItemErrors, nil
+	case "rate_limited":
+		return ClaudeTeamPersonStatesItemRateLimited, nil
+	case "behind":
+		return ClaudeTeamPersonStatesItemBehind, nil
+	case "unmanaged":
+		return ClaudeTeamPersonStatesItemUnmanaged, nil
+	case "idle":
+		return ClaudeTeamPersonStatesItemIdle, nil
+	case "upgrade":
+		return ClaudeTeamPersonStatesItemUpgrade, nil
+	case "downgrade":
+		return ClaudeTeamPersonStatesItemDowngrade, nil
+	}
+	var t ClaudeTeamPersonStatesItem
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c ClaudeTeamPersonStatesItem) Ptr() *ClaudeTeamPersonStatesItem {
+	return &c
+}
+
+type ClaudeTeamPersonVersionState string
+
+const (
+	ClaudeTeamPersonVersionStateCurrent ClaudeTeamPersonVersionState = "current"
+	ClaudeTeamPersonVersionStateMinor   ClaudeTeamPersonVersionState = "minor"
+	ClaudeTeamPersonVersionStateOld     ClaudeTeamPersonVersionState = "old"
+)
+
+func NewClaudeTeamPersonVersionStateFromString(s string) (ClaudeTeamPersonVersionState, error) {
+	switch s {
+	case "current":
+		return ClaudeTeamPersonVersionStateCurrent, nil
+	case "minor":
+		return ClaudeTeamPersonVersionStateMinor, nil
+	case "old":
+		return ClaudeTeamPersonVersionStateOld, nil
+	}
+	var t ClaudeTeamPersonVersionState
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c ClaudeTeamPersonVersionState) Ptr() *ClaudeTeamPersonVersionState {
 	return &c
 }
 
@@ -12197,21 +17271,223 @@ func (c *ClaudeTeamSettingsResponse) String() string {
 }
 
 var (
-	claudeTeamSummaryDataFieldHasMembers    = big.NewInt(1 << 0)
-	claudeTeamSummaryDataFieldHasSpend      = big.NewInt(1 << 1)
-	claudeTeamSummaryDataFieldCoverage      = big.NewInt(1 << 2)
-	claudeTeamSummaryDataFieldMembersAsOf   = big.NewInt(1 << 3)
-	claudeTeamSummaryDataFieldSpendPeriod   = big.NewInt(1 << 4)
-	claudeTeamSummaryDataFieldSeats         = big.NewInt(1 << 5)
-	claudeTeamSummaryDataFieldActiveSeats   = big.NewInt(1 << 6)
-	claudeTeamSummaryDataFieldSeatCost      = big.NewInt(1 << 7)
-	claudeTeamSummaryDataFieldExtraUsage    = big.NewInt(1 << 8)
-	claudeTeamSummaryDataFieldBill          = big.NewInt(1 << 9)
-	claudeTeamSummaryDataFieldBillChangePct = big.NewInt(1 << 10)
-	claudeTeamSummaryDataFieldSavingsFound  = big.NewInt(1 << 11)
-	claudeTeamSummaryDataFieldBillingCycle  = big.NewInt(1 << 12)
-	claudeTeamSummaryDataFieldPriceGap      = big.NewInt(1 << 13)
-	claudeTeamSummaryDataFieldMonthly       = big.NewInt(1 << 14)
+	claudeTeamStatesFieldAll         = big.NewInt(1 << 0)
+	claudeTeamStatesFieldErrors      = big.NewInt(1 << 1)
+	claudeTeamStatesFieldRateLimited = big.NewInt(1 << 2)
+	claudeTeamStatesFieldBehind      = big.NewInt(1 << 3)
+	claudeTeamStatesFieldUnmanaged   = big.NewInt(1 << 4)
+	claudeTeamStatesFieldIdle        = big.NewInt(1 << 5)
+	claudeTeamStatesFieldUpgrade     = big.NewInt(1 << 6)
+	claudeTeamStatesFieldDowngrade   = big.NewInt(1 << 7)
+)
+
+type ClaudeTeamStates struct {
+	// The people every filter but state keeps
+	All         int `json:"all" url:"all"`
+	Errors      int `json:"errors" url:"errors"`
+	RateLimited int `json:"rate_limited" url:"rate_limited"`
+	Behind      int `json:"behind" url:"behind"`
+	Unmanaged   int `json:"unmanaged" url:"unmanaged"`
+	Idle        int `json:"idle" url:"idle"`
+	Upgrade     int `json:"upgrade" url:"upgrade"`
+	Downgrade   int `json:"downgrade" url:"downgrade"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ClaudeTeamStates) GetAll() int {
+	if c == nil {
+		return 0
+	}
+	return c.All
+}
+
+func (c *ClaudeTeamStates) GetErrors() int {
+	if c == nil {
+		return 0
+	}
+	return c.Errors
+}
+
+func (c *ClaudeTeamStates) GetRateLimited() int {
+	if c == nil {
+		return 0
+	}
+	return c.RateLimited
+}
+
+func (c *ClaudeTeamStates) GetBehind() int {
+	if c == nil {
+		return 0
+	}
+	return c.Behind
+}
+
+func (c *ClaudeTeamStates) GetUnmanaged() int {
+	if c == nil {
+		return 0
+	}
+	return c.Unmanaged
+}
+
+func (c *ClaudeTeamStates) GetIdle() int {
+	if c == nil {
+		return 0
+	}
+	return c.Idle
+}
+
+func (c *ClaudeTeamStates) GetUpgrade() int {
+	if c == nil {
+		return 0
+	}
+	return c.Upgrade
+}
+
+func (c *ClaudeTeamStates) GetDowngrade() int {
+	if c == nil {
+		return 0
+	}
+	return c.Downgrade
+}
+
+func (c *ClaudeTeamStates) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ClaudeTeamStates) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetAll sets the All field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamStates) SetAll(all int) {
+	c.All = all
+	c.require(claudeTeamStatesFieldAll)
+}
+
+// SetErrors sets the Errors field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamStates) SetErrors(errors int) {
+	c.Errors = errors
+	c.require(claudeTeamStatesFieldErrors)
+}
+
+// SetRateLimited sets the RateLimited field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamStates) SetRateLimited(rateLimited int) {
+	c.RateLimited = rateLimited
+	c.require(claudeTeamStatesFieldRateLimited)
+}
+
+// SetBehind sets the Behind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamStates) SetBehind(behind int) {
+	c.Behind = behind
+	c.require(claudeTeamStatesFieldBehind)
+}
+
+// SetUnmanaged sets the Unmanaged field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamStates) SetUnmanaged(unmanaged int) {
+	c.Unmanaged = unmanaged
+	c.require(claudeTeamStatesFieldUnmanaged)
+}
+
+// SetIdle sets the Idle field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamStates) SetIdle(idle int) {
+	c.Idle = idle
+	c.require(claudeTeamStatesFieldIdle)
+}
+
+// SetUpgrade sets the Upgrade field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamStates) SetUpgrade(upgrade int) {
+	c.Upgrade = upgrade
+	c.require(claudeTeamStatesFieldUpgrade)
+}
+
+// SetDowngrade sets the Downgrade field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamStates) SetDowngrade(downgrade int) {
+	c.Downgrade = downgrade
+	c.require(claudeTeamStatesFieldDowngrade)
+}
+
+func (c *ClaudeTeamStates) UnmarshalJSON(data []byte) error {
+	type unmarshaler ClaudeTeamStates
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ClaudeTeamStates(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ClaudeTeamStates) MarshalJSON() ([]byte, error) {
+	type embed ClaudeTeamStates
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ClaudeTeamStates) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	claudeTeamSummaryDataFieldHasMembers      = big.NewInt(1 << 0)
+	claudeTeamSummaryDataFieldHasSpend        = big.NewInt(1 << 1)
+	claudeTeamSummaryDataFieldCoverage        = big.NewInt(1 << 2)
+	claudeTeamSummaryDataFieldMembersAsOf     = big.NewInt(1 << 3)
+	claudeTeamSummaryDataFieldSpendPeriod     = big.NewInt(1 << 4)
+	claudeTeamSummaryDataFieldSeats           = big.NewInt(1 << 5)
+	claudeTeamSummaryDataFieldActiveSeats     = big.NewInt(1 << 6)
+	claudeTeamSummaryDataFieldSeatCost        = big.NewInt(1 << 7)
+	claudeTeamSummaryDataFieldExtraUsage      = big.NewInt(1 << 8)
+	claudeTeamSummaryDataFieldBill            = big.NewInt(1 << 9)
+	claudeTeamSummaryDataFieldBillChangePct   = big.NewInt(1 << 10)
+	claudeTeamSummaryDataFieldSavingsFound    = big.NewInt(1 << 11)
+	claudeTeamSummaryDataFieldBillingCycle    = big.NewInt(1 << 12)
+	claudeTeamSummaryDataFieldPriceGap        = big.NewInt(1 << 13)
+	claudeTeamSummaryDataFieldMonthly         = big.NewInt(1 << 14)
+	claudeTeamSummaryDataFieldReportedThrough = big.NewInt(1 << 15)
+	claudeTeamSummaryDataFieldMonthToDate     = big.NewInt(1 << 16)
+	claudeTeamSummaryDataFieldEstimate        = big.NewInt(1 << 17)
+	claudeTeamSummaryDataFieldLastMonth       = big.NewInt(1 << 18)
+	claudeTeamSummaryDataFieldAdoption        = big.NewInt(1 << 19)
 )
 
 type ClaudeTeamSummaryData struct {
@@ -12243,6 +17519,16 @@ type ClaudeTeamSummaryData struct {
 	PriceGap float64 `json:"price_gap" url:"price_gap"`
 	// The last six months through the end of the range
 	Monthly []*ClaudeTeamMonth `json:"monthly" url:"monthly"`
+	// The last day the month's bill is known through: the last day a spend report reaches, or the day before the month when none reaches into it yet
+	ReportedThrough string `json:"reported_through" url:"reported_through"`
+	// The bill of the month the range ends in, through reported_through
+	MonthToDate float64 `json:"month_to_date" url:"month_to_date"`
+	// month_to_date plus the daily average of the 7 days that end on reported_through for each day left in the month after it
+	Estimate float64 `json:"estimate" url:"estimate"`
+	// The bill of the month before, in whole, null with no bill
+	LastMonth *float64 `json:"last_month,omitempty" url:"last_month,omitempty"`
+	// Seats, and the people active and engaged in the 7 days that end each day, from Claude Code and Cowork telemetry
+	Adoption *ClaudeTeamAdoption `json:"adoption" url:"adoption"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -12354,6 +17640,41 @@ func (c *ClaudeTeamSummaryData) GetMonthly() []*ClaudeTeamMonth {
 		return nil
 	}
 	return c.Monthly
+}
+
+func (c *ClaudeTeamSummaryData) GetReportedThrough() string {
+	if c == nil {
+		return ""
+	}
+	return c.ReportedThrough
+}
+
+func (c *ClaudeTeamSummaryData) GetMonthToDate() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.MonthToDate
+}
+
+func (c *ClaudeTeamSummaryData) GetEstimate() float64 {
+	if c == nil {
+		return 0
+	}
+	return c.Estimate
+}
+
+func (c *ClaudeTeamSummaryData) GetLastMonth() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.LastMonth
+}
+
+func (c *ClaudeTeamSummaryData) GetAdoption() *ClaudeTeamAdoption {
+	if c == nil {
+		return nil
+	}
+	return c.Adoption
 }
 
 func (c *ClaudeTeamSummaryData) GetExtraProperties() map[string]interface{} {
@@ -12473,6 +17794,41 @@ func (c *ClaudeTeamSummaryData) SetPriceGap(priceGap float64) {
 func (c *ClaudeTeamSummaryData) SetMonthly(monthly []*ClaudeTeamMonth) {
 	c.Monthly = monthly
 	c.require(claudeTeamSummaryDataFieldMonthly)
+}
+
+// SetReportedThrough sets the ReportedThrough field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryData) SetReportedThrough(reportedThrough string) {
+	c.ReportedThrough = reportedThrough
+	c.require(claudeTeamSummaryDataFieldReportedThrough)
+}
+
+// SetMonthToDate sets the MonthToDate field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryData) SetMonthToDate(monthToDate float64) {
+	c.MonthToDate = monthToDate
+	c.require(claudeTeamSummaryDataFieldMonthToDate)
+}
+
+// SetEstimate sets the Estimate field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryData) SetEstimate(estimate float64) {
+	c.Estimate = estimate
+	c.require(claudeTeamSummaryDataFieldEstimate)
+}
+
+// SetLastMonth sets the LastMonth field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryData) SetLastMonth(lastMonth *float64) {
+	c.LastMonth = lastMonth
+	c.require(claudeTeamSummaryDataFieldLastMonth)
+}
+
+// SetAdoption sets the Adoption field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClaudeTeamSummaryData) SetAdoption(adoption *ClaudeTeamAdoption) {
+	c.Adoption = adoption
+	c.require(claudeTeamSummaryDataFieldAdoption)
 }
 
 func (c *ClaudeTeamSummaryData) UnmarshalJSON(data []byte) error {
@@ -13013,11 +18369,17 @@ func (r RosterAskedFormat) Ptr() *RosterAskedFormat {
 var (
 	sessionsAskedFieldPage     = big.NewInt(1 << 0)
 	sessionsAskedFieldPageSize = big.NewInt(1 << 1)
+	sessionsAskedFieldDay      = big.NewInt(1 << 2)
+	sessionsAskedFieldFailed   = big.NewInt(1 << 3)
 )
 
 type SessionsAsked struct {
 	Page     *int `json:"page,omitempty" url:"page,omitempty"`
 	PageSize *int `json:"page_size,omitempty" url:"page_size,omitempty"`
+	// Keep the sessions with a request that day
+	Day *time.Time `json:"day,omitempty" url:"day,omitempty" format:"date"`
+	// Keep the sessions with a failed request
+	Failed *bool `json:"failed,omitempty" url:"failed,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -13038,6 +18400,20 @@ func (s *SessionsAsked) GetPageSize() *int {
 		return nil
 	}
 	return s.PageSize
+}
+
+func (s *SessionsAsked) GetDay() *time.Time {
+	if s == nil {
+		return nil
+	}
+	return s.Day
+}
+
+func (s *SessionsAsked) GetFailed() *bool {
+	if s == nil {
+		return nil
+	}
+	return s.Failed
 }
 
 func (s *SessionsAsked) GetExtraProperties() map[string]interface{} {
@@ -13068,13 +18444,33 @@ func (s *SessionsAsked) SetPageSize(pageSize *int) {
 	s.require(sessionsAskedFieldPageSize)
 }
 
+// SetDay sets the Day field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SessionsAsked) SetDay(day *time.Time) {
+	s.Day = day
+	s.require(sessionsAskedFieldDay)
+}
+
+// SetFailed sets the Failed field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SessionsAsked) SetFailed(failed *bool) {
+	s.Failed = failed
+	s.require(sessionsAskedFieldFailed)
+}
+
 func (s *SessionsAsked) UnmarshalJSON(data []byte) error {
-	type unmarshaler SessionsAsked
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
+	type embed SessionsAsked
+	var unmarshaler = struct {
+		embed
+		Day *internal.Date `json:"day,omitempty"`
+	}{
+		embed: embed(*s),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*s = SessionsAsked(value)
+	*s = SessionsAsked(unmarshaler.embed)
+	s.Day = unmarshaler.Day.TimePtr()
 	extraProperties, err := internal.ExtractExtraProperties(data, *s)
 	if err != nil {
 		return err
@@ -13088,8 +18484,10 @@ func (s *SessionsAsked) MarshalJSON() ([]byte, error) {
 	type embed SessionsAsked
 	var marshaler = struct {
 		embed
+		Day *internal.Date `json:"day,omitempty"`
 	}{
 		embed: embed(*s),
+		Day:   internal.NewOptionalDate(s.Day),
 	}
 	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
 	return json.Marshal(explicitMarshaler)
@@ -13205,15 +18603,16 @@ func (g GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSeat) Ptr() *Get
 type GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort string
 
 const (
-	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortPerson        GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "person"
-	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortArea          GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "area"
-	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortSeat          GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "seat"
-	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortMainProduct   GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "main_product"
-	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortTokens7D      GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "tokens_7d"
-	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortExtraUsage30D GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "extra_usage_30d"
-	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortUsageValue30D GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "usage_value_30d"
-	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortLastActive    GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "last_active"
-	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortSaving        GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "saving"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortPerson         GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "person"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortArea           GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "area"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortSeat           GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "seat"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortMainProduct    GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "main_product"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortTokens7D       GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "tokens_7d"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortExtraUsage30D  GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "extra_usage_30d"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortUsageValue30D  GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "usage_value_30d"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortLastActive     GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "last_active"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortSaving         GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "saving"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortFailedRequests GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort = "failed_requests"
 )
 
 func NewGetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortFromString(s string) (GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort, error) {
@@ -13236,12 +18635,51 @@ func NewGetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortFromString(s
 		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortLastActive, nil
 	case "saving":
 		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortSaving, nil
+	case "failed_requests":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSortFailedRequests, nil
 	}
 	var t GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
 func (g GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort) Ptr() *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestSort {
+	return &g
+}
+
+type GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestState string
+
+const (
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestStateErrors      GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestState = "errors"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestStateRateLimited GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestState = "rate_limited"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestStateBehind      GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestState = "behind"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestStateUnmanaged   GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestState = "unmanaged"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestStateIdle        GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestState = "idle"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestStateUpgrade     GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestState = "upgrade"
+	GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestStateDowngrade   GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestState = "downgrade"
+)
+
+func NewGetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestStateFromString(s string) (GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestState, error) {
+	switch s {
+	case "errors":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestStateErrors, nil
+	case "rate_limited":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestStateRateLimited, nil
+	case "behind":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestStateBehind, nil
+	case "unmanaged":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestStateUnmanaged, nil
+	case "idle":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestStateIdle, nil
+	case "upgrade":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestStateUpgrade, nil
+	case "downgrade":
+		return GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestStateDowngrade, nil
+	}
+	var t GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestState
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestState) Ptr() *GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequestState {
 	return &g
 }
 
@@ -13268,5 +18706,28 @@ func NewGetUsageBreakdownAPIV1ProvidersAnthropicUsageBreakdownGetRequestGroupByF
 }
 
 func (g GetUsageBreakdownAPIV1ProvidersAnthropicUsageBreakdownGetRequestGroupBy) Ptr() *GetUsageBreakdownAPIV1ProvidersAnthropicUsageBreakdownGetRequestGroupBy {
+	return &g
+}
+
+// What the bands are by
+type GetUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequestBasis string
+
+const (
+	GetUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequestBasisUsageValue GetUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequestBasis = "usage_value"
+	GetUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequestBasisTokens     GetUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequestBasis = "tokens"
+)
+
+func NewGetUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequestBasisFromString(s string) (GetUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequestBasis, error) {
+	switch s {
+	case "usage_value":
+		return GetUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequestBasisUsageValue, nil
+	case "tokens":
+		return GetUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequestBasisTokens, nil
+	}
+	var t GetUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequestBasis
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequestBasis) Ptr() *GetUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequestBasis {
 	return &g
 }

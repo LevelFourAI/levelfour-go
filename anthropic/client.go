@@ -47,7 +47,7 @@ func (c *Client) GetDataAvailability(
 	return response.Body, nil
 }
 
-// Usage is what Claude Code and Cowork reported about themselves, valued at API list price. It is not what the organization is billed, and it includes the current day. totals covers the range, with each person counted once. daily has one entry per day of the range, at zero on a day nobody used Claude.
+// Usage is what Claude Code and Cowork reported about themselves, valued at API list price. It is not what the organization is billed, and it includes the current day. totals covers the range, with each person counted once, and says how much input was read from the prompt cache, what that saved against sending it as input and what writing to the cache cost, at each model's list rates on the range's last day. daily has one entry per day of the range, at zero on a day nobody used Claude.
 func (c *Client) GetUsage(
 	ctx context.Context,
 	request *levelfour.GetUsageAPIV1ProvidersAnthropicUsageGetRequest,
@@ -81,7 +81,7 @@ func (c *Client) GetUsageBreakdown(
 	return response.Body, nil
 }
 
-// Usage is what Claude Code and Cowork reported about themselves, valued at API list price. It is not what the organization is billed, and it includes the current day. Each person is counted in the band their usage value over the range falls in, and every band is answered, including one with nobody in it. top_decile and rest set the tenth of the people who used the most beside everyone else.
+// Usage is what Claude Code and Cowork reported about themselves, valued at API list price. It is not what the organization is billed, and it includes the current day. Each person is counted in the band their usage value over the range falls in, and every band is answered, including one with nobody in it. basis=tokens bands people by their tokens a week over the range, cache reads left out: over 5M, 1M to 5M, 200K to 1M and under 200K, then no use for the people seen in the 400 days before the range ends who used nothing in it. top_decile and rest set the tenth of the people who used the most beside everyone else, by usage value whatever the basis.
 func (c *Client) GetUsageDistribution(
 	ctx context.Context,
 	request *levelfour.GetUsageDistributionAPIV1ProvidersAnthropicUsageDistributionGetRequest,
@@ -115,7 +115,7 @@ func (c *Client) GetListPrice(
 	return response.Body, nil
 }
 
-// Activity is what Claude Code and Cowork reported about themselves, kept as daily totals: names, counts and durations, never the text of a prompt, a response or a command. sections has one entry per kind of activity over the range, with its largest rows. response_times estimates, per model, how long a request took and how long its first token took: the times are kept in buckets, so each figure can be off by the width of one. people says how many people each kind of activity reached, and names nobody.
+// Activity is what Claude Code and Cowork reported about themselves, kept as daily totals: names, counts and durations, never the text of a prompt, a response or a command. sections has one entry per kind of activity over the range, with its largest rows. response_times estimates, per model, how long a request took and how long its first token took, and overall the same over every model: the times are kept in buckets, so each figure can be off by the width of one. people says how many people each kind of activity reached, and names nobody.
 func (c *Client) GetActivity(
 	ctx context.Context,
 	request *levelfour.GetActivityAPIV1ProvidersAnthropicActivityGetRequest,
@@ -166,6 +166,40 @@ func (c *Client) GetActivityFleet(
 	return response.Body, nil
 }
 
+// Activity is what Claude Code and Cowork reported about themselves, kept as daily totals: names, counts and durations, never the text of a prompt, a response or a command. Each MCP server a tool was called through or connected to in the range: the people who did either, the connections that opened and the ones that failed. failing is true once a connection failed, and those servers come first, then the most connections. A server is named only when the install sends server names; the connections of one that does not are under a server of null. Read from the session detail kept since migration 198. Names nobody.
+func (c *Client) GetActivityMcp(
+	ctx context.Context,
+	request *levelfour.GetActivityMcpAPIV1ProvidersAnthropicActivityMcpGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.AiMcpServersResponse, error) {
+	response, err := c.WithRawResponse.GetActivityMcp(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Activity is what Claude Code and Cowork reported about themselves, kept as daily totals: names, counts and durations, never the text of a prompt, a response or a command. Each session with a request or a failure in the range, under the mode its latest change switched it to, whenever that was, or default for one that never switched. The range is 92 days at most, and 422 range_too_long past it. Read from the session detail kept since migration 198. Names nobody.
+func (c *Client) GetActivityPermissionModes(
+	ctx context.Context,
+	request *levelfour.GetActivityPermissionModesAPIV1ProvidersAnthropicActivityPermissionModesGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.AiPermissionModesResponse, error) {
+	response, err := c.WithRawResponse.GetActivityPermissionModes(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
 // Activity is what Claude Code and Cowork reported about themselves, kept as daily totals: names, counts and durations, never the text of a prompt, a response or a command. Each list names at most three people, the largest figure first, and nobody whose figure is zero. behind_on_version and without_managed_settings count everyone they apply to among the people who reported usage in the range, and name three. The answer names people, so it is sent with Cache-Control: no-store.
 func (c *Client) GetActivityPeople(
 	ctx context.Context,
@@ -173,6 +207,40 @@ func (c *Client) GetActivityPeople(
 	opts ...option.RequestOption,
 ) (*levelfour.AnthropicActivityPeopleResponse, error) {
 	response, err := c.WithRawResponse.GetActivityPeople(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Activity is what Claude Code and Cowork reported about themselves, kept as daily totals: names, counts and durations, never the text of a prompt, a response or a command. The measure over the range for each person, each area of the AI area's spreadsheet or each repository, the 50 largest first, with previous over the range of the same length just before it and the people behind each. An area or repository of null is none, which is also what the area and repository filters take for it. By repository, or with a repository filter, the measure comes from what the sessions' metrics said, kept since migration 198, so it is one of pull_requests, commits, lines_added and lines_removed, and 422 measure_not_by_repository otherwise. granularity=daily adds each day of the range with a value for every key listed. The answer can name people, so it is sent with Cache-Control: no-store.
+func (c *Client) GetActivityBreakdown(
+	ctx context.Context,
+	request *levelfour.GetActivityBreakdownAPIV1ProvidersAnthropicActivityBreakdownGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.AiBreakdownResponse, error) {
+	response, err := c.WithRawResponse.GetActivityBreakdown(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Activity is what Claude Code and Cowork reported about themselves, kept as daily totals: names, counts and durations, never the text of a prompt, a response or a command. Pass one day as start and end to drill into it. kinds adds up the failed requests by what the API answered: 400 invalid request, 429 rate limited, 529 overloaded, connection when no answer came, other for the rest. people and sessions name the 100 with the most, each with the kind most of theirs were, and a session says whether it recovered, a request succeeding after its last failure, or stopped, over every day it ran. The range is 31 days at most, and 422 range_too_long past it. Read from the session detail kept since migration 198, so a failure that named no session is not here. The answer names people, so it is sent with Cache-Control: no-store.
+func (c *Client) GetActivityFailures(
+	ctx context.Context,
+	request *levelfour.GetActivityFailuresAPIV1ProvidersAnthropicActivityFailuresGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.AiFailuresResponse, error) {
+	response, err := c.WithRawResponse.GetActivityFailures(
 		ctx,
 		request,
 		opts...,
@@ -232,7 +300,7 @@ func (c *Client) GetUsagePeople(
 	return response.Body, nil
 }
 
-// Usage is what Claude Code and Cowork reported about themselves, valued at API list price. It is not what the organization is billed, and it includes the current day. The last twelve weeks of tokens by product, and the person's tokens in 7 and 30 days, usage value, last use and idle weeks. A Claude Team plan adds the person's seat and its price, their area, extra usage and the seat change their use calls for, as /team/people reads them. 404 person_not_found for someone the tenant never heard of. The answer names a person, so it is sent with Cache-Control: no-store.
+// Usage is what Claude Code and Cowork reported about themselves, valued at API list price. It is not what the organization is billed, and it includes the current day. The last twelve weeks of tokens by product, and the person's tokens in 7 and 30 days, usage value, last use and idle weeks. Over the 30 days, their tokens by kind, each model they used and their failed requests in all and by day and kind. What their install last said of its version, against the newest one an install seen in 30 days is on, and of managed settings. A Claude Team plan adds the person's seat and its price, their area, extra usage and the seat change their use calls for, as /team/people reads them. 404 person_not_found for someone the tenant never heard of. The answer names a person, so it is sent with Cache-Control: no-store.
 func (c *Client) GetUsagePerson(
 	ctx context.Context,
 	person string,
@@ -249,7 +317,7 @@ func (c *Client) GetUsagePerson(
 	return response.Body, nil
 }
 
-// Each session or conversation the person's tool named in the range, the latest first: when it started, its product, model and repository, its requests, tokens and usage value, and how long it ran from the first request to the last. What was said in it is never kept. Empty until the tool reports sessions. The answer names a person, so it is sent with Cache-Control: no-store.
+// Each session or conversation the person's tool named in the range, the latest first: when it started, its product, model and repository, its requests, tokens by kind and usage value, how long it ran from the first request to the last, its active time, its failed requests and how it ended, read from every day it ran. A session whose detail was kept before migration 198 has null failed requests and an unknown outcome. day keeps the sessions with a request that day and failed=true the ones with a failed request. What was said in it is never kept. Empty until the tool reports sessions. The answer names a person, so it is sent with Cache-Control: no-store.
 func (c *Client) GetUsagePersonSessions(
 	ctx context.Context,
 	person string,
@@ -268,7 +336,45 @@ func (c *Client) GetUsagePersonSessions(
 	return response.Body, nil
 }
 
-// What a Claude Team plan cost in the range, seats and extra usage apart, from the Members lists and spend reports uploaded for it, and how that moved against the range of the same length before. seats is the latest Members list. savings_found adds up what the seat changes /team/people recommends save a month. monthly is the last six months through the end of the range. Before the first upload, has_members and has_spend are false and every figure is zero.
+// The session's figures as the list has them, with when its last request was sent, the mode it last switched to, its ten-minute timeline of requests and failures by kind, and its tools and MCP servers. collected is false for a session from before migration 198, whose timeline and tools are empty. 404 session_not_found when the person has no such session. The answer names a person, so it is sent with Cache-Control: no-store.
+func (c *Client) GetUsagePersonSession(
+	ctx context.Context,
+	person string,
+	session string,
+	opts ...option.RequestOption,
+) (*levelfour.AiSessionDetailResponse, error) {
+	response, err := c.WithRawResponse.GetUsagePersonSession(
+		ctx,
+		person,
+		session,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// Each tool the person's sessions called in the range, the most calls first, with the MCP server an MCP tool was called through, its failed calls and its success rate, and apart from them the MCP servers they connected to. Read from the session detail kept since migration 198. The answer names a person, so it is sent with Cache-Control: no-store.
+func (c *Client) GetUsagePersonTools(
+	ctx context.Context,
+	person string,
+	request *levelfour.GetUsagePersonToolsAPIV1ProvidersAnthropicUsagePeoplePersonToolsGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.AiPersonToolsResponse, error) {
+	response, err := c.WithRawResponse.GetUsagePersonTools(
+		ctx,
+		person,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+// What a Claude Team plan cost in the range, seats and extra usage apart, from the Members lists and spend reports uploaded for it, and how that moved against the range of the same length before. seats is the latest Members list. savings_found adds up what the seat changes /team/people recommends save a month. monthly is the last six months through the end of the range. month_to_date is the bill of the month the range ends in, estimate that plus the daily average of the range's last 7 days for each day left in it, and last_month the month before. adoption counts the people who sent a request in the 7 days that end each day of the range, and the engaged among them, active on 3 or more of those days, beside the seats. Before the first upload, has_members and has_spend are false and every figure is zero.
 func (c *Client) GetTeamSummary(
 	ctx context.Context,
 	request *levelfour.GetTeamSummaryAPIV1ProvidersAnthropicTeamSummaryGetRequest,
@@ -285,7 +391,7 @@ func (c *Client) GetTeamSummary(
 	return response.Body, nil
 }
 
-// One row per person the latest Members list names, the spend reports count or Claude Code reported, over the 7 and 30 days that end on the last day the spend reports cover. Tokens count every product the spend report names, and a product telemetry also counts is taken at whichever counted more. recommendation is the one rule a seat meets: remove for a seat unused for more than two weeks in a row, upgrade for a Standard seat whose extra usage in 30 days passed what Premium costs above it, downgrade for a Premium seat used less than the weekly token threshold in /team/settings. rules counts each rule over everyone, whatever the filters keep. A spend report that holds overage alone hides Chat inside the allowance: on one, downgrade reads Claude Code and Cowork telemetry for the people who report it, and remove is not available. The largest saving comes first. format=csv answers every row the filters keep. The answer names people, so it is sent with Cache-Control: no-store.
+// One row per person the latest Members list names, the spend reports count or Claude Code reported, over the 7 and 30 days that end on the last day the spend reports cover. Tokens count every product the spend report names, and a product telemetry also counts is taken at whichever counted more. recommendation is the one rule a seat meets: remove for a seat unused for more than two weeks in a row, upgrade for a Standard seat whose extra usage in 30 days passed what Premium costs above it, downgrade for a Premium seat used less than the weekly token threshold in /team/settings. rules counts each rule over everyone, whatever the filters keep. A spend report that holds overage alone hides Chat inside the allowance: on one, downgrade reads Claude Code and Cowork telemetry for the people who report it, and remove is not available. Each row adds the requests that failed the person and the rate limits among them in the 30 days, the version their install reported last against latest_version, the newest an install seen in 30 days is on, whether its settings are managed, and states. state keeps the people in one state, and states counts each over the people the other filters keep. The largest saving comes first. format=csv answers every row the filters keep. The answer names people, so it is sent with Cache-Control: no-store.
 func (c *Client) GetTeamPeople(
 	ctx context.Context,
 	request *levelfour.GetTeamPeopleAPIV1ProvidersAnthropicTeamPeopleGetRequest,
