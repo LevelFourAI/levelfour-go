@@ -6757,6 +6757,307 @@ func (s *SrcAccountsSchemasGithubInstallationsResponse) String() string {
 	return fmt.Sprintf("%#v", s)
 }
 
+var (
+	terraformIntegrationDataFieldIntegrationID           = big.NewInt(1 << 0)
+	terraformIntegrationDataFieldHandshakeID             = big.NewInt(1 << 1)
+	terraformIntegrationDataFieldPingbackTopicArn        = big.NewInt(1 << 2)
+	terraformIntegrationDataFieldSingleTemplateURL       = big.NewInt(1 << 3)
+	terraformIntegrationDataFieldOrganizationTemplateURL = big.NewInt(1 << 4)
+	terraformIntegrationDataFieldCreatedAt               = big.NewInt(1 << 5)
+)
+
+type TerraformIntegrationData struct {
+	// The organization's standing IntegrationID for stacks applied with Terraform. Every AWS account a stack carrying it onboards connects to this organization, until the key is rotated.
+	IntegrationID string `json:"integration_id" url:"integration_id"`
+	// Value for the template's LevelFourHandshakeID parameter
+	HandshakeID string `json:"handshake_id" url:"handshake_id"`
+	// Value for the template's PingbackTopicArn parameter
+	PingbackTopicArn string `json:"pingback_topic_arn" url:"pingback_topic_arn"`
+	// CloudFormation template that onboards one AWS account
+	SingleTemplateURL string `json:"single_template_url" url:"single_template_url"`
+	// CloudFormation StackSet wrapper template that onboards the accounts of an AWS Organization
+	OrganizationTemplateURL string    `json:"organization_template_url" url:"organization_template_url"`
+	CreatedAt               time.Time `json:"created_at" url:"created_at"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TerraformIntegrationData) GetIntegrationID() string {
+	if t == nil {
+		return ""
+	}
+	return t.IntegrationID
+}
+
+func (t *TerraformIntegrationData) GetHandshakeID() string {
+	if t == nil {
+		return ""
+	}
+	return t.HandshakeID
+}
+
+func (t *TerraformIntegrationData) GetPingbackTopicArn() string {
+	if t == nil {
+		return ""
+	}
+	return t.PingbackTopicArn
+}
+
+func (t *TerraformIntegrationData) GetSingleTemplateURL() string {
+	if t == nil {
+		return ""
+	}
+	return t.SingleTemplateURL
+}
+
+func (t *TerraformIntegrationData) GetOrganizationTemplateURL() string {
+	if t == nil {
+		return ""
+	}
+	return t.OrganizationTemplateURL
+}
+
+func (t *TerraformIntegrationData) GetCreatedAt() time.Time {
+	if t == nil {
+		return time.Time{}
+	}
+	return t.CreatedAt
+}
+
+func (t *TerraformIntegrationData) GetExtraProperties() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.extraProperties
+}
+
+func (t *TerraformIntegrationData) require(field *big.Int) {
+	if t.explicitFields == nil {
+		t.explicitFields = big.NewInt(0)
+	}
+	t.explicitFields.Or(t.explicitFields, field)
+}
+
+// SetIntegrationID sets the IntegrationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TerraformIntegrationData) SetIntegrationID(integrationID string) {
+	t.IntegrationID = integrationID
+	t.require(terraformIntegrationDataFieldIntegrationID)
+}
+
+// SetHandshakeID sets the HandshakeID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TerraformIntegrationData) SetHandshakeID(handshakeID string) {
+	t.HandshakeID = handshakeID
+	t.require(terraformIntegrationDataFieldHandshakeID)
+}
+
+// SetPingbackTopicArn sets the PingbackTopicArn field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TerraformIntegrationData) SetPingbackTopicArn(pingbackTopicArn string) {
+	t.PingbackTopicArn = pingbackTopicArn
+	t.require(terraformIntegrationDataFieldPingbackTopicArn)
+}
+
+// SetSingleTemplateURL sets the SingleTemplateURL field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TerraformIntegrationData) SetSingleTemplateURL(singleTemplateURL string) {
+	t.SingleTemplateURL = singleTemplateURL
+	t.require(terraformIntegrationDataFieldSingleTemplateURL)
+}
+
+// SetOrganizationTemplateURL sets the OrganizationTemplateURL field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TerraformIntegrationData) SetOrganizationTemplateURL(organizationTemplateURL string) {
+	t.OrganizationTemplateURL = organizationTemplateURL
+	t.require(terraformIntegrationDataFieldOrganizationTemplateURL)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TerraformIntegrationData) SetCreatedAt(createdAt time.Time) {
+	t.CreatedAt = createdAt
+	t.require(terraformIntegrationDataFieldCreatedAt)
+}
+
+func (t *TerraformIntegrationData) UnmarshalJSON(data []byte) error {
+	type embed TerraformIntegrationData
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"created_at"`
+	}{
+		embed: embed(*t),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*t = TerraformIntegrationData(unmarshaler.embed)
+	t.CreatedAt = unmarshaler.CreatedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TerraformIntegrationData) MarshalJSON() ([]byte, error) {
+	type embed TerraformIntegrationData
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"created_at"`
+	}{
+		embed:     embed(*t),
+		CreatedAt: internal.NewDateTime(t.CreatedAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, t.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (t *TerraformIntegrationData) String() string {
+	if t == nil {
+		return "<nil>"
+	}
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
+}
+
+var (
+	terraformIntegrationResponseFieldSuccess   = big.NewInt(1 << 0)
+	terraformIntegrationResponseFieldTimestamp = big.NewInt(1 << 1)
+	terraformIntegrationResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type TerraformIntegrationResponse struct {
+	Success   *bool                     `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time                `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *TerraformIntegrationData `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TerraformIntegrationResponse) GetSuccess() *bool {
+	if t == nil {
+		return nil
+	}
+	return t.Success
+}
+
+func (t *TerraformIntegrationResponse) GetTimestamp() *time.Time {
+	if t == nil {
+		return nil
+	}
+	return t.Timestamp
+}
+
+func (t *TerraformIntegrationResponse) GetData() *TerraformIntegrationData {
+	if t == nil {
+		return nil
+	}
+	return t.Data
+}
+
+func (t *TerraformIntegrationResponse) GetExtraProperties() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.extraProperties
+}
+
+func (t *TerraformIntegrationResponse) require(field *big.Int) {
+	if t.explicitFields == nil {
+		t.explicitFields = big.NewInt(0)
+	}
+	t.explicitFields.Or(t.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TerraformIntegrationResponse) SetSuccess(success *bool) {
+	t.Success = success
+	t.require(terraformIntegrationResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TerraformIntegrationResponse) SetTimestamp(timestamp *time.Time) {
+	t.Timestamp = timestamp
+	t.require(terraformIntegrationResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TerraformIntegrationResponse) SetData(data *TerraformIntegrationData) {
+	t.Data = data
+	t.require(terraformIntegrationResponseFieldData)
+}
+
+func (t *TerraformIntegrationResponse) UnmarshalJSON(data []byte) error {
+	type embed TerraformIntegrationResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*t),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*t = TerraformIntegrationResponse(unmarshaler.embed)
+	t.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TerraformIntegrationResponse) MarshalJSON() ([]byte, error) {
+	type embed TerraformIntegrationResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*t),
+		Timestamp: internal.NewOptionalDateTime(t.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, t.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (t *TerraformIntegrationResponse) String() string {
+	if t == nil {
+		return "<nil>"
+	}
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
+}
+
 // Onboarding mode. AWS: single|organization. GitHub: github_app. GitLab: gitlab_oauth. Jira: jira_oauth. Slack: slack_oauth.
 type CreateIntegrationRequestMode string
 

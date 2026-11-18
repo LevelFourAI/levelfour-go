@@ -2911,6 +2911,14 @@ func TestSettersAzureSubscriptionItem(t *testing.T) {
 		assert.NotNil(t, obj.explicitFields)
 	})
 
+	t.Run("SetCostVisible", func(t *testing.T) {
+		obj := &AzureSubscriptionItem{}
+		var fernTestValueCostVisible *AzureRoleStatus
+		obj.SetCostVisible(fernTestValueCostVisible)
+		assert.Equal(t, fernTestValueCostVisible, obj.CostVisible)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
 	t.Run("SetMonthToDateCost", func(t *testing.T) {
 		obj := &AzureSubscriptionItem{}
 		var fernTestValueMonthToDateCost float64
@@ -3063,6 +3071,39 @@ func TestGettersAzureSubscriptionItem(t *testing.T) {
 			}
 		}()
 		_ = obj.GetCostManagementReader() // Should return zero value
+	})
+
+	t.Run("GetCostVisible", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &AzureSubscriptionItem{}
+		var expected *AzureRoleStatus
+		obj.CostVisible = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetCostVisible(), "getter should return the property value")
+	})
+
+	t.Run("GetCostVisible_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &AzureSubscriptionItem{}
+		obj.CostVisible = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetCostVisible(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetCostVisible_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *AzureSubscriptionItem
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetCostVisible() // Should return zero value
 	})
 
 	t.Run("GetMonthToDateCost", func(t *testing.T) {
@@ -3246,6 +3287,37 @@ func TestSettersMarkExplicitAzureSubscriptionItem(t *testing.T) {
 
 		// Act
 		obj.SetCostManagementReader(fernTestValueCostManagementReader)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetCostVisible_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &AzureSubscriptionItem{}
+		var fernTestValueCostVisible *AzureRoleStatus
+
+		// Act
+		obj.SetCostVisible(fernTestValueCostVisible)
 
 		// Assert - object with explicitly set field can be marshaled/unmarshaled
 		bytes, err := json.Marshal(obj)

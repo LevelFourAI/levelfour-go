@@ -1418,8 +1418,9 @@ var (
 	azureSubscriptionItemFieldName                 = big.NewInt(1 << 2)
 	azureSubscriptionItemFieldReader               = big.NewInt(1 << 3)
 	azureSubscriptionItemFieldCostManagementReader = big.NewInt(1 << 4)
-	azureSubscriptionItemFieldMonthToDateCost      = big.NewInt(1 << 5)
-	azureSubscriptionItemFieldLastMonthCost        = big.NewInt(1 << 6)
+	azureSubscriptionItemFieldCostVisible          = big.NewInt(1 << 5)
+	azureSubscriptionItemFieldMonthToDateCost      = big.NewInt(1 << 6)
+	azureSubscriptionItemFieldLastMonthCost        = big.NewInt(1 << 7)
 )
 
 type AzureSubscriptionItem struct {
@@ -1431,6 +1432,8 @@ type AzureSubscriptionItem struct {
 	Reader *AzureRoleStatus `json:"reader,omitempty" url:"reader,omitempty"`
 	// Whether the service principal holds Cost Management Reader, null if unchecked
 	CostManagementReader *AzureRoleStatus `json:"cost_management_reader,omitempty" url:"cost_management_reader,omitempty"`
+	// Whether Azure shows this subscription's cost. False when the Microsoft CSP partner that sells it keeps cost visibility off, so LevelFour holds no bill for it. Null if unchecked: only a subscription bought through a CSP partner is checked
+	CostVisible *AzureRoleStatus `json:"cost_visible,omitempty" url:"cost_visible,omitempty"`
 	// Actual cost this month so far, from the bill LevelFour holds
 	MonthToDateCost float64 `json:"month_to_date_cost" url:"month_to_date_cost"`
 	// Actual cost last month, from the bill LevelFour holds
@@ -1476,6 +1479,13 @@ func (a *AzureSubscriptionItem) GetCostManagementReader() *AzureRoleStatus {
 		return nil
 	}
 	return a.CostManagementReader
+}
+
+func (a *AzureSubscriptionItem) GetCostVisible() *AzureRoleStatus {
+	if a == nil {
+		return nil
+	}
+	return a.CostVisible
 }
 
 func (a *AzureSubscriptionItem) GetMonthToDateCost() float64 {
@@ -1539,6 +1549,13 @@ func (a *AzureSubscriptionItem) SetReader(reader *AzureRoleStatus) {
 func (a *AzureSubscriptionItem) SetCostManagementReader(costManagementReader *AzureRoleStatus) {
 	a.CostManagementReader = costManagementReader
 	a.require(azureSubscriptionItemFieldCostManagementReader)
+}
+
+// SetCostVisible sets the CostVisible field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AzureSubscriptionItem) SetCostVisible(costVisible *AzureRoleStatus) {
+	a.CostVisible = costVisible
+	a.require(azureSubscriptionItemFieldCostVisible)
 }
 
 // SetMonthToDateCost sets the MonthToDateCost field and marks it as non-optional;

@@ -48,6 +48,34 @@ func (c *Client) CreateIntegration(
 	return response.Body, nil
 }
 
+func (c *Client) EnsureTerraformIntegration(
+	ctx context.Context,
+	opts ...option.RequestOption,
+) (*levelfour.TerraformIntegrationResponse, error) {
+	response, err := c.WithRawResponse.EnsureTerraformIntegration(
+		ctx,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
+func (c *Client) RotateTerraformIntegration(
+	ctx context.Context,
+	opts ...option.RequestOption,
+) (*levelfour.TerraformIntegrationResponse, error) {
+	response, err := c.WithRawResponse.RotateTerraformIntegration(
+		ctx,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
 func (c *Client) GetIntegrationStatus(
 	ctx context.Context,
 	integrationID string,
