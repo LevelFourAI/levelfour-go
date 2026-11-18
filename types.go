@@ -5148,8 +5148,14 @@ func (a *AzureSetupResponse) String() string {
 type BadRequest = *ErrorResponse
 
 var (
-	blockerTotalsFieldNodesHeld = big.NewInt(1 << 0)
-	blockerTotalsFieldPodsHeld  = big.NewInt(1 << 1)
+	blockerTotalsFieldNodesHeld               = big.NewInt(1 << 0)
+	blockerTotalsFieldPodsHeld                = big.NewInt(1 << 1)
+	blockerTotalsFieldNodesHeldUnpriced       = big.NewInt(1 << 2)
+	blockerTotalsFieldMonthlyCost             = big.NewInt(1 << 3)
+	blockerTotalsFieldMonthlyCostNet          = big.NewInt(1 << 4)
+	blockerTotalsFieldNodesHeldUnhealthy      = big.NewInt(1 << 5)
+	blockerTotalsFieldUnhealthyMonthlyCost    = big.NewInt(1 << 6)
+	blockerTotalsFieldUnhealthyMonthlyCostNet = big.NewInt(1 << 7)
 )
 
 type BlockerTotals struct {
@@ -5157,6 +5163,18 @@ type BlockerTotals struct {
 	NodesHeld int `json:"nodes_held" url:"nodes_held"`
 	// Pods that hold their node; static pods do not
 	PodsHeld int `json:"pods_held" url:"pods_held"`
+	// Held nodes neither their own bill nor a bill rate prices
+	NodesHeldUnpriced *int `json:"nodes_held_unpriced,omitempty" url:"nodes_held_unpriced,omitempty"`
+	// What the held nodes cost a month, the priced ones; null when none is priced
+	MonthlyCost *float64 `json:"monthly_cost,omitempty" url:"monthly_cost,omitempty"`
+	// The same after the enterprise discount and the commitments; a day rolled up before the net basis counts at its amortized cost
+	MonthlyCostNet *float64 `json:"monthly_cost_net,omitempty" url:"monthly_cost_net,omitempty"`
+	// Held nodes that only pods with an unhealthy reason hold, each pod freed by its fix alone: its workload has no ready replica, or PodDisruptionBudgets without a healthy pod are all that hold it
+	NodesHeldUnhealthy *int `json:"nodes_held_unhealthy,omitempty" url:"nodes_held_unhealthy,omitempty"`
+	// What those nodes cost a month, the priced ones; null when none is priced
+	UnhealthyMonthlyCost *float64 `json:"unhealthy_monthly_cost,omitempty" url:"unhealthy_monthly_cost,omitempty"`
+	// The same after the enterprise discount and the commitments; a day rolled up before the net basis counts at its amortized cost
+	UnhealthyMonthlyCostNet *float64 `json:"unhealthy_monthly_cost_net,omitempty" url:"unhealthy_monthly_cost_net,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -5177,6 +5195,48 @@ func (b *BlockerTotals) GetPodsHeld() int {
 		return 0
 	}
 	return b.PodsHeld
+}
+
+func (b *BlockerTotals) GetNodesHeldUnpriced() *int {
+	if b == nil {
+		return nil
+	}
+	return b.NodesHeldUnpriced
+}
+
+func (b *BlockerTotals) GetMonthlyCost() *float64 {
+	if b == nil {
+		return nil
+	}
+	return b.MonthlyCost
+}
+
+func (b *BlockerTotals) GetMonthlyCostNet() *float64 {
+	if b == nil {
+		return nil
+	}
+	return b.MonthlyCostNet
+}
+
+func (b *BlockerTotals) GetNodesHeldUnhealthy() *int {
+	if b == nil {
+		return nil
+	}
+	return b.NodesHeldUnhealthy
+}
+
+func (b *BlockerTotals) GetUnhealthyMonthlyCost() *float64 {
+	if b == nil {
+		return nil
+	}
+	return b.UnhealthyMonthlyCost
+}
+
+func (b *BlockerTotals) GetUnhealthyMonthlyCostNet() *float64 {
+	if b == nil {
+		return nil
+	}
+	return b.UnhealthyMonthlyCostNet
 }
 
 func (b *BlockerTotals) GetExtraProperties() map[string]interface{} {
@@ -5205,6 +5265,48 @@ func (b *BlockerTotals) SetNodesHeld(nodesHeld int) {
 func (b *BlockerTotals) SetPodsHeld(podsHeld int) {
 	b.PodsHeld = podsHeld
 	b.require(blockerTotalsFieldPodsHeld)
+}
+
+// SetNodesHeldUnpriced sets the NodesHeldUnpriced field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BlockerTotals) SetNodesHeldUnpriced(nodesHeldUnpriced *int) {
+	b.NodesHeldUnpriced = nodesHeldUnpriced
+	b.require(blockerTotalsFieldNodesHeldUnpriced)
+}
+
+// SetMonthlyCost sets the MonthlyCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BlockerTotals) SetMonthlyCost(monthlyCost *float64) {
+	b.MonthlyCost = monthlyCost
+	b.require(blockerTotalsFieldMonthlyCost)
+}
+
+// SetMonthlyCostNet sets the MonthlyCostNet field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BlockerTotals) SetMonthlyCostNet(monthlyCostNet *float64) {
+	b.MonthlyCostNet = monthlyCostNet
+	b.require(blockerTotalsFieldMonthlyCostNet)
+}
+
+// SetNodesHeldUnhealthy sets the NodesHeldUnhealthy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BlockerTotals) SetNodesHeldUnhealthy(nodesHeldUnhealthy *int) {
+	b.NodesHeldUnhealthy = nodesHeldUnhealthy
+	b.require(blockerTotalsFieldNodesHeldUnhealthy)
+}
+
+// SetUnhealthyMonthlyCost sets the UnhealthyMonthlyCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BlockerTotals) SetUnhealthyMonthlyCost(unhealthyMonthlyCost *float64) {
+	b.UnhealthyMonthlyCost = unhealthyMonthlyCost
+	b.require(blockerTotalsFieldUnhealthyMonthlyCost)
+}
+
+// SetUnhealthyMonthlyCostNet sets the UnhealthyMonthlyCostNet field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BlockerTotals) SetUnhealthyMonthlyCostNet(unhealthyMonthlyCostNet *float64) {
+	b.UnhealthyMonthlyCostNet = unhealthyMonthlyCostNet
+	b.require(blockerTotalsFieldUnhealthyMonthlyCostNet)
 }
 
 func (b *BlockerTotals) UnmarshalJSON(data []byte) error {
@@ -14605,16 +14707,20 @@ func (c *ConsentResponse) String() string {
 
 // A current pod with what keeps it on its node, and its node.
 var (
-	consolidationBlockerFieldNode          = big.NewInt(1 << 0)
-	consolidationBlockerFieldNodePool      = big.NewInt(1 << 1)
-	consolidationBlockerFieldNodeGroup     = big.NewInt(1 << 2)
-	consolidationBlockerFieldAutoscaler    = big.NewInt(1 << 3)
-	consolidationBlockerFieldNamespace     = big.NewInt(1 << 4)
-	consolidationBlockerFieldName          = big.NewInt(1 << 5)
-	consolidationBlockerFieldWorkloadKind  = big.NewInt(1 << 6)
-	consolidationBlockerFieldWorkloadName  = big.NewInt(1 << 7)
-	consolidationBlockerFieldReasons       = big.NewInt(1 << 8)
-	consolidationBlockerFieldKarpenterSays = big.NewInt(1 << 9)
+	consolidationBlockerFieldNode               = big.NewInt(1 << 0)
+	consolidationBlockerFieldNodePool           = big.NewInt(1 << 1)
+	consolidationBlockerFieldNodeGroup          = big.NewInt(1 << 2)
+	consolidationBlockerFieldAutoscaler         = big.NewInt(1 << 3)
+	consolidationBlockerFieldNamespace          = big.NewInt(1 << 4)
+	consolidationBlockerFieldName               = big.NewInt(1 << 5)
+	consolidationBlockerFieldWorkloadKind       = big.NewInt(1 << 6)
+	consolidationBlockerFieldWorkloadName       = big.NewInt(1 << 7)
+	consolidationBlockerFieldReasons            = big.NewInt(1 << 8)
+	consolidationBlockerFieldUnhealthyReasons   = big.NewInt(1 << 9)
+	consolidationBlockerFieldKarpenterSays      = big.NewInt(1 << 10)
+	consolidationBlockerFieldNodeMonthlyCost    = big.NewInt(1 << 11)
+	consolidationBlockerFieldNodeMonthlyCostNet = big.NewInt(1 << 12)
+	consolidationBlockerFieldNodePricedBy       = big.NewInt(1 << 13)
 )
 
 type ConsolidationBlocker struct {
@@ -14630,8 +14736,16 @@ type ConsolidationBlocker struct {
 	WorkloadName string `json:"workload_name" url:"workload_name"`
 	// static_pod alone for a static pod, which goes with its node
 	Reasons []*BlockingReason `json:"reasons" url:"reasons"`
+	// Why moving the pod carries no risk: its app has no healthy pod, or its workload has no ready replica. Empty for a pod of a healthy app
+	UnhealthyReasons []*UnhealthyReason `json:"unhealthy_reasons,omitempty" url:"unhealthy_reasons,omitempty"`
 	// Its node's latest Unconsolidatable and DisruptionBlocked events in the last 24 hours, newest first, at most 5
 	KarpenterSays []*KarpenterMessage `json:"karpenter_says" url:"karpenter_says"`
+	// What its node costs a month on the bill, at the hourly cost of its own bill over the last 7 days, else at the hourly rate the bill charged in those days for its instance type and purchase option in the cluster's region, plus the EKS Auto Mode fee on an Auto Mode node. Never a list price: null when neither prices it
+	NodeMonthlyCost *float64 `json:"node_monthly_cost,omitempty" url:"node_monthly_cost,omitempty"`
+	// The same after the enterprise discount and the commitments; a day rolled up before the net basis counts at its amortized cost
+	NodeMonthlyCostNet *float64 `json:"node_monthly_cost_net,omitempty" url:"node_monthly_cost_net,omitempty"`
+	// node_bill: the node's own bill. bill_rate: the bill's rate for its instance type
+	NodePricedBy *ConsolidationBlockerNodePricedBy `json:"node_priced_by,omitempty" url:"node_priced_by,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -14703,11 +14817,39 @@ func (c *ConsolidationBlocker) GetReasons() []*BlockingReason {
 	return c.Reasons
 }
 
+func (c *ConsolidationBlocker) GetUnhealthyReasons() []*UnhealthyReason {
+	if c == nil {
+		return nil
+	}
+	return c.UnhealthyReasons
+}
+
 func (c *ConsolidationBlocker) GetKarpenterSays() []*KarpenterMessage {
 	if c == nil {
 		return nil
 	}
 	return c.KarpenterSays
+}
+
+func (c *ConsolidationBlocker) GetNodeMonthlyCost() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.NodeMonthlyCost
+}
+
+func (c *ConsolidationBlocker) GetNodeMonthlyCostNet() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.NodeMonthlyCostNet
+}
+
+func (c *ConsolidationBlocker) GetNodePricedBy() *ConsolidationBlockerNodePricedBy {
+	if c == nil {
+		return nil
+	}
+	return c.NodePricedBy
 }
 
 func (c *ConsolidationBlocker) GetExtraProperties() map[string]interface{} {
@@ -14787,11 +14929,39 @@ func (c *ConsolidationBlocker) SetReasons(reasons []*BlockingReason) {
 	c.require(consolidationBlockerFieldReasons)
 }
 
+// SetUnhealthyReasons sets the UnhealthyReasons field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationBlocker) SetUnhealthyReasons(unhealthyReasons []*UnhealthyReason) {
+	c.UnhealthyReasons = unhealthyReasons
+	c.require(consolidationBlockerFieldUnhealthyReasons)
+}
+
 // SetKarpenterSays sets the KarpenterSays field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (c *ConsolidationBlocker) SetKarpenterSays(karpenterSays []*KarpenterMessage) {
 	c.KarpenterSays = karpenterSays
 	c.require(consolidationBlockerFieldKarpenterSays)
+}
+
+// SetNodeMonthlyCost sets the NodeMonthlyCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationBlocker) SetNodeMonthlyCost(nodeMonthlyCost *float64) {
+	c.NodeMonthlyCost = nodeMonthlyCost
+	c.require(consolidationBlockerFieldNodeMonthlyCost)
+}
+
+// SetNodeMonthlyCostNet sets the NodeMonthlyCostNet field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationBlocker) SetNodeMonthlyCostNet(nodeMonthlyCostNet *float64) {
+	c.NodeMonthlyCostNet = nodeMonthlyCostNet
+	c.require(consolidationBlockerFieldNodeMonthlyCostNet)
+}
+
+// SetNodePricedBy sets the NodePricedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationBlocker) SetNodePricedBy(nodePricedBy *ConsolidationBlockerNodePricedBy) {
+	c.NodePricedBy = nodePricedBy
+	c.require(consolidationBlockerFieldNodePricedBy)
 }
 
 func (c *ConsolidationBlocker) UnmarshalJSON(data []byte) error {
@@ -14856,6 +15026,28 @@ func NewConsolidationBlockerAutoscalerFromString(s string) (ConsolidationBlocker
 }
 
 func (c ConsolidationBlockerAutoscaler) Ptr() *ConsolidationBlockerAutoscaler {
+	return &c
+}
+
+type ConsolidationBlockerNodePricedBy string
+
+const (
+	ConsolidationBlockerNodePricedByNodeBill ConsolidationBlockerNodePricedBy = "node_bill"
+	ConsolidationBlockerNodePricedByBillRate ConsolidationBlockerNodePricedBy = "bill_rate"
+)
+
+func NewConsolidationBlockerNodePricedByFromString(s string) (ConsolidationBlockerNodePricedBy, error) {
+	switch s {
+	case "node_bill":
+		return ConsolidationBlockerNodePricedByNodeBill, nil
+	case "bill_rate":
+		return ConsolidationBlockerNodePricedByBillRate, nil
+	}
+	var t ConsolidationBlockerNodePricedBy
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c ConsolidationBlockerNodePricedBy) Ptr() *ConsolidationBlockerNodePricedBy {
 	return &c
 }
 
@@ -15102,16 +15294,17 @@ var (
 	containerDetailFieldLimits         = big.NewInt(1 << 6)
 	containerDetailFieldProbes         = big.NewInt(1 << 7)
 	containerDetailFieldJvmHeap        = big.NewInt(1 << 8)
-	containerDetailFieldUsage          = big.NewInt(1 << 9)
-	containerDetailFieldStartup        = big.NewInt(1 << 10)
-	containerDetailFieldGpu            = big.NewInt(1 << 11)
-	containerDetailFieldOomKills       = big.NewInt(1 << 12)
-	containerDetailFieldRestarts       = big.NewInt(1 << 13)
-	containerDetailFieldThrottledRatio = big.NewInt(1 << 14)
-	containerDetailFieldCost           = big.NewInt(1 << 15)
-	containerDetailFieldCostNet        = big.NewInt(1 << 16)
-	containerDetailFieldWaste          = big.NewInt(1 << 17)
-	containerDetailFieldSeries         = big.NewInt(1 << 18)
+	containerDetailFieldJvmMeasured    = big.NewInt(1 << 9)
+	containerDetailFieldUsage          = big.NewInt(1 << 10)
+	containerDetailFieldStartup        = big.NewInt(1 << 11)
+	containerDetailFieldGpu            = big.NewInt(1 << 12)
+	containerDetailFieldOomKills       = big.NewInt(1 << 13)
+	containerDetailFieldRestarts       = big.NewInt(1 << 14)
+	containerDetailFieldThrottledRatio = big.NewInt(1 << 15)
+	containerDetailFieldCost           = big.NewInt(1 << 16)
+	containerDetailFieldCostNet        = big.NewInt(1 << 17)
+	containerDetailFieldWaste          = big.NewInt(1 << 18)
+	containerDetailFieldSeries         = big.NewInt(1 << 19)
 )
 
 type ContainerDetail struct {
@@ -15128,7 +15321,9 @@ type ContainerDetail struct {
 	Probes *ContainerProbes `json:"probes" url:"probes"`
 	// Null when the agent reported no JVM heap setting
 	JvmHeap *ContainerJvmHeap `json:"jvm_heap,omitempty" url:"jvm_heap,omitempty"`
-	Usage   *UsageSummary     `json:"usage" url:"usage"`
+	// Null when the opt-in JVM reader measured nothing in the container over the window
+	JvmMeasured *ContainerJvmMeasured `json:"jvm_measured,omitempty" url:"jvm_measured,omitempty"`
+	Usage       *UsageSummary         `json:"usage" url:"usage"`
 	// Usage in containers' first 15 minutes, against the steady state
 	Startup *StartupUsage `json:"startup" url:"startup"`
 	// Null when no DCGM exporter reported the container's GPUs
@@ -15210,6 +15405,13 @@ func (c *ContainerDetail) GetJvmHeap() *ContainerJvmHeap {
 		return nil
 	}
 	return c.JvmHeap
+}
+
+func (c *ContainerDetail) GetJvmMeasured() *ContainerJvmMeasured {
+	if c == nil {
+		return nil
+	}
+	return c.JvmMeasured
 }
 
 func (c *ContainerDetail) GetUsage() *UsageSummary {
@@ -15357,6 +15559,13 @@ func (c *ContainerDetail) SetProbes(probes *ContainerProbes) {
 func (c *ContainerDetail) SetJvmHeap(jvmHeap *ContainerJvmHeap) {
 	c.JvmHeap = jvmHeap
 	c.require(containerDetailFieldJvmHeap)
+}
+
+// SetJvmMeasured sets the JvmMeasured field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerDetail) SetJvmMeasured(jvmMeasured *ContainerJvmMeasured) {
+	c.JvmMeasured = jvmMeasured
+	c.require(containerDetailFieldJvmMeasured)
 }
 
 // SetUsage sets the Usage field and marks it as non-optional;
@@ -15641,6 +15850,218 @@ func (c *ContainerGpu) String() string {
 	return fmt.Sprintf("%#v", c)
 }
 
+// One day of what the JVM reader measured in a container: each size the most of any hour of the day.
+var (
+	containerJvmDayFieldDay                 = big.NewInt(1 << 0)
+	containerJvmDayFieldHeapMaxBytes        = big.NewInt(1 << 1)
+	containerJvmDayFieldCommittedMaxBytes   = big.NewInt(1 << 2)
+	containerJvmDayFieldHeapUsedMaxBytes    = big.NewInt(1 << 3)
+	containerJvmDayFieldLiveSetMaxBytes     = big.NewInt(1 << 4)
+	containerJvmDayFieldOutsideHeapMaxBytes = big.NewInt(1 << 5)
+	containerJvmDayFieldGcShareMax          = big.NewInt(1 << 6)
+	containerJvmDayFieldSampledSeconds      = big.NewInt(1 << 7)
+)
+
+type ContainerJvmDay struct {
+	Day time.Time `json:"day" url:"day" format:"date"`
+	// The heap the JVMs may grow to, from their own counters
+	HeapMaxBytes int `json:"heap_max_bytes" url:"heap_max_bytes"`
+	// The heap the JVMs had committed
+	CommittedMaxBytes int `json:"committed_max_bytes" url:"committed_max_bytes"`
+	// The most heap the JVMs held in use. For a chart, not for sizing: some collectors move their used counters only at a collection. Null when no hour of the day had one
+	HeapUsedMaxBytes *int `json:"heap_used_max_bytes,omitempty" url:"heap_used_max_bytes,omitempty"`
+	// An upper bound on the live set. Null when no hour of the day had one
+	LiveSetMaxBytes *int `json:"live_set_max_bytes,omitempty" url:"live_set_max_bytes,omitempty"`
+	// Resident memory beside the heap
+	OutsideHeapMaxBytes int `json:"outside_heap_max_bytes" url:"outside_heap_max_bytes"`
+	// The largest share of a span of five minutes or more one JVM spent in collection pauses
+	GcShareMax *float64 `json:"gc_share_max,omitempty" url:"gc_share_max,omitempty"`
+	// Seconds the reader measured the container that day
+	SampledSeconds int `json:"sampled_seconds" url:"sampled_seconds"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ContainerJvmDay) GetDay() time.Time {
+	if c == nil {
+		return time.Time{}
+	}
+	return c.Day
+}
+
+func (c *ContainerJvmDay) GetHeapMaxBytes() int {
+	if c == nil {
+		return 0
+	}
+	return c.HeapMaxBytes
+}
+
+func (c *ContainerJvmDay) GetCommittedMaxBytes() int {
+	if c == nil {
+		return 0
+	}
+	return c.CommittedMaxBytes
+}
+
+func (c *ContainerJvmDay) GetHeapUsedMaxBytes() *int {
+	if c == nil {
+		return nil
+	}
+	return c.HeapUsedMaxBytes
+}
+
+func (c *ContainerJvmDay) GetLiveSetMaxBytes() *int {
+	if c == nil {
+		return nil
+	}
+	return c.LiveSetMaxBytes
+}
+
+func (c *ContainerJvmDay) GetOutsideHeapMaxBytes() int {
+	if c == nil {
+		return 0
+	}
+	return c.OutsideHeapMaxBytes
+}
+
+func (c *ContainerJvmDay) GetGcShareMax() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.GcShareMax
+}
+
+func (c *ContainerJvmDay) GetSampledSeconds() int {
+	if c == nil {
+		return 0
+	}
+	return c.SampledSeconds
+}
+
+func (c *ContainerJvmDay) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ContainerJvmDay) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetDay sets the Day field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmDay) SetDay(day time.Time) {
+	c.Day = day
+	c.require(containerJvmDayFieldDay)
+}
+
+// SetHeapMaxBytes sets the HeapMaxBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmDay) SetHeapMaxBytes(heapMaxBytes int) {
+	c.HeapMaxBytes = heapMaxBytes
+	c.require(containerJvmDayFieldHeapMaxBytes)
+}
+
+// SetCommittedMaxBytes sets the CommittedMaxBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmDay) SetCommittedMaxBytes(committedMaxBytes int) {
+	c.CommittedMaxBytes = committedMaxBytes
+	c.require(containerJvmDayFieldCommittedMaxBytes)
+}
+
+// SetHeapUsedMaxBytes sets the HeapUsedMaxBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmDay) SetHeapUsedMaxBytes(heapUsedMaxBytes *int) {
+	c.HeapUsedMaxBytes = heapUsedMaxBytes
+	c.require(containerJvmDayFieldHeapUsedMaxBytes)
+}
+
+// SetLiveSetMaxBytes sets the LiveSetMaxBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmDay) SetLiveSetMaxBytes(liveSetMaxBytes *int) {
+	c.LiveSetMaxBytes = liveSetMaxBytes
+	c.require(containerJvmDayFieldLiveSetMaxBytes)
+}
+
+// SetOutsideHeapMaxBytes sets the OutsideHeapMaxBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmDay) SetOutsideHeapMaxBytes(outsideHeapMaxBytes int) {
+	c.OutsideHeapMaxBytes = outsideHeapMaxBytes
+	c.require(containerJvmDayFieldOutsideHeapMaxBytes)
+}
+
+// SetGcShareMax sets the GcShareMax field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmDay) SetGcShareMax(gcShareMax *float64) {
+	c.GcShareMax = gcShareMax
+	c.require(containerJvmDayFieldGcShareMax)
+}
+
+// SetSampledSeconds sets the SampledSeconds field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmDay) SetSampledSeconds(sampledSeconds int) {
+	c.SampledSeconds = sampledSeconds
+	c.require(containerJvmDayFieldSampledSeconds)
+}
+
+func (c *ContainerJvmDay) UnmarshalJSON(data []byte) error {
+	type embed ContainerJvmDay
+	var unmarshaler = struct {
+		embed
+		Day *internal.Date `json:"day"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = ContainerJvmDay(unmarshaler.embed)
+	c.Day = unmarshaler.Day.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ContainerJvmDay) MarshalJSON() ([]byte, error) {
+	type embed ContainerJvmDay
+	var marshaler = struct {
+		embed
+		Day *internal.Date `json:"day"`
+	}{
+		embed: embed(*c),
+		Day:   internal.NewDate(c.Day),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ContainerJvmDay) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
 var (
 	containerJvmHeapFieldMaxBytes         = big.NewInt(1 << 0)
 	containerJvmHeapFieldMaxRAMPercentage = big.NewInt(1 << 1)
@@ -15817,6 +16238,426 @@ func NewContainerJvmHeapSourceFromString(s string) (ContainerJvmHeapSource, erro
 }
 
 func (c ContainerJvmHeapSource) Ptr() *ContainerJvmHeapSource {
+	return &c
+}
+
+var (
+	containerJvmMeasuredFieldHours               = big.NewInt(1 << 0)
+	containerJvmMeasuredFieldSampledSeconds      = big.NewInt(1 << 1)
+	containerJvmMeasuredFieldJvms                = big.NewInt(1 << 2)
+	containerJvmMeasuredFieldHeapMaxBytes        = big.NewInt(1 << 3)
+	containerJvmMeasuredFieldLiveSetMaxBytes     = big.NewInt(1 << 4)
+	containerJvmMeasuredFieldHeapUsedMaxBytes    = big.NewInt(1 << 5)
+	containerJvmMeasuredFieldCommittedMaxBytes   = big.NewInt(1 << 6)
+	containerJvmMeasuredFieldOutsideHeapMaxBytes = big.NewInt(1 << 7)
+	containerJvmMeasuredFieldMetaspaceMaxBytes   = big.NewInt(1 << 8)
+	containerJvmMeasuredFieldGcShareMax          = big.NewInt(1 << 9)
+	containerJvmMeasuredFieldGcSeconds           = big.NewInt(1 << 10)
+	containerJvmMeasuredFieldLatestHour          = big.NewInt(1 << 11)
+	containerJvmMeasuredFieldCollector           = big.NewInt(1 << 12)
+	containerJvmMeasuredFieldJdkFeature          = big.NewInt(1 << 13)
+	containerJvmMeasuredFieldJdkUpdate           = big.NewInt(1 << 14)
+	containerJvmMeasuredFieldFlags               = big.NewInt(1 << 15)
+	containerJvmMeasuredFieldMissed              = big.NewInt(1 << 16)
+	containerJvmMeasuredFieldSeries              = big.NewInt(1 << 17)
+)
+
+type ContainerJvmMeasured struct {
+	// Hours of the window the reader measured the container in
+	Hours int `json:"hours" url:"hours"`
+	// Seconds it measured the container over those hours
+	SampledSeconds int `json:"sampled_seconds" url:"sampled_seconds"`
+	// The most JVMs counted in the container in one hour
+	Jvms int `json:"jvms" url:"jvms"`
+	// The heap the JVMs may grow to, from their own counters
+	HeapMaxBytes int `json:"heap_max_bytes" url:"heap_max_bytes"`
+	// An upper bound on the live set: each JVM's least heap in use (young and old) in an hour, the JVMs of one container added up. The live set is never above it. Null when no hour had one
+	LiveSetMaxBytes *int `json:"live_set_max_bytes,omitempty" url:"live_set_max_bytes,omitempty"`
+	// The most heap in use: each JVM's most heap in use (young and old) in an hour, the JVMs of one container added up. For a chart, not for sizing: some collectors move their used counters only at a collection. Null when no hour had one
+	HeapUsedMaxBytes *int `json:"heap_used_max_bytes,omitempty" url:"heap_used_max_bytes,omitempty"`
+	// The heap the JVMs had committed
+	CommittedMaxBytes int `json:"committed_max_bytes" url:"committed_max_bytes"`
+	// Resident memory beside the heap: metaspace, code, thread stacks, direct buffers, C heap. Anonymous and shared resident memory less the committed heap; anonymous only for ZGC, whose heap is shared
+	OutsideHeapMaxBytes int `json:"outside_heap_max_bytes" url:"outside_heap_max_bytes"`
+	MetaspaceMaxBytes   int `json:"metaspace_max_bytes" url:"metaspace_max_bytes"`
+	// The largest share of a span of five minutes or more one JVM spent in collection pauses, 0 to 1. Null for ZGC and Shenandoah, and before a JVM ran five minutes
+	GcShareMax *float64 `json:"gc_share_max,omitempty" url:"gc_share_max,omitempty"`
+	// Seconds spent in collection pauses over the window. Null when no pause was counted, always for ZGC and Shenandoah
+	GcSeconds *float64 `json:"gc_seconds,omitempty" url:"gc_seconds,omitempty"`
+	// The latest hour measured, which the fields below are read from
+	LatestHour time.Time `json:"latest_hour" url:"latest_hour"`
+	// Null in an hour no JVM counted
+	Collector *ContainerJvmMeasuredCollector `json:"collector,omitempty" url:"collector,omitempty"`
+	// 21 for JDK 21.0.13
+	JdkFeature *int `json:"jdk_feature,omitempty" url:"jdk_feature,omitempty"`
+	// 13 for JDK 21.0.13
+	JdkUpdate *int      `json:"jdk_update,omitempty" url:"jdk_update,omitempty"`
+	Flags     *JvmFlags `json:"flags" url:"flags"`
+	// The JVMs whose counters could not be read, by reason
+	Missed map[string]int `json:"missed" url:"missed"`
+	// One point per day of the window the reader measured the container in, oldest first. A day it measured nothing in has no point
+	Series []*ContainerJvmDay `json:"series" url:"series"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ContainerJvmMeasured) GetHours() int {
+	if c == nil {
+		return 0
+	}
+	return c.Hours
+}
+
+func (c *ContainerJvmMeasured) GetSampledSeconds() int {
+	if c == nil {
+		return 0
+	}
+	return c.SampledSeconds
+}
+
+func (c *ContainerJvmMeasured) GetJvms() int {
+	if c == nil {
+		return 0
+	}
+	return c.Jvms
+}
+
+func (c *ContainerJvmMeasured) GetHeapMaxBytes() int {
+	if c == nil {
+		return 0
+	}
+	return c.HeapMaxBytes
+}
+
+func (c *ContainerJvmMeasured) GetLiveSetMaxBytes() *int {
+	if c == nil {
+		return nil
+	}
+	return c.LiveSetMaxBytes
+}
+
+func (c *ContainerJvmMeasured) GetHeapUsedMaxBytes() *int {
+	if c == nil {
+		return nil
+	}
+	return c.HeapUsedMaxBytes
+}
+
+func (c *ContainerJvmMeasured) GetCommittedMaxBytes() int {
+	if c == nil {
+		return 0
+	}
+	return c.CommittedMaxBytes
+}
+
+func (c *ContainerJvmMeasured) GetOutsideHeapMaxBytes() int {
+	if c == nil {
+		return 0
+	}
+	return c.OutsideHeapMaxBytes
+}
+
+func (c *ContainerJvmMeasured) GetMetaspaceMaxBytes() int {
+	if c == nil {
+		return 0
+	}
+	return c.MetaspaceMaxBytes
+}
+
+func (c *ContainerJvmMeasured) GetGcShareMax() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.GcShareMax
+}
+
+func (c *ContainerJvmMeasured) GetGcSeconds() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.GcSeconds
+}
+
+func (c *ContainerJvmMeasured) GetLatestHour() time.Time {
+	if c == nil {
+		return time.Time{}
+	}
+	return c.LatestHour
+}
+
+func (c *ContainerJvmMeasured) GetCollector() *ContainerJvmMeasuredCollector {
+	if c == nil {
+		return nil
+	}
+	return c.Collector
+}
+
+func (c *ContainerJvmMeasured) GetJdkFeature() *int {
+	if c == nil {
+		return nil
+	}
+	return c.JdkFeature
+}
+
+func (c *ContainerJvmMeasured) GetJdkUpdate() *int {
+	if c == nil {
+		return nil
+	}
+	return c.JdkUpdate
+}
+
+func (c *ContainerJvmMeasured) GetFlags() *JvmFlags {
+	if c == nil {
+		return nil
+	}
+	return c.Flags
+}
+
+func (c *ContainerJvmMeasured) GetMissed() map[string]int {
+	if c == nil {
+		return nil
+	}
+	return c.Missed
+}
+
+func (c *ContainerJvmMeasured) GetSeries() []*ContainerJvmDay {
+	if c == nil {
+		return nil
+	}
+	return c.Series
+}
+
+func (c *ContainerJvmMeasured) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ContainerJvmMeasured) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetHours sets the Hours field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmMeasured) SetHours(hours int) {
+	c.Hours = hours
+	c.require(containerJvmMeasuredFieldHours)
+}
+
+// SetSampledSeconds sets the SampledSeconds field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmMeasured) SetSampledSeconds(sampledSeconds int) {
+	c.SampledSeconds = sampledSeconds
+	c.require(containerJvmMeasuredFieldSampledSeconds)
+}
+
+// SetJvms sets the Jvms field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmMeasured) SetJvms(jvms int) {
+	c.Jvms = jvms
+	c.require(containerJvmMeasuredFieldJvms)
+}
+
+// SetHeapMaxBytes sets the HeapMaxBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmMeasured) SetHeapMaxBytes(heapMaxBytes int) {
+	c.HeapMaxBytes = heapMaxBytes
+	c.require(containerJvmMeasuredFieldHeapMaxBytes)
+}
+
+// SetLiveSetMaxBytes sets the LiveSetMaxBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmMeasured) SetLiveSetMaxBytes(liveSetMaxBytes *int) {
+	c.LiveSetMaxBytes = liveSetMaxBytes
+	c.require(containerJvmMeasuredFieldLiveSetMaxBytes)
+}
+
+// SetHeapUsedMaxBytes sets the HeapUsedMaxBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmMeasured) SetHeapUsedMaxBytes(heapUsedMaxBytes *int) {
+	c.HeapUsedMaxBytes = heapUsedMaxBytes
+	c.require(containerJvmMeasuredFieldHeapUsedMaxBytes)
+}
+
+// SetCommittedMaxBytes sets the CommittedMaxBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmMeasured) SetCommittedMaxBytes(committedMaxBytes int) {
+	c.CommittedMaxBytes = committedMaxBytes
+	c.require(containerJvmMeasuredFieldCommittedMaxBytes)
+}
+
+// SetOutsideHeapMaxBytes sets the OutsideHeapMaxBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmMeasured) SetOutsideHeapMaxBytes(outsideHeapMaxBytes int) {
+	c.OutsideHeapMaxBytes = outsideHeapMaxBytes
+	c.require(containerJvmMeasuredFieldOutsideHeapMaxBytes)
+}
+
+// SetMetaspaceMaxBytes sets the MetaspaceMaxBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmMeasured) SetMetaspaceMaxBytes(metaspaceMaxBytes int) {
+	c.MetaspaceMaxBytes = metaspaceMaxBytes
+	c.require(containerJvmMeasuredFieldMetaspaceMaxBytes)
+}
+
+// SetGcShareMax sets the GcShareMax field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmMeasured) SetGcShareMax(gcShareMax *float64) {
+	c.GcShareMax = gcShareMax
+	c.require(containerJvmMeasuredFieldGcShareMax)
+}
+
+// SetGcSeconds sets the GcSeconds field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmMeasured) SetGcSeconds(gcSeconds *float64) {
+	c.GcSeconds = gcSeconds
+	c.require(containerJvmMeasuredFieldGcSeconds)
+}
+
+// SetLatestHour sets the LatestHour field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmMeasured) SetLatestHour(latestHour time.Time) {
+	c.LatestHour = latestHour
+	c.require(containerJvmMeasuredFieldLatestHour)
+}
+
+// SetCollector sets the Collector field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmMeasured) SetCollector(collector *ContainerJvmMeasuredCollector) {
+	c.Collector = collector
+	c.require(containerJvmMeasuredFieldCollector)
+}
+
+// SetJdkFeature sets the JdkFeature field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmMeasured) SetJdkFeature(jdkFeature *int) {
+	c.JdkFeature = jdkFeature
+	c.require(containerJvmMeasuredFieldJdkFeature)
+}
+
+// SetJdkUpdate sets the JdkUpdate field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmMeasured) SetJdkUpdate(jdkUpdate *int) {
+	c.JdkUpdate = jdkUpdate
+	c.require(containerJvmMeasuredFieldJdkUpdate)
+}
+
+// SetFlags sets the Flags field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmMeasured) SetFlags(flags *JvmFlags) {
+	c.Flags = flags
+	c.require(containerJvmMeasuredFieldFlags)
+}
+
+// SetMissed sets the Missed field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmMeasured) SetMissed(missed map[string]int) {
+	c.Missed = missed
+	c.require(containerJvmMeasuredFieldMissed)
+}
+
+// SetSeries sets the Series field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ContainerJvmMeasured) SetSeries(series []*ContainerJvmDay) {
+	c.Series = series
+	c.require(containerJvmMeasuredFieldSeries)
+}
+
+func (c *ContainerJvmMeasured) UnmarshalJSON(data []byte) error {
+	type embed ContainerJvmMeasured
+	var unmarshaler = struct {
+		embed
+		LatestHour *internal.DateTime `json:"latest_hour"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = ContainerJvmMeasured(unmarshaler.embed)
+	c.LatestHour = unmarshaler.LatestHour.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ContainerJvmMeasured) MarshalJSON() ([]byte, error) {
+	type embed ContainerJvmMeasured
+	var marshaler = struct {
+		embed
+		LatestHour *internal.DateTime `json:"latest_hour"`
+	}{
+		embed:      embed(*c),
+		LatestHour: internal.NewDateTime(c.LatestHour),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ContainerJvmMeasured) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type ContainerJvmMeasuredCollector string
+
+const (
+	ContainerJvmMeasuredCollectorSerial     ContainerJvmMeasuredCollector = "serial"
+	ContainerJvmMeasuredCollectorParallel   ContainerJvmMeasuredCollector = "parallel"
+	ContainerJvmMeasuredCollectorCms        ContainerJvmMeasuredCollector = "cms"
+	ContainerJvmMeasuredCollectorG1         ContainerJvmMeasuredCollector = "g1"
+	ContainerJvmMeasuredCollectorZgc        ContainerJvmMeasuredCollector = "zgc"
+	ContainerJvmMeasuredCollectorShenandoah ContainerJvmMeasuredCollector = "shenandoah"
+	ContainerJvmMeasuredCollectorEpsilon    ContainerJvmMeasuredCollector = "epsilon"
+	ContainerJvmMeasuredCollectorUnknown    ContainerJvmMeasuredCollector = "unknown"
+)
+
+func NewContainerJvmMeasuredCollectorFromString(s string) (ContainerJvmMeasuredCollector, error) {
+	switch s {
+	case "serial":
+		return ContainerJvmMeasuredCollectorSerial, nil
+	case "parallel":
+		return ContainerJvmMeasuredCollectorParallel, nil
+	case "cms":
+		return ContainerJvmMeasuredCollectorCms, nil
+	case "g1":
+		return ContainerJvmMeasuredCollectorG1, nil
+	case "zgc":
+		return ContainerJvmMeasuredCollectorZgc, nil
+	case "shenandoah":
+		return ContainerJvmMeasuredCollectorShenandoah, nil
+	case "epsilon":
+		return ContainerJvmMeasuredCollectorEpsilon, nil
+	case "unknown":
+		return ContainerJvmMeasuredCollectorUnknown, nil
+	}
+	var t ContainerJvmMeasuredCollector
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c ContainerJvmMeasuredCollector) Ptr() *ContainerJvmMeasuredCollector {
 	return &c
 }
 
@@ -27468,33 +28309,34 @@ var (
 	fleetNodePoolFieldArch                      = big.NewInt(1 << 2)
 	fleetNodePoolFieldNodes                     = big.NewInt(1 << 3)
 	fleetNodePoolFieldSpotNodes                 = big.NewInt(1 << 4)
-	fleetNodePoolFieldNodesAvg                  = big.NewInt(1 << 5)
-	fleetNodePoolFieldNodesMax                  = big.NewInt(1 << 6)
-	fleetNodePoolFieldPodsPerNode               = big.NewInt(1 << 7)
-	fleetNodePoolFieldRequestedCPUPerGib        = big.NewInt(1 << 8)
-	fleetNodePoolFieldAllocatableCPUPerGib      = big.NewInt(1 << 9)
-	fleetNodePoolFieldCPUAllocatableMilli       = big.NewInt(1 << 10)
-	fleetNodePoolFieldCPURequestedMilli         = big.NewInt(1 << 11)
-	fleetNodePoolFieldCPUUsedMilli              = big.NewInt(1 << 12)
-	fleetNodePoolFieldMemoryAllocatableBytes    = big.NewInt(1 << 13)
-	fleetNodePoolFieldMemoryRequestedBytes      = big.NewInt(1 << 14)
-	fleetNodePoolFieldMemoryUsedBytes           = big.NewInt(1 << 15)
-	fleetNodePoolFieldCPUAllocatableMilliP95    = big.NewInt(1 << 16)
-	fleetNodePoolFieldCPURequestedMilliP95      = big.NewInt(1 << 17)
-	fleetNodePoolFieldCPUUsedMilliP95           = big.NewInt(1 << 18)
-	fleetNodePoolFieldMemoryAllocatableBytesP95 = big.NewInt(1 << 19)
-	fleetNodePoolFieldMemoryRequestedBytesP95   = big.NewInt(1 << 20)
-	fleetNodePoolFieldMemoryUsedBytesP95        = big.NewInt(1 << 21)
-	fleetNodePoolFieldCost                      = big.NewInt(1 << 22)
-	fleetNodePoolFieldIdleCost                  = big.NewInt(1 << 23)
-	fleetNodePoolFieldCostPerHour               = big.NewInt(1 << 24)
-	fleetNodePoolFieldPurchaseTypes             = big.NewInt(1 << 25)
-	fleetNodePoolFieldKarpenter                 = big.NewInt(1 << 26)
-	fleetNodePoolFieldSeries                    = big.NewInt(1 << 27)
-	fleetNodePoolFieldFindingsCount             = big.NewInt(1 << 28)
-	fleetNodePoolFieldFitMonthlyDifference      = big.NewInt(1 << 29)
-	fleetNodePoolFieldClusterID                 = big.NewInt(1 << 30)
-	fleetNodePoolFieldClusterName               = big.NewInt(1 << 31)
+	fleetNodePoolFieldNodesNow                  = big.NewInt(1 << 5)
+	fleetNodePoolFieldNodesAvg                  = big.NewInt(1 << 6)
+	fleetNodePoolFieldNodesMax                  = big.NewInt(1 << 7)
+	fleetNodePoolFieldPodsPerNode               = big.NewInt(1 << 8)
+	fleetNodePoolFieldRequestedCPUPerGib        = big.NewInt(1 << 9)
+	fleetNodePoolFieldAllocatableCPUPerGib      = big.NewInt(1 << 10)
+	fleetNodePoolFieldCPUAllocatableMilli       = big.NewInt(1 << 11)
+	fleetNodePoolFieldCPURequestedMilli         = big.NewInt(1 << 12)
+	fleetNodePoolFieldCPUUsedMilli              = big.NewInt(1 << 13)
+	fleetNodePoolFieldMemoryAllocatableBytes    = big.NewInt(1 << 14)
+	fleetNodePoolFieldMemoryRequestedBytes      = big.NewInt(1 << 15)
+	fleetNodePoolFieldMemoryUsedBytes           = big.NewInt(1 << 16)
+	fleetNodePoolFieldCPUAllocatableMilliP95    = big.NewInt(1 << 17)
+	fleetNodePoolFieldCPURequestedMilliP95      = big.NewInt(1 << 18)
+	fleetNodePoolFieldCPUUsedMilliP95           = big.NewInt(1 << 19)
+	fleetNodePoolFieldMemoryAllocatableBytesP95 = big.NewInt(1 << 20)
+	fleetNodePoolFieldMemoryRequestedBytesP95   = big.NewInt(1 << 21)
+	fleetNodePoolFieldMemoryUsedBytesP95        = big.NewInt(1 << 22)
+	fleetNodePoolFieldCost                      = big.NewInt(1 << 23)
+	fleetNodePoolFieldIdleCost                  = big.NewInt(1 << 24)
+	fleetNodePoolFieldCostPerHour               = big.NewInt(1 << 25)
+	fleetNodePoolFieldPurchaseTypes             = big.NewInt(1 << 26)
+	fleetNodePoolFieldKarpenter                 = big.NewInt(1 << 27)
+	fleetNodePoolFieldSeries                    = big.NewInt(1 << 28)
+	fleetNodePoolFieldFindingsCount             = big.NewInt(1 << 29)
+	fleetNodePoolFieldFitMonthlyDifference      = big.NewInt(1 << 30)
+	fleetNodePoolFieldClusterID                 = big.NewInt(1 << 31)
+	fleetNodePoolFieldClusterName               = big.NewInt(1 << 32)
 )
 
 type FleetNodePool struct {
@@ -27506,6 +28348,8 @@ type FleetNodePool struct {
 	// Nodes that ran in the group in the window
 	Nodes     int `json:"nodes" url:"nodes"`
 	SpotNodes int `json:"spot_nodes" url:"spot_nodes"`
+	// Nodes in the group running now, as the cluster's node_count counts them
+	NodesNow *int `json:"nodes_now,omitempty" url:"nodes_now,omitempty"`
 	// Nodes running on average over the hours the group ran
 	NodesAvg *float64 `json:"nodes_avg,omitempty" url:"nodes_avg,omitempty"`
 	// The most nodes that ran in the group on one day
@@ -27585,6 +28429,13 @@ func (f *FleetNodePool) GetSpotNodes() int {
 		return 0
 	}
 	return f.SpotNodes
+}
+
+func (f *FleetNodePool) GetNodesNow() *int {
+	if f == nil {
+		return nil
+	}
+	return f.NodesNow
 }
 
 func (f *FleetNodePool) GetNodesAvg() *float64 {
@@ -27823,6 +28674,13 @@ func (f *FleetNodePool) SetNodes(nodes int) {
 func (f *FleetNodePool) SetSpotNodes(spotNodes int) {
 	f.SpotNodes = spotNodes
 	f.require(fleetNodePoolFieldSpotNodes)
+}
+
+// SetNodesNow sets the NodesNow field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FleetNodePool) SetNodesNow(nodesNow *int) {
+	f.NodesNow = nodesNow
+	f.require(fleetNodePoolFieldNodesNow)
 }
 
 // SetNodesAvg sets the NodesAvg field and marks it as non-optional;
@@ -30137,15 +30995,102 @@ func (f *FleetWorkload) String() string {
 }
 
 var (
+	fleetWorkloadFacetsFieldReliability = big.NewInt(1 << 0)
+)
+
+type FleetWorkloadFacets struct {
+	// Each reliability value with the workloads it keeps under the scope and every other filter, whatever reliability values the request chose, so a count is the list's total_items for that value alone. It names all eight values, at 0 when one keeps none, in the order the Reliability tab shows its figures
+	Reliability []*ReliabilityFacetCount `json:"reliability" url:"reliability"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (f *FleetWorkloadFacets) GetReliability() []*ReliabilityFacetCount {
+	if f == nil {
+		return nil
+	}
+	return f.Reliability
+}
+
+func (f *FleetWorkloadFacets) GetExtraProperties() map[string]interface{} {
+	if f == nil {
+		return nil
+	}
+	return f.extraProperties
+}
+
+func (f *FleetWorkloadFacets) require(field *big.Int) {
+	if f.explicitFields == nil {
+		f.explicitFields = big.NewInt(0)
+	}
+	f.explicitFields.Or(f.explicitFields, field)
+}
+
+// SetReliability sets the Reliability field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FleetWorkloadFacets) SetReliability(reliability []*ReliabilityFacetCount) {
+	f.Reliability = reliability
+	f.require(fleetWorkloadFacetsFieldReliability)
+}
+
+func (f *FleetWorkloadFacets) UnmarshalJSON(data []byte) error {
+	type unmarshaler FleetWorkloadFacets
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*f = FleetWorkloadFacets(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *f)
+	if err != nil {
+		return err
+	}
+	f.extraProperties = extraProperties
+	f.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (f *FleetWorkloadFacets) MarshalJSON() ([]byte, error) {
+	type embed FleetWorkloadFacets
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*f),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, f.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (f *FleetWorkloadFacets) String() string {
+	if f == nil {
+		return "<nil>"
+	}
+	if len(f.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(f.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(f); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", f)
+}
+
+var (
 	fleetWorkloadListDataFieldItems      = big.NewInt(1 << 0)
 	fleetWorkloadListDataFieldPagination = big.NewInt(1 << 1)
 	fleetWorkloadListDataFieldTotals     = big.NewInt(1 << 2)
+	fleetWorkloadListDataFieldFacets     = big.NewInt(1 << 3)
 )
 
 type FleetWorkloadListData struct {
-	Items      []*FleetWorkload `json:"items" url:"items"`
-	Pagination *PaginationMeta  `json:"pagination" url:"pagination"`
-	Totals     *BothBasesTotals `json:"totals" url:"totals"`
+	Items      []*FleetWorkload     `json:"items" url:"items"`
+	Pagination *PaginationMeta      `json:"pagination" url:"pagination"`
+	Totals     *BothBasesTotals     `json:"totals" url:"totals"`
+	Facets     *FleetWorkloadFacets `json:"facets" url:"facets"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -30173,6 +31118,13 @@ func (f *FleetWorkloadListData) GetTotals() *BothBasesTotals {
 		return nil
 	}
 	return f.Totals
+}
+
+func (f *FleetWorkloadListData) GetFacets() *FleetWorkloadFacets {
+	if f == nil {
+		return nil
+	}
+	return f.Facets
 }
 
 func (f *FleetWorkloadListData) GetExtraProperties() map[string]interface{} {
@@ -30208,6 +31160,13 @@ func (f *FleetWorkloadListData) SetPagination(pagination *PaginationMeta) {
 func (f *FleetWorkloadListData) SetTotals(totals *BothBasesTotals) {
 	f.Totals = totals
 	f.require(fleetWorkloadListDataFieldTotals)
+}
+
+// SetFacets sets the Facets field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FleetWorkloadListData) SetFacets(facets *FleetWorkloadFacets) {
+	f.Facets = facets
+	f.require(fleetWorkloadListDataFieldFacets)
 }
 
 func (f *FleetWorkloadListData) UnmarshalJSON(data []byte) error {
@@ -33088,6 +34047,7 @@ const (
 	IndicatorCountIDCPURequestNotSet              IndicatorCountID = "cpu_request_not_set"
 	IndicatorCountIDMemoryRequestNotSet           IndicatorCountID = "memory_request_not_set"
 	IndicatorCountIDMemoryLimitNotSet             IndicatorCountID = "memory_limit_not_set"
+	IndicatorCountIDRequestSetAtAdmission         IndicatorCountID = "request_set_at_admission"
 	IndicatorCountIDLivenessProbeMissing          IndicatorCountID = "liveness_probe_missing"
 	IndicatorCountIDReadinessProbeMissing         IndicatorCountID = "readiness_probe_missing"
 	IndicatorCountIDOverProvisionedCPURequest     IndicatorCountID = "over_provisioned_cpu_request"
@@ -33123,6 +34083,8 @@ func NewIndicatorCountIDFromString(s string) (IndicatorCountID, error) {
 		return IndicatorCountIDMemoryRequestNotSet, nil
 	case "memory_limit_not_set":
 		return IndicatorCountIDMemoryLimitNotSet, nil
+	case "request_set_at_admission":
+		return IndicatorCountIDRequestSetAtAdmission, nil
 	case "liveness_probe_missing":
 		return IndicatorCountIDLivenessProbeMissing, nil
 	case "readiness_probe_missing":
@@ -33192,6 +34154,7 @@ const (
 	IndicatorIDCPURequestNotSet              IndicatorID = "cpu_request_not_set"
 	IndicatorIDMemoryRequestNotSet           IndicatorID = "memory_request_not_set"
 	IndicatorIDMemoryLimitNotSet             IndicatorID = "memory_limit_not_set"
+	IndicatorIDRequestSetAtAdmission         IndicatorID = "request_set_at_admission"
 	IndicatorIDLivenessProbeMissing          IndicatorID = "liveness_probe_missing"
 	IndicatorIDReadinessProbeMissing         IndicatorID = "readiness_probe_missing"
 	IndicatorIDOverProvisionedCPURequest     IndicatorID = "over_provisioned_cpu_request"
@@ -33227,6 +34190,8 @@ func NewIndicatorIDFromString(s string) (IndicatorID, error) {
 		return IndicatorIDMemoryRequestNotSet, nil
 	case "memory_limit_not_set":
 		return IndicatorIDMemoryLimitNotSet, nil
+	case "request_set_at_admission":
+		return IndicatorIDRequestSetAtAdmission, nil
 	case "liveness_probe_missing":
 		return IndicatorIDLivenessProbeMissing, nil
 	case "readiness_probe_missing":
@@ -35711,6 +36676,1248 @@ func (i InviteInputRole) Ptr() *InviteInputRole {
 	return &i
 }
 
+// The JVM options the reader found set, as numbers: an option not set is absent. incomplete is true when the JVM
+// cut its record of the options, so a later setting may be missing.
+var (
+	jvmFlagsFieldMaxHeapBytes           = big.NewInt(1 << 0)
+	jvmFlagsFieldInitialHeapBytes       = big.NewInt(1 << 1)
+	jvmFlagsFieldMaxRAMPercentage       = big.NewInt(1 << 2)
+	jvmFlagsFieldInitialRAMPercentage   = big.NewInt(1 << 3)
+	jvmFlagsFieldMinRAMPercentage       = big.NewInt(1 << 4)
+	jvmFlagsFieldMaxRAMBytes            = big.NewInt(1 << 5)
+	jvmFlagsFieldMaxRAMFraction         = big.NewInt(1 << 6)
+	jvmFlagsFieldActiveProcessorCount   = big.NewInt(1 << 7)
+	jvmFlagsFieldMaxDirectMemoryBytes   = big.NewInt(1 << 8)
+	jvmFlagsFieldMaxMetaspaceBytes      = big.NewInt(1 << 9)
+	jvmFlagsFieldReservedCodeCacheBytes = big.NewInt(1 << 10)
+	jvmFlagsFieldSoftMaxHeapBytes       = big.NewInt(1 << 11)
+	jvmFlagsFieldThreadStackBytes       = big.NewInt(1 << 12)
+	jvmFlagsFieldParallelGcThreads      = big.NewInt(1 << 13)
+	jvmFlagsFieldConcGcThreads          = big.NewInt(1 << 14)
+	jvmFlagsFieldContainerSupport       = big.NewInt(1 << 15)
+	jvmFlagsFieldAlwaysPreTouch         = big.NewInt(1 << 16)
+	jvmFlagsFieldRequestedCollector     = big.NewInt(1 << 17)
+	jvmFlagsFieldIncomplete             = big.NewInt(1 << 18)
+)
+
+type JvmFlags struct {
+	MaxHeapBytes           *int                        `json:"max_heap_bytes,omitempty" url:"max_heap_bytes,omitempty"`
+	InitialHeapBytes       *int                        `json:"initial_heap_bytes,omitempty" url:"initial_heap_bytes,omitempty"`
+	MaxRAMPercentage       *float64                    `json:"max_ram_percentage,omitempty" url:"max_ram_percentage,omitempty"`
+	InitialRAMPercentage   *float64                    `json:"initial_ram_percentage,omitempty" url:"initial_ram_percentage,omitempty"`
+	MinRAMPercentage       *float64                    `json:"min_ram_percentage,omitempty" url:"min_ram_percentage,omitempty"`
+	MaxRAMBytes            *int                        `json:"max_ram_bytes,omitempty" url:"max_ram_bytes,omitempty"`
+	MaxRAMFraction         *int                        `json:"max_ram_fraction,omitempty" url:"max_ram_fraction,omitempty"`
+	ActiveProcessorCount   *int                        `json:"active_processor_count,omitempty" url:"active_processor_count,omitempty"`
+	MaxDirectMemoryBytes   *int                        `json:"max_direct_memory_bytes,omitempty" url:"max_direct_memory_bytes,omitempty"`
+	MaxMetaspaceBytes      *int                        `json:"max_metaspace_bytes,omitempty" url:"max_metaspace_bytes,omitempty"`
+	ReservedCodeCacheBytes *int                        `json:"reserved_code_cache_bytes,omitempty" url:"reserved_code_cache_bytes,omitempty"`
+	SoftMaxHeapBytes       *int                        `json:"soft_max_heap_bytes,omitempty" url:"soft_max_heap_bytes,omitempty"`
+	ThreadStackBytes       *int                        `json:"thread_stack_bytes,omitempty" url:"thread_stack_bytes,omitempty"`
+	ParallelGcThreads      *int                        `json:"parallel_gc_threads,omitempty" url:"parallel_gc_threads,omitempty"`
+	ConcGcThreads          *int                        `json:"conc_gc_threads,omitempty" url:"conc_gc_threads,omitempty"`
+	ContainerSupport       *bool                       `json:"container_support,omitempty" url:"container_support,omitempty"`
+	AlwaysPreTouch         *bool                       `json:"always_pre_touch,omitempty" url:"always_pre_touch,omitempty"`
+	RequestedCollector     *JvmFlagsRequestedCollector `json:"requested_collector,omitempty" url:"requested_collector,omitempty"`
+	Incomplete             *bool                       `json:"incomplete,omitempty" url:"incomplete,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JvmFlags) GetMaxHeapBytes() *int {
+	if j == nil {
+		return nil
+	}
+	return j.MaxHeapBytes
+}
+
+func (j *JvmFlags) GetInitialHeapBytes() *int {
+	if j == nil {
+		return nil
+	}
+	return j.InitialHeapBytes
+}
+
+func (j *JvmFlags) GetMaxRAMPercentage() *float64 {
+	if j == nil {
+		return nil
+	}
+	return j.MaxRAMPercentage
+}
+
+func (j *JvmFlags) GetInitialRAMPercentage() *float64 {
+	if j == nil {
+		return nil
+	}
+	return j.InitialRAMPercentage
+}
+
+func (j *JvmFlags) GetMinRAMPercentage() *float64 {
+	if j == nil {
+		return nil
+	}
+	return j.MinRAMPercentage
+}
+
+func (j *JvmFlags) GetMaxRAMBytes() *int {
+	if j == nil {
+		return nil
+	}
+	return j.MaxRAMBytes
+}
+
+func (j *JvmFlags) GetMaxRAMFraction() *int {
+	if j == nil {
+		return nil
+	}
+	return j.MaxRAMFraction
+}
+
+func (j *JvmFlags) GetActiveProcessorCount() *int {
+	if j == nil {
+		return nil
+	}
+	return j.ActiveProcessorCount
+}
+
+func (j *JvmFlags) GetMaxDirectMemoryBytes() *int {
+	if j == nil {
+		return nil
+	}
+	return j.MaxDirectMemoryBytes
+}
+
+func (j *JvmFlags) GetMaxMetaspaceBytes() *int {
+	if j == nil {
+		return nil
+	}
+	return j.MaxMetaspaceBytes
+}
+
+func (j *JvmFlags) GetReservedCodeCacheBytes() *int {
+	if j == nil {
+		return nil
+	}
+	return j.ReservedCodeCacheBytes
+}
+
+func (j *JvmFlags) GetSoftMaxHeapBytes() *int {
+	if j == nil {
+		return nil
+	}
+	return j.SoftMaxHeapBytes
+}
+
+func (j *JvmFlags) GetThreadStackBytes() *int {
+	if j == nil {
+		return nil
+	}
+	return j.ThreadStackBytes
+}
+
+func (j *JvmFlags) GetParallelGcThreads() *int {
+	if j == nil {
+		return nil
+	}
+	return j.ParallelGcThreads
+}
+
+func (j *JvmFlags) GetConcGcThreads() *int {
+	if j == nil {
+		return nil
+	}
+	return j.ConcGcThreads
+}
+
+func (j *JvmFlags) GetContainerSupport() *bool {
+	if j == nil {
+		return nil
+	}
+	return j.ContainerSupport
+}
+
+func (j *JvmFlags) GetAlwaysPreTouch() *bool {
+	if j == nil {
+		return nil
+	}
+	return j.AlwaysPreTouch
+}
+
+func (j *JvmFlags) GetRequestedCollector() *JvmFlagsRequestedCollector {
+	if j == nil {
+		return nil
+	}
+	return j.RequestedCollector
+}
+
+func (j *JvmFlags) GetIncomplete() *bool {
+	if j == nil {
+		return nil
+	}
+	return j.Incomplete
+}
+
+func (j *JvmFlags) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
+	return j.extraProperties
+}
+
+func (j *JvmFlags) require(field *big.Int) {
+	if j.explicitFields == nil {
+		j.explicitFields = big.NewInt(0)
+	}
+	j.explicitFields.Or(j.explicitFields, field)
+}
+
+// SetMaxHeapBytes sets the MaxHeapBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmFlags) SetMaxHeapBytes(maxHeapBytes *int) {
+	j.MaxHeapBytes = maxHeapBytes
+	j.require(jvmFlagsFieldMaxHeapBytes)
+}
+
+// SetInitialHeapBytes sets the InitialHeapBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmFlags) SetInitialHeapBytes(initialHeapBytes *int) {
+	j.InitialHeapBytes = initialHeapBytes
+	j.require(jvmFlagsFieldInitialHeapBytes)
+}
+
+// SetMaxRAMPercentage sets the MaxRAMPercentage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmFlags) SetMaxRAMPercentage(maxRAMPercentage *float64) {
+	j.MaxRAMPercentage = maxRAMPercentage
+	j.require(jvmFlagsFieldMaxRAMPercentage)
+}
+
+// SetInitialRAMPercentage sets the InitialRAMPercentage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmFlags) SetInitialRAMPercentage(initialRAMPercentage *float64) {
+	j.InitialRAMPercentage = initialRAMPercentage
+	j.require(jvmFlagsFieldInitialRAMPercentage)
+}
+
+// SetMinRAMPercentage sets the MinRAMPercentage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmFlags) SetMinRAMPercentage(minRAMPercentage *float64) {
+	j.MinRAMPercentage = minRAMPercentage
+	j.require(jvmFlagsFieldMinRAMPercentage)
+}
+
+// SetMaxRAMBytes sets the MaxRAMBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmFlags) SetMaxRAMBytes(maxRAMBytes *int) {
+	j.MaxRAMBytes = maxRAMBytes
+	j.require(jvmFlagsFieldMaxRAMBytes)
+}
+
+// SetMaxRAMFraction sets the MaxRAMFraction field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmFlags) SetMaxRAMFraction(maxRAMFraction *int) {
+	j.MaxRAMFraction = maxRAMFraction
+	j.require(jvmFlagsFieldMaxRAMFraction)
+}
+
+// SetActiveProcessorCount sets the ActiveProcessorCount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmFlags) SetActiveProcessorCount(activeProcessorCount *int) {
+	j.ActiveProcessorCount = activeProcessorCount
+	j.require(jvmFlagsFieldActiveProcessorCount)
+}
+
+// SetMaxDirectMemoryBytes sets the MaxDirectMemoryBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmFlags) SetMaxDirectMemoryBytes(maxDirectMemoryBytes *int) {
+	j.MaxDirectMemoryBytes = maxDirectMemoryBytes
+	j.require(jvmFlagsFieldMaxDirectMemoryBytes)
+}
+
+// SetMaxMetaspaceBytes sets the MaxMetaspaceBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmFlags) SetMaxMetaspaceBytes(maxMetaspaceBytes *int) {
+	j.MaxMetaspaceBytes = maxMetaspaceBytes
+	j.require(jvmFlagsFieldMaxMetaspaceBytes)
+}
+
+// SetReservedCodeCacheBytes sets the ReservedCodeCacheBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmFlags) SetReservedCodeCacheBytes(reservedCodeCacheBytes *int) {
+	j.ReservedCodeCacheBytes = reservedCodeCacheBytes
+	j.require(jvmFlagsFieldReservedCodeCacheBytes)
+}
+
+// SetSoftMaxHeapBytes sets the SoftMaxHeapBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmFlags) SetSoftMaxHeapBytes(softMaxHeapBytes *int) {
+	j.SoftMaxHeapBytes = softMaxHeapBytes
+	j.require(jvmFlagsFieldSoftMaxHeapBytes)
+}
+
+// SetThreadStackBytes sets the ThreadStackBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmFlags) SetThreadStackBytes(threadStackBytes *int) {
+	j.ThreadStackBytes = threadStackBytes
+	j.require(jvmFlagsFieldThreadStackBytes)
+}
+
+// SetParallelGcThreads sets the ParallelGcThreads field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmFlags) SetParallelGcThreads(parallelGcThreads *int) {
+	j.ParallelGcThreads = parallelGcThreads
+	j.require(jvmFlagsFieldParallelGcThreads)
+}
+
+// SetConcGcThreads sets the ConcGcThreads field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmFlags) SetConcGcThreads(concGcThreads *int) {
+	j.ConcGcThreads = concGcThreads
+	j.require(jvmFlagsFieldConcGcThreads)
+}
+
+// SetContainerSupport sets the ContainerSupport field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmFlags) SetContainerSupport(containerSupport *bool) {
+	j.ContainerSupport = containerSupport
+	j.require(jvmFlagsFieldContainerSupport)
+}
+
+// SetAlwaysPreTouch sets the AlwaysPreTouch field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmFlags) SetAlwaysPreTouch(alwaysPreTouch *bool) {
+	j.AlwaysPreTouch = alwaysPreTouch
+	j.require(jvmFlagsFieldAlwaysPreTouch)
+}
+
+// SetRequestedCollector sets the RequestedCollector field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmFlags) SetRequestedCollector(requestedCollector *JvmFlagsRequestedCollector) {
+	j.RequestedCollector = requestedCollector
+	j.require(jvmFlagsFieldRequestedCollector)
+}
+
+// SetIncomplete sets the Incomplete field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmFlags) SetIncomplete(incomplete *bool) {
+	j.Incomplete = incomplete
+	j.require(jvmFlagsFieldIncomplete)
+}
+
+func (j *JvmFlags) UnmarshalJSON(data []byte) error {
+	type unmarshaler JvmFlags
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JvmFlags(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JvmFlags) MarshalJSON() ([]byte, error) {
+	type embed JvmFlags
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (j *JvmFlags) String() string {
+	if j == nil {
+		return "<nil>"
+	}
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+type JvmFlagsRequestedCollector string
+
+const (
+	JvmFlagsRequestedCollectorSerial     JvmFlagsRequestedCollector = "serial"
+	JvmFlagsRequestedCollectorParallel   JvmFlagsRequestedCollector = "parallel"
+	JvmFlagsRequestedCollectorCms        JvmFlagsRequestedCollector = "cms"
+	JvmFlagsRequestedCollectorG1         JvmFlagsRequestedCollector = "g1"
+	JvmFlagsRequestedCollectorZgc        JvmFlagsRequestedCollector = "zgc"
+	JvmFlagsRequestedCollectorShenandoah JvmFlagsRequestedCollector = "shenandoah"
+	JvmFlagsRequestedCollectorEpsilon    JvmFlagsRequestedCollector = "epsilon"
+	JvmFlagsRequestedCollectorUnknown    JvmFlagsRequestedCollector = "unknown"
+)
+
+func NewJvmFlagsRequestedCollectorFromString(s string) (JvmFlagsRequestedCollector, error) {
+	switch s {
+	case "serial":
+		return JvmFlagsRequestedCollectorSerial, nil
+	case "parallel":
+		return JvmFlagsRequestedCollectorParallel, nil
+	case "cms":
+		return JvmFlagsRequestedCollectorCms, nil
+	case "g1":
+		return JvmFlagsRequestedCollectorG1, nil
+	case "zgc":
+		return JvmFlagsRequestedCollectorZgc, nil
+	case "shenandoah":
+		return JvmFlagsRequestedCollectorShenandoah, nil
+	case "epsilon":
+		return JvmFlagsRequestedCollectorEpsilon, nil
+	case "unknown":
+		return JvmFlagsRequestedCollectorUnknown, nil
+	}
+	var t JvmFlagsRequestedCollector
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (j JvmFlagsRequestedCollector) Ptr() *JvmFlagsRequestedCollector {
+	return &j
+}
+
+// What the opt-in JVM reader measured inside the container's JVMs over the window. Sizes are the most any one pod
+// reached in any hour, several JVMs of one container adding up.
+var (
+	jvmMeasuredFieldHours               = big.NewInt(1 << 0)
+	jvmMeasuredFieldSampledSeconds      = big.NewInt(1 << 1)
+	jvmMeasuredFieldJvms                = big.NewInt(1 << 2)
+	jvmMeasuredFieldHeapMaxBytes        = big.NewInt(1 << 3)
+	jvmMeasuredFieldLiveSetMaxBytes     = big.NewInt(1 << 4)
+	jvmMeasuredFieldHeapUsedMaxBytes    = big.NewInt(1 << 5)
+	jvmMeasuredFieldCommittedMaxBytes   = big.NewInt(1 << 6)
+	jvmMeasuredFieldOutsideHeapMaxBytes = big.NewInt(1 << 7)
+	jvmMeasuredFieldMetaspaceMaxBytes   = big.NewInt(1 << 8)
+	jvmMeasuredFieldGcShareMax          = big.NewInt(1 << 9)
+	jvmMeasuredFieldGcSeconds           = big.NewInt(1 << 10)
+	jvmMeasuredFieldLatestHour          = big.NewInt(1 << 11)
+	jvmMeasuredFieldCollector           = big.NewInt(1 << 12)
+	jvmMeasuredFieldJdkFeature          = big.NewInt(1 << 13)
+	jvmMeasuredFieldJdkUpdate           = big.NewInt(1 << 14)
+	jvmMeasuredFieldFlags               = big.NewInt(1 << 15)
+	jvmMeasuredFieldMissed              = big.NewInt(1 << 16)
+)
+
+type JvmMeasured struct {
+	// Hours of the window the reader measured the container in
+	Hours int `json:"hours" url:"hours"`
+	// Seconds it measured the container over those hours
+	SampledSeconds int `json:"sampled_seconds" url:"sampled_seconds"`
+	// The most JVMs counted in the container in one hour
+	Jvms int `json:"jvms" url:"jvms"`
+	// The heap the JVMs may grow to, from their own counters
+	HeapMaxBytes int `json:"heap_max_bytes" url:"heap_max_bytes"`
+	// An upper bound on the live set: each JVM's least heap in use (young and old) in an hour, the JVMs of one container added up. The live set is never above it. Null when no hour had one
+	LiveSetMaxBytes *int `json:"live_set_max_bytes,omitempty" url:"live_set_max_bytes,omitempty"`
+	// The most heap in use: each JVM's most heap in use (young and old) in an hour, the JVMs of one container added up. For a chart, not for sizing: some collectors move their used counters only at a collection. Null when no hour had one
+	HeapUsedMaxBytes *int `json:"heap_used_max_bytes,omitempty" url:"heap_used_max_bytes,omitempty"`
+	// The heap the JVMs had committed
+	CommittedMaxBytes int `json:"committed_max_bytes" url:"committed_max_bytes"`
+	// Resident memory beside the heap: metaspace, code, thread stacks, direct buffers, C heap. Anonymous and shared resident memory less the committed heap; anonymous only for ZGC, whose heap is shared
+	OutsideHeapMaxBytes int `json:"outside_heap_max_bytes" url:"outside_heap_max_bytes"`
+	MetaspaceMaxBytes   int `json:"metaspace_max_bytes" url:"metaspace_max_bytes"`
+	// The largest share of a span of five minutes or more one JVM spent in collection pauses, 0 to 1. Null for ZGC and Shenandoah, and before a JVM ran five minutes
+	GcShareMax *float64 `json:"gc_share_max,omitempty" url:"gc_share_max,omitempty"`
+	// Seconds spent in collection pauses over the window. Null when no pause was counted, always for ZGC and Shenandoah
+	GcSeconds *float64 `json:"gc_seconds,omitempty" url:"gc_seconds,omitempty"`
+	// The latest hour measured, which the fields below are read from
+	LatestHour time.Time `json:"latest_hour" url:"latest_hour"`
+	// Null in an hour no JVM counted
+	Collector *JvmMeasuredCollector `json:"collector,omitempty" url:"collector,omitempty"`
+	// 21 for JDK 21.0.13
+	JdkFeature *int `json:"jdk_feature,omitempty" url:"jdk_feature,omitempty"`
+	// 13 for JDK 21.0.13
+	JdkUpdate *int      `json:"jdk_update,omitempty" url:"jdk_update,omitempty"`
+	Flags     *JvmFlags `json:"flags" url:"flags"`
+	// The JVMs whose counters could not be read, by reason
+	Missed map[string]int `json:"missed" url:"missed"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JvmMeasured) GetHours() int {
+	if j == nil {
+		return 0
+	}
+	return j.Hours
+}
+
+func (j *JvmMeasured) GetSampledSeconds() int {
+	if j == nil {
+		return 0
+	}
+	return j.SampledSeconds
+}
+
+func (j *JvmMeasured) GetJvms() int {
+	if j == nil {
+		return 0
+	}
+	return j.Jvms
+}
+
+func (j *JvmMeasured) GetHeapMaxBytes() int {
+	if j == nil {
+		return 0
+	}
+	return j.HeapMaxBytes
+}
+
+func (j *JvmMeasured) GetLiveSetMaxBytes() *int {
+	if j == nil {
+		return nil
+	}
+	return j.LiveSetMaxBytes
+}
+
+func (j *JvmMeasured) GetHeapUsedMaxBytes() *int {
+	if j == nil {
+		return nil
+	}
+	return j.HeapUsedMaxBytes
+}
+
+func (j *JvmMeasured) GetCommittedMaxBytes() int {
+	if j == nil {
+		return 0
+	}
+	return j.CommittedMaxBytes
+}
+
+func (j *JvmMeasured) GetOutsideHeapMaxBytes() int {
+	if j == nil {
+		return 0
+	}
+	return j.OutsideHeapMaxBytes
+}
+
+func (j *JvmMeasured) GetMetaspaceMaxBytes() int {
+	if j == nil {
+		return 0
+	}
+	return j.MetaspaceMaxBytes
+}
+
+func (j *JvmMeasured) GetGcShareMax() *float64 {
+	if j == nil {
+		return nil
+	}
+	return j.GcShareMax
+}
+
+func (j *JvmMeasured) GetGcSeconds() *float64 {
+	if j == nil {
+		return nil
+	}
+	return j.GcSeconds
+}
+
+func (j *JvmMeasured) GetLatestHour() time.Time {
+	if j == nil {
+		return time.Time{}
+	}
+	return j.LatestHour
+}
+
+func (j *JvmMeasured) GetCollector() *JvmMeasuredCollector {
+	if j == nil {
+		return nil
+	}
+	return j.Collector
+}
+
+func (j *JvmMeasured) GetJdkFeature() *int {
+	if j == nil {
+		return nil
+	}
+	return j.JdkFeature
+}
+
+func (j *JvmMeasured) GetJdkUpdate() *int {
+	if j == nil {
+		return nil
+	}
+	return j.JdkUpdate
+}
+
+func (j *JvmMeasured) GetFlags() *JvmFlags {
+	if j == nil {
+		return nil
+	}
+	return j.Flags
+}
+
+func (j *JvmMeasured) GetMissed() map[string]int {
+	if j == nil {
+		return nil
+	}
+	return j.Missed
+}
+
+func (j *JvmMeasured) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
+	return j.extraProperties
+}
+
+func (j *JvmMeasured) require(field *big.Int) {
+	if j.explicitFields == nil {
+		j.explicitFields = big.NewInt(0)
+	}
+	j.explicitFields.Or(j.explicitFields, field)
+}
+
+// SetHours sets the Hours field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmMeasured) SetHours(hours int) {
+	j.Hours = hours
+	j.require(jvmMeasuredFieldHours)
+}
+
+// SetSampledSeconds sets the SampledSeconds field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmMeasured) SetSampledSeconds(sampledSeconds int) {
+	j.SampledSeconds = sampledSeconds
+	j.require(jvmMeasuredFieldSampledSeconds)
+}
+
+// SetJvms sets the Jvms field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmMeasured) SetJvms(jvms int) {
+	j.Jvms = jvms
+	j.require(jvmMeasuredFieldJvms)
+}
+
+// SetHeapMaxBytes sets the HeapMaxBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmMeasured) SetHeapMaxBytes(heapMaxBytes int) {
+	j.HeapMaxBytes = heapMaxBytes
+	j.require(jvmMeasuredFieldHeapMaxBytes)
+}
+
+// SetLiveSetMaxBytes sets the LiveSetMaxBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmMeasured) SetLiveSetMaxBytes(liveSetMaxBytes *int) {
+	j.LiveSetMaxBytes = liveSetMaxBytes
+	j.require(jvmMeasuredFieldLiveSetMaxBytes)
+}
+
+// SetHeapUsedMaxBytes sets the HeapUsedMaxBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmMeasured) SetHeapUsedMaxBytes(heapUsedMaxBytes *int) {
+	j.HeapUsedMaxBytes = heapUsedMaxBytes
+	j.require(jvmMeasuredFieldHeapUsedMaxBytes)
+}
+
+// SetCommittedMaxBytes sets the CommittedMaxBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmMeasured) SetCommittedMaxBytes(committedMaxBytes int) {
+	j.CommittedMaxBytes = committedMaxBytes
+	j.require(jvmMeasuredFieldCommittedMaxBytes)
+}
+
+// SetOutsideHeapMaxBytes sets the OutsideHeapMaxBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmMeasured) SetOutsideHeapMaxBytes(outsideHeapMaxBytes int) {
+	j.OutsideHeapMaxBytes = outsideHeapMaxBytes
+	j.require(jvmMeasuredFieldOutsideHeapMaxBytes)
+}
+
+// SetMetaspaceMaxBytes sets the MetaspaceMaxBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmMeasured) SetMetaspaceMaxBytes(metaspaceMaxBytes int) {
+	j.MetaspaceMaxBytes = metaspaceMaxBytes
+	j.require(jvmMeasuredFieldMetaspaceMaxBytes)
+}
+
+// SetGcShareMax sets the GcShareMax field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmMeasured) SetGcShareMax(gcShareMax *float64) {
+	j.GcShareMax = gcShareMax
+	j.require(jvmMeasuredFieldGcShareMax)
+}
+
+// SetGcSeconds sets the GcSeconds field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmMeasured) SetGcSeconds(gcSeconds *float64) {
+	j.GcSeconds = gcSeconds
+	j.require(jvmMeasuredFieldGcSeconds)
+}
+
+// SetLatestHour sets the LatestHour field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmMeasured) SetLatestHour(latestHour time.Time) {
+	j.LatestHour = latestHour
+	j.require(jvmMeasuredFieldLatestHour)
+}
+
+// SetCollector sets the Collector field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmMeasured) SetCollector(collector *JvmMeasuredCollector) {
+	j.Collector = collector
+	j.require(jvmMeasuredFieldCollector)
+}
+
+// SetJdkFeature sets the JdkFeature field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmMeasured) SetJdkFeature(jdkFeature *int) {
+	j.JdkFeature = jdkFeature
+	j.require(jvmMeasuredFieldJdkFeature)
+}
+
+// SetJdkUpdate sets the JdkUpdate field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmMeasured) SetJdkUpdate(jdkUpdate *int) {
+	j.JdkUpdate = jdkUpdate
+	j.require(jvmMeasuredFieldJdkUpdate)
+}
+
+// SetFlags sets the Flags field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmMeasured) SetFlags(flags *JvmFlags) {
+	j.Flags = flags
+	j.require(jvmMeasuredFieldFlags)
+}
+
+// SetMissed sets the Missed field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmMeasured) SetMissed(missed map[string]int) {
+	j.Missed = missed
+	j.require(jvmMeasuredFieldMissed)
+}
+
+func (j *JvmMeasured) UnmarshalJSON(data []byte) error {
+	type embed JvmMeasured
+	var unmarshaler = struct {
+		embed
+		LatestHour *internal.DateTime `json:"latest_hour"`
+	}{
+		embed: embed(*j),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*j = JvmMeasured(unmarshaler.embed)
+	j.LatestHour = unmarshaler.LatestHour.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JvmMeasured) MarshalJSON() ([]byte, error) {
+	type embed JvmMeasured
+	var marshaler = struct {
+		embed
+		LatestHour *internal.DateTime `json:"latest_hour"`
+	}{
+		embed:      embed(*j),
+		LatestHour: internal.NewDateTime(j.LatestHour),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (j *JvmMeasured) String() string {
+	if j == nil {
+		return "<nil>"
+	}
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+type JvmMeasuredCollector string
+
+const (
+	JvmMeasuredCollectorSerial     JvmMeasuredCollector = "serial"
+	JvmMeasuredCollectorParallel   JvmMeasuredCollector = "parallel"
+	JvmMeasuredCollectorCms        JvmMeasuredCollector = "cms"
+	JvmMeasuredCollectorG1         JvmMeasuredCollector = "g1"
+	JvmMeasuredCollectorZgc        JvmMeasuredCollector = "zgc"
+	JvmMeasuredCollectorShenandoah JvmMeasuredCollector = "shenandoah"
+	JvmMeasuredCollectorEpsilon    JvmMeasuredCollector = "epsilon"
+	JvmMeasuredCollectorUnknown    JvmMeasuredCollector = "unknown"
+)
+
+func NewJvmMeasuredCollectorFromString(s string) (JvmMeasuredCollector, error) {
+	switch s {
+	case "serial":
+		return JvmMeasuredCollectorSerial, nil
+	case "parallel":
+		return JvmMeasuredCollectorParallel, nil
+	case "cms":
+		return JvmMeasuredCollectorCms, nil
+	case "g1":
+		return JvmMeasuredCollectorG1, nil
+	case "zgc":
+		return JvmMeasuredCollectorZgc, nil
+	case "shenandoah":
+		return JvmMeasuredCollectorShenandoah, nil
+	case "epsilon":
+		return JvmMeasuredCollectorEpsilon, nil
+	case "unknown":
+		return JvmMeasuredCollectorUnknown, nil
+	}
+	var t JvmMeasuredCollector
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (j JvmMeasuredCollector) Ptr() *JvmMeasuredCollector {
+	return &j
+}
+
+var (
+	jvmReaderHealthFieldClusterID = big.NewInt(1 << 0)
+	jvmReaderHealthFieldWindowEnd = big.NewInt(1 << 1)
+	jvmReaderHealthFieldNodes     = big.NewInt(1 << 2)
+)
+
+type JvmReaderHealth struct {
+	ClusterID string `json:"cluster_id" url:"cluster_id"`
+	// The end of the latest window the reader reported in; null before it reported in any
+	WindowEnd *time.Time `json:"window_end,omitempty" url:"window_end,omitempty"`
+	// Each node as that window reported it, by name
+	Nodes []*JvmReaderNodeHealth `json:"nodes" url:"nodes"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JvmReaderHealth) GetClusterID() string {
+	if j == nil {
+		return ""
+	}
+	return j.ClusterID
+}
+
+func (j *JvmReaderHealth) GetWindowEnd() *time.Time {
+	if j == nil {
+		return nil
+	}
+	return j.WindowEnd
+}
+
+func (j *JvmReaderHealth) GetNodes() []*JvmReaderNodeHealth {
+	if j == nil {
+		return nil
+	}
+	return j.Nodes
+}
+
+func (j *JvmReaderHealth) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
+	return j.extraProperties
+}
+
+func (j *JvmReaderHealth) require(field *big.Int) {
+	if j.explicitFields == nil {
+		j.explicitFields = big.NewInt(0)
+	}
+	j.explicitFields.Or(j.explicitFields, field)
+}
+
+// SetClusterID sets the ClusterID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmReaderHealth) SetClusterID(clusterID string) {
+	j.ClusterID = clusterID
+	j.require(jvmReaderHealthFieldClusterID)
+}
+
+// SetWindowEnd sets the WindowEnd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmReaderHealth) SetWindowEnd(windowEnd *time.Time) {
+	j.WindowEnd = windowEnd
+	j.require(jvmReaderHealthFieldWindowEnd)
+}
+
+// SetNodes sets the Nodes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmReaderHealth) SetNodes(nodes []*JvmReaderNodeHealth) {
+	j.Nodes = nodes
+	j.require(jvmReaderHealthFieldNodes)
+}
+
+func (j *JvmReaderHealth) UnmarshalJSON(data []byte) error {
+	type embed JvmReaderHealth
+	var unmarshaler = struct {
+		embed
+		WindowEnd *internal.DateTime `json:"window_end,omitempty"`
+	}{
+		embed: embed(*j),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*j = JvmReaderHealth(unmarshaler.embed)
+	j.WindowEnd = unmarshaler.WindowEnd.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JvmReaderHealth) MarshalJSON() ([]byte, error) {
+	type embed JvmReaderHealth
+	var marshaler = struct {
+		embed
+		WindowEnd *internal.DateTime `json:"window_end,omitempty"`
+	}{
+		embed:     embed(*j),
+		WindowEnd: internal.NewOptionalDateTime(j.WindowEnd),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (j *JvmReaderHealth) String() string {
+	if j == nil {
+		return "<nil>"
+	}
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+var (
+	jvmReaderNodeHealthFieldNode     = big.NewInt(1 << 0)
+	jvmReaderNodeHealthFieldState    = big.NewInt(1 << 1)
+	jvmReaderNodeHealthFieldJvms     = big.NewInt(1 << 2)
+	jvmReaderNodeHealthFieldUnmapped = big.NewInt(1 << 3)
+	jvmReaderNodeHealthFieldMissed   = big.NewInt(1 << 4)
+)
+
+type JvmReaderNodeHealth struct {
+	Node string `json:"node" url:"node"`
+	// ok; no_reader when none runs on the node; pending when its pod has not started; unreachable when it did not answer
+	State JvmReaderNodeHealthState `json:"state" url:"state"`
+	// The JVMs it saw in its last sample of the window
+	Jvms int `json:"jvms" url:"jvms"`
+	// The JVMs it saw that it could not tie to a container
+	Unmapped int `json:"unmapped" url:"unmapped"`
+	// The JVMs whose counters it could not read, by reason
+	Missed map[string]int `json:"missed" url:"missed"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JvmReaderNodeHealth) GetNode() string {
+	if j == nil {
+		return ""
+	}
+	return j.Node
+}
+
+func (j *JvmReaderNodeHealth) GetState() JvmReaderNodeHealthState {
+	if j == nil {
+		return ""
+	}
+	return j.State
+}
+
+func (j *JvmReaderNodeHealth) GetJvms() int {
+	if j == nil {
+		return 0
+	}
+	return j.Jvms
+}
+
+func (j *JvmReaderNodeHealth) GetUnmapped() int {
+	if j == nil {
+		return 0
+	}
+	return j.Unmapped
+}
+
+func (j *JvmReaderNodeHealth) GetMissed() map[string]int {
+	if j == nil {
+		return nil
+	}
+	return j.Missed
+}
+
+func (j *JvmReaderNodeHealth) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
+	return j.extraProperties
+}
+
+func (j *JvmReaderNodeHealth) require(field *big.Int) {
+	if j.explicitFields == nil {
+		j.explicitFields = big.NewInt(0)
+	}
+	j.explicitFields.Or(j.explicitFields, field)
+}
+
+// SetNode sets the Node field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmReaderNodeHealth) SetNode(node string) {
+	j.Node = node
+	j.require(jvmReaderNodeHealthFieldNode)
+}
+
+// SetState sets the State field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmReaderNodeHealth) SetState(state JvmReaderNodeHealthState) {
+	j.State = state
+	j.require(jvmReaderNodeHealthFieldState)
+}
+
+// SetJvms sets the Jvms field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmReaderNodeHealth) SetJvms(jvms int) {
+	j.Jvms = jvms
+	j.require(jvmReaderNodeHealthFieldJvms)
+}
+
+// SetUnmapped sets the Unmapped field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmReaderNodeHealth) SetUnmapped(unmapped int) {
+	j.Unmapped = unmapped
+	j.require(jvmReaderNodeHealthFieldUnmapped)
+}
+
+// SetMissed sets the Missed field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmReaderNodeHealth) SetMissed(missed map[string]int) {
+	j.Missed = missed
+	j.require(jvmReaderNodeHealthFieldMissed)
+}
+
+func (j *JvmReaderNodeHealth) UnmarshalJSON(data []byte) error {
+	type unmarshaler JvmReaderNodeHealth
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JvmReaderNodeHealth(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JvmReaderNodeHealth) MarshalJSON() ([]byte, error) {
+	type embed JvmReaderNodeHealth
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (j *JvmReaderNodeHealth) String() string {
+	if j == nil {
+		return "<nil>"
+	}
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
+// ok; no_reader when none runs on the node; pending when its pod has not started; unreachable when it did not answer
+type JvmReaderNodeHealthState string
+
+const (
+	JvmReaderNodeHealthStateOk          JvmReaderNodeHealthState = "ok"
+	JvmReaderNodeHealthStateNoReader    JvmReaderNodeHealthState = "no_reader"
+	JvmReaderNodeHealthStatePending     JvmReaderNodeHealthState = "pending"
+	JvmReaderNodeHealthStateUnreachable JvmReaderNodeHealthState = "unreachable"
+)
+
+func NewJvmReaderNodeHealthStateFromString(s string) (JvmReaderNodeHealthState, error) {
+	switch s {
+	case "ok":
+		return JvmReaderNodeHealthStateOk, nil
+	case "no_reader":
+		return JvmReaderNodeHealthStateNoReader, nil
+	case "pending":
+		return JvmReaderNodeHealthStatePending, nil
+	case "unreachable":
+		return JvmReaderNodeHealthStateUnreachable, nil
+	}
+	var t JvmReaderNodeHealthState
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (j JvmReaderNodeHealthState) Ptr() *JvmReaderNodeHealthState {
+	return &j
+}
+
+var (
+	jvmReaderResponseFieldSuccess   = big.NewInt(1 << 0)
+	jvmReaderResponseFieldData      = big.NewInt(1 << 1)
+	jvmReaderResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type JvmReaderResponse struct {
+	Success   *bool            `json:"success,omitempty" url:"success,omitempty"`
+	Data      *JvmReaderHealth `json:"data" url:"data"`
+	Timestamp string           `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JvmReaderResponse) GetSuccess() *bool {
+	if j == nil {
+		return nil
+	}
+	return j.Success
+}
+
+func (j *JvmReaderResponse) GetData() *JvmReaderHealth {
+	if j == nil {
+		return nil
+	}
+	return j.Data
+}
+
+func (j *JvmReaderResponse) GetTimestamp() string {
+	if j == nil {
+		return ""
+	}
+	return j.Timestamp
+}
+
+func (j *JvmReaderResponse) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
+	return j.extraProperties
+}
+
+func (j *JvmReaderResponse) require(field *big.Int) {
+	if j.explicitFields == nil {
+		j.explicitFields = big.NewInt(0)
+	}
+	j.explicitFields.Or(j.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmReaderResponse) SetSuccess(success *bool) {
+	j.Success = success
+	j.require(jvmReaderResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmReaderResponse) SetData(data *JvmReaderHealth) {
+	j.Data = data
+	j.require(jvmReaderResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmReaderResponse) SetTimestamp(timestamp string) {
+	j.Timestamp = timestamp
+	j.require(jvmReaderResponseFieldTimestamp)
+}
+
+func (j *JvmReaderResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler JvmReaderResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JvmReaderResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JvmReaderResponse) MarshalJSON() ([]byte, error) {
+	type embed JvmReaderResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (j *JvmReaderResponse) String() string {
+	if j == nil {
+		return "<nil>"
+	}
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
 // The Karpenter controller the agent found: its image tag and its FEATURE_GATES.
 var (
 	karpenterFieldVersion      = big.NewInt(1 << 0)
@@ -35938,15 +38145,18 @@ func (k *KarpenterMessage) String() string {
 }
 
 var (
-	karpenterPoolFieldConsolidationPolicy = big.NewInt(1 << 0)
-	karpenterPoolFieldLimits              = big.NewInt(1 << 1)
-	karpenterPoolFieldLimitsUsedPct       = big.NewInt(1 << 2)
-	karpenterPoolFieldLimitsWarning       = big.NewInt(1 << 3)
-	karpenterPoolFieldInstanceFamilies    = big.NewInt(1 << 4)
-	karpenterPoolFieldCapacityTypes       = big.NewInt(1 << 5)
+	karpenterPoolFieldAutoMode            = big.NewInt(1 << 0)
+	karpenterPoolFieldConsolidationPolicy = big.NewInt(1 << 1)
+	karpenterPoolFieldLimits              = big.NewInt(1 << 2)
+	karpenterPoolFieldLimitsUsedPct       = big.NewInt(1 << 3)
+	karpenterPoolFieldLimitsWarning       = big.NewInt(1 << 4)
+	karpenterPoolFieldInstanceFamilies    = big.NewInt(1 << 5)
+	karpenterPoolFieldCapacityTypes       = big.NewInt(1 << 6)
 )
 
 type KarpenterPool struct {
+	// An EKS Auto Mode NodePool, whose Karpenter AWS runs
+	AutoMode            *bool             `json:"auto_mode,omitempty" url:"auto_mode,omitempty"`
 	ConsolidationPolicy *string           `json:"consolidation_policy,omitempty" url:"consolidation_policy,omitempty"`
 	Limits              map[string]string `json:"limits,omitempty" url:"limits,omitempty"`
 	// The current nodes' capacity over each limit
@@ -35962,6 +38172,13 @@ type KarpenterPool struct {
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
+}
+
+func (k *KarpenterPool) GetAutoMode() *bool {
+	if k == nil {
+		return nil
+	}
+	return k.AutoMode
 }
 
 func (k *KarpenterPool) GetConsolidationPolicy() *string {
@@ -36018,6 +38235,13 @@ func (k *KarpenterPool) require(field *big.Int) {
 		k.explicitFields = big.NewInt(0)
 	}
 	k.explicitFields.Or(k.explicitFields, field)
+}
+
+// SetAutoMode sets the AutoMode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KarpenterPool) SetAutoMode(autoMode *bool) {
+	k.AutoMode = autoMode
+	k.require(karpenterPoolFieldAutoMode)
 }
 
 // SetConsolidationPolicy sets the ConsolidationPolicy field and marks it as non-optional;
@@ -46927,31 +49151,32 @@ var (
 	nodePoolUsageFieldArch                      = big.NewInt(1 << 2)
 	nodePoolUsageFieldNodes                     = big.NewInt(1 << 3)
 	nodePoolUsageFieldSpotNodes                 = big.NewInt(1 << 4)
-	nodePoolUsageFieldNodesAvg                  = big.NewInt(1 << 5)
-	nodePoolUsageFieldNodesMax                  = big.NewInt(1 << 6)
-	nodePoolUsageFieldPodsPerNode               = big.NewInt(1 << 7)
-	nodePoolUsageFieldRequestedCPUPerGib        = big.NewInt(1 << 8)
-	nodePoolUsageFieldAllocatableCPUPerGib      = big.NewInt(1 << 9)
-	nodePoolUsageFieldCPUAllocatableMilli       = big.NewInt(1 << 10)
-	nodePoolUsageFieldCPURequestedMilli         = big.NewInt(1 << 11)
-	nodePoolUsageFieldCPUUsedMilli              = big.NewInt(1 << 12)
-	nodePoolUsageFieldMemoryAllocatableBytes    = big.NewInt(1 << 13)
-	nodePoolUsageFieldMemoryRequestedBytes      = big.NewInt(1 << 14)
-	nodePoolUsageFieldMemoryUsedBytes           = big.NewInt(1 << 15)
-	nodePoolUsageFieldCPUAllocatableMilliP95    = big.NewInt(1 << 16)
-	nodePoolUsageFieldCPURequestedMilliP95      = big.NewInt(1 << 17)
-	nodePoolUsageFieldCPUUsedMilliP95           = big.NewInt(1 << 18)
-	nodePoolUsageFieldMemoryAllocatableBytesP95 = big.NewInt(1 << 19)
-	nodePoolUsageFieldMemoryRequestedBytesP95   = big.NewInt(1 << 20)
-	nodePoolUsageFieldMemoryUsedBytesP95        = big.NewInt(1 << 21)
-	nodePoolUsageFieldCost                      = big.NewInt(1 << 22)
-	nodePoolUsageFieldIdleCost                  = big.NewInt(1 << 23)
-	nodePoolUsageFieldCostPerHour               = big.NewInt(1 << 24)
-	nodePoolUsageFieldPurchaseTypes             = big.NewInt(1 << 25)
-	nodePoolUsageFieldKarpenter                 = big.NewInt(1 << 26)
-	nodePoolUsageFieldSeries                    = big.NewInt(1 << 27)
-	nodePoolUsageFieldFindingsCount             = big.NewInt(1 << 28)
-	nodePoolUsageFieldFitMonthlyDifference      = big.NewInt(1 << 29)
+	nodePoolUsageFieldNodesNow                  = big.NewInt(1 << 5)
+	nodePoolUsageFieldNodesAvg                  = big.NewInt(1 << 6)
+	nodePoolUsageFieldNodesMax                  = big.NewInt(1 << 7)
+	nodePoolUsageFieldPodsPerNode               = big.NewInt(1 << 8)
+	nodePoolUsageFieldRequestedCPUPerGib        = big.NewInt(1 << 9)
+	nodePoolUsageFieldAllocatableCPUPerGib      = big.NewInt(1 << 10)
+	nodePoolUsageFieldCPUAllocatableMilli       = big.NewInt(1 << 11)
+	nodePoolUsageFieldCPURequestedMilli         = big.NewInt(1 << 12)
+	nodePoolUsageFieldCPUUsedMilli              = big.NewInt(1 << 13)
+	nodePoolUsageFieldMemoryAllocatableBytes    = big.NewInt(1 << 14)
+	nodePoolUsageFieldMemoryRequestedBytes      = big.NewInt(1 << 15)
+	nodePoolUsageFieldMemoryUsedBytes           = big.NewInt(1 << 16)
+	nodePoolUsageFieldCPUAllocatableMilliP95    = big.NewInt(1 << 17)
+	nodePoolUsageFieldCPURequestedMilliP95      = big.NewInt(1 << 18)
+	nodePoolUsageFieldCPUUsedMilliP95           = big.NewInt(1 << 19)
+	nodePoolUsageFieldMemoryAllocatableBytesP95 = big.NewInt(1 << 20)
+	nodePoolUsageFieldMemoryRequestedBytesP95   = big.NewInt(1 << 21)
+	nodePoolUsageFieldMemoryUsedBytesP95        = big.NewInt(1 << 22)
+	nodePoolUsageFieldCost                      = big.NewInt(1 << 23)
+	nodePoolUsageFieldIdleCost                  = big.NewInt(1 << 24)
+	nodePoolUsageFieldCostPerHour               = big.NewInt(1 << 25)
+	nodePoolUsageFieldPurchaseTypes             = big.NewInt(1 << 26)
+	nodePoolUsageFieldKarpenter                 = big.NewInt(1 << 27)
+	nodePoolUsageFieldSeries                    = big.NewInt(1 << 28)
+	nodePoolUsageFieldFindingsCount             = big.NewInt(1 << 29)
+	nodePoolUsageFieldFitMonthlyDifference      = big.NewInt(1 << 30)
 )
 
 type NodePoolUsage struct {
@@ -46963,6 +49188,8 @@ type NodePoolUsage struct {
 	// Nodes that ran in the group in the window
 	Nodes     int `json:"nodes" url:"nodes"`
 	SpotNodes int `json:"spot_nodes" url:"spot_nodes"`
+	// Nodes in the group running now, as the cluster's node_count counts them
+	NodesNow *int `json:"nodes_now,omitempty" url:"nodes_now,omitempty"`
 	// Nodes running on average over the hours the group ran
 	NodesAvg *float64 `json:"nodes_avg,omitempty" url:"nodes_avg,omitempty"`
 	// The most nodes that ran in the group on one day
@@ -47040,6 +49267,13 @@ func (n *NodePoolUsage) GetSpotNodes() int {
 		return 0
 	}
 	return n.SpotNodes
+}
+
+func (n *NodePoolUsage) GetNodesNow() *int {
+	if n == nil {
+		return nil
+	}
+	return n.NodesNow
 }
 
 func (n *NodePoolUsage) GetNodesAvg() *float64 {
@@ -47264,6 +49498,13 @@ func (n *NodePoolUsage) SetNodes(nodes int) {
 func (n *NodePoolUsage) SetSpotNodes(spotNodes int) {
 	n.SpotNodes = spotNodes
 	n.require(nodePoolUsageFieldSpotNodes)
+}
+
+// SetNodesNow sets the NodesNow field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NodePoolUsage) SetNodesNow(nodesNow *int) {
+	n.NodesNow = nodesNow
+	n.require(nodePoolUsageFieldNodesNow)
 }
 
 // SetNodesAvg sets the NodesAvg field and marks it as non-optional;
@@ -56833,6 +59074,146 @@ func (r *ReliabilityEventDay) String() string {
 }
 
 var (
+	reliabilityFacetCountFieldValue = big.NewInt(1 << 0)
+	reliabilityFacetCountFieldCount = big.NewInt(1 << 1)
+)
+
+type ReliabilityFacetCount struct {
+	Value ReliabilityFacetCountValue `json:"value" url:"value"`
+	Count int                        `json:"count" url:"count"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *ReliabilityFacetCount) GetValue() ReliabilityFacetCountValue {
+	if r == nil {
+		return ""
+	}
+	return r.Value
+}
+
+func (r *ReliabilityFacetCount) GetCount() int {
+	if r == nil {
+		return 0
+	}
+	return r.Count
+}
+
+func (r *ReliabilityFacetCount) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *ReliabilityFacetCount) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetValue sets the Value field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ReliabilityFacetCount) SetValue(value ReliabilityFacetCountValue) {
+	r.Value = value
+	r.require(reliabilityFacetCountFieldValue)
+}
+
+// SetCount sets the Count field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ReliabilityFacetCount) SetCount(count int) {
+	r.Count = count
+	r.require(reliabilityFacetCountFieldCount)
+}
+
+func (r *ReliabilityFacetCount) UnmarshalJSON(data []byte) error {
+	type unmarshaler ReliabilityFacetCount
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = ReliabilityFacetCount(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *ReliabilityFacetCount) MarshalJSON() ([]byte, error) {
+	type embed ReliabilityFacetCount
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *ReliabilityFacetCount) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+type ReliabilityFacetCountValue string
+
+const (
+	ReliabilityFacetCountValueOomKills      ReliabilityFacetCountValue = "oom_kills"
+	ReliabilityFacetCountValueRestarts      ReliabilityFacetCountValue = "restarts"
+	ReliabilityFacetCountValueThrottled     ReliabilityFacetCountValue = "throttled"
+	ReliabilityFacetCountValueEvictions     ReliabilityFacetCountValue = "evictions"
+	ReliabilityFacetCountValueAtRisk        ReliabilityFacetCountValue = "at_risk"
+	ReliabilityFacetCountValueNoRequests    ReliabilityFacetCountValue = "no_requests"
+	ReliabilityFacetCountValueNoMemoryLimit ReliabilityFacetCountValue = "no_memory_limit"
+	ReliabilityFacetCountValuePending       ReliabilityFacetCountValue = "pending"
+)
+
+func NewReliabilityFacetCountValueFromString(s string) (ReliabilityFacetCountValue, error) {
+	switch s {
+	case "oom_kills":
+		return ReliabilityFacetCountValueOomKills, nil
+	case "restarts":
+		return ReliabilityFacetCountValueRestarts, nil
+	case "throttled":
+		return ReliabilityFacetCountValueThrottled, nil
+	case "evictions":
+		return ReliabilityFacetCountValueEvictions, nil
+	case "at_risk":
+		return ReliabilityFacetCountValueAtRisk, nil
+	case "no_requests":
+		return ReliabilityFacetCountValueNoRequests, nil
+	case "no_memory_limit":
+		return ReliabilityFacetCountValueNoMemoryLimit, nil
+	case "pending":
+		return ReliabilityFacetCountValuePending, nil
+	}
+	var t ReliabilityFacetCountValue
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (r ReliabilityFacetCountValue) Ptr() *ReliabilityFacetCountValue {
+	return &r
+}
+
+var (
 	reliabilityGroupFieldKey   = big.NewInt(1 << 0)
 	reliabilityGroupFieldLabel = big.NewInt(1 << 1)
 	reliabilityGroupFieldDays  = big.NewInt(1 << 2)
@@ -57220,9 +59601,9 @@ type ReliabilityTotals struct {
 	PendingPodHours float64 `json:"pending_pod_hours" url:"pending_pod_hours"`
 	// Current workloads whose indicators put them at risk
 	WorkloadsAtRisk int `json:"workloads_at_risk" url:"workloads_at_risk"`
-	// Current containers with no CPU or no memory request
+	// Current containers whose pods run, or would run, with no CPU or no memory request
 	ContainersWithoutRequests int `json:"containers_without_requests" url:"containers_without_requests"`
-	// Current containers with no memory limit
+	// Current containers whose pods run, or would run, with no memory limit
 	ContainersWithoutLimits int `json:"containers_without_limits" url:"containers_without_limits"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
@@ -75228,6 +77609,148 @@ func (u UIMessageRole) Ptr() *UIMessageRole {
 }
 
 var (
+	unhealthyReasonFieldReason = big.NewInt(1 << 0)
+	unhealthyReasonFieldDetail = big.NewInt(1 << 1)
+	unhealthyReasonFieldFix    = big.NewInt(1 << 2)
+)
+
+type UnhealthyReason struct {
+	// pdb_without_healthy_pods: every PodDisruptionBudget that stops the pod's eviction counts no healthy pod, one entry each. workload_never_ready: its Deployment or StatefulSet wants replicas and has none ready
+	Reason UnhealthyReasonReason `json:"reason" url:"reason"`
+	// One plain sentence naming the PodDisruptionBudget or the workload
+	Detail string `json:"detail" url:"detail"`
+	// One plain sentence: what to change, on which object
+	Fix string `json:"fix" url:"fix"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (u *UnhealthyReason) GetReason() UnhealthyReasonReason {
+	if u == nil {
+		return ""
+	}
+	return u.Reason
+}
+
+func (u *UnhealthyReason) GetDetail() string {
+	if u == nil {
+		return ""
+	}
+	return u.Detail
+}
+
+func (u *UnhealthyReason) GetFix() string {
+	if u == nil {
+		return ""
+	}
+	return u.Fix
+}
+
+func (u *UnhealthyReason) GetExtraProperties() map[string]interface{} {
+	if u == nil {
+		return nil
+	}
+	return u.extraProperties
+}
+
+func (u *UnhealthyReason) require(field *big.Int) {
+	if u.explicitFields == nil {
+		u.explicitFields = big.NewInt(0)
+	}
+	u.explicitFields.Or(u.explicitFields, field)
+}
+
+// SetReason sets the Reason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UnhealthyReason) SetReason(reason UnhealthyReasonReason) {
+	u.Reason = reason
+	u.require(unhealthyReasonFieldReason)
+}
+
+// SetDetail sets the Detail field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UnhealthyReason) SetDetail(detail string) {
+	u.Detail = detail
+	u.require(unhealthyReasonFieldDetail)
+}
+
+// SetFix sets the Fix field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UnhealthyReason) SetFix(fix string) {
+	u.Fix = fix
+	u.require(unhealthyReasonFieldFix)
+}
+
+func (u *UnhealthyReason) UnmarshalJSON(data []byte) error {
+	type unmarshaler UnhealthyReason
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*u = UnhealthyReason(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *u)
+	if err != nil {
+		return err
+	}
+	u.extraProperties = extraProperties
+	u.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (u *UnhealthyReason) MarshalJSON() ([]byte, error) {
+	type embed UnhealthyReason
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*u),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, u.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (u *UnhealthyReason) String() string {
+	if u == nil {
+		return "<nil>"
+	}
+	if len(u.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(u); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", u)
+}
+
+// pdb_without_healthy_pods: every PodDisruptionBudget that stops the pod's eviction counts no healthy pod, one entry each. workload_never_ready: its Deployment or StatefulSet wants replicas and has none ready
+type UnhealthyReasonReason string
+
+const (
+	UnhealthyReasonReasonPdbWithoutHealthyPods UnhealthyReasonReason = "pdb_without_healthy_pods"
+	UnhealthyReasonReasonWorkloadNeverReady    UnhealthyReasonReason = "workload_never_ready"
+)
+
+func NewUnhealthyReasonReasonFromString(s string) (UnhealthyReasonReason, error) {
+	switch s {
+	case "pdb_without_healthy_pods":
+		return UnhealthyReasonReasonPdbWithoutHealthyPods, nil
+	case "workload_never_ready":
+		return UnhealthyReasonReasonWorkloadNeverReady, nil
+	}
+	var t UnhealthyReasonReason
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UnhealthyReasonReason) Ptr() *UnhealthyReasonReason {
+	return &u
+}
+
+var (
 	unitCostsFieldProvisioned = big.NewInt(1 << 0)
 	unitCostsFieldRequested   = big.NewInt(1 << 1)
 	unitCostsFieldUsed        = big.NewInt(1 << 2)
@@ -82535,6 +85058,159 @@ func (w WorkloadItemRisk) Ptr() *WorkloadItemRisk {
 	return &w
 }
 
+// The JVM a workload runs: the first of its containers, by name, with a heap setting the agent read from the
+// spec, that the agent takes for a JVM, or that the opt-in JVM reader measured. Each field is the drawer's for that
+// container.
+var (
+	workloadJvmFieldContainer   = big.NewInt(1 << 0)
+	workloadJvmFieldRequests    = big.NewInt(1 << 1)
+	workloadJvmFieldLimits      = big.NewInt(1 << 2)
+	workloadJvmFieldJvmHeap     = big.NewInt(1 << 3)
+	workloadJvmFieldJvmMeasured = big.NewInt(1 << 4)
+)
+
+type WorkloadJvm struct {
+	Container string        `json:"container" url:"container"`
+	Requests  *ResourceList `json:"requests" url:"requests"`
+	Limits    *ResourceList `json:"limits" url:"limits"`
+	// Null when the agent reported no heap setting, for a container only the reader measured
+	JvmHeap *ContainerJvmHeap `json:"jvm_heap,omitempty" url:"jvm_heap,omitempty"`
+	// Null when the opt-in JVM reader measured nothing in the container over the window
+	JvmMeasured *JvmMeasured `json:"jvm_measured,omitempty" url:"jvm_measured,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (w *WorkloadJvm) GetContainer() string {
+	if w == nil {
+		return ""
+	}
+	return w.Container
+}
+
+func (w *WorkloadJvm) GetRequests() *ResourceList {
+	if w == nil {
+		return nil
+	}
+	return w.Requests
+}
+
+func (w *WorkloadJvm) GetLimits() *ResourceList {
+	if w == nil {
+		return nil
+	}
+	return w.Limits
+}
+
+func (w *WorkloadJvm) GetJvmHeap() *ContainerJvmHeap {
+	if w == nil {
+		return nil
+	}
+	return w.JvmHeap
+}
+
+func (w *WorkloadJvm) GetJvmMeasured() *JvmMeasured {
+	if w == nil {
+		return nil
+	}
+	return w.JvmMeasured
+}
+
+func (w *WorkloadJvm) GetExtraProperties() map[string]interface{} {
+	if w == nil {
+		return nil
+	}
+	return w.extraProperties
+}
+
+func (w *WorkloadJvm) require(field *big.Int) {
+	if w.explicitFields == nil {
+		w.explicitFields = big.NewInt(0)
+	}
+	w.explicitFields.Or(w.explicitFields, field)
+}
+
+// SetContainer sets the Container field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadJvm) SetContainer(container string) {
+	w.Container = container
+	w.require(workloadJvmFieldContainer)
+}
+
+// SetRequests sets the Requests field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadJvm) SetRequests(requests *ResourceList) {
+	w.Requests = requests
+	w.require(workloadJvmFieldRequests)
+}
+
+// SetLimits sets the Limits field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadJvm) SetLimits(limits *ResourceList) {
+	w.Limits = limits
+	w.require(workloadJvmFieldLimits)
+}
+
+// SetJvmHeap sets the JvmHeap field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadJvm) SetJvmHeap(jvmHeap *ContainerJvmHeap) {
+	w.JvmHeap = jvmHeap
+	w.require(workloadJvmFieldJvmHeap)
+}
+
+// SetJvmMeasured sets the JvmMeasured field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadJvm) SetJvmMeasured(jvmMeasured *JvmMeasured) {
+	w.JvmMeasured = jvmMeasured
+	w.require(workloadJvmFieldJvmMeasured)
+}
+
+func (w *WorkloadJvm) UnmarshalJSON(data []byte) error {
+	type unmarshaler WorkloadJvm
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*w = WorkloadJvm(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *w)
+	if err != nil {
+		return err
+	}
+	w.extraProperties = extraProperties
+	w.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (w *WorkloadJvm) MarshalJSON() ([]byte, error) {
+	type embed WorkloadJvm
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*w),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, w.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (w *WorkloadJvm) String() string {
+	if w == nil {
+		return "<nil>"
+	}
+	if len(w.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(w.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(w); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", w)
+}
+
 var (
 	workloadLabelKeyFieldKey       = big.NewInt(1 << 0)
 	workloadLabelKeyFieldWorkloads = big.NewInt(1 << 1)
@@ -82644,10 +85320,10 @@ var (
 )
 
 type WorkloadListData struct {
-	Items      []*WorkloadItem `json:"items" url:"items"`
-	Pagination *PaginationMeta `json:"pagination" url:"pagination"`
-	Totals     *LensTotals     `json:"totals" url:"totals"`
-	Facets     *WorkloadFacets `json:"facets" url:"facets"`
+	Items      []*WorkloadListItem `json:"items" url:"items"`
+	Pagination *PaginationMeta     `json:"pagination" url:"pagination"`
+	Totals     *LensTotals         `json:"totals" url:"totals"`
+	Facets     *WorkloadFacets     `json:"facets" url:"facets"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -82656,7 +85332,7 @@ type WorkloadListData struct {
 	rawJSON         json.RawMessage
 }
 
-func (w *WorkloadListData) GetItems() []*WorkloadItem {
+func (w *WorkloadListData) GetItems() []*WorkloadListItem {
 	if w == nil {
 		return nil
 	}
@@ -82700,7 +85376,7 @@ func (w *WorkloadListData) require(field *big.Int) {
 
 // SetItems sets the Items field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (w *WorkloadListData) SetItems(items []*WorkloadItem) {
+func (w *WorkloadListData) SetItems(items []*WorkloadListItem) {
 	w.Items = items
 	w.require(workloadListDataFieldItems)
 }
@@ -82766,6 +85442,1036 @@ func (w *WorkloadListData) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", w)
+}
+
+var (
+	workloadListItemFieldNamespace             = big.NewInt(1 << 0)
+	workloadListItemFieldKind                  = big.NewInt(1 << 1)
+	workloadListItemFieldName                  = big.NewInt(1 << 2)
+	workloadListItemFieldRemoved               = big.NewInt(1 << 3)
+	workloadListItemFieldReplicas              = big.NewInt(1 << 4)
+	workloadListItemFieldReadyReplicas         = big.NewInt(1 << 5)
+	workloadListItemFieldContainerCount        = big.NewInt(1 << 6)
+	workloadListItemFieldCPURequestMilli       = big.NewInt(1 << 7)
+	workloadListItemFieldCPULimitMilli         = big.NewInt(1 << 8)
+	workloadListItemFieldMemoryRequestBytes    = big.NewInt(1 << 9)
+	workloadListItemFieldMemoryLimitBytes      = big.NewInt(1 << 10)
+	workloadListItemFieldEphemeralRequestBytes = big.NewInt(1 << 11)
+	workloadListItemFieldGpuRequest            = big.NewInt(1 << 12)
+	workloadListItemFieldCPUP95Milli           = big.NewInt(1 << 13)
+	workloadListItemFieldCPUMaxMilli           = big.NewInt(1 << 14)
+	workloadListItemFieldMemoryP95Bytes        = big.NewInt(1 << 15)
+	workloadListItemFieldMemoryMaxBytes        = big.NewInt(1 << 16)
+	workloadListItemFieldEfficiency            = big.NewInt(1 << 17)
+	workloadListItemFieldOomKills              = big.NewInt(1 << 18)
+	workloadListItemFieldRestarts              = big.NewInt(1 << 19)
+	workloadListItemFieldThrottledRatio        = big.NewInt(1 << 20)
+	workloadListItemFieldRisk                  = big.NewInt(1 << 21)
+	workloadListItemFieldIndicators            = big.NewInt(1 << 22)
+	workloadListItemFieldAutoscaling           = big.NewInt(1 << 23)
+	workloadListItemFieldSource                = big.NewInt(1 << 24)
+	workloadListItemFieldCost                  = big.NewInt(1 << 25)
+	workloadListItemFieldCostChangePct         = big.NewInt(1 << 26)
+	workloadListItemFieldCPUCost               = big.NewInt(1 << 27)
+	workloadListItemFieldMemoryCost            = big.NewInt(1 << 28)
+	workloadListItemFieldGpuCost               = big.NewInt(1 << 29)
+	workloadListItemFieldStorageCost           = big.NewInt(1 << 30)
+	workloadListItemFieldNetworkCost           = big.NewInt(1 << 31)
+	workloadListItemFieldCostNet               = big.NewInt(1 << 32)
+	workloadListItemFieldCPUCostNet            = big.NewInt(1 << 33)
+	workloadListItemFieldMemoryCostNet         = big.NewInt(1 << 34)
+	workloadListItemFieldGpuCostNet            = big.NewInt(1 << 35)
+	workloadListItemFieldStorageCostNet        = big.NewInt(1 << 36)
+	workloadListItemFieldNetworkCostNet        = big.NewInt(1 << 37)
+	workloadListItemFieldRequestsAvg           = big.NewInt(1 << 38)
+	workloadListItemFieldWaste                 = big.NewInt(1 << 39)
+	workloadListItemFieldNetwork               = big.NewInt(1 << 40)
+	workloadListItemFieldReliability           = big.NewInt(1 << 41)
+	workloadListItemFieldPods                  = big.NewInt(1 << 42)
+	workloadListItemFieldCostPerPod            = big.NewInt(1 << 43)
+	workloadListItemFieldCostPerPodNet         = big.NewInt(1 << 44)
+	workloadListItemFieldCreatedAt             = big.NewInt(1 << 45)
+	workloadListItemFieldTopologySpread        = big.NewInt(1 << 46)
+	workloadListItemFieldPodAntiAffinity       = big.NewInt(1 << 47)
+	workloadListItemFieldHostNetwork           = big.NewInt(1 << 48)
+	workloadListItemFieldEphemeralVolumeBytes  = big.NewInt(1 << 49)
+	workloadListItemFieldLabelValues           = big.NewInt(1 << 50)
+	workloadListItemFieldRecommendations       = big.NewInt(1 << 51)
+	workloadListItemFieldAPIVersion            = big.NewInt(1 << 52)
+	workloadListItemFieldRevisionCount         = big.NewInt(1 << 53)
+	workloadListItemFieldJvm                   = big.NewInt(1 << 54)
+)
+
+type WorkloadListItem struct {
+	Namespace string `json:"namespace" url:"namespace"`
+	Kind      string `json:"kind" url:"kind"`
+	Name      string `json:"name" url:"name"`
+	// No longer in the cluster, listed for its cost in the window
+	Removed               *bool `json:"removed,omitempty" url:"removed,omitempty"`
+	Replicas              int   `json:"replicas" url:"replicas"`
+	ReadyReplicas         int   `json:"ready_replicas" url:"ready_replicas"`
+	ContainerCount        int   `json:"container_count" url:"container_count"`
+	CPURequestMilli       *int  `json:"cpu_request_milli,omitempty" url:"cpu_request_milli,omitempty"`
+	CPULimitMilli         *int  `json:"cpu_limit_milli,omitempty" url:"cpu_limit_milli,omitempty"`
+	MemoryRequestBytes    *int  `json:"memory_request_bytes,omitempty" url:"memory_request_bytes,omitempty"`
+	MemoryLimitBytes      *int  `json:"memory_limit_bytes,omitempty" url:"memory_limit_bytes,omitempty"`
+	EphemeralRequestBytes *int  `json:"ephemeral_request_bytes,omitempty" url:"ephemeral_request_bytes,omitempty"`
+	GpuRequest            *int  `json:"gpu_request,omitempty" url:"gpu_request,omitempty"`
+	CPUP95Milli           *int  `json:"cpu_p95_milli,omitempty" url:"cpu_p95_milli,omitempty"`
+	CPUMaxMilli           *int  `json:"cpu_max_milli,omitempty" url:"cpu_max_milli,omitempty"`
+	MemoryP95Bytes        *int  `json:"memory_p95_bytes,omitempty" url:"memory_p95_bytes,omitempty"`
+	MemoryMaxBytes        *int  `json:"memory_max_bytes,omitempty" url:"memory_max_bytes,omitempty"`
+	// Cost-weighted share of requested CPU and memory used
+	Efficiency     *float64 `json:"efficiency,omitempty" url:"efficiency,omitempty"`
+	OomKills       int      `json:"oom_kills" url:"oom_kills"`
+	Restarts       int      `json:"restarts" url:"restarts"`
+	ThrottledRatio *float64 `json:"throttled_ratio,omitempty" url:"throttled_ratio,omitempty"`
+	// The worst severity among its indicators: high, medium or low; none when only info indicators or none are raised. The risk filter keeps current workloads only
+	Risk        WorkloadListItemRisk `json:"risk" url:"risk"`
+	Indicators  []*Indicator         `json:"indicators" url:"indicators"`
+	Autoscaling *WorkloadAutoscaling `json:"autoscaling" url:"autoscaling"`
+	Source      *WorkloadSource      `json:"source" url:"source"`
+	// Containers, volumes and data transfer; with include_idle, each day's container cost grows by that day's node idle over everything the cluster's containers cost that day
+	Cost *float64 `json:"cost,omitempty" url:"cost,omitempty"`
+	// Against the previous window of equal length, before any idle is shared
+	CostChangePct *float64 `json:"cost_change_pct,omitempty" url:"cost_change_pct,omitempty"`
+	CPUCost       *float64 `json:"cpu_cost,omitempty" url:"cpu_cost,omitempty"`
+	MemoryCost    *float64 `json:"memory_cost,omitempty" url:"memory_cost,omitempty"`
+	GpuCost       *float64 `json:"gpu_cost,omitempty" url:"gpu_cost,omitempty"`
+	// Its mounted claims', each shared by the workloads mounting it
+	StorageCost *float64 `json:"storage_cost,omitempty" url:"storage_cost,omitempty"`
+	NetworkCost *float64 `json:"network_cost,omitempty" url:"network_cost,omitempty"`
+	// The same after the enterprise discount and the commitments; a day rolled up before the net basis counts at its amortized cost
+	CostNet *float64 `json:"cost_net,omitempty" url:"cost_net,omitempty"`
+	// The same after the enterprise discount and the commitments; a day rolled up before the net basis counts at its amortized cost
+	CPUCostNet *float64 `json:"cpu_cost_net,omitempty" url:"cpu_cost_net,omitempty"`
+	// The same after the enterprise discount and the commitments; a day rolled up before the net basis counts at its amortized cost
+	MemoryCostNet *float64 `json:"memory_cost_net,omitempty" url:"memory_cost_net,omitempty"`
+	// The same after the enterprise discount and the commitments; a day rolled up before the net basis counts at its amortized cost
+	GpuCostNet *float64 `json:"gpu_cost_net,omitempty" url:"gpu_cost_net,omitempty"`
+	// The same after the enterprise discount and the commitments; a day rolled up before the net basis counts at its amortized cost
+	StorageCostNet *float64 `json:"storage_cost_net,omitempty" url:"storage_cost_net,omitempty"`
+	// The same after the enterprise discount and the commitments; a day rolled up before the net basis counts at its amortized cost
+	NetworkCostNet *float64           `json:"network_cost_net,omitempty" url:"network_cost_net,omitempty"`
+	RequestsAvg    *RequestsAverage   `json:"requests_avg" url:"requests_avg"`
+	Waste          *Waste             `json:"waste" url:"waste"`
+	Network        *Traffic           `json:"network" url:"network"`
+	Reliability    *ReliabilityCounts `json:"reliability" url:"reliability"`
+	Pods           *PodCounts         `json:"pods" url:"pods"`
+	// Cost over the average pods running
+	CostPerPod *float64 `json:"cost_per_pod,omitempty" url:"cost_per_pod,omitempty"`
+	// The same after the enterprise discount and the commitments; a day rolled up before the net basis counts at its amortized cost
+	CostPerPodNet   *float64   `json:"cost_per_pod_net,omitempty" url:"cost_per_pod_net,omitempty"`
+	CreatedAt       *time.Time `json:"created_at,omitempty" url:"created_at,omitempty"`
+	TopologySpread  *bool      `json:"topology_spread,omitempty" url:"topology_spread,omitempty"`
+	PodAntiAffinity *bool      `json:"pod_anti_affinity,omitempty" url:"pod_anti_affinity,omitempty"`
+	// Its pods use the node's network, left out of its traffic
+	HostNetwork *bool `json:"host_network,omitempty" url:"host_network,omitempty"`
+	// emptyDir use across its pods: the mean of hourly averages, the highest percentiles
+	EphemeralVolumeBytes *Distribution `json:"ephemeral_volume_bytes,omitempty" url:"ephemeral_volume_bytes,omitempty"`
+	// The label_columns asked for, null where the row has no such label
+	LabelValues     map[string]*string              `json:"label_values" url:"label_values"`
+	Recommendations WorkloadListItemRecommendations `json:"recommendations" url:"recommendations"`
+	// serving.knative.dev/v1 for a KNative Service; otherwise the kind's built-in group
+	APIVersion *string `json:"api_version,omitempty" url:"api_version,omitempty"`
+	// A KNative Service's current revisions; null otherwise
+	RevisionCount *int `json:"revision_count,omitempty" url:"revision_count,omitempty"`
+	// Null when none of its containers runs a JVM
+	Jvm *WorkloadJvm `json:"jvm,omitempty" url:"jvm,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (w *WorkloadListItem) GetNamespace() string {
+	if w == nil {
+		return ""
+	}
+	return w.Namespace
+}
+
+func (w *WorkloadListItem) GetKind() string {
+	if w == nil {
+		return ""
+	}
+	return w.Kind
+}
+
+func (w *WorkloadListItem) GetName() string {
+	if w == nil {
+		return ""
+	}
+	return w.Name
+}
+
+func (w *WorkloadListItem) GetRemoved() *bool {
+	if w == nil {
+		return nil
+	}
+	return w.Removed
+}
+
+func (w *WorkloadListItem) GetReplicas() int {
+	if w == nil {
+		return 0
+	}
+	return w.Replicas
+}
+
+func (w *WorkloadListItem) GetReadyReplicas() int {
+	if w == nil {
+		return 0
+	}
+	return w.ReadyReplicas
+}
+
+func (w *WorkloadListItem) GetContainerCount() int {
+	if w == nil {
+		return 0
+	}
+	return w.ContainerCount
+}
+
+func (w *WorkloadListItem) GetCPURequestMilli() *int {
+	if w == nil {
+		return nil
+	}
+	return w.CPURequestMilli
+}
+
+func (w *WorkloadListItem) GetCPULimitMilli() *int {
+	if w == nil {
+		return nil
+	}
+	return w.CPULimitMilli
+}
+
+func (w *WorkloadListItem) GetMemoryRequestBytes() *int {
+	if w == nil {
+		return nil
+	}
+	return w.MemoryRequestBytes
+}
+
+func (w *WorkloadListItem) GetMemoryLimitBytes() *int {
+	if w == nil {
+		return nil
+	}
+	return w.MemoryLimitBytes
+}
+
+func (w *WorkloadListItem) GetEphemeralRequestBytes() *int {
+	if w == nil {
+		return nil
+	}
+	return w.EphemeralRequestBytes
+}
+
+func (w *WorkloadListItem) GetGpuRequest() *int {
+	if w == nil {
+		return nil
+	}
+	return w.GpuRequest
+}
+
+func (w *WorkloadListItem) GetCPUP95Milli() *int {
+	if w == nil {
+		return nil
+	}
+	return w.CPUP95Milli
+}
+
+func (w *WorkloadListItem) GetCPUMaxMilli() *int {
+	if w == nil {
+		return nil
+	}
+	return w.CPUMaxMilli
+}
+
+func (w *WorkloadListItem) GetMemoryP95Bytes() *int {
+	if w == nil {
+		return nil
+	}
+	return w.MemoryP95Bytes
+}
+
+func (w *WorkloadListItem) GetMemoryMaxBytes() *int {
+	if w == nil {
+		return nil
+	}
+	return w.MemoryMaxBytes
+}
+
+func (w *WorkloadListItem) GetEfficiency() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.Efficiency
+}
+
+func (w *WorkloadListItem) GetOomKills() int {
+	if w == nil {
+		return 0
+	}
+	return w.OomKills
+}
+
+func (w *WorkloadListItem) GetRestarts() int {
+	if w == nil {
+		return 0
+	}
+	return w.Restarts
+}
+
+func (w *WorkloadListItem) GetThrottledRatio() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.ThrottledRatio
+}
+
+func (w *WorkloadListItem) GetRisk() WorkloadListItemRisk {
+	if w == nil {
+		return ""
+	}
+	return w.Risk
+}
+
+func (w *WorkloadListItem) GetIndicators() []*Indicator {
+	if w == nil {
+		return nil
+	}
+	return w.Indicators
+}
+
+func (w *WorkloadListItem) GetAutoscaling() *WorkloadAutoscaling {
+	if w == nil {
+		return nil
+	}
+	return w.Autoscaling
+}
+
+func (w *WorkloadListItem) GetSource() *WorkloadSource {
+	if w == nil {
+		return nil
+	}
+	return w.Source
+}
+
+func (w *WorkloadListItem) GetCost() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.Cost
+}
+
+func (w *WorkloadListItem) GetCostChangePct() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.CostChangePct
+}
+
+func (w *WorkloadListItem) GetCPUCost() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.CPUCost
+}
+
+func (w *WorkloadListItem) GetMemoryCost() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.MemoryCost
+}
+
+func (w *WorkloadListItem) GetGpuCost() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.GpuCost
+}
+
+func (w *WorkloadListItem) GetStorageCost() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.StorageCost
+}
+
+func (w *WorkloadListItem) GetNetworkCost() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.NetworkCost
+}
+
+func (w *WorkloadListItem) GetCostNet() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.CostNet
+}
+
+func (w *WorkloadListItem) GetCPUCostNet() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.CPUCostNet
+}
+
+func (w *WorkloadListItem) GetMemoryCostNet() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.MemoryCostNet
+}
+
+func (w *WorkloadListItem) GetGpuCostNet() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.GpuCostNet
+}
+
+func (w *WorkloadListItem) GetStorageCostNet() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.StorageCostNet
+}
+
+func (w *WorkloadListItem) GetNetworkCostNet() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.NetworkCostNet
+}
+
+func (w *WorkloadListItem) GetRequestsAvg() *RequestsAverage {
+	if w == nil {
+		return nil
+	}
+	return w.RequestsAvg
+}
+
+func (w *WorkloadListItem) GetWaste() *Waste {
+	if w == nil {
+		return nil
+	}
+	return w.Waste
+}
+
+func (w *WorkloadListItem) GetNetwork() *Traffic {
+	if w == nil {
+		return nil
+	}
+	return w.Network
+}
+
+func (w *WorkloadListItem) GetReliability() *ReliabilityCounts {
+	if w == nil {
+		return nil
+	}
+	return w.Reliability
+}
+
+func (w *WorkloadListItem) GetPods() *PodCounts {
+	if w == nil {
+		return nil
+	}
+	return w.Pods
+}
+
+func (w *WorkloadListItem) GetCostPerPod() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.CostPerPod
+}
+
+func (w *WorkloadListItem) GetCostPerPodNet() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.CostPerPodNet
+}
+
+func (w *WorkloadListItem) GetCreatedAt() *time.Time {
+	if w == nil {
+		return nil
+	}
+	return w.CreatedAt
+}
+
+func (w *WorkloadListItem) GetTopologySpread() *bool {
+	if w == nil {
+		return nil
+	}
+	return w.TopologySpread
+}
+
+func (w *WorkloadListItem) GetPodAntiAffinity() *bool {
+	if w == nil {
+		return nil
+	}
+	return w.PodAntiAffinity
+}
+
+func (w *WorkloadListItem) GetHostNetwork() *bool {
+	if w == nil {
+		return nil
+	}
+	return w.HostNetwork
+}
+
+func (w *WorkloadListItem) GetEphemeralVolumeBytes() *Distribution {
+	if w == nil {
+		return nil
+	}
+	return w.EphemeralVolumeBytes
+}
+
+func (w *WorkloadListItem) GetLabelValues() map[string]*string {
+	if w == nil {
+		return nil
+	}
+	return w.LabelValues
+}
+
+func (w *WorkloadListItem) GetRecommendations() WorkloadListItemRecommendations {
+	if w == nil {
+		return ""
+	}
+	return w.Recommendations
+}
+
+func (w *WorkloadListItem) GetAPIVersion() *string {
+	if w == nil {
+		return nil
+	}
+	return w.APIVersion
+}
+
+func (w *WorkloadListItem) GetRevisionCount() *int {
+	if w == nil {
+		return nil
+	}
+	return w.RevisionCount
+}
+
+func (w *WorkloadListItem) GetJvm() *WorkloadJvm {
+	if w == nil {
+		return nil
+	}
+	return w.Jvm
+}
+
+func (w *WorkloadListItem) GetExtraProperties() map[string]interface{} {
+	if w == nil {
+		return nil
+	}
+	return w.extraProperties
+}
+
+func (w *WorkloadListItem) require(field *big.Int) {
+	if w.explicitFields == nil {
+		w.explicitFields = big.NewInt(0)
+	}
+	w.explicitFields.Or(w.explicitFields, field)
+}
+
+// SetNamespace sets the Namespace field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetNamespace(namespace string) {
+	w.Namespace = namespace
+	w.require(workloadListItemFieldNamespace)
+}
+
+// SetKind sets the Kind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetKind(kind string) {
+	w.Kind = kind
+	w.require(workloadListItemFieldKind)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetName(name string) {
+	w.Name = name
+	w.require(workloadListItemFieldName)
+}
+
+// SetRemoved sets the Removed field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetRemoved(removed *bool) {
+	w.Removed = removed
+	w.require(workloadListItemFieldRemoved)
+}
+
+// SetReplicas sets the Replicas field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetReplicas(replicas int) {
+	w.Replicas = replicas
+	w.require(workloadListItemFieldReplicas)
+}
+
+// SetReadyReplicas sets the ReadyReplicas field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetReadyReplicas(readyReplicas int) {
+	w.ReadyReplicas = readyReplicas
+	w.require(workloadListItemFieldReadyReplicas)
+}
+
+// SetContainerCount sets the ContainerCount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetContainerCount(containerCount int) {
+	w.ContainerCount = containerCount
+	w.require(workloadListItemFieldContainerCount)
+}
+
+// SetCPURequestMilli sets the CPURequestMilli field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetCPURequestMilli(cpuRequestMilli *int) {
+	w.CPURequestMilli = cpuRequestMilli
+	w.require(workloadListItemFieldCPURequestMilli)
+}
+
+// SetCPULimitMilli sets the CPULimitMilli field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetCPULimitMilli(cpuLimitMilli *int) {
+	w.CPULimitMilli = cpuLimitMilli
+	w.require(workloadListItemFieldCPULimitMilli)
+}
+
+// SetMemoryRequestBytes sets the MemoryRequestBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetMemoryRequestBytes(memoryRequestBytes *int) {
+	w.MemoryRequestBytes = memoryRequestBytes
+	w.require(workloadListItemFieldMemoryRequestBytes)
+}
+
+// SetMemoryLimitBytes sets the MemoryLimitBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetMemoryLimitBytes(memoryLimitBytes *int) {
+	w.MemoryLimitBytes = memoryLimitBytes
+	w.require(workloadListItemFieldMemoryLimitBytes)
+}
+
+// SetEphemeralRequestBytes sets the EphemeralRequestBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetEphemeralRequestBytes(ephemeralRequestBytes *int) {
+	w.EphemeralRequestBytes = ephemeralRequestBytes
+	w.require(workloadListItemFieldEphemeralRequestBytes)
+}
+
+// SetGpuRequest sets the GpuRequest field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetGpuRequest(gpuRequest *int) {
+	w.GpuRequest = gpuRequest
+	w.require(workloadListItemFieldGpuRequest)
+}
+
+// SetCPUP95Milli sets the CPUP95Milli field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetCPUP95Milli(cpuP95Milli *int) {
+	w.CPUP95Milli = cpuP95Milli
+	w.require(workloadListItemFieldCPUP95Milli)
+}
+
+// SetCPUMaxMilli sets the CPUMaxMilli field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetCPUMaxMilli(cpuMaxMilli *int) {
+	w.CPUMaxMilli = cpuMaxMilli
+	w.require(workloadListItemFieldCPUMaxMilli)
+}
+
+// SetMemoryP95Bytes sets the MemoryP95Bytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetMemoryP95Bytes(memoryP95Bytes *int) {
+	w.MemoryP95Bytes = memoryP95Bytes
+	w.require(workloadListItemFieldMemoryP95Bytes)
+}
+
+// SetMemoryMaxBytes sets the MemoryMaxBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetMemoryMaxBytes(memoryMaxBytes *int) {
+	w.MemoryMaxBytes = memoryMaxBytes
+	w.require(workloadListItemFieldMemoryMaxBytes)
+}
+
+// SetEfficiency sets the Efficiency field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetEfficiency(efficiency *float64) {
+	w.Efficiency = efficiency
+	w.require(workloadListItemFieldEfficiency)
+}
+
+// SetOomKills sets the OomKills field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetOomKills(oomKills int) {
+	w.OomKills = oomKills
+	w.require(workloadListItemFieldOomKills)
+}
+
+// SetRestarts sets the Restarts field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetRestarts(restarts int) {
+	w.Restarts = restarts
+	w.require(workloadListItemFieldRestarts)
+}
+
+// SetThrottledRatio sets the ThrottledRatio field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetThrottledRatio(throttledRatio *float64) {
+	w.ThrottledRatio = throttledRatio
+	w.require(workloadListItemFieldThrottledRatio)
+}
+
+// SetRisk sets the Risk field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetRisk(risk WorkloadListItemRisk) {
+	w.Risk = risk
+	w.require(workloadListItemFieldRisk)
+}
+
+// SetIndicators sets the Indicators field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetIndicators(indicators []*Indicator) {
+	w.Indicators = indicators
+	w.require(workloadListItemFieldIndicators)
+}
+
+// SetAutoscaling sets the Autoscaling field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetAutoscaling(autoscaling *WorkloadAutoscaling) {
+	w.Autoscaling = autoscaling
+	w.require(workloadListItemFieldAutoscaling)
+}
+
+// SetSource sets the Source field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetSource(source *WorkloadSource) {
+	w.Source = source
+	w.require(workloadListItemFieldSource)
+}
+
+// SetCost sets the Cost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetCost(cost *float64) {
+	w.Cost = cost
+	w.require(workloadListItemFieldCost)
+}
+
+// SetCostChangePct sets the CostChangePct field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetCostChangePct(costChangePct *float64) {
+	w.CostChangePct = costChangePct
+	w.require(workloadListItemFieldCostChangePct)
+}
+
+// SetCPUCost sets the CPUCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetCPUCost(cpuCost *float64) {
+	w.CPUCost = cpuCost
+	w.require(workloadListItemFieldCPUCost)
+}
+
+// SetMemoryCost sets the MemoryCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetMemoryCost(memoryCost *float64) {
+	w.MemoryCost = memoryCost
+	w.require(workloadListItemFieldMemoryCost)
+}
+
+// SetGpuCost sets the GpuCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetGpuCost(gpuCost *float64) {
+	w.GpuCost = gpuCost
+	w.require(workloadListItemFieldGpuCost)
+}
+
+// SetStorageCost sets the StorageCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetStorageCost(storageCost *float64) {
+	w.StorageCost = storageCost
+	w.require(workloadListItemFieldStorageCost)
+}
+
+// SetNetworkCost sets the NetworkCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetNetworkCost(networkCost *float64) {
+	w.NetworkCost = networkCost
+	w.require(workloadListItemFieldNetworkCost)
+}
+
+// SetCostNet sets the CostNet field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetCostNet(costNet *float64) {
+	w.CostNet = costNet
+	w.require(workloadListItemFieldCostNet)
+}
+
+// SetCPUCostNet sets the CPUCostNet field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetCPUCostNet(cpuCostNet *float64) {
+	w.CPUCostNet = cpuCostNet
+	w.require(workloadListItemFieldCPUCostNet)
+}
+
+// SetMemoryCostNet sets the MemoryCostNet field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetMemoryCostNet(memoryCostNet *float64) {
+	w.MemoryCostNet = memoryCostNet
+	w.require(workloadListItemFieldMemoryCostNet)
+}
+
+// SetGpuCostNet sets the GpuCostNet field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetGpuCostNet(gpuCostNet *float64) {
+	w.GpuCostNet = gpuCostNet
+	w.require(workloadListItemFieldGpuCostNet)
+}
+
+// SetStorageCostNet sets the StorageCostNet field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetStorageCostNet(storageCostNet *float64) {
+	w.StorageCostNet = storageCostNet
+	w.require(workloadListItemFieldStorageCostNet)
+}
+
+// SetNetworkCostNet sets the NetworkCostNet field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetNetworkCostNet(networkCostNet *float64) {
+	w.NetworkCostNet = networkCostNet
+	w.require(workloadListItemFieldNetworkCostNet)
+}
+
+// SetRequestsAvg sets the RequestsAvg field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetRequestsAvg(requestsAvg *RequestsAverage) {
+	w.RequestsAvg = requestsAvg
+	w.require(workloadListItemFieldRequestsAvg)
+}
+
+// SetWaste sets the Waste field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetWaste(waste *Waste) {
+	w.Waste = waste
+	w.require(workloadListItemFieldWaste)
+}
+
+// SetNetwork sets the Network field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetNetwork(network *Traffic) {
+	w.Network = network
+	w.require(workloadListItemFieldNetwork)
+}
+
+// SetReliability sets the Reliability field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetReliability(reliability *ReliabilityCounts) {
+	w.Reliability = reliability
+	w.require(workloadListItemFieldReliability)
+}
+
+// SetPods sets the Pods field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetPods(pods *PodCounts) {
+	w.Pods = pods
+	w.require(workloadListItemFieldPods)
+}
+
+// SetCostPerPod sets the CostPerPod field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetCostPerPod(costPerPod *float64) {
+	w.CostPerPod = costPerPod
+	w.require(workloadListItemFieldCostPerPod)
+}
+
+// SetCostPerPodNet sets the CostPerPodNet field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetCostPerPodNet(costPerPodNet *float64) {
+	w.CostPerPodNet = costPerPodNet
+	w.require(workloadListItemFieldCostPerPodNet)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetCreatedAt(createdAt *time.Time) {
+	w.CreatedAt = createdAt
+	w.require(workloadListItemFieldCreatedAt)
+}
+
+// SetTopologySpread sets the TopologySpread field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetTopologySpread(topologySpread *bool) {
+	w.TopologySpread = topologySpread
+	w.require(workloadListItemFieldTopologySpread)
+}
+
+// SetPodAntiAffinity sets the PodAntiAffinity field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetPodAntiAffinity(podAntiAffinity *bool) {
+	w.PodAntiAffinity = podAntiAffinity
+	w.require(workloadListItemFieldPodAntiAffinity)
+}
+
+// SetHostNetwork sets the HostNetwork field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetHostNetwork(hostNetwork *bool) {
+	w.HostNetwork = hostNetwork
+	w.require(workloadListItemFieldHostNetwork)
+}
+
+// SetEphemeralVolumeBytes sets the EphemeralVolumeBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetEphemeralVolumeBytes(ephemeralVolumeBytes *Distribution) {
+	w.EphemeralVolumeBytes = ephemeralVolumeBytes
+	w.require(workloadListItemFieldEphemeralVolumeBytes)
+}
+
+// SetLabelValues sets the LabelValues field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetLabelValues(labelValues map[string]*string) {
+	w.LabelValues = labelValues
+	w.require(workloadListItemFieldLabelValues)
+}
+
+// SetRecommendations sets the Recommendations field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetRecommendations(recommendations WorkloadListItemRecommendations) {
+	w.Recommendations = recommendations
+	w.require(workloadListItemFieldRecommendations)
+}
+
+// SetAPIVersion sets the APIVersion field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetAPIVersion(apiVersion *string) {
+	w.APIVersion = apiVersion
+	w.require(workloadListItemFieldAPIVersion)
+}
+
+// SetRevisionCount sets the RevisionCount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetRevisionCount(revisionCount *int) {
+	w.RevisionCount = revisionCount
+	w.require(workloadListItemFieldRevisionCount)
+}
+
+// SetJvm sets the Jvm field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetJvm(jvm *WorkloadJvm) {
+	w.Jvm = jvm
+	w.require(workloadListItemFieldJvm)
+}
+
+func (w *WorkloadListItem) UnmarshalJSON(data []byte) error {
+	type embed WorkloadListItem
+	var unmarshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"created_at,omitempty"`
+	}{
+		embed: embed(*w),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*w = WorkloadListItem(unmarshaler.embed)
+	w.CreatedAt = unmarshaler.CreatedAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *w)
+	if err != nil {
+		return err
+	}
+	w.extraProperties = extraProperties
+	w.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (w *WorkloadListItem) MarshalJSON() ([]byte, error) {
+	type embed WorkloadListItem
+	var marshaler = struct {
+		embed
+		CreatedAt *internal.DateTime `json:"created_at,omitempty"`
+	}{
+		embed:     embed(*w),
+		CreatedAt: internal.NewOptionalDateTime(w.CreatedAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, w.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (w *WorkloadListItem) String() string {
+	if w == nil {
+		return "<nil>"
+	}
+	if len(w.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(w.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(w); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", w)
+}
+
+type WorkloadListItemRecommendations string
+
+const (
+	WorkloadListItemRecommendationsEnabled  WorkloadListItemRecommendations = "enabled"
+	WorkloadListItemRecommendationsDisabled WorkloadListItemRecommendations = "disabled"
+	WorkloadListItemRecommendationsSystem   WorkloadListItemRecommendations = "system"
+)
+
+func NewWorkloadListItemRecommendationsFromString(s string) (WorkloadListItemRecommendations, error) {
+	switch s {
+	case "enabled":
+		return WorkloadListItemRecommendationsEnabled, nil
+	case "disabled":
+		return WorkloadListItemRecommendationsDisabled, nil
+	case "system":
+		return WorkloadListItemRecommendationsSystem, nil
+	}
+	var t WorkloadListItemRecommendations
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (w WorkloadListItemRecommendations) Ptr() *WorkloadListItemRecommendations {
+	return &w
+}
+
+// The worst severity among its indicators: high, medium or low; none when only info indicators or none are raised. The risk filter keeps current workloads only
+type WorkloadListItemRisk string
+
+const (
+	WorkloadListItemRiskHigh   WorkloadListItemRisk = "high"
+	WorkloadListItemRiskMedium WorkloadListItemRisk = "medium"
+	WorkloadListItemRiskLow    WorkloadListItemRisk = "low"
+	WorkloadListItemRiskNone   WorkloadListItemRisk = "none"
+)
+
+func NewWorkloadListItemRiskFromString(s string) (WorkloadListItemRisk, error) {
+	switch s {
+	case "high":
+		return WorkloadListItemRiskHigh, nil
+	case "medium":
+		return WorkloadListItemRiskMedium, nil
+	case "low":
+		return WorkloadListItemRiskLow, nil
+	case "none":
+		return WorkloadListItemRiskNone, nil
+	}
+	var t WorkloadListItemRisk
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (w WorkloadListItemRisk) Ptr() *WorkloadListItemRisk {
+	return &w
 }
 
 var (

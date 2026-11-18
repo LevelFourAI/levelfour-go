@@ -494,12 +494,16 @@ type (
 	ConsentResponse                                                                    = rootpkg.ConsentResponse
 	ConsolidationBlocker                                                               = rootpkg.ConsolidationBlocker
 	ConsolidationBlockerAutoscaler                                                     = rootpkg.ConsolidationBlockerAutoscaler
+	ConsolidationBlockerNodePricedBy                                                   = rootpkg.ConsolidationBlockerNodePricedBy
 	ConsolidationBlockersData                                                          = rootpkg.ConsolidationBlockersData
 	ConsolidationBlockersResponse                                                      = rootpkg.ConsolidationBlockersResponse
 	ContainerDetail                                                                    = rootpkg.ContainerDetail
 	ContainerGpu                                                                       = rootpkg.ContainerGpu
+	ContainerJvmDay                                                                    = rootpkg.ContainerJvmDay
 	ContainerJvmHeap                                                                   = rootpkg.ContainerJvmHeap
 	ContainerJvmHeapSource                                                             = rootpkg.ContainerJvmHeapSource
+	ContainerJvmMeasured                                                               = rootpkg.ContainerJvmMeasured
+	ContainerJvmMeasuredCollector                                                      = rootpkg.ContainerJvmMeasuredCollector
 	ContainerLimitRange                                                                = rootpkg.ContainerLimitRange
 	ContainerProbes                                                                    = rootpkg.ContainerProbes
 	ContainerResources                                                                 = rootpkg.ContainerResources
@@ -893,6 +897,7 @@ type (
 	FleetVolumeListData                                                                = rootpkg.FleetVolumeListData
 	FleetVolumeListResponse                                                            = rootpkg.FleetVolumeListResponse
 	FleetWorkload                                                                      = rootpkg.FleetWorkload
+	FleetWorkloadFacets                                                                = rootpkg.FleetWorkloadFacets
 	FleetWorkloadListData                                                              = rootpkg.FleetWorkloadListData
 	FleetWorkloadListResponse                                                          = rootpkg.FleetWorkloadListResponse
 	FleetWorkloadPair                                                                  = rootpkg.FleetWorkloadPair
@@ -1132,6 +1137,14 @@ type (
 	JiraSiteSummary                                                                    = rootpkg.JiraSiteSummary
 	JiraSitesData                                                                      = rootpkg.JiraSitesData
 	JiraSitesResponse                                                                  = rootpkg.JiraSitesResponse
+	JvmFlags                                                                           = rootpkg.JvmFlags
+	JvmFlagsRequestedCollector                                                         = rootpkg.JvmFlagsRequestedCollector
+	JvmMeasured                                                                        = rootpkg.JvmMeasured
+	JvmMeasuredCollector                                                               = rootpkg.JvmMeasuredCollector
+	JvmReaderHealth                                                                    = rootpkg.JvmReaderHealth
+	JvmReaderNodeHealth                                                                = rootpkg.JvmReaderNodeHealth
+	JvmReaderNodeHealthState                                                           = rootpkg.JvmReaderNodeHealthState
+	JvmReaderResponse                                                                  = rootpkg.JvmReaderResponse
 	Karpenter                                                                          = rootpkg.Karpenter
 	KarpenterMessage                                                                   = rootpkg.KarpenterMessage
 	KarpenterPool                                                                      = rootpkg.KarpenterPool
@@ -1552,6 +1565,8 @@ type (
 	ReliabilityCounts                                                                  = rootpkg.ReliabilityCounts
 	ReliabilityDay                                                                     = rootpkg.ReliabilityDay
 	ReliabilityEventDay                                                                = rootpkg.ReliabilityEventDay
+	ReliabilityFacetCount                                                              = rootpkg.ReliabilityFacetCount
+	ReliabilityFacetCountValue                                                         = rootpkg.ReliabilityFacetCountValue
 	ReliabilityGroup                                                                   = rootpkg.ReliabilityGroup
 	ReliabilityIgnore                                                                  = rootpkg.ReliabilityIgnore
 	ReliabilityLens                                                                    = rootpkg.ReliabilityLens
@@ -1844,6 +1859,8 @@ type (
 	TelemetryPushResponse                                                              = rootpkg.TelemetryPushResponse
 	TelemetryPushResult                                                                = rootpkg.TelemetryPushResult
 	TelemetryRow                                                                       = rootpkg.TelemetryRow
+	TerraformIntegrationData                                                           = rootpkg.TerraformIntegrationData
+	TerraformIntegrationResponse                                                       = rootpkg.TerraformIntegrationResponse
 	TextUIPart                                                                         = rootpkg.TextUIPart
 	TextUIPartState                                                                    = rootpkg.TextUIPartState
 	ThreadDeletedResponse                                                              = rootpkg.ThreadDeletedResponse
@@ -1920,6 +1937,8 @@ type (
 	UncoveredSliceRowGrain                                                             = rootpkg.UncoveredSliceRowGrain
 	UncoveredSliceRowPlanType                                                          = rootpkg.UncoveredSliceRowPlanType
 	UncoveredSliceRowSource                                                            = rootpkg.UncoveredSliceRowSource
+	UnhealthyReason                                                                    = rootpkg.UnhealthyReason
+	UnhealthyReasonReason                                                              = rootpkg.UnhealthyReasonReason
 	UnitCosts                                                                          = rootpkg.UnitCosts
 	UnlabeledResource                                                                  = rootpkg.UnlabeledResource
 	UnmappedCostBucket                                                                 = rootpkg.UnmappedCostBucket
@@ -2015,8 +2034,12 @@ type (
 	WorkloadItem                                                                       = rootpkg.WorkloadItem
 	WorkloadItemRecommendations                                                        = rootpkg.WorkloadItemRecommendations
 	WorkloadItemRisk                                                                   = rootpkg.WorkloadItemRisk
+	WorkloadJvm                                                                        = rootpkg.WorkloadJvm
 	WorkloadLabelKey                                                                   = rootpkg.WorkloadLabelKey
 	WorkloadListData                                                                   = rootpkg.WorkloadListData
+	WorkloadListItem                                                                   = rootpkg.WorkloadListItem
+	WorkloadListItemRecommendations                                                    = rootpkg.WorkloadListItemRecommendations
+	WorkloadListItemRisk                                                               = rootpkg.WorkloadListItemRisk
 	WorkloadListResponse                                                               = rootpkg.WorkloadListResponse
 	WorkloadPair                                                                       = rootpkg.WorkloadPair
 	WorkloadPairEnd                                                                    = rootpkg.WorkloadPairEnd
@@ -2172,7 +2195,9 @@ var (
 	NewConnectedAccountStatusFromString                                                      = rootpkg.NewConnectedAccountStatusFromString
 	NewConnectionAccountStatusFromString                                                     = rootpkg.NewConnectionAccountStatusFromString
 	NewConsolidationBlockerAutoscalerFromString                                              = rootpkg.NewConsolidationBlockerAutoscalerFromString
+	NewConsolidationBlockerNodePricedByFromString                                            = rootpkg.NewConsolidationBlockerNodePricedByFromString
 	NewContainerJvmHeapSourceFromString                                                      = rootpkg.NewContainerJvmHeapSourceFromString
+	NewContainerJvmMeasuredCollectorFromString                                               = rootpkg.NewContainerJvmMeasuredCollectorFromString
 	NewContractLineSourceFromString                                                          = rootpkg.NewContractLineSourceFromString
 	NewCostByLabelsDataCreditsFromString                                                     = rootpkg.NewCostByLabelsDataCreditsFromString
 	NewCostMeasureOptionKeyFromString                                                        = rootpkg.NewCostMeasureOptionKeyFromString
@@ -2310,6 +2335,9 @@ var (
 	NewInvitationRoleFromString                                                              = rootpkg.NewInvitationRoleFromString
 	NewInviteInputRoleFromString                                                             = rootpkg.NewInviteInputRoleFromString
 	NewInvoicesDataCreditsFromString                                                         = rootpkg.NewInvoicesDataCreditsFromString
+	NewJvmFlagsRequestedCollectorFromString                                                  = rootpkg.NewJvmFlagsRequestedCollectorFromString
+	NewJvmMeasuredCollectorFromString                                                        = rootpkg.NewJvmMeasuredCollectorFromString
+	NewJvmReaderNodeHealthStateFromString                                                    = rootpkg.NewJvmReaderNodeHealthStateFromString
 	NewKroBindingFieldFromString                                                             = rootpkg.NewKroBindingFieldFromString
 	NewKubernetesRequestInputMetricFromString                                                = rootpkg.NewKubernetesRequestInputMetricFromString
 	NewKubernetesRequestOutputMetricFromString                                               = rootpkg.NewKubernetesRequestOutputMetricFromString
@@ -2439,6 +2467,7 @@ var (
 	NewRecommendationItemDisplayStatusFromString                                             = rootpkg.NewRecommendationItemDisplayStatusFromString
 	NewRecommendationLifecycleStatusFromString                                               = rootpkg.NewRecommendationLifecycleStatusFromString
 	NewRecommendationLifecycleVerdictFromString                                              = rootpkg.NewRecommendationLifecycleVerdictFromString
+	NewReliabilityFacetCountValueFromString                                                  = rootpkg.NewReliabilityFacetCountValueFromString
 	NewReliabilityParamsCostBasisFromString                                                  = rootpkg.NewReliabilityParamsCostBasisFromString
 	NewReliabilityParamsMinRiskFromString                                                    = rootpkg.NewReliabilityParamsMinRiskFromString
 	NewRenewalOptionsDataDecisionFromString                                                  = rootpkg.NewRenewalOptionsDataDecisionFromString
@@ -2506,6 +2535,7 @@ var (
 	NewUncoveredSliceRowGrainFromString                                                      = rootpkg.NewUncoveredSliceRowGrainFromString
 	NewUncoveredSliceRowPlanTypeFromString                                                   = rootpkg.NewUncoveredSliceRowPlanTypeFromString
 	NewUncoveredSliceRowSourceFromString                                                     = rootpkg.NewUncoveredSliceRowSourceFromString
+	NewUnhealthyReasonReasonFromString                                                       = rootpkg.NewUnhealthyReasonReasonFromString
 	NewUpdateCommitmentGuardrailsRequestModeFromString                                       = rootpkg.NewUpdateCommitmentGuardrailsRequestModeFromString
 	NewUpdateDiscoverabilityRequestModeFromString                                            = rootpkg.NewUpdateDiscoverabilityRequestModeFromString
 	NewUpdateRoleRequestRoleFromString                                                       = rootpkg.NewUpdateRoleRequestRoleFromString
@@ -2520,6 +2550,8 @@ var (
 	NewWorkloadEventTypeFromString                                                           = rootpkg.NewWorkloadEventTypeFromString
 	NewWorkloadItemRecommendationsFromString                                                 = rootpkg.NewWorkloadItemRecommendationsFromString
 	NewWorkloadItemRiskFromString                                                            = rootpkg.NewWorkloadItemRiskFromString
+	NewWorkloadListItemRecommendationsFromString                                             = rootpkg.NewWorkloadListItemRecommendationsFromString
+	NewWorkloadListItemRiskFromString                                                        = rootpkg.NewWorkloadListItemRiskFromString
 	NewWorkloadSourceKindFromString                                                          = rootpkg.NewWorkloadSourceKindFromString
 	NewWorkspaceStatusFromString                                                             = rootpkg.NewWorkspaceStatusFromString
 	Rune                                                                                     = rootpkg.Rune
