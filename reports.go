@@ -476,7 +476,7 @@ var (
 
 type CostSeries struct {
 	GroupBy string `json:"group_by" url:"group_by"`
-	// What each group's cost holds: dollars, or for risk a count of events
+	// What each group's cost holds: dollars; for risk its restarts, evictions and throttled hours, never adding the OOM kills a restart already counts; for requested a share from 0 to 1 of the CPU and memory requested, each period's of that period's requests and the totals' of the window's
 	Metric      *CostSeriesMetric      `json:"metric,omitempty" url:"metric,omitempty"`
 	Granularity *CostSeriesGranularity `json:"granularity,omitempty" url:"granularity,omitempty"`
 	Days        []*CostDay             `json:"days" url:"days"`
@@ -640,14 +640,15 @@ func (c CostSeriesGranularity) Ptr() *CostSeriesGranularity {
 	return &c
 }
 
-// What each group's cost holds: dollars, or for risk a count of events
+// What each group's cost holds: dollars; for risk its restarts, evictions and throttled hours, never adding the OOM kills a restart already counts; for requested a share from 0 to 1 of the CPU and memory requested, each period's of that period's requests and the totals' of the window's
 type CostSeriesMetric string
 
 const (
-	CostSeriesMetricCost    CostSeriesMetric = "cost"
-	CostSeriesMetricWaste   CostSeriesMetric = "waste"
-	CostSeriesMetricNetwork CostSeriesMetric = "network"
-	CostSeriesMetricRisk    CostSeriesMetric = "risk"
+	CostSeriesMetricCost      CostSeriesMetric = "cost"
+	CostSeriesMetricWaste     CostSeriesMetric = "waste"
+	CostSeriesMetricNetwork   CostSeriesMetric = "network"
+	CostSeriesMetricRisk      CostSeriesMetric = "risk"
+	CostSeriesMetricRequested CostSeriesMetric = "requested"
 )
 
 func NewCostSeriesMetricFromString(s string) (CostSeriesMetric, error) {
@@ -660,6 +661,8 @@ func NewCostSeriesMetricFromString(s string) (CostSeriesMetric, error) {
 		return CostSeriesMetricNetwork, nil
 	case "risk":
 		return CostSeriesMetricRisk, nil
+	case "requested":
+		return CostSeriesMetricRequested, nil
 	}
 	var t CostSeriesMetric
 	return "", fmt.Errorf("%s is not a valid %T", s, t)

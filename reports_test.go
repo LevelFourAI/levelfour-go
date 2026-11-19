@@ -7414,6 +7414,13 @@ func TestEnumCostSeriesMetric(t *testing.T) {
 		assert.Equal(t, CostSeriesMetric("risk"), val, "enum value should match expected wire value")
 	})
 
+	t.Run("NewFromString_requested", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewCostSeriesMetricFromString("requested")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, CostSeriesMetric("requested"), val, "enum value should match expected wire value")
+	})
+
 	t.Run("NewFromString_Invalid", func(t *testing.T) {
 		_, err := NewCostSeriesMetricFromString("invalid_value_that_does_not_exist")
 		assert.Error(t, err)
