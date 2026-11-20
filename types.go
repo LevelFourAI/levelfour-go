@@ -3354,7 +3354,7 @@ type AutomationEvent struct {
 	// raise or cut for a step's events by the way it moves the request, rollback for a rollback or revert, settings for what a person changed, other for the rest
 	Category   AutomationEventCategory `json:"category" url:"category"`
 	OccurredAt time.Time               `json:"occurred_at" url:"occurred_at"`
-	// A person's email, or levelfour-automation for the component
+	// A person's email, levelfour-automation for the component, or levelfour-takeover (automatic) for a takeover's freeze, whose detail names the admin who marked it
 	Actor        *string           `json:"actor,omitempty" url:"actor,omitempty"`
 	Namespace    *string           `json:"namespace,omitempty" url:"namespace,omitempty"`
 	WorkloadKind *string           `json:"workload_kind,omitempty" url:"workload_kind,omitempty"`
@@ -4437,19 +4437,23 @@ func (a *AutoscalerCounts) String() string {
 var (
 	autoscalerInsightFieldUtilizationTargets = big.NewInt(1 << 0)
 	autoscalerInsightFieldCustomMetric       = big.NewInt(1 << 1)
-	autoscalerInsightFieldHoursAtMax         = big.NewInt(1 << 2)
-	autoscalerInsightFieldAtMaxShare         = big.NewInt(1 << 3)
-	autoscalerInsightFieldReplicas           = big.NewInt(1 << 4)
-	autoscalerInsightFieldKind               = big.NewInt(1 << 5)
-	autoscalerInsightFieldName               = big.NewInt(1 << 6)
+	autoscalerInsightFieldScalerHoursWatched = big.NewInt(1 << 2)
+	autoscalerInsightFieldHoursAtMax         = big.NewInt(1 << 3)
+	autoscalerInsightFieldAtMaxShare         = big.NewInt(1 << 4)
+	autoscalerInsightFieldReplicas           = big.NewInt(1 << 5)
+	autoscalerInsightFieldKind               = big.NewInt(1 << 6)
+	autoscalerInsightFieldName               = big.NewInt(1 << 7)
 )
 
 type AutoscalerInsight struct {
 	UtilizationTargets []*UtilizationTarget `json:"utilization_targets" url:"utilization_targets"`
 	// Scales on something other than CPU or memory
-	CustomMetric bool    `json:"custom_metric" url:"custom_metric"`
-	HoursAtMax   float64 `json:"hours_at_max" url:"hours_at_max"`
-	// Of the hours the agent measured it in the window
+	CustomMetric bool `json:"custom_metric" url:"custom_metric"`
+	// Hours the agent watched this autoscaler in the window, each hour at most the seconds it watched the cluster: the window's hours_watched for one there throughout, fewer for one that appeared or went part way through
+	ScalerHoursWatched float64 `json:"scaler_hours_watched" url:"scaler_hours_watched"`
+	// Hours of scaler_hours_watched it sat at max replicas
+	HoursAtMax float64 `json:"hours_at_max" url:"hours_at_max"`
+	// hours_at_max over scaler_hours_watched, a share of this autoscaler's own hours, not of the window's; null when the agent watched it for none
 	AtMaxShare *float64 `json:"at_max_share,omitempty" url:"at_max_share,omitempty"`
 	// Over the window; null when no hour was measured
 	Replicas *ReplicaSpan          `json:"replicas,omitempty" url:"replicas,omitempty"`
@@ -4475,6 +4479,13 @@ func (a *AutoscalerInsight) GetCustomMetric() bool {
 		return false
 	}
 	return a.CustomMetric
+}
+
+func (a *AutoscalerInsight) GetScalerHoursWatched() float64 {
+	if a == nil {
+		return 0
+	}
+	return a.ScalerHoursWatched
 }
 
 func (a *AutoscalerInsight) GetHoursAtMax() float64 {
@@ -4538,6 +4549,13 @@ func (a *AutoscalerInsight) SetUtilizationTargets(utilizationTargets []*Utilizat
 func (a *AutoscalerInsight) SetCustomMetric(customMetric bool) {
 	a.CustomMetric = customMetric
 	a.require(autoscalerInsightFieldCustomMetric)
+}
+
+// SetScalerHoursWatched sets the ScalerHoursWatched field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutoscalerInsight) SetScalerHoursWatched(scalerHoursWatched float64) {
+	a.ScalerHoursWatched = scalerHoursWatched
+	a.require(autoscalerInsightFieldScalerHoursWatched)
 }
 
 // SetHoursAtMax sets the HoursAtMax field and marks it as non-optional;
@@ -8607,7 +8625,7 @@ type ClusterItem struct {
 	// The pods' traffic, as the Network lens counts it, and the data transfer billed to the cluster
 	Network     *Traffic              `json:"network" url:"network"`
 	Reliability *NamespaceReliability `json:"reliability" url:"reliability"`
-	// Current workloads at high risk: an OOM kill, an eviction or no ready replica. Medium and low never count. An ephemeral one, a pull-request environment, counts only with include_ephemeral
+	// Current workloads at high risk: an OOM kill, an eviction, no ready replica in two batches in a row, or a crash loop. Medium and low never count. An ephemeral one, a pull-request environment, counts only with include_ephemeral
 	WorkloadsAtRisk int `json:"workloads_at_risk" url:"workloads_at_risk"`
 	// Null until the cluster has workloads or a priced day
 	Health *ClusterHealth `json:"health,omitempty" url:"health,omitempty"`
@@ -9876,40 +9894,43 @@ func (c *ClusterResponse) String() string {
 }
 
 var (
-	clusterSummaryFieldTotalCost              = big.NewInt(1 << 0)
-	clusterSummaryFieldIdleCost               = big.NewInt(1 << 1)
-	clusterSummaryFieldIdleShare              = big.NewInt(1 << 2)
-	clusterSummaryFieldSystemCost             = big.NewInt(1 << 3)
-	clusterSummaryFieldTotalCostNet           = big.NewInt(1 << 4)
-	clusterSummaryFieldIdleCostNet            = big.NewInt(1 << 5)
-	clusterSummaryFieldSystemCostNet          = big.NewInt(1 << 6)
-	clusterSummaryFieldCPUEfficiency          = big.NewInt(1 << 7)
-	clusterSummaryFieldMemoryEfficiency       = big.NewInt(1 << 8)
-	clusterSummaryFieldCostBasis              = big.NewInt(1 << 9)
-	clusterSummaryFieldPricedThrough          = big.NewInt(1 << 10)
-	clusterSummaryFieldBillStatus             = big.NewInt(1 << 11)
-	clusterSummaryFieldBillExpectedBy         = big.NewInt(1 << 12)
-	clusterSummaryFieldNodesByPurchaseType    = big.NewInt(1 << 13)
-	clusterSummaryFieldWorkloadsAtRisk        = big.NewInt(1 << 14)
-	clusterSummaryFieldPodsPending            = big.NewInt(1 << 15)
-	clusterSummaryFieldNodeCount              = big.NewInt(1 << 16)
-	clusterSummaryFieldNamespaceCount         = big.NewInt(1 << 17)
-	clusterSummaryFieldNamespacesEnabled      = big.NewInt(1 << 18)
-	clusterSummaryFieldWorkloadCount          = big.NewInt(1 << 19)
-	clusterSummaryFieldPvcCount               = big.NewInt(1 << 20)
-	clusterSummaryFieldPotentialSavings       = big.NewInt(1 << 21)
-	clusterSummaryFieldPurchaseBalance        = big.NewInt(1 << 22)
-	clusterSummaryFieldPods                   = big.NewInt(1 << 23)
-	clusterSummaryFieldWorkloadsByKind        = big.NewInt(1 << 24)
-	clusterSummaryFieldWorkloadNamespaceCount = big.NewInt(1 << 25)
-	clusterSummaryFieldAutoscalers            = big.NewInt(1 << 26)
-	clusterSummaryFieldFixedReplicaCount      = big.NewInt(1 << 27)
-	clusterSummaryFieldCompute                = big.NewInt(1 << 28)
-	clusterSummaryFieldCPUUsedP95Milli        = big.NewInt(1 << 29)
-	clusterSummaryFieldMemoryUsedP95Bytes     = big.NewInt(1 << 30)
+	clusterSummaryFieldAsOf                   = big.NewInt(1 << 0)
+	clusterSummaryFieldTotalCost              = big.NewInt(1 << 1)
+	clusterSummaryFieldIdleCost               = big.NewInt(1 << 2)
+	clusterSummaryFieldIdleShare              = big.NewInt(1 << 3)
+	clusterSummaryFieldSystemCost             = big.NewInt(1 << 4)
+	clusterSummaryFieldTotalCostNet           = big.NewInt(1 << 5)
+	clusterSummaryFieldIdleCostNet            = big.NewInt(1 << 6)
+	clusterSummaryFieldSystemCostNet          = big.NewInt(1 << 7)
+	clusterSummaryFieldCPUEfficiency          = big.NewInt(1 << 8)
+	clusterSummaryFieldMemoryEfficiency       = big.NewInt(1 << 9)
+	clusterSummaryFieldCostBasis              = big.NewInt(1 << 10)
+	clusterSummaryFieldPricedThrough          = big.NewInt(1 << 11)
+	clusterSummaryFieldBillStatus             = big.NewInt(1 << 12)
+	clusterSummaryFieldBillExpectedBy         = big.NewInt(1 << 13)
+	clusterSummaryFieldNodesByPurchaseType    = big.NewInt(1 << 14)
+	clusterSummaryFieldWorkloadsAtRisk        = big.NewInt(1 << 15)
+	clusterSummaryFieldPodsPending            = big.NewInt(1 << 16)
+	clusterSummaryFieldNodeCount              = big.NewInt(1 << 17)
+	clusterSummaryFieldNamespaceCount         = big.NewInt(1 << 18)
+	clusterSummaryFieldNamespacesEnabled      = big.NewInt(1 << 19)
+	clusterSummaryFieldWorkloadCount          = big.NewInt(1 << 20)
+	clusterSummaryFieldPvcCount               = big.NewInt(1 << 21)
+	clusterSummaryFieldPotentialSavings       = big.NewInt(1 << 22)
+	clusterSummaryFieldPurchaseBalance        = big.NewInt(1 << 23)
+	clusterSummaryFieldPods                   = big.NewInt(1 << 24)
+	clusterSummaryFieldWorkloadsByKind        = big.NewInt(1 << 25)
+	clusterSummaryFieldWorkloadNamespaceCount = big.NewInt(1 << 26)
+	clusterSummaryFieldAutoscalers            = big.NewInt(1 << 27)
+	clusterSummaryFieldFixedReplicaCount      = big.NewInt(1 << 28)
+	clusterSummaryFieldCompute                = big.NewInt(1 << 29)
+	clusterSummaryFieldCPUUsedP95Milli        = big.NewInt(1 << 30)
+	clusterSummaryFieldMemoryUsedP95Bytes     = big.NewInt(1 << 31)
 )
 
 type ClusterSummary struct {
+	// The cluster's latest batch, the snapshot every current-state figure reflects: node, namespace, workload and claim counts, pods, workloads by kind, autoscalers and workloads at risk. Null until it reports one
+	AsOf *time.Time `json:"as_of,omitempty" url:"as_of,omitempty"`
 	// The cluster's cost, as the clusters list reads it
 	TotalCost  *float64 `json:"total_cost,omitempty" url:"total_cost,omitempty"`
 	IdleCost   *float64 `json:"idle_cost,omitempty" url:"idle_cost,omitempty"`
@@ -9933,7 +9954,7 @@ type ClusterSummary struct {
 	// While awaiting_bill, the day the first priced day should show: 2 days after the later of the bill's last day and the day the cluster connected, since a bill runs a day or two behind. Null otherwise
 	BillExpectedBy      *time.Time           `json:"bill_expected_by,omitempty" url:"bill_expected_by,omitempty" format:"date"`
 	NodesByPurchaseType []*PurchaseTypeShare `json:"nodes_by_purchase_type" url:"nodes_by_purchase_type"`
-	// Current workloads at high risk: an OOM kill, an eviction or no ready replica. Medium and low never count. An ephemeral one, a pull-request environment, counts only with include_ephemeral
+	// Current workloads at high risk: an OOM kill, an eviction, no ready replica in two batches in a row, or a crash loop. Medium and low never count. An ephemeral one, a pull-request environment, counts only with include_ephemeral
 	WorkloadsAtRisk int `json:"workloads_at_risk" url:"workloads_at_risk"`
 	// Pods Pending on average in the latest hour the agent reported
 	PodsPending       *float64          `json:"pods_pending,omitempty" url:"pods_pending,omitempty"`
@@ -9965,6 +9986,13 @@ type ClusterSummary struct {
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
+}
+
+func (c *ClusterSummary) GetAsOf() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.AsOf
 }
 
 func (c *ClusterSummary) GetTotalCost() *float64 {
@@ -10198,6 +10226,13 @@ func (c *ClusterSummary) require(field *big.Int) {
 	c.explicitFields.Or(c.explicitFields, field)
 }
 
+// SetAsOf sets the AsOf field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClusterSummary) SetAsOf(asOf *time.Time) {
+	c.AsOf = asOf
+	c.require(clusterSummaryFieldAsOf)
+}
+
 // SetTotalCost sets the TotalCost field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (c *ClusterSummary) SetTotalCost(totalCost *float64) {
@@ -10419,8 +10454,9 @@ func (c *ClusterSummary) UnmarshalJSON(data []byte) error {
 	type embed ClusterSummary
 	var unmarshaler = struct {
 		embed
-		PricedThrough  *internal.Date `json:"priced_through,omitempty"`
-		BillExpectedBy *internal.Date `json:"bill_expected_by,omitempty"`
+		AsOf           *internal.DateTime `json:"as_of,omitempty"`
+		PricedThrough  *internal.Date     `json:"priced_through,omitempty"`
+		BillExpectedBy *internal.Date     `json:"bill_expected_by,omitempty"`
 	}{
 		embed: embed(*c),
 	}
@@ -10428,6 +10464,7 @@ func (c *ClusterSummary) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*c = ClusterSummary(unmarshaler.embed)
+	c.AsOf = unmarshaler.AsOf.TimePtr()
 	c.PricedThrough = unmarshaler.PricedThrough.TimePtr()
 	c.BillExpectedBy = unmarshaler.BillExpectedBy.TimePtr()
 	extraProperties, err := internal.ExtractExtraProperties(data, *c)
@@ -10443,10 +10480,12 @@ func (c *ClusterSummary) MarshalJSON() ([]byte, error) {
 	type embed ClusterSummary
 	var marshaler = struct {
 		embed
-		PricedThrough  *internal.Date `json:"priced_through,omitempty"`
-		BillExpectedBy *internal.Date `json:"bill_expected_by,omitempty"`
+		AsOf           *internal.DateTime `json:"as_of,omitempty"`
+		PricedThrough  *internal.Date     `json:"priced_through,omitempty"`
+		BillExpectedBy *internal.Date     `json:"bill_expected_by,omitempty"`
 	}{
 		embed:          embed(*c),
+		AsOf:           internal.NewOptionalDateTime(c.AsOf),
 		PricedThrough:  internal.NewOptionalDate(c.PricedThrough),
 		BillExpectedBy: internal.NewOptionalDate(c.BillExpectedBy),
 	}
@@ -27910,36 +27949,37 @@ var (
 	fleetNamespaceFieldCost                    = big.NewInt(1 << 4)
 	fleetNamespaceFieldCostUnknownReason       = big.NewInt(1 << 5)
 	fleetNamespaceFieldCostShare               = big.NewInt(1 << 6)
-	fleetNamespaceFieldCostChangePct           = big.NewInt(1 << 7)
-	fleetNamespaceFieldCPUCost                 = big.NewInt(1 << 8)
-	fleetNamespaceFieldMemoryCost              = big.NewInt(1 << 9)
-	fleetNamespaceFieldGpuCost                 = big.NewInt(1 << 10)
-	fleetNamespaceFieldStorageCost             = big.NewInt(1 << 11)
-	fleetNamespaceFieldNetworkCost             = big.NewInt(1 << 12)
-	fleetNamespaceFieldCostNet                 = big.NewInt(1 << 13)
-	fleetNamespaceFieldCPUCostNet              = big.NewInt(1 << 14)
-	fleetNamespaceFieldMemoryCostNet           = big.NewInt(1 << 15)
-	fleetNamespaceFieldGpuCostNet              = big.NewInt(1 << 16)
-	fleetNamespaceFieldStorageCostNet          = big.NewInt(1 << 17)
-	fleetNamespaceFieldNetworkCostNet          = big.NewInt(1 << 18)
-	fleetNamespaceFieldRequestsAvg             = big.NewInt(1 << 19)
-	fleetNamespaceFieldWaste                   = big.NewInt(1 << 20)
-	fleetNamespaceFieldNetwork                 = big.NewInt(1 << 21)
-	fleetNamespaceFieldReliability             = big.NewInt(1 << 22)
-	fleetNamespaceFieldLabelValues             = big.NewInt(1 << 23)
-	fleetNamespaceFieldStorageRequestBytes     = big.NewInt(1 << 24)
-	fleetNamespaceFieldCPURequestCores         = big.NewInt(1 << 25)
-	fleetNamespaceFieldCPUUsageCores           = big.NewInt(1 << 26)
-	fleetNamespaceFieldCPUEfficiency           = big.NewInt(1 << 27)
-	fleetNamespaceFieldMemoryRequestBytes      = big.NewInt(1 << 28)
-	fleetNamespaceFieldMemoryUsageBytes        = big.NewInt(1 << 29)
-	fleetNamespaceFieldMemoryEfficiency        = big.NewInt(1 << 30)
-	fleetNamespaceFieldWorkloadCount           = big.NewInt(1 << 31)
-	fleetNamespaceFieldRecommendations         = big.NewInt(1 << 32)
-	fleetNamespaceFieldRecommendationsSource   = big.NewInt(1 << 33)
-	fleetNamespaceFieldClusterID               = big.NewInt(1 << 34)
-	fleetNamespaceFieldClusterName             = big.NewInt(1 << 35)
-	fleetNamespaceFieldPotentialSavingsMonthly = big.NewInt(1 << 36)
+	fleetNamespaceFieldRequestShare            = big.NewInt(1 << 7)
+	fleetNamespaceFieldCostChangePct           = big.NewInt(1 << 8)
+	fleetNamespaceFieldCPUCost                 = big.NewInt(1 << 9)
+	fleetNamespaceFieldMemoryCost              = big.NewInt(1 << 10)
+	fleetNamespaceFieldGpuCost                 = big.NewInt(1 << 11)
+	fleetNamespaceFieldStorageCost             = big.NewInt(1 << 12)
+	fleetNamespaceFieldNetworkCost             = big.NewInt(1 << 13)
+	fleetNamespaceFieldCostNet                 = big.NewInt(1 << 14)
+	fleetNamespaceFieldCPUCostNet              = big.NewInt(1 << 15)
+	fleetNamespaceFieldMemoryCostNet           = big.NewInt(1 << 16)
+	fleetNamespaceFieldGpuCostNet              = big.NewInt(1 << 17)
+	fleetNamespaceFieldStorageCostNet          = big.NewInt(1 << 18)
+	fleetNamespaceFieldNetworkCostNet          = big.NewInt(1 << 19)
+	fleetNamespaceFieldRequestsAvg             = big.NewInt(1 << 20)
+	fleetNamespaceFieldWaste                   = big.NewInt(1 << 21)
+	fleetNamespaceFieldNetwork                 = big.NewInt(1 << 22)
+	fleetNamespaceFieldReliability             = big.NewInt(1 << 23)
+	fleetNamespaceFieldLabelValues             = big.NewInt(1 << 24)
+	fleetNamespaceFieldStorageRequestBytes     = big.NewInt(1 << 25)
+	fleetNamespaceFieldCPURequestCores         = big.NewInt(1 << 26)
+	fleetNamespaceFieldCPUUsageCores           = big.NewInt(1 << 27)
+	fleetNamespaceFieldCPUEfficiency           = big.NewInt(1 << 28)
+	fleetNamespaceFieldMemoryRequestBytes      = big.NewInt(1 << 29)
+	fleetNamespaceFieldMemoryUsageBytes        = big.NewInt(1 << 30)
+	fleetNamespaceFieldMemoryEfficiency        = big.NewInt(1 << 31)
+	fleetNamespaceFieldWorkloadCount           = big.NewInt(1 << 32)
+	fleetNamespaceFieldRecommendations         = big.NewInt(1 << 33)
+	fleetNamespaceFieldRecommendationsSource   = big.NewInt(1 << 34)
+	fleetNamespaceFieldClusterID               = big.NewInt(1 << 35)
+	fleetNamespaceFieldClusterName             = big.NewInt(1 << 36)
+	fleetNamespaceFieldPotentialSavingsMonthly = big.NewInt(1 << 37)
 )
 
 type FleetNamespace struct {
@@ -27954,6 +27994,8 @@ type FleetNamespace struct {
 	// Why the cost total beside it is null, and null when it is not. compute_unpriced: its own containers, or its cluster's nodes, ran and the bill has priced none of them, yet or at all, as the cluster's bill_status tells; its storage and data transfer alone are no total. nothing_priced: its cluster's nodes are priced, or did not run, and nothing of it carries a priced cost
 	CostUnknownReason *FleetNamespaceCostUnknownReason `json:"cost_unknown_reason,omitempty" url:"cost_unknown_reason,omitempty"`
 	CostShare         *float64                         `json:"cost_share,omitempty" url:"cost_share,omitempty"`
+	// Its share, from 0 to 1, of the CPU and memory the listed clusters' containers requested in the window: the average of its share of each resource they requested any of, the basis the cost series' requested metric shares out. Whatever the search or the recommendations chips keep, so it does not move with them. Null for __idle__ and __node__, and when nothing was requested
+	RequestShare *float64 `json:"request_share,omitempty" url:"request_share,omitempty"`
 	// Against the previous window of equal length, before any idle is shared
 	CostChangePct *float64 `json:"cost_change_pct,omitempty" url:"cost_change_pct,omitempty"`
 	CPUCost       *float64 `json:"cpu_cost,omitempty" url:"cpu_cost,omitempty"`
@@ -28051,6 +28093,13 @@ func (f *FleetNamespace) GetCostShare() *float64 {
 		return nil
 	}
 	return f.CostShare
+}
+
+func (f *FleetNamespace) GetRequestShare() *float64 {
+	if f == nil {
+		return nil
+	}
+	return f.RequestShare
 }
 
 func (f *FleetNamespace) GetCostChangePct() *float64 {
@@ -28324,6 +28373,13 @@ func (f *FleetNamespace) SetCostUnknownReason(costUnknownReason *FleetNamespaceC
 func (f *FleetNamespace) SetCostShare(costShare *float64) {
 	f.CostShare = costShare
 	f.require(fleetNamespaceFieldCostShare)
+}
+
+// SetRequestShare sets the RequestShare field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FleetNamespace) SetRequestShare(requestShare *float64) {
+	f.RequestShare = requestShare
+	f.require(fleetNamespaceFieldRequestShare)
 }
 
 // SetCostChangePct sets the CostChangePct field and marks it as non-optional;
@@ -29174,12 +29230,14 @@ var (
 	fleetNodePoolFieldIdleCost                  = big.NewInt(1 << 28)
 	fleetNodePoolFieldCostPerHour               = big.NewInt(1 << 29)
 	fleetNodePoolFieldPurchaseTypes             = big.NewInt(1 << 30)
-	fleetNodePoolFieldKarpenter                 = big.NewInt(1 << 31)
-	fleetNodePoolFieldSeries                    = big.NewInt(1 << 32)
-	fleetNodePoolFieldFindingsCount             = big.NewInt(1 << 33)
-	fleetNodePoolFieldFitMonthlyDifference      = big.NewInt(1 << 34)
-	fleetNodePoolFieldClusterID                 = big.NewInt(1 << 35)
-	fleetNodePoolFieldClusterName               = big.NewInt(1 << 36)
+	fleetNodePoolFieldAllowedCapacityTypes      = big.NewInt(1 << 31)
+	fleetNodePoolFieldRanCapacityTypes          = big.NewInt(1 << 32)
+	fleetNodePoolFieldKarpenter                 = big.NewInt(1 << 33)
+	fleetNodePoolFieldSeries                    = big.NewInt(1 << 34)
+	fleetNodePoolFieldFindingsCount             = big.NewInt(1 << 35)
+	fleetNodePoolFieldFitMonthlyDifference      = big.NewInt(1 << 36)
+	fleetNodePoolFieldClusterID                 = big.NewInt(1 << 37)
+	fleetNodePoolFieldClusterName               = big.NewInt(1 << 38)
 )
 
 type FleetNodePool struct {
@@ -29188,14 +29246,14 @@ type FleetNodePool struct {
 	// Set when grouped by instance type
 	InstanceType *string `json:"instance_type,omitempty" url:"instance_type,omitempty"`
 	Arch         *string `json:"arch,omitempty" url:"arch,omitempty"`
-	// Nodes that ran in the group in the window
+	// The instances the agent saw in the group in the window's hours, as the Nodes list lists them
 	Nodes     int `json:"nodes" url:"nodes"`
 	SpotNodes int `json:"spot_nodes" url:"spot_nodes"`
 	// Nodes in the group running now, as the cluster's node_count counts them
 	NodesNow *int `json:"nodes_now,omitempty" url:"nodes_now,omitempty"`
 	// What the group's nodes running now can give pods, from each node's allocatable
 	CPUAllocatableMilliNow *int `json:"cpu_allocatable_milli_now,omitempty" url:"cpu_allocatable_milli_now,omitempty"`
-	// What the pods on the group's nodes running now request, in the latest hour the agent reported, as the Nodes list's rows read it; null while no pod on them was placed in that hour
+	// What the pods on the group's nodes running now hold: the pods of the latest batch, at their own requests, as the Nodes list's rows and the fleet's clusters read it; null while no pod with a request runs on them
 	CPURequestedMilliNow      *int `json:"cpu_requested_milli_now,omitempty" url:"cpu_requested_milli_now,omitempty"`
 	MemoryAllocatableBytesNow *int `json:"memory_allocatable_bytes_now,omitempty" url:"memory_allocatable_bytes_now,omitempty"`
 	MemoryRequestedBytesNow   *int `json:"memory_requested_bytes_now,omitempty" url:"memory_requested_bytes_now,omitempty"`
@@ -29228,7 +29286,11 @@ type FleetNodePool struct {
 	// Cost per node-hour
 	CostPerHour   *float64             `json:"cost_per_hour,omitempty" url:"cost_per_hour,omitempty"`
 	PurchaseTypes []*PurchaseTypeHours `json:"purchase_types" url:"purchase_types"`
-	Karpenter     *KarpenterPool       `json:"karpenter,omitempty" url:"karpenter,omitempty"`
+	// The capacity types the group's Karpenter NodePool, self-managed or EKS Auto Mode, may launch as of the latest batch, of on-demand, reserved (a capacity reservation) and spot, sorted: what its karpenter.sh/capacity-type requirements and template labels leave. A NodePool that names no capacity type may launch all three, Karpenter's default. Null for a managed node group or any other group, whose capacity type the agent does not report, for a NodePool the latest batch no longer has, and for an instance type
+	AllowedCapacityTypes []string `json:"allowed_capacity_types,omitempty" url:"allowed_capacity_types,omitempty"`
+	// The capacity types the group's nodes ran on in the window's hours, sorted: on-demand, spot, and unknown for an hour whose node carried no capacity-type label. A node in a capacity reservation reads on-demand, as the agent reads its label. Empty for a group the agent saw no hour of
+	RanCapacityTypes []string       `json:"ran_capacity_types" url:"ran_capacity_types"`
+	Karpenter        *KarpenterPool `json:"karpenter,omitempty" url:"karpenter,omitempty"`
 	// Day by day, with series=day
 	Series []*NodePoolDay `json:"series,omitempty" url:"series,omitempty"`
 	// What the worker's latest review of the pool found
@@ -29460,6 +29522,20 @@ func (f *FleetNodePool) GetPurchaseTypes() []*PurchaseTypeHours {
 		return nil
 	}
 	return f.PurchaseTypes
+}
+
+func (f *FleetNodePool) GetAllowedCapacityTypes() []string {
+	if f == nil {
+		return nil
+	}
+	return f.AllowedCapacityTypes
+}
+
+func (f *FleetNodePool) GetRanCapacityTypes() []string {
+	if f == nil {
+		return nil
+	}
+	return f.RanCapacityTypes
 }
 
 func (f *FleetNodePool) GetKarpenter() *KarpenterPool {
@@ -29733,6 +29809,20 @@ func (f *FleetNodePool) SetCostPerHour(costPerHour *float64) {
 func (f *FleetNodePool) SetPurchaseTypes(purchaseTypes []*PurchaseTypeHours) {
 	f.PurchaseTypes = purchaseTypes
 	f.require(fleetNodePoolFieldPurchaseTypes)
+}
+
+// SetAllowedCapacityTypes sets the AllowedCapacityTypes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FleetNodePool) SetAllowedCapacityTypes(allowedCapacityTypes []string) {
+	f.AllowedCapacityTypes = allowedCapacityTypes
+	f.require(fleetNodePoolFieldAllowedCapacityTypes)
+}
+
+// SetRanCapacityTypes sets the RanCapacityTypes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FleetNodePool) SetRanCapacityTypes(ranCapacityTypes []string) {
+	f.RanCapacityTypes = ranCapacityTypes
+	f.require(fleetNodePoolFieldRanCapacityTypes)
 }
 
 // SetKarpenter sets the Karpenter field and marks it as non-optional;
@@ -30220,35 +30310,38 @@ func (f *FleetStorage) String() string {
 }
 
 var (
-	fleetSummaryFieldTotalCost           = big.NewInt(1 << 0)
-	fleetSummaryFieldIdleCost            = big.NewInt(1 << 1)
-	fleetSummaryFieldIdleShare           = big.NewInt(1 << 2)
-	fleetSummaryFieldSystemCost          = big.NewInt(1 << 3)
-	fleetSummaryFieldTotalCostNet        = big.NewInt(1 << 4)
-	fleetSummaryFieldIdleCostNet         = big.NewInt(1 << 5)
-	fleetSummaryFieldSystemCostNet       = big.NewInt(1 << 6)
-	fleetSummaryFieldCPUEfficiency       = big.NewInt(1 << 7)
-	fleetSummaryFieldMemoryEfficiency    = big.NewInt(1 << 8)
-	fleetSummaryFieldClusterCount        = big.NewInt(1 << 9)
-	fleetSummaryFieldAccountCount        = big.NewInt(1 << 10)
-	fleetSummaryFieldNodesByPurchaseType = big.NewInt(1 << 11)
-	fleetSummaryFieldClustersByStatus    = big.NewInt(1 << 12)
-	fleetSummaryFieldNodeCount           = big.NewInt(1 << 13)
-	fleetSummaryFieldNamespaceCount      = big.NewInt(1 << 14)
-	fleetSummaryFieldNamespacesEnabled   = big.NewInt(1 << 15)
-	fleetSummaryFieldWorkloadCount       = big.NewInt(1 << 16)
-	fleetSummaryFieldCostBasis           = big.NewInt(1 << 17)
-	fleetSummaryFieldPricedThrough       = big.NewInt(1 << 18)
-	fleetSummaryFieldBillStatus          = big.NewInt(1 << 19)
-	fleetSummaryFieldBillExpectedBy      = big.NewInt(1 << 20)
-	fleetSummaryFieldWorkloadsAtRisk     = big.NewInt(1 << 21)
-	fleetSummaryFieldPotentialSavings    = big.NewInt(1 << 22)
-	fleetSummaryFieldRealizedSavings     = big.NewInt(1 << 23)
-	fleetSummaryFieldByProvider          = big.NewInt(1 << 24)
-	fleetSummaryFieldStorage             = big.NewInt(1 << 25)
+	fleetSummaryFieldAsOf                = big.NewInt(1 << 0)
+	fleetSummaryFieldTotalCost           = big.NewInt(1 << 1)
+	fleetSummaryFieldIdleCost            = big.NewInt(1 << 2)
+	fleetSummaryFieldIdleShare           = big.NewInt(1 << 3)
+	fleetSummaryFieldSystemCost          = big.NewInt(1 << 4)
+	fleetSummaryFieldTotalCostNet        = big.NewInt(1 << 5)
+	fleetSummaryFieldIdleCostNet         = big.NewInt(1 << 6)
+	fleetSummaryFieldSystemCostNet       = big.NewInt(1 << 7)
+	fleetSummaryFieldCPUEfficiency       = big.NewInt(1 << 8)
+	fleetSummaryFieldMemoryEfficiency    = big.NewInt(1 << 9)
+	fleetSummaryFieldClusterCount        = big.NewInt(1 << 10)
+	fleetSummaryFieldAccountCount        = big.NewInt(1 << 11)
+	fleetSummaryFieldNodesByPurchaseType = big.NewInt(1 << 12)
+	fleetSummaryFieldClustersByStatus    = big.NewInt(1 << 13)
+	fleetSummaryFieldNodeCount           = big.NewInt(1 << 14)
+	fleetSummaryFieldNamespaceCount      = big.NewInt(1 << 15)
+	fleetSummaryFieldNamespacesEnabled   = big.NewInt(1 << 16)
+	fleetSummaryFieldWorkloadCount       = big.NewInt(1 << 17)
+	fleetSummaryFieldCostBasis           = big.NewInt(1 << 18)
+	fleetSummaryFieldPricedThrough       = big.NewInt(1 << 19)
+	fleetSummaryFieldBillStatus          = big.NewInt(1 << 20)
+	fleetSummaryFieldBillExpectedBy      = big.NewInt(1 << 21)
+	fleetSummaryFieldWorkloadsAtRisk     = big.NewInt(1 << 22)
+	fleetSummaryFieldPotentialSavings    = big.NewInt(1 << 23)
+	fleetSummaryFieldRealizedSavings     = big.NewInt(1 << 24)
+	fleetSummaryFieldByProvider          = big.NewInt(1 << 25)
+	fleetSummaryFieldStorage             = big.NewInt(1 << 26)
 )
 
 type FleetSummary struct {
+	// The batches the current-state figures reflect (nodes, namespaces, workloads, pods and workloads at risk): each connected cluster's latest, newest and oldest across them. Null until a cluster reports a batch; a cluster without the agent reports none
+	AsOf *SnapshotRange `json:"as_of,omitempty" url:"as_of,omitempty"`
 	// The clusters' cost added up, as the clusters list reads it
 	TotalCost  *float64 `json:"total_cost,omitempty" url:"total_cost,omitempty"`
 	IdleCost   *float64 `json:"idle_cost,omitempty" url:"idle_cost,omitempty"`
@@ -30282,7 +30375,7 @@ type FleetSummary struct {
 	BillStatus FleetSummaryBillStatus `json:"bill_status" url:"bill_status"`
 	// While awaiting_bill, the earliest day a waiting cluster's first priced day should show
 	BillExpectedBy *time.Time `json:"bill_expected_by,omitempty" url:"bill_expected_by,omitempty" format:"date"`
-	// Current workloads at high risk: an OOM kill, an eviction or no ready replica. Medium and low never count. An ephemeral one, a pull-request environment, counts only with include_ephemeral
+	// Current workloads at high risk: an OOM kill, an eviction, no ready replica in two batches in a row, or a crash loop. Medium and low never count. An ephemeral one, a pull-request environment, counts only with include_ephemeral
 	WorkloadsAtRisk  *int              `json:"workloads_at_risk,omitempty" url:"workloads_at_risk,omitempty"`
 	PotentialSavings *PotentialSavings `json:"potential_savings,omitempty" url:"potential_savings,omitempty"`
 	RealizedSavings  *RealizedTotal    `json:"realized_savings" url:"realized_savings"`
@@ -30295,6 +30388,13 @@ type FleetSummary struct {
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
+}
+
+func (f *FleetSummary) GetAsOf() *SnapshotRange {
+	if f == nil {
+		return nil
+	}
+	return f.AsOf
 }
 
 func (f *FleetSummary) GetTotalCost() *float64 {
@@ -30491,6 +30591,13 @@ func (f *FleetSummary) require(field *big.Int) {
 		f.explicitFields = big.NewInt(0)
 	}
 	f.explicitFields.Or(f.explicitFields, field)
+}
+
+// SetAsOf sets the AsOf field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FleetSummary) SetAsOf(asOf *SnapshotRange) {
+	f.AsOf = asOf
+	f.require(fleetSummaryFieldAsOf)
 }
 
 // SetTotalCost sets the TotalCost field and marks it as non-optional;
@@ -35115,6 +35222,7 @@ var (
 	indicatorFieldSeverity  = big.NewInt(1 << 1)
 	indicatorFieldContainer = big.NewInt(1 << 2)
 	indicatorFieldDetail    = big.NewInt(1 << 3)
+	indicatorFieldSince     = big.NewInt(1 << 4)
 )
 
 type Indicator struct {
@@ -35122,6 +35230,8 @@ type Indicator struct {
 	Severity  IndicatorSeverity `json:"severity" url:"severity"`
 	Container *string           `json:"container,omitempty" url:"container,omitempty"`
 	Detail    string            `json:"detail" url:"detail"`
+	// The first moment its condition held in the window, in UTC: the first hour the hourly rows show it on the first day the window's days do (oom, restarts, cpu_throttling, eviction, the usage rules, hpa_at_max), the batch that first read no replica ready (no_ready_replica, crash_looping), the hour pods sat Pending, or the start of a trend. Null for a rule on the current configuration, and once that day's hourly rows are gone
+	Since *time.Time `json:"since,omitempty" url:"since,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -35156,6 +35266,13 @@ func (i *Indicator) GetDetail() string {
 		return ""
 	}
 	return i.Detail
+}
+
+func (i *Indicator) GetSince() *time.Time {
+	if i == nil {
+		return nil
+	}
+	return i.Since
 }
 
 func (i *Indicator) GetExtraProperties() map[string]interface{} {
@@ -35200,13 +35317,26 @@ func (i *Indicator) SetDetail(detail string) {
 	i.require(indicatorFieldDetail)
 }
 
+// SetSince sets the Since field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *Indicator) SetSince(since *time.Time) {
+	i.Since = since
+	i.require(indicatorFieldSince)
+}
+
 func (i *Indicator) UnmarshalJSON(data []byte) error {
-	type unmarshaler Indicator
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
+	type embed Indicator
+	var unmarshaler = struct {
+		embed
+		Since *internal.DateTime `json:"since,omitempty"`
+	}{
+		embed: embed(*i),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*i = Indicator(value)
+	*i = Indicator(unmarshaler.embed)
+	i.Since = unmarshaler.Since.TimePtr()
 	extraProperties, err := internal.ExtractExtraProperties(data, *i)
 	if err != nil {
 		return err
@@ -35220,8 +35350,10 @@ func (i *Indicator) MarshalJSON() ([]byte, error) {
 	type embed Indicator
 	var marshaler = struct {
 		embed
+		Since *internal.DateTime `json:"since,omitempty"`
 	}{
 		embed: embed(*i),
+		Since: internal.NewOptionalDateTime(i.Since),
 	}
 	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
 	return json.Marshal(explicitMarshaler)
@@ -35389,18 +35521,15 @@ const (
 	IndicatorCountIDCPURequestNotSet              IndicatorCountID = "cpu_request_not_set"
 	IndicatorCountIDMemoryRequestNotSet           IndicatorCountID = "memory_request_not_set"
 	IndicatorCountIDMemoryLimitNotSet             IndicatorCountID = "memory_limit_not_set"
-	IndicatorCountIDRequestSetAtAdmission         IndicatorCountID = "request_set_at_admission"
-	IndicatorCountIDAwaitingSizing                IndicatorCountID = "awaiting_sizing"
-	IndicatorCountIDLivenessProbeMissing          IndicatorCountID = "liveness_probe_missing"
-	IndicatorCountIDReadinessProbeMissing         IndicatorCountID = "readiness_probe_missing"
+	IndicatorCountIDAdmittedLimitBelowHeap        IndicatorCountID = "admitted_limit_below_heap"
 	IndicatorCountIDOverProvisionedCPURequest     IndicatorCountID = "over_provisioned_cpu_request"
 	IndicatorCountIDOverProvisionedMemoryRequest  IndicatorCountID = "over_provisioned_memory_request"
 	IndicatorCountIDEviction                      IndicatorCountID = "eviction"
 	IndicatorCountIDNoReadyReplica                IndicatorCountID = "no_ready_replica"
+	IndicatorCountIDCrashLooping                  IndicatorCountID = "crash_looping"
 	IndicatorCountIDPodsPending                   IndicatorCountID = "pods_pending"
 	IndicatorCountIDHpaAtMax                      IndicatorCountID = "hpa_at_max"
 	IndicatorCountIDPdbTooStrict                  IndicatorCountID = "pdb_too_strict"
-	IndicatorCountIDPdbMissing                    IndicatorCountID = "pdb_missing"
 	IndicatorCountIDNoTopologySpread              IndicatorCountID = "no_topology_spread"
 )
 
@@ -35428,14 +35557,8 @@ func NewIndicatorCountIDFromString(s string) (IndicatorCountID, error) {
 		return IndicatorCountIDMemoryRequestNotSet, nil
 	case "memory_limit_not_set":
 		return IndicatorCountIDMemoryLimitNotSet, nil
-	case "request_set_at_admission":
-		return IndicatorCountIDRequestSetAtAdmission, nil
-	case "awaiting_sizing":
-		return IndicatorCountIDAwaitingSizing, nil
-	case "liveness_probe_missing":
-		return IndicatorCountIDLivenessProbeMissing, nil
-	case "readiness_probe_missing":
-		return IndicatorCountIDReadinessProbeMissing, nil
+	case "admitted_limit_below_heap":
+		return IndicatorCountIDAdmittedLimitBelowHeap, nil
 	case "over_provisioned_cpu_request":
 		return IndicatorCountIDOverProvisionedCPURequest, nil
 	case "over_provisioned_memory_request":
@@ -35444,14 +35567,14 @@ func NewIndicatorCountIDFromString(s string) (IndicatorCountID, error) {
 		return IndicatorCountIDEviction, nil
 	case "no_ready_replica":
 		return IndicatorCountIDNoReadyReplica, nil
+	case "crash_looping":
+		return IndicatorCountIDCrashLooping, nil
 	case "pods_pending":
 		return IndicatorCountIDPodsPending, nil
 	case "hpa_at_max":
 		return IndicatorCountIDHpaAtMax, nil
 	case "pdb_too_strict":
 		return IndicatorCountIDPdbTooStrict, nil
-	case "pdb_missing":
-		return IndicatorCountIDPdbMissing, nil
 	case "no_topology_spread":
 		return IndicatorCountIDNoTopologySpread, nil
 	}
@@ -35505,18 +35628,15 @@ const (
 	IndicatorIDCPURequestNotSet              IndicatorID = "cpu_request_not_set"
 	IndicatorIDMemoryRequestNotSet           IndicatorID = "memory_request_not_set"
 	IndicatorIDMemoryLimitNotSet             IndicatorID = "memory_limit_not_set"
-	IndicatorIDRequestSetAtAdmission         IndicatorID = "request_set_at_admission"
-	IndicatorIDAwaitingSizing                IndicatorID = "awaiting_sizing"
-	IndicatorIDLivenessProbeMissing          IndicatorID = "liveness_probe_missing"
-	IndicatorIDReadinessProbeMissing         IndicatorID = "readiness_probe_missing"
+	IndicatorIDAdmittedLimitBelowHeap        IndicatorID = "admitted_limit_below_heap"
 	IndicatorIDOverProvisionedCPURequest     IndicatorID = "over_provisioned_cpu_request"
 	IndicatorIDOverProvisionedMemoryRequest  IndicatorID = "over_provisioned_memory_request"
 	IndicatorIDEviction                      IndicatorID = "eviction"
 	IndicatorIDNoReadyReplica                IndicatorID = "no_ready_replica"
+	IndicatorIDCrashLooping                  IndicatorID = "crash_looping"
 	IndicatorIDPodsPending                   IndicatorID = "pods_pending"
 	IndicatorIDHpaAtMax                      IndicatorID = "hpa_at_max"
 	IndicatorIDPdbTooStrict                  IndicatorID = "pdb_too_strict"
-	IndicatorIDPdbMissing                    IndicatorID = "pdb_missing"
 	IndicatorIDNoTopologySpread              IndicatorID = "no_topology_spread"
 )
 
@@ -35544,14 +35664,8 @@ func NewIndicatorIDFromString(s string) (IndicatorID, error) {
 		return IndicatorIDMemoryRequestNotSet, nil
 	case "memory_limit_not_set":
 		return IndicatorIDMemoryLimitNotSet, nil
-	case "request_set_at_admission":
-		return IndicatorIDRequestSetAtAdmission, nil
-	case "awaiting_sizing":
-		return IndicatorIDAwaitingSizing, nil
-	case "liveness_probe_missing":
-		return IndicatorIDLivenessProbeMissing, nil
-	case "readiness_probe_missing":
-		return IndicatorIDReadinessProbeMissing, nil
+	case "admitted_limit_below_heap":
+		return IndicatorIDAdmittedLimitBelowHeap, nil
 	case "over_provisioned_cpu_request":
 		return IndicatorIDOverProvisionedCPURequest, nil
 	case "over_provisioned_memory_request":
@@ -35560,14 +35674,14 @@ func NewIndicatorIDFromString(s string) (IndicatorID, error) {
 		return IndicatorIDEviction, nil
 	case "no_ready_replica":
 		return IndicatorIDNoReadyReplica, nil
+	case "crash_looping":
+		return IndicatorIDCrashLooping, nil
 	case "pods_pending":
 		return IndicatorIDPodsPending, nil
 	case "hpa_at_max":
 		return IndicatorIDHpaAtMax, nil
 	case "pdb_too_strict":
 		return IndicatorIDPdbTooStrict, nil
-	case "pdb_missing":
-		return IndicatorIDPdbMissing, nil
 	case "no_topology_spread":
 		return IndicatorIDNoTopologySpread, nil
 	}
@@ -42976,6 +43090,12 @@ var (
 	namespaceAutomationFieldTurnedOnAt         = big.NewInt(1 << 13)
 	namespaceAutomationFieldBlockedByLabel     = big.NewInt(1 << 14)
 	namespaceAutomationFieldOtherRightsizers   = big.NewInt(1 << 15)
+	namespaceAutomationFieldTakeover           = big.NewInt(1 << 16)
+	namespaceAutomationFieldTakeoverSetBy      = big.NewInt(1 << 17)
+	namespaceAutomationFieldTakeoverSetAt      = big.NewInt(1 << 18)
+	namespaceAutomationFieldTakeoverLabelOffAt = big.NewInt(1 << 19)
+	namespaceAutomationFieldTakeoverFrozenAt   = big.NewInt(1 << 20)
+	namespaceAutomationFieldTakeoverBlockers   = big.NewInt(1 << 21)
 )
 
 type NamespaceAutomation struct {
@@ -43006,6 +43126,18 @@ type NamespaceAutomation struct {
 	BlockedByLabel bool `json:"blocked_by_label" url:"blocked_by_label"`
 	// The tools besides LevelFour sizing its workloads, so the component never acts there whatever is set here; empty when none does
 	OtherRightsizers []*OtherRightsizer `json:"other_rightsizers" url:"other_rightsizers"`
+	// taken_over once an admin took it over from another rightsizer: new pods start at its containers' baselines whatever the mode
+	Takeover *NamespaceAutomationTakeover `json:"takeover,omitempty" url:"takeover,omitempty"`
+	// The admin who marked it taken over
+	TakeoverSetBy *string `json:"takeover_set_by,omitempty" url:"takeover_set_by,omitempty"`
+	// The mark: when it was marked taken over
+	TakeoverSetAt *time.Time `json:"takeover_set_at,omitempty" url:"takeover_set_at,omitempty"`
+	// Until the freeze, when the component first reported it without the other tool's label
+	TakeoverLabelOffAt *time.Time `json:"takeover_label_off_at,omitempty" url:"takeover_label_off_at,omitempty"`
+	// When its baselines froze, at the first batch after the other tool's label went off with no value only another tool explains since; the automation stays out of it as other_rightsizer until then
+	TakeoverFrozenAt *time.Time `json:"takeover_frozen_at,omitempty" url:"takeover_frozen_at,omitempty"`
+	// What keeps its containers off their baseline; empty when not taken over
+	TakeoverBlockers []*TakeoverBlocker `json:"takeover_blockers,omitempty" url:"takeover_blockers,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -43124,6 +43256,48 @@ func (n *NamespaceAutomation) GetOtherRightsizers() []*OtherRightsizer {
 		return nil
 	}
 	return n.OtherRightsizers
+}
+
+func (n *NamespaceAutomation) GetTakeover() *NamespaceAutomationTakeover {
+	if n == nil {
+		return nil
+	}
+	return n.Takeover
+}
+
+func (n *NamespaceAutomation) GetTakeoverSetBy() *string {
+	if n == nil {
+		return nil
+	}
+	return n.TakeoverSetBy
+}
+
+func (n *NamespaceAutomation) GetTakeoverSetAt() *time.Time {
+	if n == nil {
+		return nil
+	}
+	return n.TakeoverSetAt
+}
+
+func (n *NamespaceAutomation) GetTakeoverLabelOffAt() *time.Time {
+	if n == nil {
+		return nil
+	}
+	return n.TakeoverLabelOffAt
+}
+
+func (n *NamespaceAutomation) GetTakeoverFrozenAt() *time.Time {
+	if n == nil {
+		return nil
+	}
+	return n.TakeoverFrozenAt
+}
+
+func (n *NamespaceAutomation) GetTakeoverBlockers() []*TakeoverBlocker {
+	if n == nil {
+		return nil
+	}
+	return n.TakeoverBlockers
 }
 
 func (n *NamespaceAutomation) GetExtraProperties() map[string]interface{} {
@@ -43252,12 +43426,57 @@ func (n *NamespaceAutomation) SetOtherRightsizers(otherRightsizers []*OtherRight
 	n.require(namespaceAutomationFieldOtherRightsizers)
 }
 
+// SetTakeover sets the Takeover field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceAutomation) SetTakeover(takeover *NamespaceAutomationTakeover) {
+	n.Takeover = takeover
+	n.require(namespaceAutomationFieldTakeover)
+}
+
+// SetTakeoverSetBy sets the TakeoverSetBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceAutomation) SetTakeoverSetBy(takeoverSetBy *string) {
+	n.TakeoverSetBy = takeoverSetBy
+	n.require(namespaceAutomationFieldTakeoverSetBy)
+}
+
+// SetTakeoverSetAt sets the TakeoverSetAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceAutomation) SetTakeoverSetAt(takeoverSetAt *time.Time) {
+	n.TakeoverSetAt = takeoverSetAt
+	n.require(namespaceAutomationFieldTakeoverSetAt)
+}
+
+// SetTakeoverLabelOffAt sets the TakeoverLabelOffAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceAutomation) SetTakeoverLabelOffAt(takeoverLabelOffAt *time.Time) {
+	n.TakeoverLabelOffAt = takeoverLabelOffAt
+	n.require(namespaceAutomationFieldTakeoverLabelOffAt)
+}
+
+// SetTakeoverFrozenAt sets the TakeoverFrozenAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceAutomation) SetTakeoverFrozenAt(takeoverFrozenAt *time.Time) {
+	n.TakeoverFrozenAt = takeoverFrozenAt
+	n.require(namespaceAutomationFieldTakeoverFrozenAt)
+}
+
+// SetTakeoverBlockers sets the TakeoverBlockers field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceAutomation) SetTakeoverBlockers(takeoverBlockers []*TakeoverBlocker) {
+	n.TakeoverBlockers = takeoverBlockers
+	n.require(namespaceAutomationFieldTakeoverBlockers)
+}
+
 func (n *NamespaceAutomation) UnmarshalJSON(data []byte) error {
 	type embed NamespaceAutomation
 	var unmarshaler = struct {
 		embed
-		ModeSetAt  *internal.DateTime `json:"mode_set_at,omitempty"`
-		TurnedOnAt *internal.DateTime `json:"turned_on_at,omitempty"`
+		ModeSetAt          *internal.DateTime `json:"mode_set_at,omitempty"`
+		TurnedOnAt         *internal.DateTime `json:"turned_on_at,omitempty"`
+		TakeoverSetAt      *internal.DateTime `json:"takeover_set_at,omitempty"`
+		TakeoverLabelOffAt *internal.DateTime `json:"takeover_label_off_at,omitempty"`
+		TakeoverFrozenAt   *internal.DateTime `json:"takeover_frozen_at,omitempty"`
 	}{
 		embed: embed(*n),
 	}
@@ -43267,6 +43486,9 @@ func (n *NamespaceAutomation) UnmarshalJSON(data []byte) error {
 	*n = NamespaceAutomation(unmarshaler.embed)
 	n.ModeSetAt = unmarshaler.ModeSetAt.TimePtr()
 	n.TurnedOnAt = unmarshaler.TurnedOnAt.TimePtr()
+	n.TakeoverSetAt = unmarshaler.TakeoverSetAt.TimePtr()
+	n.TakeoverLabelOffAt = unmarshaler.TakeoverLabelOffAt.TimePtr()
+	n.TakeoverFrozenAt = unmarshaler.TakeoverFrozenAt.TimePtr()
 	extraProperties, err := internal.ExtractExtraProperties(data, *n)
 	if err != nil {
 		return err
@@ -43280,12 +43502,18 @@ func (n *NamespaceAutomation) MarshalJSON() ([]byte, error) {
 	type embed NamespaceAutomation
 	var marshaler = struct {
 		embed
-		ModeSetAt  *internal.DateTime `json:"mode_set_at,omitempty"`
-		TurnedOnAt *internal.DateTime `json:"turned_on_at,omitempty"`
+		ModeSetAt          *internal.DateTime `json:"mode_set_at,omitempty"`
+		TurnedOnAt         *internal.DateTime `json:"turned_on_at,omitempty"`
+		TakeoverSetAt      *internal.DateTime `json:"takeover_set_at,omitempty"`
+		TakeoverLabelOffAt *internal.DateTime `json:"takeover_label_off_at,omitempty"`
+		TakeoverFrozenAt   *internal.DateTime `json:"takeover_frozen_at,omitempty"`
 	}{
-		embed:      embed(*n),
-		ModeSetAt:  internal.NewOptionalDateTime(n.ModeSetAt),
-		TurnedOnAt: internal.NewOptionalDateTime(n.TurnedOnAt),
+		embed:              embed(*n),
+		ModeSetAt:          internal.NewOptionalDateTime(n.ModeSetAt),
+		TurnedOnAt:         internal.NewOptionalDateTime(n.TurnedOnAt),
+		TakeoverSetAt:      internal.NewOptionalDateTime(n.TakeoverSetAt),
+		TakeoverLabelOffAt: internal.NewOptionalDateTime(n.TakeoverLabelOffAt),
+		TakeoverFrozenAt:   internal.NewOptionalDateTime(n.TakeoverFrozenAt),
 	}
 	explicitMarshaler := internal.HandleExplicitFields(marshaler, n.explicitFields)
 	return json.Marshal(explicitMarshaler)
@@ -43527,6 +43755,29 @@ func NewNamespaceAutomationScopeSourceFromString(s string) (NamespaceAutomationS
 }
 
 func (n NamespaceAutomationScopeSource) Ptr() *NamespaceAutomationScopeSource {
+	return &n
+}
+
+// taken_over once an admin took it over from another rightsizer: new pods start at its containers' baselines whatever the mode
+type NamespaceAutomationTakeover string
+
+const (
+	NamespaceAutomationTakeoverOff       NamespaceAutomationTakeover = "off"
+	NamespaceAutomationTakeoverTakenOver NamespaceAutomationTakeover = "taken_over"
+)
+
+func NewNamespaceAutomationTakeoverFromString(s string) (NamespaceAutomationTakeover, error) {
+	switch s {
+	case "off":
+		return NamespaceAutomationTakeoverOff, nil
+	case "taken_over":
+		return NamespaceAutomationTakeoverTakenOver, nil
+	}
+	var t NamespaceAutomationTakeover
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (n NamespaceAutomationTakeover) Ptr() *NamespaceAutomationTakeover {
 	return &n
 }
 
@@ -43855,33 +44106,34 @@ var (
 	namespaceItemFieldCost                  = big.NewInt(1 << 4)
 	namespaceItemFieldCostUnknownReason     = big.NewInt(1 << 5)
 	namespaceItemFieldCostShare             = big.NewInt(1 << 6)
-	namespaceItemFieldCostChangePct         = big.NewInt(1 << 7)
-	namespaceItemFieldCPUCost               = big.NewInt(1 << 8)
-	namespaceItemFieldMemoryCost            = big.NewInt(1 << 9)
-	namespaceItemFieldGpuCost               = big.NewInt(1 << 10)
-	namespaceItemFieldStorageCost           = big.NewInt(1 << 11)
-	namespaceItemFieldNetworkCost           = big.NewInt(1 << 12)
-	namespaceItemFieldCostNet               = big.NewInt(1 << 13)
-	namespaceItemFieldCPUCostNet            = big.NewInt(1 << 14)
-	namespaceItemFieldMemoryCostNet         = big.NewInt(1 << 15)
-	namespaceItemFieldGpuCostNet            = big.NewInt(1 << 16)
-	namespaceItemFieldStorageCostNet        = big.NewInt(1 << 17)
-	namespaceItemFieldNetworkCostNet        = big.NewInt(1 << 18)
-	namespaceItemFieldRequestsAvg           = big.NewInt(1 << 19)
-	namespaceItemFieldWaste                 = big.NewInt(1 << 20)
-	namespaceItemFieldNetwork               = big.NewInt(1 << 21)
-	namespaceItemFieldReliability           = big.NewInt(1 << 22)
-	namespaceItemFieldLabelValues           = big.NewInt(1 << 23)
-	namespaceItemFieldStorageRequestBytes   = big.NewInt(1 << 24)
-	namespaceItemFieldCPURequestCores       = big.NewInt(1 << 25)
-	namespaceItemFieldCPUUsageCores         = big.NewInt(1 << 26)
-	namespaceItemFieldCPUEfficiency         = big.NewInt(1 << 27)
-	namespaceItemFieldMemoryRequestBytes    = big.NewInt(1 << 28)
-	namespaceItemFieldMemoryUsageBytes      = big.NewInt(1 << 29)
-	namespaceItemFieldMemoryEfficiency      = big.NewInt(1 << 30)
-	namespaceItemFieldWorkloadCount         = big.NewInt(1 << 31)
-	namespaceItemFieldRecommendations       = big.NewInt(1 << 32)
-	namespaceItemFieldRecommendationsSource = big.NewInt(1 << 33)
+	namespaceItemFieldRequestShare          = big.NewInt(1 << 7)
+	namespaceItemFieldCostChangePct         = big.NewInt(1 << 8)
+	namespaceItemFieldCPUCost               = big.NewInt(1 << 9)
+	namespaceItemFieldMemoryCost            = big.NewInt(1 << 10)
+	namespaceItemFieldGpuCost               = big.NewInt(1 << 11)
+	namespaceItemFieldStorageCost           = big.NewInt(1 << 12)
+	namespaceItemFieldNetworkCost           = big.NewInt(1 << 13)
+	namespaceItemFieldCostNet               = big.NewInt(1 << 14)
+	namespaceItemFieldCPUCostNet            = big.NewInt(1 << 15)
+	namespaceItemFieldMemoryCostNet         = big.NewInt(1 << 16)
+	namespaceItemFieldGpuCostNet            = big.NewInt(1 << 17)
+	namespaceItemFieldStorageCostNet        = big.NewInt(1 << 18)
+	namespaceItemFieldNetworkCostNet        = big.NewInt(1 << 19)
+	namespaceItemFieldRequestsAvg           = big.NewInt(1 << 20)
+	namespaceItemFieldWaste                 = big.NewInt(1 << 21)
+	namespaceItemFieldNetwork               = big.NewInt(1 << 22)
+	namespaceItemFieldReliability           = big.NewInt(1 << 23)
+	namespaceItemFieldLabelValues           = big.NewInt(1 << 24)
+	namespaceItemFieldStorageRequestBytes   = big.NewInt(1 << 25)
+	namespaceItemFieldCPURequestCores       = big.NewInt(1 << 26)
+	namespaceItemFieldCPUUsageCores         = big.NewInt(1 << 27)
+	namespaceItemFieldCPUEfficiency         = big.NewInt(1 << 28)
+	namespaceItemFieldMemoryRequestBytes    = big.NewInt(1 << 29)
+	namespaceItemFieldMemoryUsageBytes      = big.NewInt(1 << 30)
+	namespaceItemFieldMemoryEfficiency      = big.NewInt(1 << 31)
+	namespaceItemFieldWorkloadCount         = big.NewInt(1 << 32)
+	namespaceItemFieldRecommendations       = big.NewInt(1 << 33)
+	namespaceItemFieldRecommendationsSource = big.NewInt(1 << 34)
 )
 
 type NamespaceItem struct {
@@ -43896,6 +44148,8 @@ type NamespaceItem struct {
 	// Why the cost total beside it is null, and null when it is not. compute_unpriced: its own containers, or its cluster's nodes, ran and the bill has priced none of them, yet or at all, as the cluster's bill_status tells; its storage and data transfer alone are no total. nothing_priced: its cluster's nodes are priced, or did not run, and nothing of it carries a priced cost
 	CostUnknownReason *NamespaceItemCostUnknownReason `json:"cost_unknown_reason,omitempty" url:"cost_unknown_reason,omitempty"`
 	CostShare         *float64                        `json:"cost_share,omitempty" url:"cost_share,omitempty"`
+	// Its share, from 0 to 1, of the CPU and memory the listed clusters' containers requested in the window: the average of its share of each resource they requested any of, the basis the cost series' requested metric shares out. Whatever the search or the recommendations chips keep, so it does not move with them. Null for __idle__ and __node__, and when nothing was requested
+	RequestShare *float64 `json:"request_share,omitempty" url:"request_share,omitempty"`
 	// Against the previous window of equal length, before any idle is shared
 	CostChangePct *float64 `json:"cost_change_pct,omitempty" url:"cost_change_pct,omitempty"`
 	CPUCost       *float64 `json:"cpu_cost,omitempty" url:"cpu_cost,omitempty"`
@@ -43989,6 +44243,13 @@ func (n *NamespaceItem) GetCostShare() *float64 {
 		return nil
 	}
 	return n.CostShare
+}
+
+func (n *NamespaceItem) GetRequestShare() *float64 {
+	if n == nil {
+		return nil
+	}
+	return n.RequestShare
 }
 
 func (n *NamespaceItem) GetCostChangePct() *float64 {
@@ -44241,6 +44502,13 @@ func (n *NamespaceItem) SetCostUnknownReason(costUnknownReason *NamespaceItemCos
 func (n *NamespaceItem) SetCostShare(costShare *float64) {
 	n.CostShare = costShare
 	n.require(namespaceItemFieldCostShare)
+}
+
+// SetRequestShare sets the RequestShare field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceItem) SetRequestShare(requestShare *float64) {
+	n.RequestShare = requestShare
+	n.require(namespaceItemFieldRequestShare)
 }
 
 // SetCostChangePct sets the CostChangePct field and marks it as non-optional;
@@ -45058,7 +45326,7 @@ type NamespaceReliability struct {
 	// At most the pods moved off a node that a Spot interruption, an instance event or a Karpenter disruption (consolidation, drift, expiry) removed. They leave through the Eviction API, so evictions does not count them. Per removal, each workload counts the most of its pods that ran on the node at once in the hour the removal began, a pod that left the node earlier in that hour included. DaemonSet and static pods go with their node and are not counted, nor is a removal that began while the agent was not watching. A day is measured from agent 0.6.2 on, when every watched hour a removal's pods are read from carries the pods' peaks. Null unless the row's cluster measured every day of the window it reported
 	DrainedPods    *int `json:"drained_pods,omitempty" url:"drained_pods,omitempty"`
 	PendingSeconds *int `json:"pending_seconds,omitempty" url:"pending_seconds,omitempty"`
-	// Current workloads at high risk: an OOM kill, an eviction or no ready replica. Medium and low never count. An ephemeral one, a pull-request environment, counts only with include_ephemeral
+	// Current workloads at high risk: an OOM kill, an eviction, no ready replica in two batches in a row, or a crash loop. Medium and low never count. An ephemeral one, a pull-request environment, counts only with include_ephemeral
 	AtRisk *int `json:"at_risk,omitempty" url:"at_risk,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
@@ -46630,7 +46898,7 @@ var (
 )
 
 type NoReadyShare struct {
-	// Current workloads with replicas and none ready (the no_ready_replica indicator)
+	// Current workloads with replicas and none ready in two batches in a row (the no_ready_replica and crash_looping indicators)
 	Workloads int `json:"workloads" url:"workloads"`
 	// Their restarts in the window: a crash loop restarts every few minutes
 	Restarts int `json:"restarts" url:"restarts"`
@@ -47846,7 +48114,7 @@ var (
 type NodeFacets struct {
 	// Rows per value over the rows every other filter keeps, so a chip reads what choosing it gives
 	PurchaseType []*FacetCount `json:"purchase_type" url:"purchase_type"`
-	// Nodes by their one status: not_ready, else pressure, else cordoned, else ready; a removed node under none
+	// Nodes by their one status: not_ready, else pressure, else cordoned, else ready; a removed node under interrupted when an interruption fired on it since the window's first day, else under none
 	Status []*FacetCount `json:"status,omitempty" url:"status,omitempty"`
 	// current for a node still in the cluster, removed for one gone from it that the list still shows
 	State []*FacetCount `json:"state,omitempty" url:"state,omitempty"`
@@ -48616,7 +48884,7 @@ type NodeItem struct {
 	NodeGroup *string           `json:"node_group,omitempty" url:"node_group,omitempty"`
 	// As the node is labelled: spot or on-demand
 	CapacityType *string `json:"capacity_type,omitempty" url:"capacity_type,omitempty"`
-	// From the bill when priced, else from the label
+	// Spot from its label, else how the bill bought its name's On-Demand capacity on the latest day it ran that the bill priced, else unknown
 	PurchaseType NodeItemPurchaseType `json:"purchase_type" url:"purchase_type"`
 	// CPU, memory, ephemeral storage, GPU and pod slots
 	Capacity               *ResourceList `json:"capacity" url:"capacity"`
@@ -48625,10 +48893,11 @@ type NodeItem struct {
 	CapacityMemoryBytes    *int          `json:"capacity_memory_bytes,omitempty" url:"capacity_memory_bytes,omitempty"`
 	AllocatableCPUMilli    *int          `json:"allocatable_cpu_milli,omitempty" url:"allocatable_cpu_milli,omitempty"`
 	AllocatableMemoryBytes *int          `json:"allocatable_memory_bytes,omitempty" url:"allocatable_memory_bytes,omitempty"`
-	RequestedCPUMilli      *int          `json:"requested_cpu_milli,omitempty" url:"requested_cpu_milli,omitempty"`
-	RequestedMemoryBytes   *int          `json:"requested_memory_bytes,omitempty" url:"requested_memory_bytes,omitempty"`
-	UsedCPUMilli           *int          `json:"used_cpu_milli,omitempty" url:"used_cpu_milli,omitempty"`
-	UsedMemoryBytes        *int          `json:"used_memory_bytes,omitempty" url:"used_memory_bytes,omitempty"`
+	// What its pods hold now: the pods of the latest batch on it, at their own requests; null for a node gone from the cluster
+	RequestedCPUMilli    *int `json:"requested_cpu_milli,omitempty" url:"requested_cpu_milli,omitempty"`
+	RequestedMemoryBytes *int `json:"requested_memory_bytes,omitempty" url:"requested_memory_bytes,omitempty"`
+	UsedCPUMilli         *int `json:"used_cpu_milli,omitempty" url:"used_cpu_milli,omitempty"`
+	UsedMemoryBytes      *int `json:"used_memory_bytes,omitempty" url:"used_memory_bytes,omitempty"`
 	// The highest hourly p95 in the window
 	UsedCPUP95Milli     *int     `json:"used_cpu_p95_milli,omitempty" url:"used_cpu_p95_milli,omitempty"`
 	UsedMemoryP95Bytes  *int     `json:"used_memory_p95_bytes,omitempty" url:"used_memory_p95_bytes,omitempty"`
@@ -48649,8 +48918,9 @@ type NodeItem struct {
 	// As of the latest hour reported
 	Filesystem *NodeFilesystemUse `json:"filesystem" url:"filesystem"`
 	// As of the latest hour reported
-	Pids     *PidUse `json:"pids" url:"pids"`
-	PodCount int     `json:"pod_count" url:"pod_count"`
+	Pids *PidUse `json:"pids" url:"pids"`
+	// The pods of the latest batch on it
+	PodCount int `json:"pod_count" url:"pod_count"`
 	// Pods running over allocatable pod slots
 	PodSlotsUsed *float64 `json:"pod_slots_used,omitempty" url:"pod_slots_used,omitempty"`
 	// From agent 0.3.0 on
@@ -48663,7 +48933,7 @@ type NodeItem struct {
 	DoNotDisrupt *bool `json:"do_not_disrupt,omitempty" url:"do_not_disrupt,omitempty"`
 	// Current pods that keep the autoscaler from removing the node; a static pod does not count. 0 on a node no autoscaler that consolidates removes: a node group's node while Cluster Autoscaler does not run, or a node in neither a NodePool nor a node group
 	BlockingPods *int `json:"blocking_pods,omitempty" url:"blocking_pods,omitempty"`
-	// The latest SpotInterrupted or CapacityReservationInstanceInterrupted event on the node
+	// The latest SpotInterrupted or CapacityReservationInstanceInterrupted event on the node since the window's first day; a removed node with one has the status interrupted
 	InterruptedAt *time.Time `json:"interrupted_at,omitempty" url:"interrupted_at,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
@@ -49449,7 +49719,7 @@ func (n *NodeItem) String() string {
 	return fmt.Sprintf("%#v", n)
 }
 
-// From the bill when priced, else from the label
+// Spot from its label, else how the bill bought its name's On-Demand capacity on the latest day it ran that the bill priced, else unknown
 type NodeItemPurchaseType string
 
 const (
@@ -50708,7 +50978,7 @@ type NodePoolNode struct {
 	CapacityType *string `json:"capacity_type,omitempty" url:"capacity_type,omitempty"`
 	Zone         *string `json:"zone,omitempty" url:"zone,omitempty"`
 	Ready        bool    `json:"ready" url:"ready"`
-	// What its pods requested in the latest live hour
+	// What its pods hold now, as the Nodes list reads it
 	RequestedCPUMilli      *int `json:"requested_cpu_milli,omitempty" url:"requested_cpu_milli,omitempty"`
 	RequestedMemoryBytes   *int `json:"requested_memory_bytes,omitempty" url:"requested_memory_bytes,omitempty"`
 	AllocatableCPUMilli    *int `json:"allocatable_cpu_milli,omitempty" url:"allocatable_cpu_milli,omitempty"`
@@ -51075,10 +51345,12 @@ var (
 	nodePoolUsageFieldIdleCost                  = big.NewInt(1 << 28)
 	nodePoolUsageFieldCostPerHour               = big.NewInt(1 << 29)
 	nodePoolUsageFieldPurchaseTypes             = big.NewInt(1 << 30)
-	nodePoolUsageFieldKarpenter                 = big.NewInt(1 << 31)
-	nodePoolUsageFieldSeries                    = big.NewInt(1 << 32)
-	nodePoolUsageFieldFindingsCount             = big.NewInt(1 << 33)
-	nodePoolUsageFieldFitMonthlyDifference      = big.NewInt(1 << 34)
+	nodePoolUsageFieldAllowedCapacityTypes      = big.NewInt(1 << 31)
+	nodePoolUsageFieldRanCapacityTypes          = big.NewInt(1 << 32)
+	nodePoolUsageFieldKarpenter                 = big.NewInt(1 << 33)
+	nodePoolUsageFieldSeries                    = big.NewInt(1 << 34)
+	nodePoolUsageFieldFindingsCount             = big.NewInt(1 << 35)
+	nodePoolUsageFieldFitMonthlyDifference      = big.NewInt(1 << 36)
 )
 
 type NodePoolUsage struct {
@@ -51087,14 +51359,14 @@ type NodePoolUsage struct {
 	// Set when grouped by instance type
 	InstanceType *string `json:"instance_type,omitempty" url:"instance_type,omitempty"`
 	Arch         *string `json:"arch,omitempty" url:"arch,omitempty"`
-	// Nodes that ran in the group in the window
+	// The instances the agent saw in the group in the window's hours, as the Nodes list lists them
 	Nodes     int `json:"nodes" url:"nodes"`
 	SpotNodes int `json:"spot_nodes" url:"spot_nodes"`
 	// Nodes in the group running now, as the cluster's node_count counts them
 	NodesNow *int `json:"nodes_now,omitempty" url:"nodes_now,omitempty"`
 	// What the group's nodes running now can give pods, from each node's allocatable
 	CPUAllocatableMilliNow *int `json:"cpu_allocatable_milli_now,omitempty" url:"cpu_allocatable_milli_now,omitempty"`
-	// What the pods on the group's nodes running now request, in the latest hour the agent reported, as the Nodes list's rows read it; null while no pod on them was placed in that hour
+	// What the pods on the group's nodes running now hold: the pods of the latest batch, at their own requests, as the Nodes list's rows and the fleet's clusters read it; null while no pod with a request runs on them
 	CPURequestedMilliNow      *int `json:"cpu_requested_milli_now,omitempty" url:"cpu_requested_milli_now,omitempty"`
 	MemoryAllocatableBytesNow *int `json:"memory_allocatable_bytes_now,omitempty" url:"memory_allocatable_bytes_now,omitempty"`
 	MemoryRequestedBytesNow   *int `json:"memory_requested_bytes_now,omitempty" url:"memory_requested_bytes_now,omitempty"`
@@ -51127,7 +51399,11 @@ type NodePoolUsage struct {
 	// Cost per node-hour
 	CostPerHour   *float64             `json:"cost_per_hour,omitempty" url:"cost_per_hour,omitempty"`
 	PurchaseTypes []*PurchaseTypeHours `json:"purchase_types" url:"purchase_types"`
-	Karpenter     *KarpenterPool       `json:"karpenter,omitempty" url:"karpenter,omitempty"`
+	// The capacity types the group's Karpenter NodePool, self-managed or EKS Auto Mode, may launch as of the latest batch, of on-demand, reserved (a capacity reservation) and spot, sorted: what its karpenter.sh/capacity-type requirements and template labels leave. A NodePool that names no capacity type may launch all three, Karpenter's default. Null for a managed node group or any other group, whose capacity type the agent does not report, for a NodePool the latest batch no longer has, and for an instance type
+	AllowedCapacityTypes []string `json:"allowed_capacity_types,omitempty" url:"allowed_capacity_types,omitempty"`
+	// The capacity types the group's nodes ran on in the window's hours, sorted: on-demand, spot, and unknown for an hour whose node carried no capacity-type label. A node in a capacity reservation reads on-demand, as the agent reads its label. Empty for a group the agent saw no hour of
+	RanCapacityTypes []string       `json:"ran_capacity_types" url:"ran_capacity_types"`
+	Karpenter        *KarpenterPool `json:"karpenter,omitempty" url:"karpenter,omitempty"`
 	// Day by day, with series=day
 	Series []*NodePoolDay `json:"series,omitempty" url:"series,omitempty"`
 	// What the worker's latest review of the pool found
@@ -51357,6 +51633,20 @@ func (n *NodePoolUsage) GetPurchaseTypes() []*PurchaseTypeHours {
 		return nil
 	}
 	return n.PurchaseTypes
+}
+
+func (n *NodePoolUsage) GetAllowedCapacityTypes() []string {
+	if n == nil {
+		return nil
+	}
+	return n.AllowedCapacityTypes
+}
+
+func (n *NodePoolUsage) GetRanCapacityTypes() []string {
+	if n == nil {
+		return nil
+	}
+	return n.RanCapacityTypes
 }
 
 func (n *NodePoolUsage) GetKarpenter() *KarpenterPool {
@@ -51616,6 +51906,20 @@ func (n *NodePoolUsage) SetCostPerHour(costPerHour *float64) {
 func (n *NodePoolUsage) SetPurchaseTypes(purchaseTypes []*PurchaseTypeHours) {
 	n.PurchaseTypes = purchaseTypes
 	n.require(nodePoolUsageFieldPurchaseTypes)
+}
+
+// SetAllowedCapacityTypes sets the AllowedCapacityTypes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NodePoolUsage) SetAllowedCapacityTypes(allowedCapacityTypes []string) {
+	n.AllowedCapacityTypes = allowedCapacityTypes
+	n.require(nodePoolUsageFieldAllowedCapacityTypes)
+}
+
+// SetRanCapacityTypes sets the RanCapacityTypes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NodePoolUsage) SetRanCapacityTypes(ranCapacityTypes []string) {
+	n.RanCapacityTypes = ranCapacityTypes
+	n.require(nodePoolUsageFieldRanCapacityTypes)
 }
 
 // SetKarpenter sets the Karpenter field and marks it as non-optional;
@@ -58237,15 +58541,15 @@ var (
 
 type PurchaseTypeShare struct {
 	PurchaseType PurchaseTypeSharePurchaseType `json:"purchase_type" url:"purchase_type"`
-	// Nodes that ran in the window
+	// Instances that ran in the window under this purchase type
 	Nodes int `json:"nodes" url:"nodes"`
-	// Node-hours on the bill, for commitment coverage
+	// The hours the agent watched the nodes run in the window, priced or not: spot for a Spot label, else how the bill bought the name's On-Demand capacity that day, else unknown. A cluster the agent did not watch keeps its bill's hours; null where only the current nodes' labels count
 	NodeHours *float64 `json:"node_hours,omitempty" url:"node_hours,omitempty"`
-	// Null where the nodes are counted from their labels, not the bill
+	// The bill's, split by the purchase type each part was charged as; null where it priced none
 	Cost *float64 `json:"cost,omitempty" url:"cost,omitempty"`
 	// The same after the enterprise discount and the commitments; a day rolled up before the net basis counts at its amortized cost
 	CostNet *float64 `json:"cost_net,omitempty" url:"cost_net,omitempty"`
-	// Nodes running now, by the bill's purchase type, else spot from a Spot label, else unknown
+	// Nodes running now: spot from a Spot label, else how the bill last bought their On-Demand capacity, else unknown
 	NodesNow *int `json:"nodes_now,omitempty" url:"nodes_now,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
@@ -61852,7 +62156,7 @@ type ReliabilityTotals struct {
 	// At most the pods moved off a node that a Spot interruption, an instance event or a Karpenter disruption (consolidation, drift, expiry) removed. They leave through the Eviction API, so evictions does not count them. Per removal, each workload counts the most of its pods that ran on the node at once in the hour the removal began, a pod that left the node earlier in that hour included. DaemonSet and static pods go with their node and are not counted, nor is a removal that began while the agent was not watching. A day is measured from agent 0.6.2 on, when every watched hour a removal's pods are read from carries the pods' peaks. Null unless every day of the window watched measured it, so it never counts part of the window
 	DrainedPods     *int    `json:"drained_pods,omitempty" url:"drained_pods,omitempty"`
 	PendingPodHours float64 `json:"pending_pod_hours" url:"pending_pod_hours"`
-	// Current workloads at high risk: an OOM kill, an eviction or no ready replica. Medium and low never count. An ephemeral one, a pull-request environment, counts only with include_ephemeral
+	// Current workloads at high risk: an OOM kill, an eviction, no ready replica in two batches in a row, or a crash loop. Medium and low never count. An ephemeral one, a pull-request environment, counts only with include_ephemeral
 	WorkloadsAtRisk int `json:"workloads_at_risk" url:"workloads_at_risk"`
 	// Current containers whose pods run, or would run, with no CPU or no memory request
 	ContainersWithoutRequests int `json:"containers_without_requests" url:"containers_without_requests"`
@@ -62308,21 +62612,25 @@ func (r *RemovedMemberResponse) String() string {
 var (
 	replicaScalerFieldUtilizationTargets = big.NewInt(1 << 0)
 	replicaScalerFieldCustomMetric       = big.NewInt(1 << 1)
-	replicaScalerFieldHoursAtMax         = big.NewInt(1 << 2)
-	replicaScalerFieldAtMaxShare         = big.NewInt(1 << 3)
-	replicaScalerFieldReplicas           = big.NewInt(1 << 4)
-	replicaScalerFieldKind               = big.NewInt(1 << 5)
-	replicaScalerFieldNamespace          = big.NewInt(1 << 6)
-	replicaScalerFieldName               = big.NewInt(1 << 7)
-	replicaScalerFieldSpec               = big.NewInt(1 << 8)
+	replicaScalerFieldScalerHoursWatched = big.NewInt(1 << 2)
+	replicaScalerFieldHoursAtMax         = big.NewInt(1 << 3)
+	replicaScalerFieldAtMaxShare         = big.NewInt(1 << 4)
+	replicaScalerFieldReplicas           = big.NewInt(1 << 5)
+	replicaScalerFieldKind               = big.NewInt(1 << 6)
+	replicaScalerFieldNamespace          = big.NewInt(1 << 7)
+	replicaScalerFieldName               = big.NewInt(1 << 8)
+	replicaScalerFieldSpec               = big.NewInt(1 << 9)
 )
 
 type ReplicaScaler struct {
 	UtilizationTargets []*UtilizationTarget `json:"utilization_targets" url:"utilization_targets"`
 	// Scales on something other than CPU or memory
-	CustomMetric bool    `json:"custom_metric" url:"custom_metric"`
-	HoursAtMax   float64 `json:"hours_at_max" url:"hours_at_max"`
-	// Of the hours the agent measured it in the window
+	CustomMetric bool `json:"custom_metric" url:"custom_metric"`
+	// Hours the agent watched this autoscaler in the window, each hour at most the seconds it watched the cluster: the window's hours_watched for one there throughout, fewer for one that appeared or went part way through
+	ScalerHoursWatched float64 `json:"scaler_hours_watched" url:"scaler_hours_watched"`
+	// Hours of scaler_hours_watched it sat at max replicas
+	HoursAtMax float64 `json:"hours_at_max" url:"hours_at_max"`
+	// hours_at_max over scaler_hours_watched, a share of this autoscaler's own hours, not of the window's; null when the agent watched it for none
 	AtMaxShare *float64 `json:"at_max_share,omitempty" url:"at_max_share,omitempty"`
 	// Over the window; null when no hour was measured
 	Replicas  *ReplicaSpan   `json:"replicas,omitempty" url:"replicas,omitempty"`
@@ -62350,6 +62658,13 @@ func (r *ReplicaScaler) GetCustomMetric() bool {
 		return false
 	}
 	return r.CustomMetric
+}
+
+func (r *ReplicaScaler) GetScalerHoursWatched() float64 {
+	if r == nil {
+		return 0
+	}
+	return r.ScalerHoursWatched
 }
 
 func (r *ReplicaScaler) GetHoursAtMax() float64 {
@@ -62427,6 +62742,13 @@ func (r *ReplicaScaler) SetUtilizationTargets(utilizationTargets []*UtilizationT
 func (r *ReplicaScaler) SetCustomMetric(customMetric bool) {
 	r.CustomMetric = customMetric
 	r.require(replicaScalerFieldCustomMetric)
+}
+
+// SetScalerHoursWatched sets the ScalerHoursWatched field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ReplicaScaler) SetScalerHoursWatched(scalerHoursWatched float64) {
+	r.ScalerHoursWatched = scalerHoursWatched
+	r.require(replicaScalerFieldScalerHoursWatched)
 }
 
 // SetHoursAtMax sets the HoursAtMax field and marks it as non-optional;
@@ -62996,7 +63318,7 @@ var (
 type ResourceCapacity struct {
 	// The current nodes' allocatable
 	Allocatable *int `json:"allocatable,omitempty" url:"allocatable,omitempty"`
-	// Each placed pod's own requests, init containers and overhead in
+	// What the pods hold now: each pod of the latest batch on a node it reported, at its own requests, init containers and overhead in, as the node groups and the Nodes list read it
 	Requested *int `json:"requested,omitempty" url:"requested,omitempty"`
 	// Each placed pod's containers' limits, at the values the pods held; a container without one adds nothing
 	Limits *int `json:"limits,omitempty" url:"limits,omitempty"`
@@ -71004,6 +71326,130 @@ func (s SetSizingPolicyRequestPolicy) Ptr() *SetSizingPolicyRequestPolicy {
 }
 
 var (
+	setTakeoverRequestFieldTakeover = big.NewInt(1 << 0)
+	setTakeoverRequestFieldVersion  = big.NewInt(1 << 1)
+)
+
+type SetTakeoverRequest struct {
+	// taken_over marks it, or moves the mark to now while its baseline has not frozen; off ends it
+	Takeover SetTakeoverRequestTakeover `json:"takeover" url:"takeover"`
+	Version  int                        `json:"version" url:"version"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SetTakeoverRequest) GetTakeover() SetTakeoverRequestTakeover {
+	if s == nil {
+		return ""
+	}
+	return s.Takeover
+}
+
+func (s *SetTakeoverRequest) GetVersion() int {
+	if s == nil {
+		return 0
+	}
+	return s.Version
+}
+
+func (s *SetTakeoverRequest) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *SetTakeoverRequest) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetTakeover sets the Takeover field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SetTakeoverRequest) SetTakeover(takeover SetTakeoverRequestTakeover) {
+	s.Takeover = takeover
+	s.require(setTakeoverRequestFieldTakeover)
+}
+
+// SetVersion sets the Version field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SetTakeoverRequest) SetVersion(version int) {
+	s.Version = version
+	s.require(setTakeoverRequestFieldVersion)
+}
+
+func (s *SetTakeoverRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler SetTakeoverRequest
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SetTakeoverRequest(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SetTakeoverRequest) MarshalJSON() ([]byte, error) {
+	type embed SetTakeoverRequest
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *SetTakeoverRequest) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+// taken_over marks it, or moves the mark to now while its baseline has not frozen; off ends it
+type SetTakeoverRequestTakeover string
+
+const (
+	SetTakeoverRequestTakeoverOff       SetTakeoverRequestTakeover = "off"
+	SetTakeoverRequestTakeoverTakenOver SetTakeoverRequestTakeover = "taken_over"
+)
+
+func NewSetTakeoverRequestTakeoverFromString(s string) (SetTakeoverRequestTakeover, error) {
+	switch s {
+	case "off":
+		return SetTakeoverRequestTakeoverOff, nil
+	case "taken_over":
+		return SetTakeoverRequestTakeoverTakenOver, nil
+	}
+	var t SetTakeoverRequestTakeover
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SetTakeoverRequestTakeover) Ptr() *SetTakeoverRequestTakeover {
+	return &s
+}
+
+var (
 	setWorkloadAutomationRequestFieldMode = big.NewInt(1 << 0)
 )
 
@@ -71906,6 +72352,120 @@ func (s *SizingPolicyResponse) MarshalJSON() ([]byte, error) {
 }
 
 func (s *SizingPolicyResponse) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+var (
+	snapshotRangeFieldNewest = big.NewInt(1 << 0)
+	snapshotRangeFieldOldest = big.NewInt(1 << 1)
+)
+
+type SnapshotRange struct {
+	// The latest batch of the cluster that reported last
+	Newest time.Time `json:"newest" url:"newest"`
+	// The latest batch of the cluster that reported longest ago
+	Oldest time.Time `json:"oldest" url:"oldest"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SnapshotRange) GetNewest() time.Time {
+	if s == nil {
+		return time.Time{}
+	}
+	return s.Newest
+}
+
+func (s *SnapshotRange) GetOldest() time.Time {
+	if s == nil {
+		return time.Time{}
+	}
+	return s.Oldest
+}
+
+func (s *SnapshotRange) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *SnapshotRange) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetNewest sets the Newest field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SnapshotRange) SetNewest(newest time.Time) {
+	s.Newest = newest
+	s.require(snapshotRangeFieldNewest)
+}
+
+// SetOldest sets the Oldest field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SnapshotRange) SetOldest(oldest time.Time) {
+	s.Oldest = oldest
+	s.require(snapshotRangeFieldOldest)
+}
+
+func (s *SnapshotRange) UnmarshalJSON(data []byte) error {
+	type embed SnapshotRange
+	var unmarshaler = struct {
+		embed
+		Newest *internal.DateTime `json:"newest"`
+		Oldest *internal.DateTime `json:"oldest"`
+	}{
+		embed: embed(*s),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*s = SnapshotRange(unmarshaler.embed)
+	s.Newest = unmarshaler.Newest.Time()
+	s.Oldest = unmarshaler.Oldest.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SnapshotRange) MarshalJSON() ([]byte, error) {
+	type embed SnapshotRange
+	var marshaler = struct {
+		embed
+		Newest *internal.DateTime `json:"newest"`
+		Oldest *internal.DateTime `json:"oldest"`
+	}{
+		embed:  embed(*s),
+		Newest: internal.NewDateTime(s.Newest),
+		Oldest: internal.NewDateTime(s.Oldest),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *SnapshotRange) String() string {
 	if s == nil {
 		return "<nil>"
 	}
@@ -75801,6 +76361,209 @@ func (t *Taint) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", t)
+}
+
+var (
+	takeoverBlockerFieldWorkloadKind = big.NewInt(1 << 0)
+	takeoverBlockerFieldWorkloadName = big.NewInt(1 << 1)
+	takeoverBlockerFieldContainer    = big.NewInt(1 << 2)
+	takeoverBlockerFieldReason       = big.NewInt(1 << 3)
+	takeoverBlockerFieldSince        = big.NewInt(1 << 4)
+)
+
+type TakeoverBlocker struct {
+	// Null for what holds the whole namespace
+	WorkloadKind *string `json:"workload_kind,omitempty" url:"workload_kind,omitempty"`
+	WorkloadName *string `json:"workload_name,omitempty" url:"workload_name,omitempty"`
+	Container    *string `json:"container,omitempty" url:"container,omitempty"`
+	// For the whole namespace: component_too_old (no automation component of 0.8.0 or later, so nothing is served), labelled_off (labelled levelfour.ai/automation=off), not_permitted (outside the component's RBAC), other_tool_label (it still carries the other tool's label, so it does not freeze, and once frozen the automation stays out), label_not_reported (until the freeze: the component reports no label, so it never freezes), unvouched (until the freeze: the component does not report which guard bases it vouched for, so it never freezes). For one container: unvouched (the component could not vouch for its guard basis, since most current pods do not hold it, so it does not freeze); kind_not_servable (not a Deployment's or a StatefulSet's, which the webhook cannot serve, so new pods get the template); no_baseline (no pod ran in the last 14 days, so new pods get the template, and the baselines cannot freeze); other_tool (until the freeze, its pods held a value only another tool explains after the mark)
+	Reason TakeoverBlockerReason `json:"reason" url:"reason"`
+	// For other_tool, when that value was first seen after the mark
+	Since *time.Time `json:"since,omitempty" url:"since,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TakeoverBlocker) GetWorkloadKind() *string {
+	if t == nil {
+		return nil
+	}
+	return t.WorkloadKind
+}
+
+func (t *TakeoverBlocker) GetWorkloadName() *string {
+	if t == nil {
+		return nil
+	}
+	return t.WorkloadName
+}
+
+func (t *TakeoverBlocker) GetContainer() *string {
+	if t == nil {
+		return nil
+	}
+	return t.Container
+}
+
+func (t *TakeoverBlocker) GetReason() TakeoverBlockerReason {
+	if t == nil {
+		return ""
+	}
+	return t.Reason
+}
+
+func (t *TakeoverBlocker) GetSince() *time.Time {
+	if t == nil {
+		return nil
+	}
+	return t.Since
+}
+
+func (t *TakeoverBlocker) GetExtraProperties() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.extraProperties
+}
+
+func (t *TakeoverBlocker) require(field *big.Int) {
+	if t.explicitFields == nil {
+		t.explicitFields = big.NewInt(0)
+	}
+	t.explicitFields.Or(t.explicitFields, field)
+}
+
+// SetWorkloadKind sets the WorkloadKind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TakeoverBlocker) SetWorkloadKind(workloadKind *string) {
+	t.WorkloadKind = workloadKind
+	t.require(takeoverBlockerFieldWorkloadKind)
+}
+
+// SetWorkloadName sets the WorkloadName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TakeoverBlocker) SetWorkloadName(workloadName *string) {
+	t.WorkloadName = workloadName
+	t.require(takeoverBlockerFieldWorkloadName)
+}
+
+// SetContainer sets the Container field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TakeoverBlocker) SetContainer(container *string) {
+	t.Container = container
+	t.require(takeoverBlockerFieldContainer)
+}
+
+// SetReason sets the Reason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TakeoverBlocker) SetReason(reason TakeoverBlockerReason) {
+	t.Reason = reason
+	t.require(takeoverBlockerFieldReason)
+}
+
+// SetSince sets the Since field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TakeoverBlocker) SetSince(since *time.Time) {
+	t.Since = since
+	t.require(takeoverBlockerFieldSince)
+}
+
+func (t *TakeoverBlocker) UnmarshalJSON(data []byte) error {
+	type embed TakeoverBlocker
+	var unmarshaler = struct {
+		embed
+		Since *internal.DateTime `json:"since,omitempty"`
+	}{
+		embed: embed(*t),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*t = TakeoverBlocker(unmarshaler.embed)
+	t.Since = unmarshaler.Since.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TakeoverBlocker) MarshalJSON() ([]byte, error) {
+	type embed TakeoverBlocker
+	var marshaler = struct {
+		embed
+		Since *internal.DateTime `json:"since,omitempty"`
+	}{
+		embed: embed(*t),
+		Since: internal.NewOptionalDateTime(t.Since),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, t.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (t *TakeoverBlocker) String() string {
+	if t == nil {
+		return "<nil>"
+	}
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
+}
+
+// For the whole namespace: component_too_old (no automation component of 0.8.0 or later, so nothing is served), labelled_off (labelled levelfour.ai/automation=off), not_permitted (outside the component's RBAC), other_tool_label (it still carries the other tool's label, so it does not freeze, and once frozen the automation stays out), label_not_reported (until the freeze: the component reports no label, so it never freezes), unvouched (until the freeze: the component does not report which guard bases it vouched for, so it never freezes). For one container: unvouched (the component could not vouch for its guard basis, since most current pods do not hold it, so it does not freeze); kind_not_servable (not a Deployment's or a StatefulSet's, which the webhook cannot serve, so new pods get the template); no_baseline (no pod ran in the last 14 days, so new pods get the template, and the baselines cannot freeze); other_tool (until the freeze, its pods held a value only another tool explains after the mark)
+type TakeoverBlockerReason string
+
+const (
+	TakeoverBlockerReasonComponentTooOld  TakeoverBlockerReason = "component_too_old"
+	TakeoverBlockerReasonLabelledOff      TakeoverBlockerReason = "labelled_off"
+	TakeoverBlockerReasonNotPermitted     TakeoverBlockerReason = "not_permitted"
+	TakeoverBlockerReasonOtherToolLabel   TakeoverBlockerReason = "other_tool_label"
+	TakeoverBlockerReasonLabelNotReported TakeoverBlockerReason = "label_not_reported"
+	TakeoverBlockerReasonUnvouched        TakeoverBlockerReason = "unvouched"
+	TakeoverBlockerReasonKindNotServable  TakeoverBlockerReason = "kind_not_servable"
+	TakeoverBlockerReasonNoBaseline       TakeoverBlockerReason = "no_baseline"
+	TakeoverBlockerReasonOtherTool        TakeoverBlockerReason = "other_tool"
+)
+
+func NewTakeoverBlockerReasonFromString(s string) (TakeoverBlockerReason, error) {
+	switch s {
+	case "component_too_old":
+		return TakeoverBlockerReasonComponentTooOld, nil
+	case "labelled_off":
+		return TakeoverBlockerReasonLabelledOff, nil
+	case "not_permitted":
+		return TakeoverBlockerReasonNotPermitted, nil
+	case "other_tool_label":
+		return TakeoverBlockerReasonOtherToolLabel, nil
+	case "label_not_reported":
+		return TakeoverBlockerReasonLabelNotReported, nil
+	case "unvouched":
+		return TakeoverBlockerReasonUnvouched, nil
+	case "kind_not_servable":
+		return TakeoverBlockerReasonKindNotServable, nil
+	case "no_baseline":
+		return TakeoverBlockerReasonNoBaseline, nil
+	case "other_tool":
+		return TakeoverBlockerReasonOtherTool, nil
+	}
+	var t TakeoverBlockerReason
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (t TakeoverBlockerReason) Ptr() *TakeoverBlockerReason {
+	return &t
 }
 
 // A text part of a message.
@@ -83341,11 +84104,11 @@ type UtilizationTarget struct {
 	Target *string `json:"target,omitempty" url:"target,omitempty"`
 	// What the targeted workload's pods, or the one container, used of their requests over the window, in percent as target is, the measure an HPA scales on: each hour weighed by its pod-seconds, over the hours with a reading and a request above 0. A pod hour counts only when every container has both, as an HPA reads no pod missing one. Null when no hour of the window does
 	Measured *float64 `json:"measured,omitempty" url:"measured,omitempty"`
-	// The hours measured covers
+	// The hours the agent watched in the hours measured covers, from the seconds it watched in each, as the window's hours_watched adds them: an hour watched for 600 seconds counts 0.1667, never more than hours_watched
 	MeasuredHours *float64 `json:"measured_hours,omitempty" url:"measured_hours,omitempty"`
 	// measured over only the hours the autoscaler's observed replicas sat strictly between its minimum and maximum, the hours an HPA holds its target; at a bound it cannot. Null when no such hour was measured
 	MeasuredScaling *float64 `json:"measured_scaling,omitempty" url:"measured_scaling,omitempty"`
-	// The hours measured_scaling covers
+	// The hours the agent watched in the hours measured_scaling covers, as measured_hours counts them
 	ScalingHours *float64 `json:"scaling_hours,omitempty" url:"scaling_hours,omitempty"`
 	// measured_scaling against target: over above 110% of it, past the 10% an HPA tolerates before it adds replicas; near from 80% to 110%; under from 60% to 80%; far_under below 60%. Null with against_target_reason when not graded
 	AgainstTarget *UtilizationTargetAgainstTarget `json:"against_target,omitempty" url:"against_target,omitempty"`

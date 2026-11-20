@@ -1307,6 +1307,7 @@ type (
 	NamespaceAutomationRecommendations                                                 = rootpkg.NamespaceAutomationRecommendations
 	NamespaceAutomationResponse                                                        = rootpkg.NamespaceAutomationResponse
 	NamespaceAutomationScopeSource                                                     = rootpkg.NamespaceAutomationScopeSource
+	NamespaceAutomationTakeover                                                        = rootpkg.NamespaceAutomationTakeover
 	NamespaceChannels                                                                  = rootpkg.NamespaceChannels
 	NamespaceConstraints                                                               = rootpkg.NamespaceConstraints
 	NamespaceConstraintsResponse                                                       = rootpkg.NamespaceConstraintsResponse
@@ -1740,6 +1741,8 @@ type (
 	SetNodePricesRequest                                                               = rootpkg.SetNodePricesRequest
 	SetSizingPolicyRequest                                                             = rootpkg.SetSizingPolicyRequest
 	SetSizingPolicyRequestPolicy                                                       = rootpkg.SetSizingPolicyRequestPolicy
+	SetTakeoverRequest                                                                 = rootpkg.SetTakeoverRequest
+	SetTakeoverRequestTakeover                                                         = rootpkg.SetTakeoverRequestTakeover
 	SetWorkloadAutomationRequest                                                       = rootpkg.SetWorkloadAutomationRequest
 	SetWorkloadAutomationRequestMode                                                   = rootpkg.SetWorkloadAutomationRequestMode
 	SizingEvidence                                                                     = rootpkg.SizingEvidence
@@ -1766,6 +1769,7 @@ type (
 	SlackConnectionsResponse                                                           = rootpkg.SlackConnectionsResponse
 	SlackDisconnectData                                                                = rootpkg.SlackDisconnectData
 	SlackDisconnectResponse                                                            = rootpkg.SlackDisconnectResponse
+	SnapshotRange                                                                      = rootpkg.SnapshotRange
 	SourceDocumentUIPart                                                               = rootpkg.SourceDocumentUIPart
 	SourceKey                                                                          = rootpkg.SourceKey
 	SourceKeyOrigin                                                                    = rootpkg.SourceKeyOrigin
@@ -1868,6 +1872,8 @@ type (
 	TagValueSummary                                                                    = rootpkg.TagValueSummary
 	TagWindow                                                                          = rootpkg.TagWindow
 	Taint                                                                              = rootpkg.Taint
+	TakeoverBlocker                                                                    = rootpkg.TakeoverBlocker
+	TakeoverBlockerReason                                                              = rootpkg.TakeoverBlockerReason
 	TaskDestination                                                                    = rootpkg.TaskDestination
 	TaskDestinationsData                                                               = rootpkg.TaskDestinationsData
 	TaskDestinationsResponse                                                           = rootpkg.TaskDestinationsResponse
@@ -2466,6 +2472,7 @@ var (
 	NewNamespaceAutomationModeFromString                                                     = rootpkg.NewNamespaceAutomationModeFromString
 	NewNamespaceAutomationRecommendationsFromString                                          = rootpkg.NewNamespaceAutomationRecommendationsFromString
 	NewNamespaceAutomationScopeSourceFromString                                              = rootpkg.NewNamespaceAutomationScopeSourceFromString
+	NewNamespaceAutomationTakeoverFromString                                                 = rootpkg.NewNamespaceAutomationTakeoverFromString
 	NewNamespaceItemCostUnknownReasonFromString                                              = rootpkg.NewNamespaceItemCostUnknownReasonFromString
 	NewNamespaceItemKindFromString                                                           = rootpkg.NewNamespaceItemKindFromString
 	NewNamespaceItemRecommendationsFromString                                                = rootpkg.NewNamespaceItemRecommendationsFromString
@@ -2567,6 +2574,7 @@ var (
 	NewSetNamespaceAutomationRequestAutomergeClassesItemFromString                           = rootpkg.NewSetNamespaceAutomationRequestAutomergeClassesItemFromString
 	NewSetNamespaceAutomationRequestModeFromString                                           = rootpkg.NewSetNamespaceAutomationRequestModeFromString
 	NewSetSizingPolicyRequestPolicyFromString                                                = rootpkg.NewSetSizingPolicyRequestPolicyFromString
+	NewSetTakeoverRequestTakeoverFromString                                                  = rootpkg.NewSetTakeoverRequestTakeoverFromString
 	NewSetWorkloadAutomationRequestModeFromString                                            = rootpkg.NewSetWorkloadAutomationRequestModeFromString
 	NewSizingEvidenceKindFromString                                                          = rootpkg.NewSizingEvidenceKindFromString
 	NewSizingEvidenceResourceFromString                                                      = rootpkg.NewSizingEvidenceResourceFromString
@@ -2587,6 +2595,7 @@ var (
 	NewTagKeyRowOriginFromString                                                             = rootpkg.NewTagKeyRowOriginFromString
 	NewTagKeyRowStatusFromString                                                             = rootpkg.NewTagKeyRowStatusFromString
 	NewTagResourceRowValueSourceFromString                                                   = rootpkg.NewTagResourceRowValueSourceFromString
+	NewTakeoverBlockerReasonFromString                                                       = rootpkg.NewTakeoverBlockerReasonFromString
 	NewTeamCostDataCreditsFromString                                                         = rootpkg.NewTeamCostDataCreditsFromString
 	NewTeamCostDataOriginFromString                                                          = rootpkg.NewTeamCostDataOriginFromString
 	NewTextUIPartStateFromString                                                             = rootpkg.NewTextUIPartStateFromString
