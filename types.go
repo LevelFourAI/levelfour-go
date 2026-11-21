@@ -48844,24 +48844,25 @@ var (
 	nodeItemFieldOverheadMemoryBytes    = big.NewInt(1 << 29)
 	nodeItemFieldHourlyCost             = big.NewInt(1 << 30)
 	nodeItemFieldPeriodCost             = big.NewInt(1 << 31)
-	nodeItemFieldCPUCost                = big.NewInt(1 << 32)
-	nodeItemFieldMemoryCost             = big.NewInt(1 << 33)
-	nodeItemFieldGpuCost                = big.NewInt(1 << 34)
-	nodeItemFieldIdleCost               = big.NewInt(1 << 35)
-	nodeItemFieldIdleShare              = big.NewInt(1 << 36)
-	nodeItemFieldNetworkCost            = big.NewInt(1 << 37)
-	nodeItemFieldNetwork                = big.NewInt(1 << 38)
-	nodeItemFieldPressureHours          = big.NewInt(1 << 39)
-	nodeItemFieldFilesystem             = big.NewInt(1 << 40)
-	nodeItemFieldPids                   = big.NewInt(1 << 41)
-	nodeItemFieldPodCount               = big.NewInt(1 << 42)
-	nodeItemFieldPodSlotsUsed           = big.NewInt(1 << 43)
-	nodeItemFieldTaints                 = big.NewInt(1 << 44)
-	nodeItemFieldUnschedulable          = big.NewInt(1 << 45)
-	nodeItemFieldDeletingSince          = big.NewInt(1 << 46)
-	nodeItemFieldDoNotDisrupt           = big.NewInt(1 << 47)
-	nodeItemFieldBlockingPods           = big.NewInt(1 << 48)
-	nodeItemFieldInterruptedAt          = big.NewInt(1 << 49)
+	nodeItemFieldUnpricedHours          = big.NewInt(1 << 32)
+	nodeItemFieldCPUCost                = big.NewInt(1 << 33)
+	nodeItemFieldMemoryCost             = big.NewInt(1 << 34)
+	nodeItemFieldGpuCost                = big.NewInt(1 << 35)
+	nodeItemFieldIdleCost               = big.NewInt(1 << 36)
+	nodeItemFieldIdleShare              = big.NewInt(1 << 37)
+	nodeItemFieldNetworkCost            = big.NewInt(1 << 38)
+	nodeItemFieldNetwork                = big.NewInt(1 << 39)
+	nodeItemFieldPressureHours          = big.NewInt(1 << 40)
+	nodeItemFieldFilesystem             = big.NewInt(1 << 41)
+	nodeItemFieldPids                   = big.NewInt(1 << 42)
+	nodeItemFieldPodCount               = big.NewInt(1 << 43)
+	nodeItemFieldPodSlotsUsed           = big.NewInt(1 << 44)
+	nodeItemFieldTaints                 = big.NewInt(1 << 45)
+	nodeItemFieldUnschedulable          = big.NewInt(1 << 46)
+	nodeItemFieldDeletingSince          = big.NewInt(1 << 47)
+	nodeItemFieldDoNotDisrupt           = big.NewInt(1 << 48)
+	nodeItemFieldBlockingPods           = big.NewInt(1 << 49)
+	nodeItemFieldInterruptedAt          = big.NewInt(1 << 50)
 )
 
 type NodeItem struct {
@@ -48905,11 +48906,13 @@ type NodeItem struct {
 	OverheadMemoryBytes *int     `json:"overhead_memory_bytes,omitempty" url:"overhead_memory_bytes,omitempty"`
 	HourlyCost          *float64 `json:"hourly_cost,omitempty" url:"hourly_cost,omitempty"`
 	PeriodCost          *float64 `json:"period_cost,omitempty" url:"period_cost,omitempty"`
-	CPUCost             *float64 `json:"cpu_cost,omitempty" url:"cpu_cost,omitempty"`
-	MemoryCost          *float64 `json:"memory_cost,omitempty" url:"memory_cost,omitempty"`
-	GpuCost             *float64 `json:"gpu_cost,omitempty" url:"gpu_cost,omitempty"`
-	IdleCost            *float64 `json:"idle_cost,omitempty" url:"idle_cost,omitempty"`
-	IdleShare           *float64 `json:"idle_share,omitempty" url:"idle_share,omitempty"`
+	// The hours the agent watched it in the window on days the bill has not priced yet, which period_cost leaves out: 0 when the bill priced every one, null when the agent watched it no hour
+	UnpricedHours *float64 `json:"unpriced_hours,omitempty" url:"unpriced_hours,omitempty"`
+	CPUCost       *float64 `json:"cpu_cost,omitempty" url:"cpu_cost,omitempty"`
+	MemoryCost    *float64 `json:"memory_cost,omitempty" url:"memory_cost,omitempty"`
+	GpuCost       *float64 `json:"gpu_cost,omitempty" url:"gpu_cost,omitempty"`
+	IdleCost      *float64 `json:"idle_cost,omitempty" url:"idle_cost,omitempty"`
+	IdleShare     *float64 `json:"idle_share,omitempty" url:"idle_share,omitempty"`
 	// The data transfer the bill charged this node
 	NetworkCost *float64 `json:"network_cost,omitempty" url:"network_cost,omitempty"`
 	Network     *Traffic `json:"network" url:"network"`
@@ -49165,6 +49168,13 @@ func (n *NodeItem) GetPeriodCost() *float64 {
 		return nil
 	}
 	return n.PeriodCost
+}
+
+func (n *NodeItem) GetUnpricedHours() *float64 {
+	if n == nil {
+		return nil
+	}
+	return n.UnpricedHours
 }
 
 func (n *NodeItem) GetCPUCost() *float64 {
@@ -49529,6 +49539,13 @@ func (n *NodeItem) SetHourlyCost(hourlyCost *float64) {
 func (n *NodeItem) SetPeriodCost(periodCost *float64) {
 	n.PeriodCost = periodCost
 	n.require(nodeItemFieldPeriodCost)
+}
+
+// SetUnpricedHours sets the UnpricedHours field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NodeItem) SetUnpricedHours(unpricedHours *float64) {
+	n.UnpricedHours = unpricedHours
+	n.require(nodeItemFieldUnpricedHours)
 }
 
 // SetCPUCost sets the CPUCost field and marks it as non-optional;
@@ -87686,8 +87703,10 @@ var (
 	workloadDetailFieldNetworkDays        = big.NewInt(1 << 19)
 	workloadDetailFieldNetworkByNode      = big.NewInt(1 << 20)
 	workloadDetailFieldEvents             = big.NewInt(1 << 21)
-	workloadDetailFieldRecommendations    = big.NewInt(1 << 22)
-	workloadDetailFieldSizing             = big.NewInt(1 << 23)
+	workloadDetailFieldPodEvents          = big.NewInt(1 << 22)
+	workloadDetailFieldLastTerminations   = big.NewInt(1 << 23)
+	workloadDetailFieldRecommendations    = big.NewInt(1 << 24)
+	workloadDetailFieldSizing             = big.NewInt(1 << 25)
 )
 
 type WorkloadDetail struct {
@@ -87726,6 +87745,10 @@ type WorkloadDetail struct {
 	// Its share of each node's traffic out
 	NetworkByNode []*SentFromNode  `json:"network_by_node" url:"network_by_node"`
 	Events        []*WorkloadEvent `json:"events" url:"events"`
+	// The Kubernetes events on the workload's pods seen in the window, newest last_at first, at most 500. Null when the cluster's agent never sent pod events, an empty list when it does and none fell in the window
+	PodEvents []*WorkloadPodEvent `json:"pod_events,omitempty" url:"pod_events,omitempty"`
+	// Each container's latest termination the agent reported in the window, or that finished in it, per pod when the agent names it, newest finished_at first, at most 500. It can have finished before the window began: the agent reports the latest across the pods that ran in its window. Null when the cluster's agent never sent pod events, an empty list when it does and reported none
+	LastTerminations []*WorkloadTermination `json:"last_terminations,omitempty" url:"last_terminations,omitempty"`
 	// Every recommendation published for this workload, newest first; never an unreviewed candidate
 	Recommendations []*PublishedRecommendation `json:"recommendations" url:"recommendations"`
 	// What shows each tool in workload.sized_by sizes it, per container and request
@@ -87883,6 +87906,20 @@ func (w *WorkloadDetail) GetEvents() []*WorkloadEvent {
 		return nil
 	}
 	return w.Events
+}
+
+func (w *WorkloadDetail) GetPodEvents() []*WorkloadPodEvent {
+	if w == nil {
+		return nil
+	}
+	return w.PodEvents
+}
+
+func (w *WorkloadDetail) GetLastTerminations() []*WorkloadTermination {
+	if w == nil {
+		return nil
+	}
+	return w.LastTerminations
 }
 
 func (w *WorkloadDetail) GetRecommendations() []*PublishedRecommendation {
@@ -88065,6 +88102,20 @@ func (w *WorkloadDetail) SetNetworkByNode(networkByNode []*SentFromNode) {
 func (w *WorkloadDetail) SetEvents(events []*WorkloadEvent) {
 	w.Events = events
 	w.require(workloadDetailFieldEvents)
+}
+
+// SetPodEvents sets the PodEvents field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadDetail) SetPodEvents(podEvents []*WorkloadPodEvent) {
+	w.PodEvents = podEvents
+	w.require(workloadDetailFieldPodEvents)
+}
+
+// SetLastTerminations sets the LastTerminations field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadDetail) SetLastTerminations(lastTerminations []*WorkloadTermination) {
+	w.LastTerminations = lastTerminations
+	w.require(workloadDetailFieldLastTerminations)
 }
 
 // SetRecommendations sets the Recommendations field and marks it as non-optional;
@@ -91807,6 +91858,242 @@ func (w *WorkloadPairEnd) String() string {
 }
 
 var (
+	workloadPodEventFieldFirstAt   = big.NewInt(1 << 0)
+	workloadPodEventFieldLastAt    = big.NewInt(1 << 1)
+	workloadPodEventFieldType      = big.NewInt(1 << 2)
+	workloadPodEventFieldReason    = big.NewInt(1 << 3)
+	workloadPodEventFieldPod       = big.NewInt(1 << 4)
+	workloadPodEventFieldContainer = big.NewInt(1 << 5)
+	workloadPodEventFieldMessage   = big.NewInt(1 << 6)
+	workloadPodEventFieldCount     = big.NewInt(1 << 7)
+)
+
+type WorkloadPodEvent struct {
+	// When Kubernetes first saw the event
+	FirstAt time.Time `json:"first_at" url:"first_at"`
+	// When it last saw it
+	LastAt time.Time            `json:"last_at" url:"last_at"`
+	Type   WorkloadPodEventType `json:"type" url:"type"`
+	// BackOff, Unhealthy, Killing, FailedScheduling and the like
+	Reason string `json:"reason" url:"reason"`
+	Pod    string `json:"pod" url:"pod"`
+	// Null for an event on the whole pod
+	Container *string `json:"container,omitempty" url:"container,omitempty"`
+	// As Kubernetes wrote it, at most 512 characters
+	Message string `json:"message" url:"message"`
+	// How many times Kubernetes counted it between first_at and last_at
+	Count int `json:"count" url:"count"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (w *WorkloadPodEvent) GetFirstAt() time.Time {
+	if w == nil {
+		return time.Time{}
+	}
+	return w.FirstAt
+}
+
+func (w *WorkloadPodEvent) GetLastAt() time.Time {
+	if w == nil {
+		return time.Time{}
+	}
+	return w.LastAt
+}
+
+func (w *WorkloadPodEvent) GetType() WorkloadPodEventType {
+	if w == nil {
+		return ""
+	}
+	return w.Type
+}
+
+func (w *WorkloadPodEvent) GetReason() string {
+	if w == nil {
+		return ""
+	}
+	return w.Reason
+}
+
+func (w *WorkloadPodEvent) GetPod() string {
+	if w == nil {
+		return ""
+	}
+	return w.Pod
+}
+
+func (w *WorkloadPodEvent) GetContainer() *string {
+	if w == nil {
+		return nil
+	}
+	return w.Container
+}
+
+func (w *WorkloadPodEvent) GetMessage() string {
+	if w == nil {
+		return ""
+	}
+	return w.Message
+}
+
+func (w *WorkloadPodEvent) GetCount() int {
+	if w == nil {
+		return 0
+	}
+	return w.Count
+}
+
+func (w *WorkloadPodEvent) GetExtraProperties() map[string]interface{} {
+	if w == nil {
+		return nil
+	}
+	return w.extraProperties
+}
+
+func (w *WorkloadPodEvent) require(field *big.Int) {
+	if w.explicitFields == nil {
+		w.explicitFields = big.NewInt(0)
+	}
+	w.explicitFields.Or(w.explicitFields, field)
+}
+
+// SetFirstAt sets the FirstAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadPodEvent) SetFirstAt(firstAt time.Time) {
+	w.FirstAt = firstAt
+	w.require(workloadPodEventFieldFirstAt)
+}
+
+// SetLastAt sets the LastAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadPodEvent) SetLastAt(lastAt time.Time) {
+	w.LastAt = lastAt
+	w.require(workloadPodEventFieldLastAt)
+}
+
+// SetType sets the Type field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadPodEvent) SetType(type_ WorkloadPodEventType) {
+	w.Type = type_
+	w.require(workloadPodEventFieldType)
+}
+
+// SetReason sets the Reason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadPodEvent) SetReason(reason string) {
+	w.Reason = reason
+	w.require(workloadPodEventFieldReason)
+}
+
+// SetPod sets the Pod field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadPodEvent) SetPod(pod string) {
+	w.Pod = pod
+	w.require(workloadPodEventFieldPod)
+}
+
+// SetContainer sets the Container field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadPodEvent) SetContainer(container *string) {
+	w.Container = container
+	w.require(workloadPodEventFieldContainer)
+}
+
+// SetMessage sets the Message field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadPodEvent) SetMessage(message string) {
+	w.Message = message
+	w.require(workloadPodEventFieldMessage)
+}
+
+// SetCount sets the Count field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadPodEvent) SetCount(count int) {
+	w.Count = count
+	w.require(workloadPodEventFieldCount)
+}
+
+func (w *WorkloadPodEvent) UnmarshalJSON(data []byte) error {
+	type embed WorkloadPodEvent
+	var unmarshaler = struct {
+		embed
+		FirstAt *internal.DateTime `json:"first_at"`
+		LastAt  *internal.DateTime `json:"last_at"`
+	}{
+		embed: embed(*w),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*w = WorkloadPodEvent(unmarshaler.embed)
+	w.FirstAt = unmarshaler.FirstAt.Time()
+	w.LastAt = unmarshaler.LastAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *w)
+	if err != nil {
+		return err
+	}
+	w.extraProperties = extraProperties
+	w.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (w *WorkloadPodEvent) MarshalJSON() ([]byte, error) {
+	type embed WorkloadPodEvent
+	var marshaler = struct {
+		embed
+		FirstAt *internal.DateTime `json:"first_at"`
+		LastAt  *internal.DateTime `json:"last_at"`
+	}{
+		embed:   embed(*w),
+		FirstAt: internal.NewDateTime(w.FirstAt),
+		LastAt:  internal.NewDateTime(w.LastAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, w.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (w *WorkloadPodEvent) String() string {
+	if w == nil {
+		return "<nil>"
+	}
+	if len(w.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(w.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(w); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", w)
+}
+
+type WorkloadPodEventType string
+
+const (
+	WorkloadPodEventTypeWarning WorkloadPodEventType = "Warning"
+	WorkloadPodEventTypeNormal  WorkloadPodEventType = "Normal"
+)
+
+func NewWorkloadPodEventTypeFromString(s string) (WorkloadPodEventType, error) {
+	switch s {
+	case "Warning":
+		return WorkloadPodEventTypeWarning, nil
+	case "Normal":
+		return WorkloadPodEventTypeNormal, nil
+	}
+	var t WorkloadPodEventType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (w WorkloadPodEventType) Ptr() *WorkloadPodEventType {
+	return &w
+}
+
+var (
 	workloadRefFieldKind = big.NewInt(1 << 0)
 	workloadRefFieldName = big.NewInt(1 << 1)
 )
@@ -92061,6 +92348,180 @@ func NewWorkloadSourceKindFromString(s string) (WorkloadSourceKind, error) {
 
 func (w WorkloadSourceKind) Ptr() *WorkloadSourceKind {
 	return &w
+}
+
+var (
+	workloadTerminationFieldContainer  = big.NewInt(1 << 0)
+	workloadTerminationFieldPod        = big.NewInt(1 << 1)
+	workloadTerminationFieldReason     = big.NewInt(1 << 2)
+	workloadTerminationFieldExitCode   = big.NewInt(1 << 3)
+	workloadTerminationFieldSignal     = big.NewInt(1 << 4)
+	workloadTerminationFieldFinishedAt = big.NewInt(1 << 5)
+)
+
+type WorkloadTermination struct {
+	Container string `json:"container" url:"container"`
+	// Null when the agent did not name the pod
+	Pod *string `json:"pod,omitempty" url:"pod,omitempty"`
+	// OOMKilled, Error, Completed and the like; empty when Kubernetes set none
+	Reason     string    `json:"reason" url:"reason"`
+	ExitCode   int       `json:"exit_code" url:"exit_code"`
+	Signal     *int      `json:"signal,omitempty" url:"signal,omitempty"`
+	FinishedAt time.Time `json:"finished_at" url:"finished_at"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (w *WorkloadTermination) GetContainer() string {
+	if w == nil {
+		return ""
+	}
+	return w.Container
+}
+
+func (w *WorkloadTermination) GetPod() *string {
+	if w == nil {
+		return nil
+	}
+	return w.Pod
+}
+
+func (w *WorkloadTermination) GetReason() string {
+	if w == nil {
+		return ""
+	}
+	return w.Reason
+}
+
+func (w *WorkloadTermination) GetExitCode() int {
+	if w == nil {
+		return 0
+	}
+	return w.ExitCode
+}
+
+func (w *WorkloadTermination) GetSignal() *int {
+	if w == nil {
+		return nil
+	}
+	return w.Signal
+}
+
+func (w *WorkloadTermination) GetFinishedAt() time.Time {
+	if w == nil {
+		return time.Time{}
+	}
+	return w.FinishedAt
+}
+
+func (w *WorkloadTermination) GetExtraProperties() map[string]interface{} {
+	if w == nil {
+		return nil
+	}
+	return w.extraProperties
+}
+
+func (w *WorkloadTermination) require(field *big.Int) {
+	if w.explicitFields == nil {
+		w.explicitFields = big.NewInt(0)
+	}
+	w.explicitFields.Or(w.explicitFields, field)
+}
+
+// SetContainer sets the Container field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadTermination) SetContainer(container string) {
+	w.Container = container
+	w.require(workloadTerminationFieldContainer)
+}
+
+// SetPod sets the Pod field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadTermination) SetPod(pod *string) {
+	w.Pod = pod
+	w.require(workloadTerminationFieldPod)
+}
+
+// SetReason sets the Reason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadTermination) SetReason(reason string) {
+	w.Reason = reason
+	w.require(workloadTerminationFieldReason)
+}
+
+// SetExitCode sets the ExitCode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadTermination) SetExitCode(exitCode int) {
+	w.ExitCode = exitCode
+	w.require(workloadTerminationFieldExitCode)
+}
+
+// SetSignal sets the Signal field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadTermination) SetSignal(signal *int) {
+	w.Signal = signal
+	w.require(workloadTerminationFieldSignal)
+}
+
+// SetFinishedAt sets the FinishedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadTermination) SetFinishedAt(finishedAt time.Time) {
+	w.FinishedAt = finishedAt
+	w.require(workloadTerminationFieldFinishedAt)
+}
+
+func (w *WorkloadTermination) UnmarshalJSON(data []byte) error {
+	type embed WorkloadTermination
+	var unmarshaler = struct {
+		embed
+		FinishedAt *internal.DateTime `json:"finished_at"`
+	}{
+		embed: embed(*w),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*w = WorkloadTermination(unmarshaler.embed)
+	w.FinishedAt = unmarshaler.FinishedAt.Time()
+	extraProperties, err := internal.ExtractExtraProperties(data, *w)
+	if err != nil {
+		return err
+	}
+	w.extraProperties = extraProperties
+	w.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (w *WorkloadTermination) MarshalJSON() ([]byte, error) {
+	type embed WorkloadTermination
+	var marshaler = struct {
+		embed
+		FinishedAt *internal.DateTime `json:"finished_at"`
+	}{
+		embed:      embed(*w),
+		FinishedAt: internal.NewDateTime(w.FinishedAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, w.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (w *WorkloadTermination) String() string {
+	if w == nil {
+		return "<nil>"
+	}
+	if len(w.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(w.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(w); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", w)
 }
 
 var (
