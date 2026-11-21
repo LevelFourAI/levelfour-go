@@ -2093,9 +2093,12 @@ type (
 	WorkloadListResponse                                                               = rootpkg.WorkloadListResponse
 	WorkloadPair                                                                       = rootpkg.WorkloadPair
 	WorkloadPairEnd                                                                    = rootpkg.WorkloadPairEnd
+	WorkloadPodEvent                                                                   = rootpkg.WorkloadPodEvent
+	WorkloadPodEventType                                                               = rootpkg.WorkloadPodEventType
 	WorkloadRef                                                                        = rootpkg.WorkloadRef
 	WorkloadSource                                                                     = rootpkg.WorkloadSource
 	WorkloadSourceKind                                                                 = rootpkg.WorkloadSourceKind
+	WorkloadTermination                                                                = rootpkg.WorkloadTermination
 	WorkloadVolume                                                                     = rootpkg.WorkloadVolume
 	Workspace                                                                          = rootpkg.Workspace
 	WorkspaceResponse                                                                  = rootpkg.WorkspaceResponse
@@ -2637,6 +2640,7 @@ var (
 	NewWorkloadListItemRecommendationsFromString                                             = rootpkg.NewWorkloadListItemRecommendationsFromString
 	NewWorkloadListItemRiskFromString                                                        = rootpkg.NewWorkloadListItemRiskFromString
 	NewWorkloadListItemSizedByItemFromString                                                 = rootpkg.NewWorkloadListItemSizedByItemFromString
+	NewWorkloadPodEventTypeFromString                                                        = rootpkg.NewWorkloadPodEventTypeFromString
 	NewWorkloadSourceKindFromString                                                          = rootpkg.NewWorkloadSourceKindFromString
 	NewWorkspaceStatusFromString                                                             = rootpkg.NewWorkspaceStatusFromString
 	Rune                                                                                     = rootpkg.Rune
