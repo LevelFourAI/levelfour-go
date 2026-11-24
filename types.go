@@ -39101,11 +39101,12 @@ var (
 	jvmReaderNodeHealthFieldJvms     = big.NewInt(1 << 2)
 	jvmReaderNodeHealthFieldUnmapped = big.NewInt(1 << 3)
 	jvmReaderNodeHealthFieldMissed   = big.NewInt(1 << 4)
+	jvmReaderNodeHealthFieldHidden   = big.NewInt(1 << 5)
 )
 
 type JvmReaderNodeHealth struct {
 	Node string `json:"node" url:"node"`
-	// ok; no_reader when none runs on the node; pending when its pod has not started; unreachable when it did not answer
+	// ok; no_reader when none runs on the node; pending when its pod has not started; unreachable when it did not answer; blocked when the API server refused its pod, as an admission policy refusing SYS_PTRACE or hostPID does; untolerated when the node carries a taint it does not tolerate; excluded when its node selector or affinity leaves the node out
 	State JvmReaderNodeHealthState `json:"state" url:"state"`
 	// The JVMs it saw in its last sample of the window
 	Jvms int `json:"jvms" url:"jvms"`
@@ -39113,6 +39114,8 @@ type JvmReaderNodeHealth struct {
 	Unmapped int `json:"unmapped" url:"unmapped"`
 	// The JVMs whose counters it could not read, by reason
 	Missed map[string]int `json:"missed" url:"missed"`
+	// The processes on the node the kernel would not let it see, in its last sample
+	Hidden int `json:"hidden" url:"hidden"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -39154,6 +39157,13 @@ func (j *JvmReaderNodeHealth) GetMissed() map[string]int {
 		return nil
 	}
 	return j.Missed
+}
+
+func (j *JvmReaderNodeHealth) GetHidden() int {
+	if j == nil {
+		return 0
+	}
+	return j.Hidden
 }
 
 func (j *JvmReaderNodeHealth) GetExtraProperties() map[string]interface{} {
@@ -39205,6 +39215,13 @@ func (j *JvmReaderNodeHealth) SetMissed(missed map[string]int) {
 	j.require(jvmReaderNodeHealthFieldMissed)
 }
 
+// SetHidden sets the Hidden field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmReaderNodeHealth) SetHidden(hidden int) {
+	j.Hidden = hidden
+	j.require(jvmReaderNodeHealthFieldHidden)
+}
+
 func (j *JvmReaderNodeHealth) UnmarshalJSON(data []byte) error {
 	type unmarshaler JvmReaderNodeHealth
 	var value unmarshaler
@@ -39247,7 +39264,7 @@ func (j *JvmReaderNodeHealth) String() string {
 	return fmt.Sprintf("%#v", j)
 }
 
-// ok; no_reader when none runs on the node; pending when its pod has not started; unreachable when it did not answer
+// ok; no_reader when none runs on the node; pending when its pod has not started; unreachable when it did not answer; blocked when the API server refused its pod, as an admission policy refusing SYS_PTRACE or hostPID does; untolerated when the node carries a taint it does not tolerate; excluded when its node selector or affinity leaves the node out
 type JvmReaderNodeHealthState string
 
 const (
@@ -39255,6 +39272,9 @@ const (
 	JvmReaderNodeHealthStateNoReader    JvmReaderNodeHealthState = "no_reader"
 	JvmReaderNodeHealthStatePending     JvmReaderNodeHealthState = "pending"
 	JvmReaderNodeHealthStateUnreachable JvmReaderNodeHealthState = "unreachable"
+	JvmReaderNodeHealthStateBlocked     JvmReaderNodeHealthState = "blocked"
+	JvmReaderNodeHealthStateUntolerated JvmReaderNodeHealthState = "untolerated"
+	JvmReaderNodeHealthStateExcluded    JvmReaderNodeHealthState = "excluded"
 )
 
 func NewJvmReaderNodeHealthStateFromString(s string) (JvmReaderNodeHealthState, error) {
@@ -39267,6 +39287,12 @@ func NewJvmReaderNodeHealthStateFromString(s string) (JvmReaderNodeHealthState, 
 		return JvmReaderNodeHealthStatePending, nil
 	case "unreachable":
 		return JvmReaderNodeHealthStateUnreachable, nil
+	case "blocked":
+		return JvmReaderNodeHealthStateBlocked, nil
+	case "untolerated":
+		return JvmReaderNodeHealthStateUntolerated, nil
+	case "excluded":
+		return JvmReaderNodeHealthStateExcluded, nil
 	}
 	var t JvmReaderNodeHealthState
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
