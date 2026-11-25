@@ -1224,6 +1224,14 @@ func TestSettersAnomalyDetail(t *testing.T) {
 		assert.NotNil(t, obj.explicitFields)
 	})
 
+	t.Run("SetImpactBasis", func(t *testing.T) {
+		obj := &AnomalyDetail{}
+		var fernTestValueImpactBasis *AnomalyDetailImpactBasis
+		obj.SetImpactBasis(fernTestValueImpactBasis)
+		assert.Equal(t, fernTestValueImpactBasis, obj.ImpactBasis)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
 }
 
 func TestGettersAnomalyDetail(t *testing.T) {
@@ -1825,6 +1833,39 @@ func TestGettersAnomalyDetail(t *testing.T) {
 			}
 		}()
 		_ = obj.GetAnomalyEndDate() // Should return zero value
+	})
+
+	t.Run("GetImpactBasis", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &AnomalyDetail{}
+		var expected *AnomalyDetailImpactBasis
+		obj.ImpactBasis = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetImpactBasis(), "getter should return the property value")
+	})
+
+	t.Run("GetImpactBasis_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &AnomalyDetail{}
+		obj.ImpactBasis = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetImpactBasis(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetImpactBasis_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *AnomalyDetail
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetImpactBasis() // Should return zero value
 	})
 
 }
@@ -2450,6 +2491,37 @@ func TestSettersMarkExplicitAnomalyDetail(t *testing.T) {
 		// It verifies that setting a field via setter allows successful JSON round-trip
 	})
 
+	t.Run("SetImpactBasis_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &AnomalyDetail{}
+		var fernTestValueImpactBasis *AnomalyDetailImpactBasis
+
+		// Act
+		obj.SetImpactBasis(fernTestValueImpactBasis)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
 }
 
 func TestSettersAnomalyDetailResponse(t *testing.T) {
@@ -2980,6 +3052,14 @@ func TestSettersAnomalyListItem(t *testing.T) {
 		var fernTestValueTimestamp string
 		obj.SetTimestamp(fernTestValueTimestamp)
 		assert.Equal(t, fernTestValueTimestamp, obj.Timestamp)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetImpactBasis", func(t *testing.T) {
+		obj := &AnomalyListItem{}
+		var fernTestValueImpactBasis *AnomalyListItemImpactBasis
+		obj.SetImpactBasis(fernTestValueImpactBasis)
+		assert.Equal(t, fernTestValueImpactBasis, obj.ImpactBasis)
 		assert.NotNil(t, obj.explicitFields)
 	})
 
@@ -3563,6 +3643,39 @@ func TestGettersAnomalyListItem(t *testing.T) {
 		_ = obj.GetTimestamp() // Should return zero value
 	})
 
+	t.Run("GetImpactBasis", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &AnomalyListItem{}
+		var expected *AnomalyListItemImpactBasis
+		obj.ImpactBasis = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetImpactBasis(), "getter should return the property value")
+	})
+
+	t.Run("GetImpactBasis_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &AnomalyListItem{}
+		obj.ImpactBasis = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetImpactBasis(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetImpactBasis_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *AnomalyListItem
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetImpactBasis() // Should return zero value
+	})
+
 }
 
 func TestSettersMarkExplicitAnomalyListItem(t *testing.T) {
@@ -4132,6 +4245,37 @@ func TestSettersMarkExplicitAnomalyListItem(t *testing.T) {
 
 		// Act
 		obj.SetTimestamp(fernTestValueTimestamp)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetImpactBasis_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &AnomalyListItem{}
+		var fernTestValueImpactBasis *AnomalyListItemImpactBasis
+
+		// Act
+		obj.SetImpactBasis(fernTestValueImpactBasis)
 
 		// Assert - object with explicitly set field can be marshaled/unmarshaled
 		bytes, err := json.Marshal(obj)
@@ -7822,6 +7966,35 @@ func TestEnumAnomalyDetailFeedback(t *testing.T) {
 	})
 }
 
+func TestEnumAnomalyDetailImpactBasis(t *testing.T) {
+	t.Run("NewFromString_billed", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewAnomalyDetailImpactBasisFromString("billed")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, AnomalyDetailImpactBasis("billed"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_estimate", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewAnomalyDetailImpactBasisFromString("estimate")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, AnomalyDetailImpactBasis("estimate"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_Invalid", func(t *testing.T) {
+		_, err := NewAnomalyDetailImpactBasisFromString("invalid_value_that_does_not_exist")
+		assert.Error(t, err)
+	})
+
+	t.Run("Ptr", func(t *testing.T) {
+		val, err := NewAnomalyDetailImpactBasisFromString("billed")
+		assert.NoError(t, err)
+		ptr := val.Ptr()
+		assert.NotNil(t, ptr)
+		assert.Equal(t, val, *ptr)
+	})
+}
+
 func TestEnumAnomalyDetailSeverity(t *testing.T) {
 	t.Run("NewFromString_critical", func(t *testing.T) {
 		t.Parallel()
@@ -7916,6 +8089,35 @@ func TestEnumAnomalyListItemFeedback(t *testing.T) {
 
 	t.Run("Ptr", func(t *testing.T) {
 		val, err := NewAnomalyListItemFeedbackFromString("YES")
+		assert.NoError(t, err)
+		ptr := val.Ptr()
+		assert.NotNil(t, ptr)
+		assert.Equal(t, val, *ptr)
+	})
+}
+
+func TestEnumAnomalyListItemImpactBasis(t *testing.T) {
+	t.Run("NewFromString_billed", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewAnomalyListItemImpactBasisFromString("billed")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, AnomalyListItemImpactBasis("billed"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_estimate", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewAnomalyListItemImpactBasisFromString("estimate")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, AnomalyListItemImpactBasis("estimate"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_Invalid", func(t *testing.T) {
+		_, err := NewAnomalyListItemImpactBasisFromString("invalid_value_that_does_not_exist")
+		assert.Error(t, err)
+	})
+
+	t.Run("Ptr", func(t *testing.T) {
+		val, err := NewAnomalyListItemImpactBasisFromString("billed")
 		assert.NoError(t, err)
 		ptr := val.Ptr()
 		assert.NotNil(t, ptr)

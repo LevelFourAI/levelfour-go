@@ -11,6 +11,31 @@ import (
 )
 
 var (
+	getInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequestFieldBy = big.NewInt(1 << 0)
+)
+
+type GetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequest struct {
+	By *GetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequestBy `json:"-" url:"by,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (g *GetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequest) require(field *big.Int) {
+	if g.explicitFields == nil {
+		g.explicitFields = big.NewInt(0)
+	}
+	g.explicitFields.Or(g.explicitFields, field)
+}
+
+// SetBy sets the By field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequest) SetBy(by *GetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequestBy) {
+	g.By = by
+	g.require(getInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequestFieldBy)
+}
+
+var (
 	getInventoryChangesAPIV1ProvidersAzureInventoryChangesGetRequestFieldDays = big.NewInt(1 << 0)
 )
 
@@ -494,16 +519,18 @@ func (a *AzureAccessResponse) String() string {
 }
 
 var (
-	azureBudgetItemFieldBudgetID    = big.NewInt(1 << 0)
-	azureBudgetItemFieldDisplayName = big.NewInt(1 << 1)
-	azureBudgetItemFieldScope       = big.NewInt(1 << 2)
-	azureBudgetItemFieldAmountUsd   = big.NewInt(1 << 3)
-	azureBudgetItemFieldTimeGrain   = big.NewInt(1 << 4)
-	azureBudgetItemFieldSpent       = big.NewInt(1 << 5)
-	azureBudgetItemFieldForecast    = big.NewInt(1 << 6)
-	azureBudgetItemFieldBurnPct     = big.NewInt(1 << 7)
-	azureBudgetItemFieldThresholds  = big.NewInt(1 << 8)
-	azureBudgetItemFieldApproximate = big.NewInt(1 << 9)
+	azureBudgetItemFieldBudgetID       = big.NewInt(1 << 0)
+	azureBudgetItemFieldDisplayName    = big.NewInt(1 << 1)
+	azureBudgetItemFieldScope          = big.NewInt(1 << 2)
+	azureBudgetItemFieldAmountUsd      = big.NewInt(1 << 3)
+	azureBudgetItemFieldTimeGrain      = big.NewInt(1 << 4)
+	azureBudgetItemFieldSpent          = big.NewInt(1 << 5)
+	azureBudgetItemFieldEstimatedSpent = big.NewInt(1 << 6)
+	azureBudgetItemFieldForecast       = big.NewInt(1 << 7)
+	azureBudgetItemFieldBurnPct        = big.NewInt(1 << 8)
+	azureBudgetItemFieldThresholds     = big.NewInt(1 << 9)
+	azureBudgetItemFieldApproximate    = big.NewInt(1 << 10)
+	azureBudgetItemFieldCostBasis      = big.NewInt(1 << 11)
 )
 
 type AzureBudgetItem struct {
@@ -515,15 +542,20 @@ type AzureBudgetItem struct {
 	AmountUsd *float64 `json:"amount_usd,omitempty" url:"amount_usd,omitempty"`
 	// Monthly, Quarterly, Annually, or their billing-period forms
 	TimeGrain string `json:"time_grain" url:"time_grain"`
-	// Actual cost in the current period, from the bill LevelFour holds
+	// Billed cost in the current period, from the bill LevelFour holds
 	Spent float64 `json:"spent" url:"spent"`
-	// Straight-line projection to the end of the current period
+	// Microsoft's list-price estimate in the current period for the subscriptions a CSP partner bills with their cost hidden, whose bill is 0. Never part of spent
+	EstimatedSpent *float64 `json:"estimated_spent,omitempty" url:"estimated_spent,omitempty"`
+	// Straight-line projection to the end of the current period, of spent, or of estimated_spent when the budget covers only estimated subscriptions
 	Forecast *float64 `json:"forecast,omitempty" url:"forecast,omitempty"`
-	BurnPct  *float64 `json:"burn_pct,omitempty" url:"burn_pct,omitempty"`
+	// spent over the amount, or estimated_spent over it when the budget covers only estimated spend
+	BurnPct *float64 `json:"burn_pct,omitempty" url:"burn_pct,omitempty"`
 	// Alert thresholds as percents of the amount
 	Thresholds []float64 `json:"thresholds" url:"thresholds"`
-	// True when the budget's scope, period or currency cannot be reproduced exactly
+	// True when the budget's scope, period or currency cannot be reproduced exactly, or its spend is a list-price estimate
 	Approximate bool `json:"approximate" url:"approximate"`
+	// billed when every subscription has a bill, estimate when every one is Microsoft's list price because a CSP partner keeps the cost, mixed when the budget covers both
+	CostBasis *AzureBudgetItemCostBasis `json:"cost_basis" url:"cost_basis"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -574,6 +606,13 @@ func (a *AzureBudgetItem) GetSpent() float64 {
 	return a.Spent
 }
 
+func (a *AzureBudgetItem) GetEstimatedSpent() *float64 {
+	if a == nil {
+		return nil
+	}
+	return a.EstimatedSpent
+}
+
 func (a *AzureBudgetItem) GetForecast() *float64 {
 	if a == nil {
 		return nil
@@ -600,6 +639,13 @@ func (a *AzureBudgetItem) GetApproximate() bool {
 		return false
 	}
 	return a.Approximate
+}
+
+func (a *AzureBudgetItem) GetCostBasis() *AzureBudgetItemCostBasis {
+	if a == nil {
+		return nil
+	}
+	return a.CostBasis
 }
 
 func (a *AzureBudgetItem) GetExtraProperties() map[string]interface{} {
@@ -658,6 +704,13 @@ func (a *AzureBudgetItem) SetSpent(spent float64) {
 	a.require(azureBudgetItemFieldSpent)
 }
 
+// SetEstimatedSpent sets the EstimatedSpent field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AzureBudgetItem) SetEstimatedSpent(estimatedSpent *float64) {
+	a.EstimatedSpent = estimatedSpent
+	a.require(azureBudgetItemFieldEstimatedSpent)
+}
+
 // SetForecast sets the Forecast field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (a *AzureBudgetItem) SetForecast(forecast *float64) {
@@ -684,6 +737,13 @@ func (a *AzureBudgetItem) SetThresholds(thresholds []float64) {
 func (a *AzureBudgetItem) SetApproximate(approximate bool) {
 	a.Approximate = approximate
 	a.require(azureBudgetItemFieldApproximate)
+}
+
+// SetCostBasis sets the CostBasis field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AzureBudgetItem) SetCostBasis(costBasis *AzureBudgetItemCostBasis) {
+	a.CostBasis = costBasis
+	a.require(azureBudgetItemFieldCostBasis)
 }
 
 func (a *AzureBudgetItem) UnmarshalJSON(data []byte) error {
@@ -726,6 +786,91 @@ func (a *AzureBudgetItem) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", a)
+}
+
+// billed when every subscription has a bill, estimate when every one is Microsoft's list price because a CSP partner keeps the cost, mixed when the budget covers both
+type AzureBudgetItemCostBasis struct {
+	AzureBudgetItemCostBasisZero AzureBudgetItemCostBasisZero
+	MixedStringLiteral           string
+
+	typ string
+}
+
+func NewAzureBudgetItemCostBasisWithMixedStringLiteral() *AzureBudgetItemCostBasis {
+	return &AzureBudgetItemCostBasis{typ: "MixedStringLiteral", MixedStringLiteral: "mixed"}
+}
+
+func (a *AzureBudgetItemCostBasis) GetAzureBudgetItemCostBasisZero() AzureBudgetItemCostBasisZero {
+	if a == nil {
+		return ""
+	}
+	return a.AzureBudgetItemCostBasisZero
+}
+
+func (a *AzureBudgetItemCostBasis) UnmarshalJSON(data []byte) error {
+	var valueAzureBudgetItemCostBasisZero AzureBudgetItemCostBasisZero
+	if err := json.Unmarshal(data, &valueAzureBudgetItemCostBasisZero); err == nil {
+		a.typ = "AzureBudgetItemCostBasisZero"
+		a.AzureBudgetItemCostBasisZero = valueAzureBudgetItemCostBasisZero
+		return nil
+	}
+	var valueMixedStringLiteral string
+	if err := json.Unmarshal(data, &valueMixedStringLiteral); err == nil {
+		a.typ = "MixedStringLiteral"
+		a.MixedStringLiteral = valueMixedStringLiteral
+		if a.MixedStringLiteral != "mixed" {
+			return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", a, "mixed", valueMixedStringLiteral)
+		}
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, a)
+}
+
+func (a AzureBudgetItemCostBasis) MarshalJSON() ([]byte, error) {
+	if a.typ == "AzureBudgetItemCostBasisZero" || a.AzureBudgetItemCostBasisZero != "" {
+		return json.Marshal(a.AzureBudgetItemCostBasisZero)
+	}
+	if a.typ == "MixedStringLiteral" || a.MixedStringLiteral != "" {
+		return json.Marshal("mixed")
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", a)
+}
+
+type AzureBudgetItemCostBasisVisitor interface {
+	VisitAzureBudgetItemCostBasisZero(AzureBudgetItemCostBasisZero) error
+	VisitMixedStringLiteral(string) error
+}
+
+func (a *AzureBudgetItemCostBasis) Accept(visitor AzureBudgetItemCostBasisVisitor) error {
+	if a.typ == "AzureBudgetItemCostBasisZero" || a.AzureBudgetItemCostBasisZero != "" {
+		return visitor.VisitAzureBudgetItemCostBasisZero(a.AzureBudgetItemCostBasisZero)
+	}
+	if a.typ == "MixedStringLiteral" || a.MixedStringLiteral != "" {
+		return visitor.VisitMixedStringLiteral(a.MixedStringLiteral)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", a)
+}
+
+type AzureBudgetItemCostBasisZero string
+
+const (
+	AzureBudgetItemCostBasisZeroBilled   AzureBudgetItemCostBasisZero = "billed"
+	AzureBudgetItemCostBasisZeroEstimate AzureBudgetItemCostBasisZero = "estimate"
+)
+
+func NewAzureBudgetItemCostBasisZeroFromString(s string) (AzureBudgetItemCostBasisZero, error) {
+	switch s {
+	case "billed":
+		return AzureBudgetItemCostBasisZeroBilled, nil
+	case "estimate":
+		return AzureBudgetItemCostBasisZeroEstimate, nil
+	}
+	var t AzureBudgetItemCostBasisZero
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AzureBudgetItemCostBasisZero) Ptr() *AzureBudgetItemCostBasisZero {
+	return &a
 }
 
 var (
@@ -930,30 +1075,36 @@ func (a *AzureBudgetsResponse) String() string {
 
 var (
 	azureDataAvailabilityDataFieldCosts           = big.NewInt(1 << 0)
-	azureDataAvailabilityDataFieldResourceCosts   = big.NewInt(1 << 1)
-	azureDataAvailabilityDataFieldInventory       = big.NewInt(1 << 2)
-	azureDataAvailabilityDataFieldChanges         = big.NewInt(1 << 3)
-	azureDataAvailabilityDataFieldTags            = big.NewInt(1 << 4)
-	azureDataAvailabilityDataFieldUtilization     = big.NewInt(1 << 5)
-	azureDataAvailabilityDataFieldBudgets         = big.NewInt(1 << 6)
-	azureDataAvailabilityDataFieldAccess          = big.NewInt(1 << 7)
-	azureDataAvailabilityDataFieldRecommendations = big.NewInt(1 << 8)
-	azureDataAvailabilityDataFieldAnomalies       = big.NewInt(1 << 9)
-	azureDataAvailabilityDataFieldCommitments     = big.NewInt(1 << 10)
+	azureDataAvailabilityDataFieldBilled          = big.NewInt(1 << 1)
+	azureDataAvailabilityDataFieldEstimate        = big.NewInt(1 << 2)
+	azureDataAvailabilityDataFieldResourceCosts   = big.NewInt(1 << 3)
+	azureDataAvailabilityDataFieldInventory       = big.NewInt(1 << 4)
+	azureDataAvailabilityDataFieldChanges         = big.NewInt(1 << 5)
+	azureDataAvailabilityDataFieldTags            = big.NewInt(1 << 6)
+	azureDataAvailabilityDataFieldUtilization     = big.NewInt(1 << 7)
+	azureDataAvailabilityDataFieldBudgets         = big.NewInt(1 << 8)
+	azureDataAvailabilityDataFieldAccess          = big.NewInt(1 << 9)
+	azureDataAvailabilityDataFieldRecommendations = big.NewInt(1 << 10)
+	azureDataAvailabilityDataFieldAnomalies       = big.NewInt(1 << 11)
+	azureDataAvailabilityDataFieldCommitments     = big.NewInt(1 << 12)
 )
 
 type AzureDataAvailabilityData struct {
-	Costs           bool `json:"costs" url:"costs"`
-	ResourceCosts   bool `json:"resource_costs" url:"resource_costs"`
-	Inventory       bool `json:"inventory" url:"inventory"`
-	Changes         bool `json:"changes" url:"changes"`
-	Tags            bool `json:"tags" url:"tags"`
-	Utilization     bool `json:"utilization" url:"utilization"`
-	Budgets         bool `json:"budgets" url:"budgets"`
-	Access          bool `json:"access" url:"access"`
-	Recommendations bool `json:"recommendations" url:"recommendations"`
-	Anomalies       bool `json:"anomalies" url:"anomalies"`
-	Commitments     bool `json:"commitments" url:"commitments"`
+	Costs bool `json:"costs" url:"costs"`
+	// Billed or amortized cost on any Azure line in the last 62 days
+	Billed *bool `json:"billed,omitempty" url:"billed,omitempty"`
+	// A list-price estimate on any Azure line in the last 62 days: a subscription whose cost a CSP partner keeps. True with billed false means every figure the tenant has is an estimate
+	Estimate        *bool `json:"estimate,omitempty" url:"estimate,omitempty"`
+	ResourceCosts   bool  `json:"resource_costs" url:"resource_costs"`
+	Inventory       bool  `json:"inventory" url:"inventory"`
+	Changes         bool  `json:"changes" url:"changes"`
+	Tags            bool  `json:"tags" url:"tags"`
+	Utilization     bool  `json:"utilization" url:"utilization"`
+	Budgets         bool  `json:"budgets" url:"budgets"`
+	Access          bool  `json:"access" url:"access"`
+	Recommendations bool  `json:"recommendations" url:"recommendations"`
+	Anomalies       bool  `json:"anomalies" url:"anomalies"`
+	Commitments     bool  `json:"commitments" url:"commitments"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -967,6 +1118,20 @@ func (a *AzureDataAvailabilityData) GetCosts() bool {
 		return false
 	}
 	return a.Costs
+}
+
+func (a *AzureDataAvailabilityData) GetBilled() *bool {
+	if a == nil {
+		return nil
+	}
+	return a.Billed
+}
+
+func (a *AzureDataAvailabilityData) GetEstimate() *bool {
+	if a == nil {
+		return nil
+	}
+	return a.Estimate
 }
 
 func (a *AzureDataAvailabilityData) GetResourceCosts() bool {
@@ -1058,6 +1223,20 @@ func (a *AzureDataAvailabilityData) require(field *big.Int) {
 func (a *AzureDataAvailabilityData) SetCosts(costs bool) {
 	a.Costs = costs
 	a.require(azureDataAvailabilityDataFieldCosts)
+}
+
+// SetBilled sets the Billed field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AzureDataAvailabilityData) SetBilled(billed *bool) {
+	a.Billed = billed
+	a.require(azureDataAvailabilityDataFieldBilled)
+}
+
+// SetEstimate sets the Estimate field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AzureDataAvailabilityData) SetEstimate(estimate *bool) {
+	a.Estimate = estimate
+	a.require(azureDataAvailabilityDataFieldEstimate)
 }
 
 // SetResourceCosts sets the ResourceCosts field and marks it as non-optional;
@@ -1289,6 +1468,462 @@ func (a *AzureDataAvailabilityResponse) String() string {
 }
 
 var (
+	azureInventoryBreakdownDataFieldBy              = big.NewInt(1 << 0)
+	azureInventoryBreakdownDataFieldItems           = big.NewInt(1 << 1)
+	azureInventoryBreakdownDataFieldCostAttribution = big.NewInt(1 << 2)
+)
+
+type AzureInventoryBreakdownData struct {
+	By              AzureInventoryBreakdownDataBy              `json:"by" url:"by"`
+	Items           []*AzureInventoryBreakdownItem             `json:"items" url:"items"`
+	CostAttribution AzureInventoryBreakdownDataCostAttribution `json:"cost_attribution" url:"cost_attribution"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AzureInventoryBreakdownData) GetBy() AzureInventoryBreakdownDataBy {
+	if a == nil {
+		return ""
+	}
+	return a.By
+}
+
+func (a *AzureInventoryBreakdownData) GetItems() []*AzureInventoryBreakdownItem {
+	if a == nil {
+		return nil
+	}
+	return a.Items
+}
+
+func (a *AzureInventoryBreakdownData) GetCostAttribution() AzureInventoryBreakdownDataCostAttribution {
+	if a == nil {
+		return ""
+	}
+	return a.CostAttribution
+}
+
+func (a *AzureInventoryBreakdownData) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AzureInventoryBreakdownData) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetBy sets the By field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AzureInventoryBreakdownData) SetBy(by AzureInventoryBreakdownDataBy) {
+	a.By = by
+	a.require(azureInventoryBreakdownDataFieldBy)
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AzureInventoryBreakdownData) SetItems(items []*AzureInventoryBreakdownItem) {
+	a.Items = items
+	a.require(azureInventoryBreakdownDataFieldItems)
+}
+
+// SetCostAttribution sets the CostAttribution field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AzureInventoryBreakdownData) SetCostAttribution(costAttribution AzureInventoryBreakdownDataCostAttribution) {
+	a.CostAttribution = costAttribution
+	a.require(azureInventoryBreakdownDataFieldCostAttribution)
+}
+
+func (a *AzureInventoryBreakdownData) UnmarshalJSON(data []byte) error {
+	type unmarshaler AzureInventoryBreakdownData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AzureInventoryBreakdownData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AzureInventoryBreakdownData) MarshalJSON() ([]byte, error) {
+	type embed AzureInventoryBreakdownData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AzureInventoryBreakdownData) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+type AzureInventoryBreakdownDataBy string
+
+const (
+	AzureInventoryBreakdownDataByType    AzureInventoryBreakdownDataBy = "type"
+	AzureInventoryBreakdownDataByRegion  AzureInventoryBreakdownDataBy = "region"
+	AzureInventoryBreakdownDataByProject AzureInventoryBreakdownDataBy = "project"
+)
+
+func NewAzureInventoryBreakdownDataByFromString(s string) (AzureInventoryBreakdownDataBy, error) {
+	switch s {
+	case "type":
+		return AzureInventoryBreakdownDataByType, nil
+	case "region":
+		return AzureInventoryBreakdownDataByRegion, nil
+	case "project":
+		return AzureInventoryBreakdownDataByProject, nil
+	}
+	var t AzureInventoryBreakdownDataBy
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AzureInventoryBreakdownDataBy) Ptr() *AzureInventoryBreakdownDataBy {
+	return &a
+}
+
+type AzureInventoryBreakdownDataCostAttribution string
+
+const (
+	AzureInventoryBreakdownDataCostAttributionAvailable   AzureInventoryBreakdownDataCostAttribution = "available"
+	AzureInventoryBreakdownDataCostAttributionUnavailable AzureInventoryBreakdownDataCostAttribution = "unavailable"
+	AzureInventoryBreakdownDataCostAttributionEstimate    AzureInventoryBreakdownDataCostAttribution = "estimate"
+)
+
+func NewAzureInventoryBreakdownDataCostAttributionFromString(s string) (AzureInventoryBreakdownDataCostAttribution, error) {
+	switch s {
+	case "available":
+		return AzureInventoryBreakdownDataCostAttributionAvailable, nil
+	case "unavailable":
+		return AzureInventoryBreakdownDataCostAttributionUnavailable, nil
+	case "estimate":
+		return AzureInventoryBreakdownDataCostAttributionEstimate, nil
+	}
+	var t AzureInventoryBreakdownDataCostAttribution
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AzureInventoryBreakdownDataCostAttribution) Ptr() *AzureInventoryBreakdownDataCostAttribution {
+	return &a
+}
+
+var (
+	azureInventoryBreakdownItemFieldKey           = big.NewInt(1 << 0)
+	azureInventoryBreakdownItemFieldCount         = big.NewInt(1 << 1)
+	azureInventoryBreakdownItemFieldCostMtd       = big.NewInt(1 << 2)
+	azureInventoryBreakdownItemFieldCostLastMonth = big.NewInt(1 << 3)
+	azureInventoryBreakdownItemFieldCostBasis     = big.NewInt(1 << 4)
+)
+
+type AzureInventoryBreakdownItem struct {
+	// The resource type, the region (global when it has none) or the resource group
+	Key   string `json:"key" url:"key"`
+	Count int    `json:"count" url:"count"`
+	// What these resources cost, each from its own bill line, or from Microsoft's list-price estimate when a CSP partner keeps the subscription's cost. Null when no resource cost is attributed
+	CostMtd *float64 `json:"cost_mtd,omitempty" url:"cost_mtd,omitempty"`
+	// What these resources cost, each from its own bill line, or from Microsoft's list-price estimate when a CSP partner keeps the subscription's cost. Null when no resource cost is attributed
+	CostLastMonth *float64 `json:"cost_last_month,omitempty" url:"cost_last_month,omitempty"`
+	// billed when every resource's cost comes from the bill, estimate when any is Microsoft's list price because a CSP partner keeps the cost, null when no resource cost is attributed
+	CostBasis *AzureInventoryBreakdownItemCostBasis `json:"cost_basis,omitempty" url:"cost_basis,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AzureInventoryBreakdownItem) GetKey() string {
+	if a == nil {
+		return ""
+	}
+	return a.Key
+}
+
+func (a *AzureInventoryBreakdownItem) GetCount() int {
+	if a == nil {
+		return 0
+	}
+	return a.Count
+}
+
+func (a *AzureInventoryBreakdownItem) GetCostMtd() *float64 {
+	if a == nil {
+		return nil
+	}
+	return a.CostMtd
+}
+
+func (a *AzureInventoryBreakdownItem) GetCostLastMonth() *float64 {
+	if a == nil {
+		return nil
+	}
+	return a.CostLastMonth
+}
+
+func (a *AzureInventoryBreakdownItem) GetCostBasis() *AzureInventoryBreakdownItemCostBasis {
+	if a == nil {
+		return nil
+	}
+	return a.CostBasis
+}
+
+func (a *AzureInventoryBreakdownItem) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AzureInventoryBreakdownItem) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetKey sets the Key field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AzureInventoryBreakdownItem) SetKey(key string) {
+	a.Key = key
+	a.require(azureInventoryBreakdownItemFieldKey)
+}
+
+// SetCount sets the Count field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AzureInventoryBreakdownItem) SetCount(count int) {
+	a.Count = count
+	a.require(azureInventoryBreakdownItemFieldCount)
+}
+
+// SetCostMtd sets the CostMtd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AzureInventoryBreakdownItem) SetCostMtd(costMtd *float64) {
+	a.CostMtd = costMtd
+	a.require(azureInventoryBreakdownItemFieldCostMtd)
+}
+
+// SetCostLastMonth sets the CostLastMonth field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AzureInventoryBreakdownItem) SetCostLastMonth(costLastMonth *float64) {
+	a.CostLastMonth = costLastMonth
+	a.require(azureInventoryBreakdownItemFieldCostLastMonth)
+}
+
+// SetCostBasis sets the CostBasis field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AzureInventoryBreakdownItem) SetCostBasis(costBasis *AzureInventoryBreakdownItemCostBasis) {
+	a.CostBasis = costBasis
+	a.require(azureInventoryBreakdownItemFieldCostBasis)
+}
+
+func (a *AzureInventoryBreakdownItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler AzureInventoryBreakdownItem
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AzureInventoryBreakdownItem(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AzureInventoryBreakdownItem) MarshalJSON() ([]byte, error) {
+	type embed AzureInventoryBreakdownItem
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AzureInventoryBreakdownItem) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+type AzureInventoryBreakdownItemCostBasis string
+
+const (
+	AzureInventoryBreakdownItemCostBasisBilled   AzureInventoryBreakdownItemCostBasis = "billed"
+	AzureInventoryBreakdownItemCostBasisEstimate AzureInventoryBreakdownItemCostBasis = "estimate"
+)
+
+func NewAzureInventoryBreakdownItemCostBasisFromString(s string) (AzureInventoryBreakdownItemCostBasis, error) {
+	switch s {
+	case "billed":
+		return AzureInventoryBreakdownItemCostBasisBilled, nil
+	case "estimate":
+		return AzureInventoryBreakdownItemCostBasisEstimate, nil
+	}
+	var t AzureInventoryBreakdownItemCostBasis
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AzureInventoryBreakdownItemCostBasis) Ptr() *AzureInventoryBreakdownItemCostBasis {
+	return &a
+}
+
+var (
+	azureInventoryBreakdownResponseFieldSuccess   = big.NewInt(1 << 0)
+	azureInventoryBreakdownResponseFieldTimestamp = big.NewInt(1 << 1)
+	azureInventoryBreakdownResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type AzureInventoryBreakdownResponse struct {
+	Success   *bool                        `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp string                       `json:"timestamp" url:"timestamp"`
+	Data      *AzureInventoryBreakdownData `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AzureInventoryBreakdownResponse) GetSuccess() *bool {
+	if a == nil {
+		return nil
+	}
+	return a.Success
+}
+
+func (a *AzureInventoryBreakdownResponse) GetTimestamp() string {
+	if a == nil {
+		return ""
+	}
+	return a.Timestamp
+}
+
+func (a *AzureInventoryBreakdownResponse) GetData() *AzureInventoryBreakdownData {
+	if a == nil {
+		return nil
+	}
+	return a.Data
+}
+
+func (a *AzureInventoryBreakdownResponse) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AzureInventoryBreakdownResponse) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AzureInventoryBreakdownResponse) SetSuccess(success *bool) {
+	a.Success = success
+	a.require(azureInventoryBreakdownResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AzureInventoryBreakdownResponse) SetTimestamp(timestamp string) {
+	a.Timestamp = timestamp
+	a.require(azureInventoryBreakdownResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AzureInventoryBreakdownResponse) SetData(data *AzureInventoryBreakdownData) {
+	a.Data = data
+	a.require(azureInventoryBreakdownResponseFieldData)
+}
+
+func (a *AzureInventoryBreakdownResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler AzureInventoryBreakdownResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AzureInventoryBreakdownResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AzureInventoryBreakdownResponse) MarshalJSON() ([]byte, error) {
+	type embed AzureInventoryBreakdownResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AzureInventoryBreakdownResponse) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
 	azureRoleStatusFieldGranted = big.NewInt(1 << 0)
 	azureRoleStatusFieldSource  = big.NewInt(1 << 1)
 )
@@ -1421,6 +2056,7 @@ var (
 	azureSubscriptionItemFieldCostVisible          = big.NewInt(1 << 5)
 	azureSubscriptionItemFieldMonthToDateCost      = big.NewInt(1 << 6)
 	azureSubscriptionItemFieldLastMonthCost        = big.NewInt(1 << 7)
+	azureSubscriptionItemFieldCostBasis            = big.NewInt(1 << 8)
 )
 
 type AzureSubscriptionItem struct {
@@ -1432,12 +2068,14 @@ type AzureSubscriptionItem struct {
 	Reader *AzureRoleStatus `json:"reader,omitempty" url:"reader,omitempty"`
 	// Whether the service principal holds Cost Management Reader, null if unchecked
 	CostManagementReader *AzureRoleStatus `json:"cost_management_reader,omitempty" url:"cost_management_reader,omitempty"`
-	// Whether Azure shows this subscription's cost. False when the Microsoft CSP partner that sells it keeps cost visibility off, so LevelFour holds no bill for it. Null if unchecked: only a subscription bought through a CSP partner is checked
+	// Whether Azure shows this subscription's cost. False when the Microsoft CSP partner that sells it keeps cost visibility off, so LevelFour prices its usage at Microsoft's list price as an estimate. Null if unchecked: only a subscription bought through a CSP partner is checked
 	CostVisible *AzureRoleStatus `json:"cost_visible,omitempty" url:"cost_visible,omitempty"`
-	// Actual cost this month so far, from the bill LevelFour holds
+	// Cost this month so far: the bill LevelFour holds, or Microsoft's list-price estimate when the bill is zero and the estimate is not
 	MonthToDateCost float64 `json:"month_to_date_cost" url:"month_to_date_cost"`
-	// Actual cost last month, from the bill LevelFour holds
+	// Cost last month: the bill LevelFour holds, or Microsoft's list-price estimate when the bill is zero and the estimate is not
 	LastMonthCost float64 `json:"last_month_cost" url:"last_month_cost"`
+	// billed when both months come from the bill, estimate when either is Microsoft's list price because a CSP partner keeps the cost, null when LevelFour holds no cost line for the subscription
+	CostBasis *AzureSubscriptionItemCostBasis `json:"cost_basis,omitempty" url:"cost_basis,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -1500,6 +2138,13 @@ func (a *AzureSubscriptionItem) GetLastMonthCost() float64 {
 		return 0
 	}
 	return a.LastMonthCost
+}
+
+func (a *AzureSubscriptionItem) GetCostBasis() *AzureSubscriptionItemCostBasis {
+	if a == nil {
+		return nil
+	}
+	return a.CostBasis
 }
 
 func (a *AzureSubscriptionItem) GetExtraProperties() map[string]interface{} {
@@ -1572,6 +2217,13 @@ func (a *AzureSubscriptionItem) SetLastMonthCost(lastMonthCost float64) {
 	a.require(azureSubscriptionItemFieldLastMonthCost)
 }
 
+// SetCostBasis sets the CostBasis field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AzureSubscriptionItem) SetCostBasis(costBasis *AzureSubscriptionItemCostBasis) {
+	a.CostBasis = costBasis
+	a.require(azureSubscriptionItemFieldCostBasis)
+}
+
 func (a *AzureSubscriptionItem) UnmarshalJSON(data []byte) error {
 	type unmarshaler AzureSubscriptionItem
 	var value unmarshaler
@@ -1612,6 +2264,28 @@ func (a *AzureSubscriptionItem) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", a)
+}
+
+type AzureSubscriptionItemCostBasis string
+
+const (
+	AzureSubscriptionItemCostBasisBilled   AzureSubscriptionItemCostBasis = "billed"
+	AzureSubscriptionItemCostBasisEstimate AzureSubscriptionItemCostBasis = "estimate"
+)
+
+func NewAzureSubscriptionItemCostBasisFromString(s string) (AzureSubscriptionItemCostBasis, error) {
+	switch s {
+	case "billed":
+		return AzureSubscriptionItemCostBasisBilled, nil
+	case "estimate":
+		return AzureSubscriptionItemCostBasisEstimate, nil
+	}
+	var t AzureSubscriptionItemCostBasis
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AzureSubscriptionItemCostBasis) Ptr() *AzureSubscriptionItemCostBasis {
+	return &a
 }
 
 var (
@@ -2816,7 +3490,8 @@ var (
 	inventoryWasteSignalFieldCount             = big.NewInt(1 << 1)
 	inventoryWasteSignalFieldSizeGb            = big.NewInt(1 << 2)
 	inventoryWasteSignalFieldMonthlyCost       = big.NewInt(1 << 3)
-	inventoryWasteSignalFieldRecommendationIDs = big.NewInt(1 << 4)
+	inventoryWasteSignalFieldCostBasis         = big.NewInt(1 << 4)
+	inventoryWasteSignalFieldRecommendationIDs = big.NewInt(1 << 5)
 )
 
 type InventoryWasteSignal struct {
@@ -2825,8 +3500,10 @@ type InventoryWasteSignal struct {
 	Count int    `json:"count" url:"count"`
 	// Provisioned size in GB, for the kinds the provider reports one for
 	SizeGb *float64 `json:"size_gb,omitempty" url:"size_gb,omitempty"`
-	// What these resources cost last month on the bill, or null unless a bill line names every one
+	// What these resources cost last month on the bill, or at Microsoft's list price for an Azure resource whose cost a CSP partner keeps, or null unless a line names every one
 	MonthlyCost *float64 `json:"monthly_cost,omitempty" url:"monthly_cost,omitempty"`
+	// billed when monthly_cost is all from the bill, estimate when any of it is a list-price estimate, null when monthly_cost is
+	CostBasis *InventoryWasteSignalCostBasis `json:"cost_basis,omitempty" url:"cost_basis,omitempty"`
 	// Recommendations still pending on these resources, neither applied nor rejected
 	RecommendationIDs []string `json:"recommendation_ids" url:"recommendation_ids"`
 
@@ -2863,6 +3540,13 @@ func (i *InventoryWasteSignal) GetMonthlyCost() *float64 {
 		return nil
 	}
 	return i.MonthlyCost
+}
+
+func (i *InventoryWasteSignal) GetCostBasis() *InventoryWasteSignalCostBasis {
+	if i == nil {
+		return nil
+	}
+	return i.CostBasis
 }
 
 func (i *InventoryWasteSignal) GetRecommendationIDs() []string {
@@ -2914,6 +3598,13 @@ func (i *InventoryWasteSignal) SetMonthlyCost(monthlyCost *float64) {
 	i.require(inventoryWasteSignalFieldMonthlyCost)
 }
 
+// SetCostBasis sets the CostBasis field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InventoryWasteSignal) SetCostBasis(costBasis *InventoryWasteSignalCostBasis) {
+	i.CostBasis = costBasis
+	i.require(inventoryWasteSignalFieldCostBasis)
+}
+
 // SetRecommendationIDs sets the RecommendationIDs field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (i *InventoryWasteSignal) SetRecommendationIDs(recommendationIDs []string) {
@@ -2963,13 +3654,36 @@ func (i *InventoryWasteSignal) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+type InventoryWasteSignalCostBasis string
+
+const (
+	InventoryWasteSignalCostBasisBilled   InventoryWasteSignalCostBasis = "billed"
+	InventoryWasteSignalCostBasisEstimate InventoryWasteSignalCostBasis = "estimate"
+)
+
+func NewInventoryWasteSignalCostBasisFromString(s string) (InventoryWasteSignalCostBasis, error) {
+	switch s {
+	case "billed":
+		return InventoryWasteSignalCostBasisBilled, nil
+	case "estimate":
+		return InventoryWasteSignalCostBasisEstimate, nil
+	}
+	var t InventoryWasteSignalCostBasis
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (i InventoryWasteSignalCostBasis) Ptr() *InventoryWasteSignalCostBasis {
+	return &i
+}
+
 var (
 	inventoryWasteSignalsDataFieldSignals         = big.NewInt(1 << 0)
 	inventoryWasteSignalsDataFieldCostAttribution = big.NewInt(1 << 1)
 )
 
 type InventoryWasteSignalsData struct {
-	Signals         []*InventoryWasteSignal                  `json:"signals" url:"signals"`
+	Signals []*InventoryWasteSignal `json:"signals" url:"signals"`
+	// available when resource costs come from the bill, estimate when every one the card reads is a list-price estimate, unavailable when none is attributed yet
 	CostAttribution InventoryWasteSignalsDataCostAttribution `json:"cost_attribution" url:"cost_attribution"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
@@ -3063,11 +3777,13 @@ func (i *InventoryWasteSignalsData) String() string {
 	return fmt.Sprintf("%#v", i)
 }
 
+// available when resource costs come from the bill, estimate when every one the card reads is a list-price estimate, unavailable when none is attributed yet
 type InventoryWasteSignalsDataCostAttribution string
 
 const (
 	InventoryWasteSignalsDataCostAttributionAvailable   InventoryWasteSignalsDataCostAttribution = "available"
 	InventoryWasteSignalsDataCostAttributionUnavailable InventoryWasteSignalsDataCostAttribution = "unavailable"
+	InventoryWasteSignalsDataCostAttributionEstimate    InventoryWasteSignalsDataCostAttribution = "estimate"
 )
 
 func NewInventoryWasteSignalsDataCostAttributionFromString(s string) (InventoryWasteSignalsDataCostAttribution, error) {
@@ -3076,6 +3792,8 @@ func NewInventoryWasteSignalsDataCostAttributionFromString(s string) (InventoryW
 		return InventoryWasteSignalsDataCostAttributionAvailable, nil
 	case "unavailable":
 		return InventoryWasteSignalsDataCostAttributionUnavailable, nil
+	case "estimate":
+		return InventoryWasteSignalsDataCostAttributionEstimate, nil
 	}
 	var t InventoryWasteSignalsDataCostAttribution
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -3566,4 +4284,29 @@ func (s *SrcDoMetricsSchemasUtilizationSummaryResponse) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", s)
+}
+
+type GetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequestBy string
+
+const (
+	GetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequestByType    GetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequestBy = "type"
+	GetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequestByRegion  GetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequestBy = "region"
+	GetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequestByProject GetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequestBy = "project"
+)
+
+func NewGetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequestByFromString(s string) (GetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequestBy, error) {
+	switch s {
+	case "type":
+		return GetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequestByType, nil
+	case "region":
+		return GetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequestByRegion, nil
+	case "project":
+		return GetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequestByProject, nil
+	}
+	var t GetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequestBy
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequestBy) Ptr() *GetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequestBy {
+	return &g
 }

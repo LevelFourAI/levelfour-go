@@ -18,6 +18,7 @@ var (
 	getAllocationAPIV1CostsAllocationGetRequestFieldCredits              = big.NewInt(1 << 4)
 	getAllocationAPIV1CostsAllocationGetRequestFieldExcludeSystem        = big.NewInt(1 << 5)
 	getAllocationAPIV1CostsAllocationGetRequestFieldIncludeProjectLabels = big.NewInt(1 << 6)
+	getAllocationAPIV1CostsAllocationGetRequestFieldShowCostAs           = big.NewInt(1 << 7)
 )
 
 type GetAllocationAPIV1CostsAllocationGetRequest struct {
@@ -32,6 +33,8 @@ type GetAllocationAPIV1CostsAllocationGetRequest struct {
 	ExcludeSystem *bool `json:"-" url:"exclude_system,omitempty"`
 	// Google Cloud only: count labels set on the project
 	IncludeProjectLabels *bool `json:"-" url:"include_project_labels,omitempty"`
+	// Cost type: unblended (default), amortized, or usage_value (usage priced at list price, an estimate). Anything but unblended needs one provider that declares it in its cost dimensions.
+	ShowCostAs *GetAllocationAPIV1CostsAllocationGetRequestShowCostAs `json:"-" url:"show_cost_as,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -91,6 +94,13 @@ func (g *GetAllocationAPIV1CostsAllocationGetRequest) SetExcludeSystem(excludeSy
 func (g *GetAllocationAPIV1CostsAllocationGetRequest) SetIncludeProjectLabels(includeProjectLabels *bool) {
 	g.IncludeProjectLabels = includeProjectLabels
 	g.require(getAllocationAPIV1CostsAllocationGetRequestFieldIncludeProjectLabels)
+}
+
+// SetShowCostAs sets the ShowCostAs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetAllocationAPIV1CostsAllocationGetRequest) SetShowCostAs(showCostAs *GetAllocationAPIV1CostsAllocationGetRequestShowCostAs) {
+	g.ShowCostAs = showCostAs
+	g.require(getAllocationAPIV1CostsAllocationGetRequestFieldShowCostAs)
 }
 
 var (
@@ -185,12 +195,13 @@ func (g *GetCostByLabelsAPIV1CostsByLabelsGetRequest) SetLimit(limit *int) {
 }
 
 var (
-	getCostByTagAPIV1CostsByTagGetRequestFieldProvider  = big.NewInt(1 << 0)
-	getCostByTagAPIV1CostsByTagGetRequestFieldTagKey    = big.NewInt(1 << 1)
-	getCostByTagAPIV1CostsByTagGetRequestFieldSecondKey = big.NewInt(1 << 2)
-	getCostByTagAPIV1CostsByTagGetRequestFieldStart     = big.NewInt(1 << 3)
-	getCostByTagAPIV1CostsByTagGetRequestFieldEnd       = big.NewInt(1 << 4)
-	getCostByTagAPIV1CostsByTagGetRequestFieldCredits   = big.NewInt(1 << 5)
+	getCostByTagAPIV1CostsByTagGetRequestFieldProvider   = big.NewInt(1 << 0)
+	getCostByTagAPIV1CostsByTagGetRequestFieldTagKey     = big.NewInt(1 << 1)
+	getCostByTagAPIV1CostsByTagGetRequestFieldSecondKey  = big.NewInt(1 << 2)
+	getCostByTagAPIV1CostsByTagGetRequestFieldStart      = big.NewInt(1 << 3)
+	getCostByTagAPIV1CostsByTagGetRequestFieldEnd        = big.NewInt(1 << 4)
+	getCostByTagAPIV1CostsByTagGetRequestFieldCredits    = big.NewInt(1 << 5)
+	getCostByTagAPIV1CostsByTagGetRequestFieldShowCostAs = big.NewInt(1 << 6)
 )
 
 type GetCostByTagAPIV1CostsByTagGetRequest struct {
@@ -202,6 +213,8 @@ type GetCostByTagAPIV1CostsByTagGetRequest struct {
 	End       *string `json:"-" url:"end,omitempty"`
 	// Cost basis for Google Cloud: after credits (default) or before them. AWS stays on its invoiced basis.
 	Credits *GetCostByTagAPIV1CostsByTagGetRequestCredits `json:"-" url:"credits,omitempty"`
+	// Cost type: unblended (default), amortized, or usage_value (usage priced at list price, an estimate). Anything but unblended needs one provider that declares it in its cost dimensions.
+	ShowCostAs *GetCostByTagAPIV1CostsByTagGetRequestShowCostAs `json:"-" url:"show_cost_as,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -256,10 +269,18 @@ func (g *GetCostByTagAPIV1CostsByTagGetRequest) SetCredits(credits *GetCostByTag
 	g.require(getCostByTagAPIV1CostsByTagGetRequestFieldCredits)
 }
 
+// SetShowCostAs sets the ShowCostAs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetCostByTagAPIV1CostsByTagGetRequest) SetShowCostAs(showCostAs *GetCostByTagAPIV1CostsByTagGetRequestShowCostAs) {
+	g.ShowCostAs = showCostAs
+	g.require(getCostByTagAPIV1CostsByTagGetRequestFieldShowCostAs)
+}
+
 var (
-	getForecastAPIV1CostsForecastGetRequestFieldProvider = big.NewInt(1 << 0)
-	getForecastAPIV1CostsForecastGetRequestFieldHorizon  = big.NewInt(1 << 1)
-	getForecastAPIV1CostsForecastGetRequestFieldCredits  = big.NewInt(1 << 2)
+	getForecastAPIV1CostsForecastGetRequestFieldProvider   = big.NewInt(1 << 0)
+	getForecastAPIV1CostsForecastGetRequestFieldHorizon    = big.NewInt(1 << 1)
+	getForecastAPIV1CostsForecastGetRequestFieldCredits    = big.NewInt(1 << 2)
+	getForecastAPIV1CostsForecastGetRequestFieldShowCostAs = big.NewInt(1 << 3)
 )
 
 type GetForecastAPIV1CostsForecastGetRequest struct {
@@ -269,6 +290,8 @@ type GetForecastAPIV1CostsForecastGetRequest struct {
 	Horizon *string `json:"-" url:"horizon,omitempty"`
 	// Cost basis for Google Cloud: after credits (default) or before them. AWS stays on its invoiced basis.
 	Credits *GetForecastAPIV1CostsForecastGetRequestCredits `json:"-" url:"credits,omitempty"`
+	// Cost type: unblended (default), amortized, or usage_value (usage priced at list price, an estimate). Anything but unblended needs one provider that declares it in its cost dimensions.
+	ShowCostAs *GetForecastAPIV1CostsForecastGetRequestShowCostAs `json:"-" url:"show_cost_as,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -302,6 +325,13 @@ func (g *GetForecastAPIV1CostsForecastGetRequest) SetCredits(credits *GetForecas
 	g.require(getForecastAPIV1CostsForecastGetRequestFieldCredits)
 }
 
+// SetShowCostAs sets the ShowCostAs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetForecastAPIV1CostsForecastGetRequest) SetShowCostAs(showCostAs *GetForecastAPIV1CostsForecastGetRequestShowCostAs) {
+	g.ShowCostAs = showCostAs
+	g.require(getForecastAPIV1CostsForecastGetRequestFieldShowCostAs)
+}
+
 var (
 	getTagKeysAPIV1CostsByTagKeysGetRequestFieldProvider = big.NewInt(1 << 0)
 )
@@ -328,10 +358,11 @@ func (g *GetTagKeysAPIV1CostsByTagKeysGetRequest) SetProvider(provider *string) 
 }
 
 var (
-	getTopGrowingAPIV1CostsTopGrowingGetRequestFieldProvider  = big.NewInt(1 << 0)
-	getTopGrowingAPIV1CostsTopGrowingGetRequestFieldCompareTo = big.NewInt(1 << 1)
-	getTopGrowingAPIV1CostsTopGrowingGetRequestFieldLimit     = big.NewInt(1 << 2)
-	getTopGrowingAPIV1CostsTopGrowingGetRequestFieldCredits   = big.NewInt(1 << 3)
+	getTopGrowingAPIV1CostsTopGrowingGetRequestFieldProvider   = big.NewInt(1 << 0)
+	getTopGrowingAPIV1CostsTopGrowingGetRequestFieldCompareTo  = big.NewInt(1 << 1)
+	getTopGrowingAPIV1CostsTopGrowingGetRequestFieldLimit      = big.NewInt(1 << 2)
+	getTopGrowingAPIV1CostsTopGrowingGetRequestFieldCredits    = big.NewInt(1 << 3)
+	getTopGrowingAPIV1CostsTopGrowingGetRequestFieldShowCostAs = big.NewInt(1 << 4)
 )
 
 type GetTopGrowingAPIV1CostsTopGrowingGetRequest struct {
@@ -341,6 +372,8 @@ type GetTopGrowingAPIV1CostsTopGrowingGetRequest struct {
 	Limit     *int    `json:"-" url:"limit,omitempty"`
 	// Cost basis for Google Cloud: after credits (default) or before them. AWS stays on its invoiced basis.
 	Credits *GetTopGrowingAPIV1CostsTopGrowingGetRequestCredits `json:"-" url:"credits,omitempty"`
+	// Cost type: unblended (default), amortized, or usage_value (usage priced at list price, an estimate). Anything but unblended needs one provider that declares it in its cost dimensions.
+	ShowCostAs *GetTopGrowingAPIV1CostsTopGrowingGetRequestShowCostAs `json:"-" url:"show_cost_as,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -381,13 +414,21 @@ func (g *GetTopGrowingAPIV1CostsTopGrowingGetRequest) SetCredits(credits *GetTop
 	g.require(getTopGrowingAPIV1CostsTopGrowingGetRequestFieldCredits)
 }
 
+// SetShowCostAs sets the ShowCostAs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetTopGrowingAPIV1CostsTopGrowingGetRequest) SetShowCostAs(showCostAs *GetTopGrowingAPIV1CostsTopGrowingGetRequestShowCostAs) {
+	g.ShowCostAs = showCostAs
+	g.require(getTopGrowingAPIV1CostsTopGrowingGetRequestFieldShowCostAs)
+}
+
 var (
-	getUsageAPIV1CostsUsageGetRequestFieldProvider = big.NewInt(1 << 0)
-	getUsageAPIV1CostsUsageGetRequestFieldStart    = big.NewInt(1 << 1)
-	getUsageAPIV1CostsUsageGetRequestFieldEnd      = big.NewInt(1 << 2)
-	getUsageAPIV1CostsUsageGetRequestFieldService  = big.NewInt(1 << 3)
-	getUsageAPIV1CostsUsageGetRequestFieldFamily   = big.NewInt(1 << 4)
-	getUsageAPIV1CostsUsageGetRequestFieldCredits  = big.NewInt(1 << 5)
+	getUsageAPIV1CostsUsageGetRequestFieldProvider   = big.NewInt(1 << 0)
+	getUsageAPIV1CostsUsageGetRequestFieldStart      = big.NewInt(1 << 1)
+	getUsageAPIV1CostsUsageGetRequestFieldEnd        = big.NewInt(1 << 2)
+	getUsageAPIV1CostsUsageGetRequestFieldService    = big.NewInt(1 << 3)
+	getUsageAPIV1CostsUsageGetRequestFieldFamily     = big.NewInt(1 << 4)
+	getUsageAPIV1CostsUsageGetRequestFieldCredits    = big.NewInt(1 << 5)
+	getUsageAPIV1CostsUsageGetRequestFieldShowCostAs = big.NewInt(1 << 6)
 )
 
 type GetUsageAPIV1CostsUsageGetRequest struct {
@@ -401,6 +442,8 @@ type GetUsageAPIV1CostsUsageGetRequest struct {
 	Family *GetUsageAPIV1CostsUsageGetRequestFamily `json:"-" url:"family,omitempty"`
 	// Cost basis for Google Cloud: after credits (default) or before them. AWS stays on its invoiced basis.
 	Credits *GetUsageAPIV1CostsUsageGetRequestCredits `json:"-" url:"credits,omitempty"`
+	// Cost type: unblended (default), amortized, or usage_value (usage priced at list price, an estimate). Anything but unblended needs one provider that declares it in its cost dimensions.
+	ShowCostAs *GetUsageAPIV1CostsUsageGetRequestShowCostAs `json:"-" url:"show_cost_as,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -455,11 +498,19 @@ func (g *GetUsageAPIV1CostsUsageGetRequest) SetCredits(credits *GetUsageAPIV1Cos
 	g.require(getUsageAPIV1CostsUsageGetRequestFieldCredits)
 }
 
+// SetShowCostAs sets the ShowCostAs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetUsageAPIV1CostsUsageGetRequest) SetShowCostAs(showCostAs *GetUsageAPIV1CostsUsageGetRequestShowCostAs) {
+	g.ShowCostAs = showCostAs
+	g.require(getUsageAPIV1CostsUsageGetRequestFieldShowCostAs)
+}
+
 var (
 	getDailyCostsCostsRequestFieldStart      = big.NewInt(1 << 0)
 	getDailyCostsCostsRequestFieldEnd        = big.NewInt(1 << 1)
 	getDailyCostsCostsRequestFieldProviderID = big.NewInt(1 << 2)
 	getDailyCostsCostsRequestFieldCredits    = big.NewInt(1 << 3)
+	getDailyCostsCostsRequestFieldShowCostAs = big.NewInt(1 << 4)
 )
 
 type GetDailyCostsCostsRequest struct {
@@ -471,6 +522,8 @@ type GetDailyCostsCostsRequest struct {
 	ProviderID *string `json:"-" url:"providerId,omitempty"`
 	// Cost basis for Google Cloud: after credits (default) or before them. AWS stays on its invoiced basis.
 	Credits *GetDailyCostsCostsRequestCredits `json:"-" url:"credits,omitempty"`
+	// Cost type: unblended (default), amortized, or usage_value (usage priced at list price, an estimate). Anything but unblended needs one provider that declares it in its cost dimensions.
+	ShowCostAs *GetDailyCostsCostsRequestShowCostAs `json:"-" url:"show_cost_as,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -509,6 +562,13 @@ func (g *GetDailyCostsCostsRequest) SetProviderID(providerID *string) {
 func (g *GetDailyCostsCostsRequest) SetCredits(credits *GetDailyCostsCostsRequestCredits) {
 	g.Credits = credits
 	g.require(getDailyCostsCostsRequestFieldCredits)
+}
+
+// SetShowCostAs sets the ShowCostAs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetDailyCostsCostsRequest) SetShowCostAs(showCostAs *GetDailyCostsCostsRequestShowCostAs) {
+	g.ShowCostAs = showCostAs
+	g.require(getDailyCostsCostsRequestFieldShowCostAs)
 }
 
 var (
@@ -559,6 +619,22 @@ var (
 	getProviderFiltersCostsRequestFieldVirtualTagKey         = big.NewInt(1 << 44)
 	getProviderFiltersCostsRequestFieldSearch                = big.NewInt(1 << 45)
 	getProviderFiltersCostsRequestFieldFields                = big.NewInt(1 << 46)
+	getProviderFiltersCostsRequestFieldMeterName             = big.NewInt(1 << 47)
+	getProviderFiltersCostsRequestFieldMeterNameMode         = big.NewInt(1 << 48)
+	getProviderFiltersCostsRequestFieldMeterSubcategory      = big.NewInt(1 << 49)
+	getProviderFiltersCostsRequestFieldMeterSubcategoryMode  = big.NewInt(1 << 50)
+	getProviderFiltersCostsRequestFieldServiceFamily         = big.NewInt(1 << 51)
+	getProviderFiltersCostsRequestFieldServiceFamilyMode     = big.NewInt(1 << 52)
+	getProviderFiltersCostsRequestFieldPublisherType         = big.NewInt(1 << 53)
+	getProviderFiltersCostsRequestFieldPublisherTypeMode     = big.NewInt(1 << 54)
+	getProviderFiltersCostsRequestFieldBenefitName           = big.NewInt(1 << 55)
+	getProviderFiltersCostsRequestFieldBenefitNameMode       = big.NewInt(1 << 56)
+	getProviderFiltersCostsRequestFieldProduct               = big.NewInt(1 << 57)
+	getProviderFiltersCostsRequestFieldProductMode           = big.NewInt(1 << 58)
+	getProviderFiltersCostsRequestFieldBillingProfile        = big.NewInt(1 << 59)
+	getProviderFiltersCostsRequestFieldBillingProfileMode    = big.NewInt(1 << 60)
+	getProviderFiltersCostsRequestFieldInvoiceSection        = big.NewInt(1 << 61)
+	getProviderFiltersCostsRequestFieldInvoiceSectionMode    = big.NewInt(1 << 62)
 )
 
 type GetProviderFiltersCostsRequest struct {
@@ -614,6 +690,30 @@ type GetProviderFiltersCostsRequest struct {
 	Search *string `json:"-" url:"search,omitempty"`
 	// Read only these lists, by their response field name (resources, tag_values, usage_types). Each list is a query of its own, so a search typed into one list names it here. Omit for every list
 	Fields []string `json:"-" url:"fields,omitempty"`
+	// Azure: filter by meter name(s)
+	MeterName     []string                                     `json:"-" url:"meter_name,omitempty"`
+	MeterNameMode *GetProviderFiltersCostsRequestMeterNameMode `json:"-" url:"meter_name_mode,omitempty"`
+	// Azure: filter by meter subcategory
+	MeterSubcategory     []string                                            `json:"-" url:"meter_subcategory,omitempty"`
+	MeterSubcategoryMode *GetProviderFiltersCostsRequestMeterSubcategoryMode `json:"-" url:"meter_subcategory_mode,omitempty"`
+	// Azure: filter by service family
+	ServiceFamily     []string                                         `json:"-" url:"service_family,omitempty"`
+	ServiceFamilyMode *GetProviderFiltersCostsRequestServiceFamilyMode `json:"-" url:"service_family_mode,omitempty"`
+	// Azure: filter by publisher type (Azure, Marketplace)
+	PublisherType     []string                                         `json:"-" url:"publisher_type,omitempty"`
+	PublisherTypeMode *GetProviderFiltersCostsRequestPublisherTypeMode `json:"-" url:"publisher_type_mode,omitempty"`
+	// Azure: filter by reservation or savings plan name
+	BenefitName     []string                                       `json:"-" url:"benefit_name,omitempty"`
+	BenefitNameMode *GetProviderFiltersCostsRequestBenefitNameMode `json:"-" url:"benefit_name_mode,omitempty"`
+	// Azure: filter by product
+	Product     []string                                   `json:"-" url:"product,omitempty"`
+	ProductMode *GetProviderFiltersCostsRequestProductMode `json:"-" url:"product_mode,omitempty"`
+	// Azure: filter by billing profile
+	BillingProfile     []string                                          `json:"-" url:"billing_profile,omitempty"`
+	BillingProfileMode *GetProviderFiltersCostsRequestBillingProfileMode `json:"-" url:"billing_profile_mode,omitempty"`
+	// Azure: filter by invoice section
+	InvoiceSection     []string                                          `json:"-" url:"invoice_section,omitempty"`
+	InvoiceSectionMode *GetProviderFiltersCostsRequestInvoiceSectionMode `json:"-" url:"invoice_section_mode,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -955,6 +1055,118 @@ func (g *GetProviderFiltersCostsRequest) SetFields(fields []string) {
 	g.require(getProviderFiltersCostsRequestFieldFields)
 }
 
+// SetMeterName sets the MeterName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetProviderFiltersCostsRequest) SetMeterName(meterName []string) {
+	g.MeterName = meterName
+	g.require(getProviderFiltersCostsRequestFieldMeterName)
+}
+
+// SetMeterNameMode sets the MeterNameMode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetProviderFiltersCostsRequest) SetMeterNameMode(meterNameMode *GetProviderFiltersCostsRequestMeterNameMode) {
+	g.MeterNameMode = meterNameMode
+	g.require(getProviderFiltersCostsRequestFieldMeterNameMode)
+}
+
+// SetMeterSubcategory sets the MeterSubcategory field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetProviderFiltersCostsRequest) SetMeterSubcategory(meterSubcategory []string) {
+	g.MeterSubcategory = meterSubcategory
+	g.require(getProviderFiltersCostsRequestFieldMeterSubcategory)
+}
+
+// SetMeterSubcategoryMode sets the MeterSubcategoryMode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetProviderFiltersCostsRequest) SetMeterSubcategoryMode(meterSubcategoryMode *GetProviderFiltersCostsRequestMeterSubcategoryMode) {
+	g.MeterSubcategoryMode = meterSubcategoryMode
+	g.require(getProviderFiltersCostsRequestFieldMeterSubcategoryMode)
+}
+
+// SetServiceFamily sets the ServiceFamily field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetProviderFiltersCostsRequest) SetServiceFamily(serviceFamily []string) {
+	g.ServiceFamily = serviceFamily
+	g.require(getProviderFiltersCostsRequestFieldServiceFamily)
+}
+
+// SetServiceFamilyMode sets the ServiceFamilyMode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetProviderFiltersCostsRequest) SetServiceFamilyMode(serviceFamilyMode *GetProviderFiltersCostsRequestServiceFamilyMode) {
+	g.ServiceFamilyMode = serviceFamilyMode
+	g.require(getProviderFiltersCostsRequestFieldServiceFamilyMode)
+}
+
+// SetPublisherType sets the PublisherType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetProviderFiltersCostsRequest) SetPublisherType(publisherType []string) {
+	g.PublisherType = publisherType
+	g.require(getProviderFiltersCostsRequestFieldPublisherType)
+}
+
+// SetPublisherTypeMode sets the PublisherTypeMode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetProviderFiltersCostsRequest) SetPublisherTypeMode(publisherTypeMode *GetProviderFiltersCostsRequestPublisherTypeMode) {
+	g.PublisherTypeMode = publisherTypeMode
+	g.require(getProviderFiltersCostsRequestFieldPublisherTypeMode)
+}
+
+// SetBenefitName sets the BenefitName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetProviderFiltersCostsRequest) SetBenefitName(benefitName []string) {
+	g.BenefitName = benefitName
+	g.require(getProviderFiltersCostsRequestFieldBenefitName)
+}
+
+// SetBenefitNameMode sets the BenefitNameMode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetProviderFiltersCostsRequest) SetBenefitNameMode(benefitNameMode *GetProviderFiltersCostsRequestBenefitNameMode) {
+	g.BenefitNameMode = benefitNameMode
+	g.require(getProviderFiltersCostsRequestFieldBenefitNameMode)
+}
+
+// SetProduct sets the Product field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetProviderFiltersCostsRequest) SetProduct(product []string) {
+	g.Product = product
+	g.require(getProviderFiltersCostsRequestFieldProduct)
+}
+
+// SetProductMode sets the ProductMode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetProviderFiltersCostsRequest) SetProductMode(productMode *GetProviderFiltersCostsRequestProductMode) {
+	g.ProductMode = productMode
+	g.require(getProviderFiltersCostsRequestFieldProductMode)
+}
+
+// SetBillingProfile sets the BillingProfile field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetProviderFiltersCostsRequest) SetBillingProfile(billingProfile []string) {
+	g.BillingProfile = billingProfile
+	g.require(getProviderFiltersCostsRequestFieldBillingProfile)
+}
+
+// SetBillingProfileMode sets the BillingProfileMode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetProviderFiltersCostsRequest) SetBillingProfileMode(billingProfileMode *GetProviderFiltersCostsRequestBillingProfileMode) {
+	g.BillingProfileMode = billingProfileMode
+	g.require(getProviderFiltersCostsRequestFieldBillingProfileMode)
+}
+
+// SetInvoiceSection sets the InvoiceSection field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetProviderFiltersCostsRequest) SetInvoiceSection(invoiceSection []string) {
+	g.InvoiceSection = invoiceSection
+	g.require(getProviderFiltersCostsRequestFieldInvoiceSection)
+}
+
+// SetInvoiceSectionMode sets the InvoiceSectionMode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetProviderFiltersCostsRequest) SetInvoiceSectionMode(invoiceSectionMode *GetProviderFiltersCostsRequestInvoiceSectionMode) {
+	g.InvoiceSectionMode = invoiceSectionMode
+	g.require(getProviderFiltersCostsRequestFieldInvoiceSectionMode)
+}
+
 var (
 	getProviderSummaryCostsRequestFieldCredits = big.NewInt(1 << 0)
 )
@@ -1030,6 +1242,7 @@ func (g *GetProviderTimelineCostsRequest) SetGranularity(granularity *string) {
 var (
 	getSummaryCostsRequestFieldProviderID = big.NewInt(1 << 0)
 	getSummaryCostsRequestFieldCredits    = big.NewInt(1 << 1)
+	getSummaryCostsRequestFieldShowCostAs = big.NewInt(1 << 2)
 )
 
 type GetSummaryCostsRequest struct {
@@ -1037,6 +1250,8 @@ type GetSummaryCostsRequest struct {
 	ProviderID *string `json:"-" url:"providerId,omitempty"`
 	// Cost basis for Google Cloud: after credits (default) or before them. AWS stays on its invoiced basis.
 	Credits *GetSummaryCostsRequestCredits `json:"-" url:"credits,omitempty"`
+	// Cost type: unblended (default), amortized, or usage_value (usage priced at list price, an estimate). Anything but unblended needs one provider that declares it in its cost dimensions.
+	ShowCostAs *GetSummaryCostsRequestShowCostAs `json:"-" url:"show_cost_as,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -1061,6 +1276,13 @@ func (g *GetSummaryCostsRequest) SetProviderID(providerID *string) {
 func (g *GetSummaryCostsRequest) SetCredits(credits *GetSummaryCostsRequestCredits) {
 	g.Credits = credits
 	g.require(getSummaryCostsRequestFieldCredits)
+}
+
+// SetShowCostAs sets the ShowCostAs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetSummaryCostsRequest) SetShowCostAs(showCostAs *GetSummaryCostsRequestShowCostAs) {
+	g.ShowCostAs = showCostAs
+	g.require(getSummaryCostsRequestFieldShowCostAs)
 }
 
 var (
@@ -1259,6 +1481,22 @@ var (
 	listByProviderCostsRequestFieldMeasure               = big.NewInt(0).Lsh(big.NewInt(1), 66)
 	listByProviderCostsRequestFieldUnit                  = big.NewInt(0).Lsh(big.NewInt(1), 67)
 	listByProviderCostsRequestFieldForecastHorizon       = big.NewInt(0).Lsh(big.NewInt(1), 68)
+	listByProviderCostsRequestFieldMeterName             = big.NewInt(0).Lsh(big.NewInt(1), 69)
+	listByProviderCostsRequestFieldMeterNameMode         = big.NewInt(0).Lsh(big.NewInt(1), 70)
+	listByProviderCostsRequestFieldMeterSubcategory      = big.NewInt(0).Lsh(big.NewInt(1), 71)
+	listByProviderCostsRequestFieldMeterSubcategoryMode  = big.NewInt(0).Lsh(big.NewInt(1), 72)
+	listByProviderCostsRequestFieldServiceFamily         = big.NewInt(0).Lsh(big.NewInt(1), 73)
+	listByProviderCostsRequestFieldServiceFamilyMode     = big.NewInt(0).Lsh(big.NewInt(1), 74)
+	listByProviderCostsRequestFieldPublisherType         = big.NewInt(0).Lsh(big.NewInt(1), 75)
+	listByProviderCostsRequestFieldPublisherTypeMode     = big.NewInt(0).Lsh(big.NewInt(1), 76)
+	listByProviderCostsRequestFieldBenefitName           = big.NewInt(0).Lsh(big.NewInt(1), 77)
+	listByProviderCostsRequestFieldBenefitNameMode       = big.NewInt(0).Lsh(big.NewInt(1), 78)
+	listByProviderCostsRequestFieldProduct               = big.NewInt(0).Lsh(big.NewInt(1), 79)
+	listByProviderCostsRequestFieldProductMode           = big.NewInt(0).Lsh(big.NewInt(1), 80)
+	listByProviderCostsRequestFieldBillingProfile        = big.NewInt(0).Lsh(big.NewInt(1), 81)
+	listByProviderCostsRequestFieldBillingProfileMode    = big.NewInt(0).Lsh(big.NewInt(1), 82)
+	listByProviderCostsRequestFieldInvoiceSection        = big.NewInt(0).Lsh(big.NewInt(1), 83)
+	listByProviderCostsRequestFieldInvoiceSectionMode    = big.NewInt(0).Lsh(big.NewInt(1), 84)
 )
 
 type ListByProviderCostsRequest struct {
@@ -1376,6 +1614,30 @@ type ListByProviderCostsRequest struct {
 	Unit *string `json:"-" url:"unit,omitempty"`
 	// Chart format: project each series this far past the last complete day, at its median daily run rate over the 30 days before it
 	ForecastHorizon *ListByProviderCostsRequestForecastHorizon `json:"-" url:"forecast_horizon,omitempty"`
+	// Azure: filter by meter name(s)
+	MeterName     []string                                 `json:"-" url:"meter_name,omitempty"`
+	MeterNameMode *ListByProviderCostsRequestMeterNameMode `json:"-" url:"meter_name_mode,omitempty"`
+	// Azure: filter by meter subcategory
+	MeterSubcategory     []string                                        `json:"-" url:"meter_subcategory,omitempty"`
+	MeterSubcategoryMode *ListByProviderCostsRequestMeterSubcategoryMode `json:"-" url:"meter_subcategory_mode,omitempty"`
+	// Azure: filter by service family
+	ServiceFamily     []string                                     `json:"-" url:"service_family,omitempty"`
+	ServiceFamilyMode *ListByProviderCostsRequestServiceFamilyMode `json:"-" url:"service_family_mode,omitempty"`
+	// Azure: filter by publisher type (Azure, Marketplace)
+	PublisherType     []string                                     `json:"-" url:"publisher_type,omitempty"`
+	PublisherTypeMode *ListByProviderCostsRequestPublisherTypeMode `json:"-" url:"publisher_type_mode,omitempty"`
+	// Azure: filter by reservation or savings plan name
+	BenefitName     []string                                   `json:"-" url:"benefit_name,omitempty"`
+	BenefitNameMode *ListByProviderCostsRequestBenefitNameMode `json:"-" url:"benefit_name_mode,omitempty"`
+	// Azure: filter by product
+	Product     []string                               `json:"-" url:"product,omitempty"`
+	ProductMode *ListByProviderCostsRequestProductMode `json:"-" url:"product_mode,omitempty"`
+	// Azure: filter by billing profile
+	BillingProfile     []string                                      `json:"-" url:"billing_profile,omitempty"`
+	BillingProfileMode *ListByProviderCostsRequestBillingProfileMode `json:"-" url:"billing_profile_mode,omitempty"`
+	// Azure: filter by invoice section
+	InvoiceSection     []string                                      `json:"-" url:"invoice_section,omitempty"`
+	InvoiceSectionMode *ListByProviderCostsRequestInvoiceSectionMode `json:"-" url:"invoice_section_mode,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -1871,6 +2133,118 @@ func (l *ListByProviderCostsRequest) SetForecastHorizon(forecastHorizon *ListByP
 	l.require(listByProviderCostsRequestFieldForecastHorizon)
 }
 
+// SetMeterName sets the MeterName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListByProviderCostsRequest) SetMeterName(meterName []string) {
+	l.MeterName = meterName
+	l.require(listByProviderCostsRequestFieldMeterName)
+}
+
+// SetMeterNameMode sets the MeterNameMode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListByProviderCostsRequest) SetMeterNameMode(meterNameMode *ListByProviderCostsRequestMeterNameMode) {
+	l.MeterNameMode = meterNameMode
+	l.require(listByProviderCostsRequestFieldMeterNameMode)
+}
+
+// SetMeterSubcategory sets the MeterSubcategory field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListByProviderCostsRequest) SetMeterSubcategory(meterSubcategory []string) {
+	l.MeterSubcategory = meterSubcategory
+	l.require(listByProviderCostsRequestFieldMeterSubcategory)
+}
+
+// SetMeterSubcategoryMode sets the MeterSubcategoryMode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListByProviderCostsRequest) SetMeterSubcategoryMode(meterSubcategoryMode *ListByProviderCostsRequestMeterSubcategoryMode) {
+	l.MeterSubcategoryMode = meterSubcategoryMode
+	l.require(listByProviderCostsRequestFieldMeterSubcategoryMode)
+}
+
+// SetServiceFamily sets the ServiceFamily field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListByProviderCostsRequest) SetServiceFamily(serviceFamily []string) {
+	l.ServiceFamily = serviceFamily
+	l.require(listByProviderCostsRequestFieldServiceFamily)
+}
+
+// SetServiceFamilyMode sets the ServiceFamilyMode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListByProviderCostsRequest) SetServiceFamilyMode(serviceFamilyMode *ListByProviderCostsRequestServiceFamilyMode) {
+	l.ServiceFamilyMode = serviceFamilyMode
+	l.require(listByProviderCostsRequestFieldServiceFamilyMode)
+}
+
+// SetPublisherType sets the PublisherType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListByProviderCostsRequest) SetPublisherType(publisherType []string) {
+	l.PublisherType = publisherType
+	l.require(listByProviderCostsRequestFieldPublisherType)
+}
+
+// SetPublisherTypeMode sets the PublisherTypeMode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListByProviderCostsRequest) SetPublisherTypeMode(publisherTypeMode *ListByProviderCostsRequestPublisherTypeMode) {
+	l.PublisherTypeMode = publisherTypeMode
+	l.require(listByProviderCostsRequestFieldPublisherTypeMode)
+}
+
+// SetBenefitName sets the BenefitName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListByProviderCostsRequest) SetBenefitName(benefitName []string) {
+	l.BenefitName = benefitName
+	l.require(listByProviderCostsRequestFieldBenefitName)
+}
+
+// SetBenefitNameMode sets the BenefitNameMode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListByProviderCostsRequest) SetBenefitNameMode(benefitNameMode *ListByProviderCostsRequestBenefitNameMode) {
+	l.BenefitNameMode = benefitNameMode
+	l.require(listByProviderCostsRequestFieldBenefitNameMode)
+}
+
+// SetProduct sets the Product field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListByProviderCostsRequest) SetProduct(product []string) {
+	l.Product = product
+	l.require(listByProviderCostsRequestFieldProduct)
+}
+
+// SetProductMode sets the ProductMode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListByProviderCostsRequest) SetProductMode(productMode *ListByProviderCostsRequestProductMode) {
+	l.ProductMode = productMode
+	l.require(listByProviderCostsRequestFieldProductMode)
+}
+
+// SetBillingProfile sets the BillingProfile field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListByProviderCostsRequest) SetBillingProfile(billingProfile []string) {
+	l.BillingProfile = billingProfile
+	l.require(listByProviderCostsRequestFieldBillingProfile)
+}
+
+// SetBillingProfileMode sets the BillingProfileMode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListByProviderCostsRequest) SetBillingProfileMode(billingProfileMode *ListByProviderCostsRequestBillingProfileMode) {
+	l.BillingProfileMode = billingProfileMode
+	l.require(listByProviderCostsRequestFieldBillingProfileMode)
+}
+
+// SetInvoiceSection sets the InvoiceSection field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListByProviderCostsRequest) SetInvoiceSection(invoiceSection []string) {
+	l.InvoiceSection = invoiceSection
+	l.require(listByProviderCostsRequestFieldInvoiceSection)
+}
+
+// SetInvoiceSectionMode sets the InvoiceSectionMode field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListByProviderCostsRequest) SetInvoiceSectionMode(invoiceSectionMode *ListByProviderCostsRequestInvoiceSectionMode) {
+	l.InvoiceSectionMode = invoiceSectionMode
+	l.require(listByProviderCostsRequestFieldInvoiceSectionMode)
+}
+
 var (
 	allocationDataFieldTagKey      = big.NewInt(1 << 0)
 	allocationDataFieldTotal       = big.NewInt(1 << 1)
@@ -1880,6 +2254,7 @@ var (
 	allocationDataFieldByValue     = big.NewInt(1 << 5)
 	allocationDataFieldByKey       = big.NewInt(1 << 6)
 	allocationDataFieldCredits     = big.NewInt(1 << 7)
+	allocationDataFieldShowCostAs  = big.NewInt(1 << 8)
 )
 
 type AllocationData struct {
@@ -1899,6 +2274,8 @@ type AllocationData struct {
 	ByKey []*AllocationKeyCoverage `json:"by_key,omitempty" url:"by_key,omitempty"`
 	// Cost basis applied: after or before Google Cloud credits
 	Credits *AllocationDataCredits `json:"credits,omitempty" url:"credits,omitempty"`
+	// The cost type these figures are: unblended, amortized, or usage_value, usage priced at the vendor's list price. usage_value is an estimate, never the bill, and is never added to another provider's cost.
+	ShowCostAs *AllocationDataShowCostAs `json:"show_cost_as,omitempty" url:"show_cost_as,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -1961,6 +2338,13 @@ func (a *AllocationData) GetCredits() *AllocationDataCredits {
 		return nil
 	}
 	return a.Credits
+}
+
+func (a *AllocationData) GetShowCostAs() *AllocationDataShowCostAs {
+	if a == nil {
+		return nil
+	}
+	return a.ShowCostAs
 }
 
 func (a *AllocationData) GetExtraProperties() map[string]interface{} {
@@ -2033,6 +2417,13 @@ func (a *AllocationData) SetCredits(credits *AllocationDataCredits) {
 	a.require(allocationDataFieldCredits)
 }
 
+// SetShowCostAs sets the ShowCostAs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AllocationData) SetShowCostAs(showCostAs *AllocationDataShowCostAs) {
+	a.ShowCostAs = showCostAs
+	a.require(allocationDataFieldShowCostAs)
+}
+
 func (a *AllocationData) UnmarshalJSON(data []byte) error {
 	type unmarshaler AllocationData
 	var value unmarshaler
@@ -2094,6 +2485,32 @@ func NewAllocationDataCreditsFromString(s string) (AllocationDataCredits, error)
 }
 
 func (a AllocationDataCredits) Ptr() *AllocationDataCredits {
+	return &a
+}
+
+// The cost type these figures are: unblended, amortized, or usage_value, usage priced at the vendor's list price. usage_value is an estimate, never the bill, and is never added to another provider's cost.
+type AllocationDataShowCostAs string
+
+const (
+	AllocationDataShowCostAsUnblended  AllocationDataShowCostAs = "unblended"
+	AllocationDataShowCostAsAmortized  AllocationDataShowCostAs = "amortized"
+	AllocationDataShowCostAsUsageValue AllocationDataShowCostAs = "usage_value"
+)
+
+func NewAllocationDataShowCostAsFromString(s string) (AllocationDataShowCostAs, error) {
+	switch s {
+	case "unblended":
+		return AllocationDataShowCostAsUnblended, nil
+	case "amortized":
+		return AllocationDataShowCostAsAmortized, nil
+	case "usage_value":
+		return AllocationDataShowCostAsUsageValue, nil
+	}
+	var t AllocationDataShowCostAs
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AllocationDataShowCostAs) Ptr() *AllocationDataShowCostAs {
 	return &a
 }
 
@@ -4684,6 +5101,7 @@ var (
 	dailySpendingBreakdownDataFieldDataPoints       = big.NewInt(1 << 2)
 	dailySpendingBreakdownDataFieldTotal            = big.NewInt(1 << 3)
 	dailySpendingBreakdownDataFieldProvidersCovered = big.NewInt(1 << 4)
+	dailySpendingBreakdownDataFieldShowCostAs       = big.NewInt(1 << 5)
 )
 
 type DailySpendingBreakdownData struct {
@@ -4697,6 +5115,8 @@ type DailySpendingBreakdownData struct {
 	Total float64 `json:"total" url:"total"`
 	// Cloud providers these totals span. This series is the one spend reader that covers every connected cloud at once, so a figure from it is not comparable with one from a single-provider endpoint unless this says it is.
 	ProvidersCovered []string `json:"providers_covered,omitempty" url:"providers_covered,omitempty"`
+	// The cost type these figures are: unblended, amortized, or usage_value, usage priced at the vendor's list price. usage_value is an estimate, never the bill, and is never added to another provider's cost.
+	ShowCostAs *DailySpendingBreakdownDataShowCostAs `json:"show_cost_as,omitempty" url:"show_cost_as,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -4738,6 +5158,13 @@ func (d *DailySpendingBreakdownData) GetProvidersCovered() []string {
 		return nil
 	}
 	return d.ProvidersCovered
+}
+
+func (d *DailySpendingBreakdownData) GetShowCostAs() *DailySpendingBreakdownDataShowCostAs {
+	if d == nil {
+		return nil
+	}
+	return d.ShowCostAs
 }
 
 func (d *DailySpendingBreakdownData) GetExtraProperties() map[string]interface{} {
@@ -4789,6 +5216,13 @@ func (d *DailySpendingBreakdownData) SetProvidersCovered(providersCovered []stri
 	d.require(dailySpendingBreakdownDataFieldProvidersCovered)
 }
 
+// SetShowCostAs sets the ShowCostAs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DailySpendingBreakdownData) SetShowCostAs(showCostAs *DailySpendingBreakdownDataShowCostAs) {
+	d.ShowCostAs = showCostAs
+	d.require(dailySpendingBreakdownDataFieldShowCostAs)
+}
+
 func (d *DailySpendingBreakdownData) UnmarshalJSON(data []byte) error {
 	type unmarshaler DailySpendingBreakdownData
 	var value unmarshaler
@@ -4829,6 +5263,32 @@ func (d *DailySpendingBreakdownData) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", d)
+}
+
+// The cost type these figures are: unblended, amortized, or usage_value, usage priced at the vendor's list price. usage_value is an estimate, never the bill, and is never added to another provider's cost.
+type DailySpendingBreakdownDataShowCostAs string
+
+const (
+	DailySpendingBreakdownDataShowCostAsUnblended  DailySpendingBreakdownDataShowCostAs = "unblended"
+	DailySpendingBreakdownDataShowCostAsAmortized  DailySpendingBreakdownDataShowCostAs = "amortized"
+	DailySpendingBreakdownDataShowCostAsUsageValue DailySpendingBreakdownDataShowCostAs = "usage_value"
+)
+
+func NewDailySpendingBreakdownDataShowCostAsFromString(s string) (DailySpendingBreakdownDataShowCostAs, error) {
+	switch s {
+	case "unblended":
+		return DailySpendingBreakdownDataShowCostAsUnblended, nil
+	case "amortized":
+		return DailySpendingBreakdownDataShowCostAsAmortized, nil
+	case "usage_value":
+		return DailySpendingBreakdownDataShowCostAsUsageValue, nil
+	}
+	var t DailySpendingBreakdownDataShowCostAs
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (d DailySpendingBreakdownDataShowCostAs) Ptr() *DailySpendingBreakdownDataShowCostAs {
+	return &d
 }
 
 // Response for daily spending breakdown
@@ -5076,6 +5536,7 @@ var (
 	forecastDataFieldDailyRateThinDays   = big.NewInt(1 << 13)
 	forecastDataFieldDailyRateWindowDays = big.NewInt(1 << 14)
 	forecastDataFieldCredits             = big.NewInt(1 << 15)
+	forecastDataFieldShowCostAs          = big.NewInt(1 << 16)
 )
 
 type ForecastData struct {
@@ -5111,6 +5572,8 @@ type ForecastData struct {
 	DailyRateWindowDays *int `json:"daily_rate_window_days,omitempty" url:"daily_rate_window_days,omitempty"`
 	// Cost basis applied: after or before Google Cloud credits
 	Credits *ForecastDataCredits `json:"credits,omitempty" url:"credits,omitempty"`
+	// The cost type these figures are: unblended, amortized, or usage_value, usage priced at the vendor's list price. usage_value is an estimate, never the bill, and is never added to another provider's cost.
+	ShowCostAs *ForecastDataShowCostAs `json:"show_cost_as,omitempty" url:"show_cost_as,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -5229,6 +5692,13 @@ func (f *ForecastData) GetCredits() *ForecastDataCredits {
 		return nil
 	}
 	return f.Credits
+}
+
+func (f *ForecastData) GetShowCostAs() *ForecastDataShowCostAs {
+	if f == nil {
+		return nil
+	}
+	return f.ShowCostAs
 }
 
 func (f *ForecastData) GetExtraProperties() map[string]interface{} {
@@ -5357,6 +5827,13 @@ func (f *ForecastData) SetCredits(credits *ForecastDataCredits) {
 	f.require(forecastDataFieldCredits)
 }
 
+// SetShowCostAs sets the ShowCostAs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *ForecastData) SetShowCostAs(showCostAs *ForecastDataShowCostAs) {
+	f.ShowCostAs = showCostAs
+	f.require(forecastDataFieldShowCostAs)
+}
+
 func (f *ForecastData) UnmarshalJSON(data []byte) error {
 	type unmarshaler ForecastData
 	var value unmarshaler
@@ -5418,6 +5895,32 @@ func NewForecastDataCreditsFromString(s string) (ForecastDataCredits, error) {
 }
 
 func (f ForecastDataCredits) Ptr() *ForecastDataCredits {
+	return &f
+}
+
+// The cost type these figures are: unblended, amortized, or usage_value, usage priced at the vendor's list price. usage_value is an estimate, never the bill, and is never added to another provider's cost.
+type ForecastDataShowCostAs string
+
+const (
+	ForecastDataShowCostAsUnblended  ForecastDataShowCostAs = "unblended"
+	ForecastDataShowCostAsAmortized  ForecastDataShowCostAs = "amortized"
+	ForecastDataShowCostAsUsageValue ForecastDataShowCostAs = "usage_value"
+)
+
+func NewForecastDataShowCostAsFromString(s string) (ForecastDataShowCostAs, error) {
+	switch s {
+	case "unblended":
+		return ForecastDataShowCostAsUnblended, nil
+	case "amortized":
+		return ForecastDataShowCostAsAmortized, nil
+	case "usage_value":
+		return ForecastDataShowCostAsUsageValue, nil
+	}
+	var t ForecastDataShowCostAs
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (f ForecastDataShowCostAs) Ptr() *ForecastDataShowCostAs {
 	return &f
 }
 
@@ -5986,29 +6489,37 @@ var (
 	providerFilterOptionsDataFieldAccountNames       = big.NewInt(1 << 4)
 	providerFilterOptionsDataFieldProjects           = big.NewInt(1 << 5)
 	providerFilterOptionsDataFieldSkus               = big.NewInt(1 << 6)
-	providerFilterOptionsDataFieldTagKeys            = big.NewInt(1 << 7)
-	providerFilterOptionsDataFieldTagValues          = big.NewInt(1 << 8)
-	providerFilterOptionsDataFieldInstanceTypes      = big.NewInt(1 << 9)
-	providerFilterOptionsDataFieldUsageTypes         = big.NewInt(1 << 10)
-	providerFilterOptionsDataFieldUsageTypeGroups    = big.NewInt(1 << 11)
-	providerFilterOptionsDataFieldChargeTypes        = big.NewInt(1 << 12)
-	providerFilterOptionsDataFieldAvailabilityZones  = big.NewInt(1 << 13)
-	providerFilterOptionsDataFieldPlatforms          = big.NewInt(1 << 14)
-	providerFilterOptionsDataFieldPurchaseOptions    = big.NewInt(1 << 15)
-	providerFilterOptionsDataFieldTenancies          = big.NewInt(1 << 16)
-	providerFilterOptionsDataFieldDatabaseEngines    = big.NewInt(1 << 17)
-	providerFilterOptionsDataFieldLegalEntities      = big.NewInt(1 << 18)
-	providerFilterOptionsDataFieldBillingEntities    = big.NewInt(1 << 19)
-	providerFilterOptionsDataFieldAPIOperations      = big.NewInt(1 << 20)
-	providerFilterOptionsDataFieldResources          = big.NewInt(1 << 21)
-	providerFilterOptionsDataFieldCostCategoryKeys   = big.NewInt(1 << 22)
-	providerFilterOptionsDataFieldCostCategoryValues = big.NewInt(1 << 23)
-	providerFilterOptionsDataFieldPayerAccounts      = big.NewInt(1 << 24)
-	providerFilterOptionsDataFieldVirtualTagKeys     = big.NewInt(1 << 25)
-	providerFilterOptionsDataFieldVirtualTagValues   = big.NewInt(1 << 26)
-	providerFilterOptionsDataFieldUnits              = big.NewInt(1 << 27)
-	providerFilterOptionsDataFieldUsageTypeUnits     = big.NewInt(1 << 28)
-	providerFilterOptionsDataFieldTruncated          = big.NewInt(1 << 29)
+	providerFilterOptionsDataFieldMeterNames         = big.NewInt(1 << 7)
+	providerFilterOptionsDataFieldMeterSubcategories = big.NewInt(1 << 8)
+	providerFilterOptionsDataFieldServiceFamilies    = big.NewInt(1 << 9)
+	providerFilterOptionsDataFieldPublisherTypes     = big.NewInt(1 << 10)
+	providerFilterOptionsDataFieldBenefitNames       = big.NewInt(1 << 11)
+	providerFilterOptionsDataFieldProducts           = big.NewInt(1 << 12)
+	providerFilterOptionsDataFieldBillingProfiles    = big.NewInt(1 << 13)
+	providerFilterOptionsDataFieldInvoiceSections    = big.NewInt(1 << 14)
+	providerFilterOptionsDataFieldTagKeys            = big.NewInt(1 << 15)
+	providerFilterOptionsDataFieldTagValues          = big.NewInt(1 << 16)
+	providerFilterOptionsDataFieldInstanceTypes      = big.NewInt(1 << 17)
+	providerFilterOptionsDataFieldUsageTypes         = big.NewInt(1 << 18)
+	providerFilterOptionsDataFieldUsageTypeGroups    = big.NewInt(1 << 19)
+	providerFilterOptionsDataFieldChargeTypes        = big.NewInt(1 << 20)
+	providerFilterOptionsDataFieldAvailabilityZones  = big.NewInt(1 << 21)
+	providerFilterOptionsDataFieldPlatforms          = big.NewInt(1 << 22)
+	providerFilterOptionsDataFieldPurchaseOptions    = big.NewInt(1 << 23)
+	providerFilterOptionsDataFieldTenancies          = big.NewInt(1 << 24)
+	providerFilterOptionsDataFieldDatabaseEngines    = big.NewInt(1 << 25)
+	providerFilterOptionsDataFieldLegalEntities      = big.NewInt(1 << 26)
+	providerFilterOptionsDataFieldBillingEntities    = big.NewInt(1 << 27)
+	providerFilterOptionsDataFieldAPIOperations      = big.NewInt(1 << 28)
+	providerFilterOptionsDataFieldResources          = big.NewInt(1 << 29)
+	providerFilterOptionsDataFieldCostCategoryKeys   = big.NewInt(1 << 30)
+	providerFilterOptionsDataFieldCostCategoryValues = big.NewInt(1 << 31)
+	providerFilterOptionsDataFieldPayerAccounts      = big.NewInt(1 << 32)
+	providerFilterOptionsDataFieldVirtualTagKeys     = big.NewInt(1 << 33)
+	providerFilterOptionsDataFieldVirtualTagValues   = big.NewInt(1 << 34)
+	providerFilterOptionsDataFieldUnits              = big.NewInt(1 << 35)
+	providerFilterOptionsDataFieldUsageTypeUnits     = big.NewInt(1 << 36)
+	providerFilterOptionsDataFieldTruncated          = big.NewInt(1 << 37)
 )
 
 type ProviderFilterOptionsData struct {
@@ -6025,8 +6536,24 @@ type ProviderFilterOptionsData struct {
 	// Projects in the window, for a connector that collects an inventory
 	Projects []string `json:"projects,omitempty" url:"projects,omitempty"`
 	// Billed SKUs in the window, for a connector provider
-	Skus    []string `json:"skus,omitempty" url:"skus,omitempty"`
-	TagKeys []string `json:"tag_keys,omitempty" url:"tag_keys,omitempty"`
+	Skus []string `json:"skus,omitempty" url:"skus,omitempty"`
+	// Azure: meters by name, or by id when unnamed
+	MeterNames []string `json:"meter_names,omitempty" url:"meter_names,omitempty"`
+	// Azure: meter subcategories
+	MeterSubcategories []string `json:"meter_subcategories,omitempty" url:"meter_subcategories,omitempty"`
+	// Azure: service families
+	ServiceFamilies []string `json:"service_families,omitempty" url:"service_families,omitempty"`
+	// Azure: Azure, Marketplace or AWS
+	PublisherTypes []string `json:"publisher_types,omitempty" url:"publisher_types,omitempty"`
+	// Azure: the reservations and savings plans that priced a line
+	BenefitNames []string `json:"benefit_names,omitempty" url:"benefit_names,omitempty"`
+	// Azure: the products lines were sold under
+	Products []string `json:"products,omitempty" url:"products,omitempty"`
+	// Azure: Customer Agreement billing profiles
+	BillingProfiles []string `json:"billing_profiles,omitempty" url:"billing_profiles,omitempty"`
+	// Azure: Customer Agreement invoice sections
+	InvoiceSections []string `json:"invoice_sections,omitempty" url:"invoice_sections,omitempty"`
+	TagKeys         []string `json:"tag_keys,omitempty" url:"tag_keys,omitempty"`
 	// Tag values in the window: those of the tag_key sent, or of every key
 	TagValues         []string `json:"tag_values,omitempty" url:"tag_values,omitempty"`
 	InstanceTypes     []string `json:"instance_types,omitempty" url:"instance_types,omitempty"`
@@ -6112,6 +6639,62 @@ func (p *ProviderFilterOptionsData) GetSkus() []string {
 		return nil
 	}
 	return p.Skus
+}
+
+func (p *ProviderFilterOptionsData) GetMeterNames() []string {
+	if p == nil {
+		return nil
+	}
+	return p.MeterNames
+}
+
+func (p *ProviderFilterOptionsData) GetMeterSubcategories() []string {
+	if p == nil {
+		return nil
+	}
+	return p.MeterSubcategories
+}
+
+func (p *ProviderFilterOptionsData) GetServiceFamilies() []string {
+	if p == nil {
+		return nil
+	}
+	return p.ServiceFamilies
+}
+
+func (p *ProviderFilterOptionsData) GetPublisherTypes() []string {
+	if p == nil {
+		return nil
+	}
+	return p.PublisherTypes
+}
+
+func (p *ProviderFilterOptionsData) GetBenefitNames() []string {
+	if p == nil {
+		return nil
+	}
+	return p.BenefitNames
+}
+
+func (p *ProviderFilterOptionsData) GetProducts() []string {
+	if p == nil {
+		return nil
+	}
+	return p.Products
+}
+
+func (p *ProviderFilterOptionsData) GetBillingProfiles() []string {
+	if p == nil {
+		return nil
+	}
+	return p.BillingProfiles
+}
+
+func (p *ProviderFilterOptionsData) GetInvoiceSections() []string {
+	if p == nil {
+		return nil
+	}
+	return p.InvoiceSections
 }
 
 func (p *ProviderFilterOptionsData) GetTagKeys() []string {
@@ -6336,6 +6919,62 @@ func (p *ProviderFilterOptionsData) SetProjects(projects []string) {
 func (p *ProviderFilterOptionsData) SetSkus(skus []string) {
 	p.Skus = skus
 	p.require(providerFilterOptionsDataFieldSkus)
+}
+
+// SetMeterNames sets the MeterNames field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderFilterOptionsData) SetMeterNames(meterNames []string) {
+	p.MeterNames = meterNames
+	p.require(providerFilterOptionsDataFieldMeterNames)
+}
+
+// SetMeterSubcategories sets the MeterSubcategories field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderFilterOptionsData) SetMeterSubcategories(meterSubcategories []string) {
+	p.MeterSubcategories = meterSubcategories
+	p.require(providerFilterOptionsDataFieldMeterSubcategories)
+}
+
+// SetServiceFamilies sets the ServiceFamilies field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderFilterOptionsData) SetServiceFamilies(serviceFamilies []string) {
+	p.ServiceFamilies = serviceFamilies
+	p.require(providerFilterOptionsDataFieldServiceFamilies)
+}
+
+// SetPublisherTypes sets the PublisherTypes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderFilterOptionsData) SetPublisherTypes(publisherTypes []string) {
+	p.PublisherTypes = publisherTypes
+	p.require(providerFilterOptionsDataFieldPublisherTypes)
+}
+
+// SetBenefitNames sets the BenefitNames field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderFilterOptionsData) SetBenefitNames(benefitNames []string) {
+	p.BenefitNames = benefitNames
+	p.require(providerFilterOptionsDataFieldBenefitNames)
+}
+
+// SetProducts sets the Products field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderFilterOptionsData) SetProducts(products []string) {
+	p.Products = products
+	p.require(providerFilterOptionsDataFieldProducts)
+}
+
+// SetBillingProfiles sets the BillingProfiles field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderFilterOptionsData) SetBillingProfiles(billingProfiles []string) {
+	p.BillingProfiles = billingProfiles
+	p.require(providerFilterOptionsDataFieldBillingProfiles)
+}
+
+// SetInvoiceSections sets the InvoiceSections field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderFilterOptionsData) SetInvoiceSections(invoiceSections []string) {
+	p.InvoiceSections = invoiceSections
+	p.require(providerFilterOptionsDataFieldInvoiceSections)
 }
 
 // SetTagKeys sets the TagKeys field and marks it as non-optional;
@@ -8538,6 +9177,7 @@ var (
 	spendingSummaryDataFieldProviders                        = big.NewInt(1 << 9)
 	spendingSummaryDataFieldSpendSplit                       = big.NewInt(1 << 10)
 	spendingSummaryDataFieldCredits                          = big.NewInt(1 << 11)
+	spendingSummaryDataFieldShowCostAs                       = big.NewInt(1 << 12)
 )
 
 type SpendingSummaryData struct {
@@ -8565,6 +9205,8 @@ type SpendingSummaryData struct {
 	SpendSplit *SpendSplitData `json:"spend_split,omitempty" url:"spend_split,omitempty"`
 	// Cost basis applied: after or before Google Cloud credits
 	Credits *SpendingSummaryDataCredits `json:"credits,omitempty" url:"credits,omitempty"`
+	// The cost type these figures are: unblended, amortized, or usage_value, usage priced at the vendor's list price. usage_value is an estimate, never the bill, and is never added to another provider's cost.
+	ShowCostAs *SpendingSummaryDataShowCostAs `json:"show_cost_as,omitempty" url:"show_cost_as,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -8655,6 +9297,13 @@ func (s *SpendingSummaryData) GetCredits() *SpendingSummaryDataCredits {
 		return nil
 	}
 	return s.Credits
+}
+
+func (s *SpendingSummaryData) GetShowCostAs() *SpendingSummaryDataShowCostAs {
+	if s == nil {
+		return nil
+	}
+	return s.ShowCostAs
 }
 
 func (s *SpendingSummaryData) GetExtraProperties() map[string]interface{} {
@@ -8755,6 +9404,13 @@ func (s *SpendingSummaryData) SetCredits(credits *SpendingSummaryDataCredits) {
 	s.require(spendingSummaryDataFieldCredits)
 }
 
+// SetShowCostAs sets the ShowCostAs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SpendingSummaryData) SetShowCostAs(showCostAs *SpendingSummaryDataShowCostAs) {
+	s.ShowCostAs = showCostAs
+	s.require(spendingSummaryDataFieldShowCostAs)
+}
+
 func (s *SpendingSummaryData) UnmarshalJSON(data []byte) error {
 	type unmarshaler SpendingSummaryData
 	var value unmarshaler
@@ -8816,6 +9472,32 @@ func NewSpendingSummaryDataCreditsFromString(s string) (SpendingSummaryDataCredi
 }
 
 func (s SpendingSummaryDataCredits) Ptr() *SpendingSummaryDataCredits {
+	return &s
+}
+
+// The cost type these figures are: unblended, amortized, or usage_value, usage priced at the vendor's list price. usage_value is an estimate, never the bill, and is never added to another provider's cost.
+type SpendingSummaryDataShowCostAs string
+
+const (
+	SpendingSummaryDataShowCostAsUnblended  SpendingSummaryDataShowCostAs = "unblended"
+	SpendingSummaryDataShowCostAsAmortized  SpendingSummaryDataShowCostAs = "amortized"
+	SpendingSummaryDataShowCostAsUsageValue SpendingSummaryDataShowCostAs = "usage_value"
+)
+
+func NewSpendingSummaryDataShowCostAsFromString(s string) (SpendingSummaryDataShowCostAs, error) {
+	switch s {
+	case "unblended":
+		return SpendingSummaryDataShowCostAsUnblended, nil
+	case "amortized":
+		return SpendingSummaryDataShowCostAsAmortized, nil
+	case "usage_value":
+		return SpendingSummaryDataShowCostAsUsageValue, nil
+	}
+	var t SpendingSummaryDataShowCostAs
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SpendingSummaryDataShowCostAs) Ptr() *SpendingSummaryDataShowCostAs {
 	return &s
 }
 
@@ -9436,12 +10118,13 @@ func (t *TeamCategoryBreakdown) String() string {
 }
 
 var (
-	teamCostDataFieldTagKey    = big.NewInt(1 << 0)
-	teamCostDataFieldOrigin    = big.NewInt(1 << 1)
-	teamCostDataFieldSecondKey = big.NewInt(1 << 2)
-	teamCostDataFieldTeams     = big.NewInt(1 << 3)
-	teamCostDataFieldUnmapped  = big.NewInt(1 << 4)
-	teamCostDataFieldCredits   = big.NewInt(1 << 5)
+	teamCostDataFieldTagKey     = big.NewInt(1 << 0)
+	teamCostDataFieldOrigin     = big.NewInt(1 << 1)
+	teamCostDataFieldSecondKey  = big.NewInt(1 << 2)
+	teamCostDataFieldTeams      = big.NewInt(1 << 3)
+	teamCostDataFieldUnmapped   = big.NewInt(1 << 4)
+	teamCostDataFieldCredits    = big.NewInt(1 << 5)
+	teamCostDataFieldShowCostAs = big.NewInt(1 << 6)
 )
 
 type TeamCostData struct {
@@ -9454,6 +10137,8 @@ type TeamCostData struct {
 	Unmapped  *UnmappedCostBucket `json:"unmapped" url:"unmapped"`
 	// Cost basis applied: after or before Google Cloud credits
 	Credits *TeamCostDataCredits `json:"credits,omitempty" url:"credits,omitempty"`
+	// The cost type these figures are: unblended, amortized, or usage_value, usage priced at the vendor's list price. usage_value is an estimate, never the bill, and is never added to another provider's cost.
+	ShowCostAs *TeamCostDataShowCostAs `json:"show_cost_as,omitempty" url:"show_cost_as,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -9502,6 +10187,13 @@ func (t *TeamCostData) GetCredits() *TeamCostDataCredits {
 		return nil
 	}
 	return t.Credits
+}
+
+func (t *TeamCostData) GetShowCostAs() *TeamCostDataShowCostAs {
+	if t == nil {
+		return nil
+	}
+	return t.ShowCostAs
 }
 
 func (t *TeamCostData) GetExtraProperties() map[string]interface{} {
@@ -9558,6 +10250,13 @@ func (t *TeamCostData) SetUnmapped(unmapped *UnmappedCostBucket) {
 func (t *TeamCostData) SetCredits(credits *TeamCostDataCredits) {
 	t.Credits = credits
 	t.require(teamCostDataFieldCredits)
+}
+
+// SetShowCostAs sets the ShowCostAs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TeamCostData) SetShowCostAs(showCostAs *TeamCostDataShowCostAs) {
+	t.ShowCostAs = showCostAs
+	t.require(teamCostDataFieldShowCostAs)
 }
 
 func (t *TeamCostData) UnmarshalJSON(data []byte) error {
@@ -9644,6 +10343,32 @@ func NewTeamCostDataOriginFromString(s string) (TeamCostDataOrigin, error) {
 }
 
 func (t TeamCostDataOrigin) Ptr() *TeamCostDataOrigin {
+	return &t
+}
+
+// The cost type these figures are: unblended, amortized, or usage_value, usage priced at the vendor's list price. usage_value is an estimate, never the bill, and is never added to another provider's cost.
+type TeamCostDataShowCostAs string
+
+const (
+	TeamCostDataShowCostAsUnblended  TeamCostDataShowCostAs = "unblended"
+	TeamCostDataShowCostAsAmortized  TeamCostDataShowCostAs = "amortized"
+	TeamCostDataShowCostAsUsageValue TeamCostDataShowCostAs = "usage_value"
+)
+
+func NewTeamCostDataShowCostAsFromString(s string) (TeamCostDataShowCostAs, error) {
+	switch s {
+	case "unblended":
+		return TeamCostDataShowCostAsUnblended, nil
+	case "amortized":
+		return TeamCostDataShowCostAsAmortized, nil
+	case "usage_value":
+		return TeamCostDataShowCostAsUsageValue, nil
+	}
+	var t TeamCostDataShowCostAs
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (t TeamCostDataShowCostAs) Ptr() *TeamCostDataShowCostAs {
 	return &t
 }
 
@@ -9954,9 +10679,10 @@ func (t *TeamCostResponse) String() string {
 }
 
 var (
-	topGrowingDataFieldItems   = big.NewInt(1 << 0)
-	topGrowingDataFieldWindow  = big.NewInt(1 << 1)
-	topGrowingDataFieldCredits = big.NewInt(1 << 2)
+	topGrowingDataFieldItems      = big.NewInt(1 << 0)
+	topGrowingDataFieldWindow     = big.NewInt(1 << 1)
+	topGrowingDataFieldCredits    = big.NewInt(1 << 2)
+	topGrowingDataFieldShowCostAs = big.NewInt(1 << 3)
 )
 
 type TopGrowingData struct {
@@ -9965,6 +10691,8 @@ type TopGrowingData struct {
 	Window *TopGrowingWindow `json:"window,omitempty" url:"window,omitempty"`
 	// Cost basis applied: after or before Google Cloud credits
 	Credits *TopGrowingDataCredits `json:"credits,omitempty" url:"credits,omitempty"`
+	// The cost type these figures are: unblended, amortized, or usage_value, usage priced at the vendor's list price. usage_value is an estimate, never the bill, and is never added to another provider's cost.
+	ShowCostAs *TopGrowingDataShowCostAs `json:"show_cost_as,omitempty" url:"show_cost_as,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -9992,6 +10720,13 @@ func (t *TopGrowingData) GetCredits() *TopGrowingDataCredits {
 		return nil
 	}
 	return t.Credits
+}
+
+func (t *TopGrowingData) GetShowCostAs() *TopGrowingDataShowCostAs {
+	if t == nil {
+		return nil
+	}
+	return t.ShowCostAs
 }
 
 func (t *TopGrowingData) GetExtraProperties() map[string]interface{} {
@@ -10027,6 +10762,13 @@ func (t *TopGrowingData) SetWindow(window *TopGrowingWindow) {
 func (t *TopGrowingData) SetCredits(credits *TopGrowingDataCredits) {
 	t.Credits = credits
 	t.require(topGrowingDataFieldCredits)
+}
+
+// SetShowCostAs sets the ShowCostAs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TopGrowingData) SetShowCostAs(showCostAs *TopGrowingDataShowCostAs) {
+	t.ShowCostAs = showCostAs
+	t.require(topGrowingDataFieldShowCostAs)
 }
 
 func (t *TopGrowingData) UnmarshalJSON(data []byte) error {
@@ -10090,6 +10832,32 @@ func NewTopGrowingDataCreditsFromString(s string) (TopGrowingDataCredits, error)
 }
 
 func (t TopGrowingDataCredits) Ptr() *TopGrowingDataCredits {
+	return &t
+}
+
+// The cost type these figures are: unblended, amortized, or usage_value, usage priced at the vendor's list price. usage_value is an estimate, never the bill, and is never added to another provider's cost.
+type TopGrowingDataShowCostAs string
+
+const (
+	TopGrowingDataShowCostAsUnblended  TopGrowingDataShowCostAs = "unblended"
+	TopGrowingDataShowCostAsAmortized  TopGrowingDataShowCostAs = "amortized"
+	TopGrowingDataShowCostAsUsageValue TopGrowingDataShowCostAs = "usage_value"
+)
+
+func NewTopGrowingDataShowCostAsFromString(s string) (TopGrowingDataShowCostAs, error) {
+	switch s {
+	case "unblended":
+		return TopGrowingDataShowCostAsUnblended, nil
+	case "amortized":
+		return TopGrowingDataShowCostAsAmortized, nil
+	case "usage_value":
+		return TopGrowingDataShowCostAsUsageValue, nil
+	}
+	var t TopGrowingDataShowCostAs
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (t TopGrowingDataShowCostAs) Ptr() *TopGrowingDataShowCostAs {
 	return &t
 }
 
@@ -10759,6 +11527,7 @@ var (
 	usageDataFieldTotalCost  = big.NewInt(1 << 1)
 	usageDataFieldCategories = big.NewInt(1 << 2)
 	usageDataFieldCredits    = big.NewInt(1 << 3)
+	usageDataFieldShowCostAs = big.NewInt(1 << 4)
 )
 
 type UsageData struct {
@@ -10770,6 +11539,8 @@ type UsageData struct {
 	Categories []*UsageCategory `json:"categories,omitempty" url:"categories,omitempty"`
 	// Cost basis applied: after or before Google Cloud credits
 	Credits *UsageDataCredits `json:"credits,omitempty" url:"credits,omitempty"`
+	// The cost type these figures are: unblended, amortized, or usage_value, usage priced at the vendor's list price. usage_value is an estimate, never the bill, and is never added to another provider's cost.
+	ShowCostAs *UsageDataShowCostAs `json:"show_cost_as,omitempty" url:"show_cost_as,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -10804,6 +11575,13 @@ func (u *UsageData) GetCredits() *UsageDataCredits {
 		return nil
 	}
 	return u.Credits
+}
+
+func (u *UsageData) GetShowCostAs() *UsageDataShowCostAs {
+	if u == nil {
+		return nil
+	}
+	return u.ShowCostAs
 }
 
 func (u *UsageData) GetExtraProperties() map[string]interface{} {
@@ -10846,6 +11624,13 @@ func (u *UsageData) SetCategories(categories []*UsageCategory) {
 func (u *UsageData) SetCredits(credits *UsageDataCredits) {
 	u.Credits = credits
 	u.require(usageDataFieldCredits)
+}
+
+// SetShowCostAs sets the ShowCostAs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UsageData) SetShowCostAs(showCostAs *UsageDataShowCostAs) {
+	u.ShowCostAs = showCostAs
+	u.require(usageDataFieldShowCostAs)
 }
 
 func (u *UsageData) UnmarshalJSON(data []byte) error {
@@ -10909,6 +11694,32 @@ func NewUsageDataCreditsFromString(s string) (UsageDataCredits, error) {
 }
 
 func (u UsageDataCredits) Ptr() *UsageDataCredits {
+	return &u
+}
+
+// The cost type these figures are: unblended, amortized, or usage_value, usage priced at the vendor's list price. usage_value is an estimate, never the bill, and is never added to another provider's cost.
+type UsageDataShowCostAs string
+
+const (
+	UsageDataShowCostAsUnblended  UsageDataShowCostAs = "unblended"
+	UsageDataShowCostAsAmortized  UsageDataShowCostAs = "amortized"
+	UsageDataShowCostAsUsageValue UsageDataShowCostAs = "usage_value"
+)
+
+func NewUsageDataShowCostAsFromString(s string) (UsageDataShowCostAs, error) {
+	switch s {
+	case "unblended":
+		return UsageDataShowCostAsUnblended, nil
+	case "amortized":
+		return UsageDataShowCostAsAmortized, nil
+	case "usage_value":
+		return UsageDataShowCostAsUsageValue, nil
+	}
+	var t UsageDataShowCostAs
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UsageDataShowCostAs) Ptr() *UsageDataShowCostAs {
 	return &u
 }
 
@@ -11057,11 +11868,11 @@ type UsageTypeItem struct {
 	Cost float64 `json:"cost" url:"cost"`
 	// Billable quantity, in pricing units for Google Cloud. Null when none was reported.
 	UsageAmount *float64 `json:"usage_amount,omitempty" url:"usage_amount,omitempty"`
-	// Pricing unit (GB-Month, Hrs, Requests, gibibyte month)
+	// Pricing unit (GB-Month, Hrs, Requests, gibibyte month). Azure's is canonical (hours, gb, gb_month, requests), its count multiplied into usage_amount, or the spelling Azure wrote when it folds nowhere
 	Unit *string `json:"unit,omitempty" url:"unit,omitempty"`
 	// Derived cost per unit, null when quantity is zero or the rows mix units
 	CostPerUnit *float64 `json:"cost_per_unit,omitempty" url:"cost_per_unit,omitempty"`
-	// Service billing this SKU. Google Cloud only.
+	// Service billing this SKU or meter: Google Cloud's, or Azure's meter category (Bandwidth, Storage). Null elsewhere
 	Service *string `json:"service,omitempty" url:"service,omitempty"`
 	// Every service billing this SKU. Google Cloud only.
 	Services []string `json:"services,omitempty" url:"services,omitempty"`
@@ -11551,6 +12362,32 @@ func (g GetAllocationAPIV1CostsAllocationGetRequestCredits) Ptr() *GetAllocation
 	return &g
 }
 
+// Cost type: unblended (default), amortized, or usage_value (usage priced at list price, an estimate). Anything but unblended needs one provider that declares it in its cost dimensions.
+type GetAllocationAPIV1CostsAllocationGetRequestShowCostAs string
+
+const (
+	GetAllocationAPIV1CostsAllocationGetRequestShowCostAsUnblended  GetAllocationAPIV1CostsAllocationGetRequestShowCostAs = "unblended"
+	GetAllocationAPIV1CostsAllocationGetRequestShowCostAsAmortized  GetAllocationAPIV1CostsAllocationGetRequestShowCostAs = "amortized"
+	GetAllocationAPIV1CostsAllocationGetRequestShowCostAsUsageValue GetAllocationAPIV1CostsAllocationGetRequestShowCostAs = "usage_value"
+)
+
+func NewGetAllocationAPIV1CostsAllocationGetRequestShowCostAsFromString(s string) (GetAllocationAPIV1CostsAllocationGetRequestShowCostAs, error) {
+	switch s {
+	case "unblended":
+		return GetAllocationAPIV1CostsAllocationGetRequestShowCostAsUnblended, nil
+	case "amortized":
+		return GetAllocationAPIV1CostsAllocationGetRequestShowCostAsAmortized, nil
+	case "usage_value":
+		return GetAllocationAPIV1CostsAllocationGetRequestShowCostAsUsageValue, nil
+	}
+	var t GetAllocationAPIV1CostsAllocationGetRequestShowCostAs
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetAllocationAPIV1CostsAllocationGetRequestShowCostAs) Ptr() *GetAllocationAPIV1CostsAllocationGetRequestShowCostAs {
+	return &g
+}
+
 // Cost basis for Google Cloud: after credits (default) or before them. AWS stays on its invoiced basis.
 type GetCostByLabelsAPIV1CostsByLabelsGetRequestCredits string
 
@@ -11597,6 +12434,32 @@ func (g GetCostByTagAPIV1CostsByTagGetRequestCredits) Ptr() *GetCostByTagAPIV1Co
 	return &g
 }
 
+// Cost type: unblended (default), amortized, or usage_value (usage priced at list price, an estimate). Anything but unblended needs one provider that declares it in its cost dimensions.
+type GetCostByTagAPIV1CostsByTagGetRequestShowCostAs string
+
+const (
+	GetCostByTagAPIV1CostsByTagGetRequestShowCostAsUnblended  GetCostByTagAPIV1CostsByTagGetRequestShowCostAs = "unblended"
+	GetCostByTagAPIV1CostsByTagGetRequestShowCostAsAmortized  GetCostByTagAPIV1CostsByTagGetRequestShowCostAs = "amortized"
+	GetCostByTagAPIV1CostsByTagGetRequestShowCostAsUsageValue GetCostByTagAPIV1CostsByTagGetRequestShowCostAs = "usage_value"
+)
+
+func NewGetCostByTagAPIV1CostsByTagGetRequestShowCostAsFromString(s string) (GetCostByTagAPIV1CostsByTagGetRequestShowCostAs, error) {
+	switch s {
+	case "unblended":
+		return GetCostByTagAPIV1CostsByTagGetRequestShowCostAsUnblended, nil
+	case "amortized":
+		return GetCostByTagAPIV1CostsByTagGetRequestShowCostAsAmortized, nil
+	case "usage_value":
+		return GetCostByTagAPIV1CostsByTagGetRequestShowCostAsUsageValue, nil
+	}
+	var t GetCostByTagAPIV1CostsByTagGetRequestShowCostAs
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetCostByTagAPIV1CostsByTagGetRequestShowCostAs) Ptr() *GetCostByTagAPIV1CostsByTagGetRequestShowCostAs {
+	return &g
+}
+
 // Cost basis for Google Cloud: after credits (default) or before them. AWS stays on its invoiced basis.
 type GetDailyCostsCostsRequestCredits string
 
@@ -11620,6 +12483,32 @@ func (g GetDailyCostsCostsRequestCredits) Ptr() *GetDailyCostsCostsRequestCredit
 	return &g
 }
 
+// Cost type: unblended (default), amortized, or usage_value (usage priced at list price, an estimate). Anything but unblended needs one provider that declares it in its cost dimensions.
+type GetDailyCostsCostsRequestShowCostAs string
+
+const (
+	GetDailyCostsCostsRequestShowCostAsUnblended  GetDailyCostsCostsRequestShowCostAs = "unblended"
+	GetDailyCostsCostsRequestShowCostAsAmortized  GetDailyCostsCostsRequestShowCostAs = "amortized"
+	GetDailyCostsCostsRequestShowCostAsUsageValue GetDailyCostsCostsRequestShowCostAs = "usage_value"
+)
+
+func NewGetDailyCostsCostsRequestShowCostAsFromString(s string) (GetDailyCostsCostsRequestShowCostAs, error) {
+	switch s {
+	case "unblended":
+		return GetDailyCostsCostsRequestShowCostAsUnblended, nil
+	case "amortized":
+		return GetDailyCostsCostsRequestShowCostAsAmortized, nil
+	case "usage_value":
+		return GetDailyCostsCostsRequestShowCostAsUsageValue, nil
+	}
+	var t GetDailyCostsCostsRequestShowCostAs
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetDailyCostsCostsRequestShowCostAs) Ptr() *GetDailyCostsCostsRequestShowCostAs {
+	return &g
+}
+
 // Cost basis for Google Cloud: after credits (default) or before them. AWS stays on its invoiced basis.
 type GetForecastAPIV1CostsForecastGetRequestCredits string
 
@@ -11640,6 +12529,32 @@ func NewGetForecastAPIV1CostsForecastGetRequestCreditsFromString(s string) (GetF
 }
 
 func (g GetForecastAPIV1CostsForecastGetRequestCredits) Ptr() *GetForecastAPIV1CostsForecastGetRequestCredits {
+	return &g
+}
+
+// Cost type: unblended (default), amortized, or usage_value (usage priced at list price, an estimate). Anything but unblended needs one provider that declares it in its cost dimensions.
+type GetForecastAPIV1CostsForecastGetRequestShowCostAs string
+
+const (
+	GetForecastAPIV1CostsForecastGetRequestShowCostAsUnblended  GetForecastAPIV1CostsForecastGetRequestShowCostAs = "unblended"
+	GetForecastAPIV1CostsForecastGetRequestShowCostAsAmortized  GetForecastAPIV1CostsForecastGetRequestShowCostAs = "amortized"
+	GetForecastAPIV1CostsForecastGetRequestShowCostAsUsageValue GetForecastAPIV1CostsForecastGetRequestShowCostAs = "usage_value"
+)
+
+func NewGetForecastAPIV1CostsForecastGetRequestShowCostAsFromString(s string) (GetForecastAPIV1CostsForecastGetRequestShowCostAs, error) {
+	switch s {
+	case "unblended":
+		return GetForecastAPIV1CostsForecastGetRequestShowCostAsUnblended, nil
+	case "amortized":
+		return GetForecastAPIV1CostsForecastGetRequestShowCostAsAmortized, nil
+	case "usage_value":
+		return GetForecastAPIV1CostsForecastGetRequestShowCostAsUsageValue, nil
+	}
+	var t GetForecastAPIV1CostsForecastGetRequestShowCostAs
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetForecastAPIV1CostsForecastGetRequestShowCostAs) Ptr() *GetForecastAPIV1CostsForecastGetRequestShowCostAs {
 	return &g
 }
 
@@ -11709,6 +12624,28 @@ func (g GetProviderFiltersCostsRequestAvailabilityZoneMode) Ptr() *GetProviderFi
 	return &g
 }
 
+type GetProviderFiltersCostsRequestBenefitNameMode string
+
+const (
+	GetProviderFiltersCostsRequestBenefitNameModeInclude GetProviderFiltersCostsRequestBenefitNameMode = "include"
+	GetProviderFiltersCostsRequestBenefitNameModeExclude GetProviderFiltersCostsRequestBenefitNameMode = "exclude"
+)
+
+func NewGetProviderFiltersCostsRequestBenefitNameModeFromString(s string) (GetProviderFiltersCostsRequestBenefitNameMode, error) {
+	switch s {
+	case "include":
+		return GetProviderFiltersCostsRequestBenefitNameModeInclude, nil
+	case "exclude":
+		return GetProviderFiltersCostsRequestBenefitNameModeExclude, nil
+	}
+	var t GetProviderFiltersCostsRequestBenefitNameMode
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetProviderFiltersCostsRequestBenefitNameMode) Ptr() *GetProviderFiltersCostsRequestBenefitNameMode {
+	return &g
+}
+
 type GetProviderFiltersCostsRequestBillingEntityMode string
 
 const (
@@ -11728,6 +12665,28 @@ func NewGetProviderFiltersCostsRequestBillingEntityModeFromString(s string) (Get
 }
 
 func (g GetProviderFiltersCostsRequestBillingEntityMode) Ptr() *GetProviderFiltersCostsRequestBillingEntityMode {
+	return &g
+}
+
+type GetProviderFiltersCostsRequestBillingProfileMode string
+
+const (
+	GetProviderFiltersCostsRequestBillingProfileModeInclude GetProviderFiltersCostsRequestBillingProfileMode = "include"
+	GetProviderFiltersCostsRequestBillingProfileModeExclude GetProviderFiltersCostsRequestBillingProfileMode = "exclude"
+)
+
+func NewGetProviderFiltersCostsRequestBillingProfileModeFromString(s string) (GetProviderFiltersCostsRequestBillingProfileMode, error) {
+	switch s {
+	case "include":
+		return GetProviderFiltersCostsRequestBillingProfileModeInclude, nil
+	case "exclude":
+		return GetProviderFiltersCostsRequestBillingProfileModeExclude, nil
+	}
+	var t GetProviderFiltersCostsRequestBillingProfileMode
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetProviderFiltersCostsRequestBillingProfileMode) Ptr() *GetProviderFiltersCostsRequestBillingProfileMode {
 	return &g
 }
 
@@ -11841,6 +12800,28 @@ func (g GetProviderFiltersCostsRequestInstanceTypeMode) Ptr() *GetProviderFilter
 	return &g
 }
 
+type GetProviderFiltersCostsRequestInvoiceSectionMode string
+
+const (
+	GetProviderFiltersCostsRequestInvoiceSectionModeInclude GetProviderFiltersCostsRequestInvoiceSectionMode = "include"
+	GetProviderFiltersCostsRequestInvoiceSectionModeExclude GetProviderFiltersCostsRequestInvoiceSectionMode = "exclude"
+)
+
+func NewGetProviderFiltersCostsRequestInvoiceSectionModeFromString(s string) (GetProviderFiltersCostsRequestInvoiceSectionMode, error) {
+	switch s {
+	case "include":
+		return GetProviderFiltersCostsRequestInvoiceSectionModeInclude, nil
+	case "exclude":
+		return GetProviderFiltersCostsRequestInvoiceSectionModeExclude, nil
+	}
+	var t GetProviderFiltersCostsRequestInvoiceSectionMode
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetProviderFiltersCostsRequestInvoiceSectionMode) Ptr() *GetProviderFiltersCostsRequestInvoiceSectionMode {
+	return &g
+}
+
 type GetProviderFiltersCostsRequestLegalEntityMode string
 
 const (
@@ -11860,6 +12841,50 @@ func NewGetProviderFiltersCostsRequestLegalEntityModeFromString(s string) (GetPr
 }
 
 func (g GetProviderFiltersCostsRequestLegalEntityMode) Ptr() *GetProviderFiltersCostsRequestLegalEntityMode {
+	return &g
+}
+
+type GetProviderFiltersCostsRequestMeterNameMode string
+
+const (
+	GetProviderFiltersCostsRequestMeterNameModeInclude GetProviderFiltersCostsRequestMeterNameMode = "include"
+	GetProviderFiltersCostsRequestMeterNameModeExclude GetProviderFiltersCostsRequestMeterNameMode = "exclude"
+)
+
+func NewGetProviderFiltersCostsRequestMeterNameModeFromString(s string) (GetProviderFiltersCostsRequestMeterNameMode, error) {
+	switch s {
+	case "include":
+		return GetProviderFiltersCostsRequestMeterNameModeInclude, nil
+	case "exclude":
+		return GetProviderFiltersCostsRequestMeterNameModeExclude, nil
+	}
+	var t GetProviderFiltersCostsRequestMeterNameMode
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetProviderFiltersCostsRequestMeterNameMode) Ptr() *GetProviderFiltersCostsRequestMeterNameMode {
+	return &g
+}
+
+type GetProviderFiltersCostsRequestMeterSubcategoryMode string
+
+const (
+	GetProviderFiltersCostsRequestMeterSubcategoryModeInclude GetProviderFiltersCostsRequestMeterSubcategoryMode = "include"
+	GetProviderFiltersCostsRequestMeterSubcategoryModeExclude GetProviderFiltersCostsRequestMeterSubcategoryMode = "exclude"
+)
+
+func NewGetProviderFiltersCostsRequestMeterSubcategoryModeFromString(s string) (GetProviderFiltersCostsRequestMeterSubcategoryMode, error) {
+	switch s {
+	case "include":
+		return GetProviderFiltersCostsRequestMeterSubcategoryModeInclude, nil
+	case "exclude":
+		return GetProviderFiltersCostsRequestMeterSubcategoryModeExclude, nil
+	}
+	var t GetProviderFiltersCostsRequestMeterSubcategoryMode
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetProviderFiltersCostsRequestMeterSubcategoryMode) Ptr() *GetProviderFiltersCostsRequestMeterSubcategoryMode {
 	return &g
 }
 
@@ -11904,6 +12929,50 @@ func NewGetProviderFiltersCostsRequestPlatformModeFromString(s string) (GetProvi
 }
 
 func (g GetProviderFiltersCostsRequestPlatformMode) Ptr() *GetProviderFiltersCostsRequestPlatformMode {
+	return &g
+}
+
+type GetProviderFiltersCostsRequestProductMode string
+
+const (
+	GetProviderFiltersCostsRequestProductModeInclude GetProviderFiltersCostsRequestProductMode = "include"
+	GetProviderFiltersCostsRequestProductModeExclude GetProviderFiltersCostsRequestProductMode = "exclude"
+)
+
+func NewGetProviderFiltersCostsRequestProductModeFromString(s string) (GetProviderFiltersCostsRequestProductMode, error) {
+	switch s {
+	case "include":
+		return GetProviderFiltersCostsRequestProductModeInclude, nil
+	case "exclude":
+		return GetProviderFiltersCostsRequestProductModeExclude, nil
+	}
+	var t GetProviderFiltersCostsRequestProductMode
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetProviderFiltersCostsRequestProductMode) Ptr() *GetProviderFiltersCostsRequestProductMode {
+	return &g
+}
+
+type GetProviderFiltersCostsRequestPublisherTypeMode string
+
+const (
+	GetProviderFiltersCostsRequestPublisherTypeModeInclude GetProviderFiltersCostsRequestPublisherTypeMode = "include"
+	GetProviderFiltersCostsRequestPublisherTypeModeExclude GetProviderFiltersCostsRequestPublisherTypeMode = "exclude"
+)
+
+func NewGetProviderFiltersCostsRequestPublisherTypeModeFromString(s string) (GetProviderFiltersCostsRequestPublisherTypeMode, error) {
+	switch s {
+	case "include":
+		return GetProviderFiltersCostsRequestPublisherTypeModeInclude, nil
+	case "exclude":
+		return GetProviderFiltersCostsRequestPublisherTypeModeExclude, nil
+	}
+	var t GetProviderFiltersCostsRequestPublisherTypeMode
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetProviderFiltersCostsRequestPublisherTypeMode) Ptr() *GetProviderFiltersCostsRequestPublisherTypeMode {
 	return &g
 }
 
@@ -11970,6 +13039,28 @@ func NewGetProviderFiltersCostsRequestResourceModeFromString(s string) (GetProvi
 }
 
 func (g GetProviderFiltersCostsRequestResourceMode) Ptr() *GetProviderFiltersCostsRequestResourceMode {
+	return &g
+}
+
+type GetProviderFiltersCostsRequestServiceFamilyMode string
+
+const (
+	GetProviderFiltersCostsRequestServiceFamilyModeInclude GetProviderFiltersCostsRequestServiceFamilyMode = "include"
+	GetProviderFiltersCostsRequestServiceFamilyModeExclude GetProviderFiltersCostsRequestServiceFamilyMode = "exclude"
+)
+
+func NewGetProviderFiltersCostsRequestServiceFamilyModeFromString(s string) (GetProviderFiltersCostsRequestServiceFamilyMode, error) {
+	switch s {
+	case "include":
+		return GetProviderFiltersCostsRequestServiceFamilyModeInclude, nil
+	case "exclude":
+		return GetProviderFiltersCostsRequestServiceFamilyModeExclude, nil
+	}
+	var t GetProviderFiltersCostsRequestServiceFamilyMode
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetProviderFiltersCostsRequestServiceFamilyMode) Ptr() *GetProviderFiltersCostsRequestServiceFamilyMode {
 	return &g
 }
 
@@ -12151,6 +13242,32 @@ func (g GetSummaryCostsRequestCredits) Ptr() *GetSummaryCostsRequestCredits {
 	return &g
 }
 
+// Cost type: unblended (default), amortized, or usage_value (usage priced at list price, an estimate). Anything but unblended needs one provider that declares it in its cost dimensions.
+type GetSummaryCostsRequestShowCostAs string
+
+const (
+	GetSummaryCostsRequestShowCostAsUnblended  GetSummaryCostsRequestShowCostAs = "unblended"
+	GetSummaryCostsRequestShowCostAsAmortized  GetSummaryCostsRequestShowCostAs = "amortized"
+	GetSummaryCostsRequestShowCostAsUsageValue GetSummaryCostsRequestShowCostAs = "usage_value"
+)
+
+func NewGetSummaryCostsRequestShowCostAsFromString(s string) (GetSummaryCostsRequestShowCostAs, error) {
+	switch s {
+	case "unblended":
+		return GetSummaryCostsRequestShowCostAsUnblended, nil
+	case "amortized":
+		return GetSummaryCostsRequestShowCostAsAmortized, nil
+	case "usage_value":
+		return GetSummaryCostsRequestShowCostAsUsageValue, nil
+	}
+	var t GetSummaryCostsRequestShowCostAs
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetSummaryCostsRequestShowCostAs) Ptr() *GetSummaryCostsRequestShowCostAs {
+	return &g
+}
+
 // Cost basis for Google Cloud: after credits (default) or before them. AWS stays on its invoiced basis.
 type GetTopGrowingAPIV1CostsTopGrowingGetRequestCredits string
 
@@ -12171,6 +13288,32 @@ func NewGetTopGrowingAPIV1CostsTopGrowingGetRequestCreditsFromString(s string) (
 }
 
 func (g GetTopGrowingAPIV1CostsTopGrowingGetRequestCredits) Ptr() *GetTopGrowingAPIV1CostsTopGrowingGetRequestCredits {
+	return &g
+}
+
+// Cost type: unblended (default), amortized, or usage_value (usage priced at list price, an estimate). Anything but unblended needs one provider that declares it in its cost dimensions.
+type GetTopGrowingAPIV1CostsTopGrowingGetRequestShowCostAs string
+
+const (
+	GetTopGrowingAPIV1CostsTopGrowingGetRequestShowCostAsUnblended  GetTopGrowingAPIV1CostsTopGrowingGetRequestShowCostAs = "unblended"
+	GetTopGrowingAPIV1CostsTopGrowingGetRequestShowCostAsAmortized  GetTopGrowingAPIV1CostsTopGrowingGetRequestShowCostAs = "amortized"
+	GetTopGrowingAPIV1CostsTopGrowingGetRequestShowCostAsUsageValue GetTopGrowingAPIV1CostsTopGrowingGetRequestShowCostAs = "usage_value"
+)
+
+func NewGetTopGrowingAPIV1CostsTopGrowingGetRequestShowCostAsFromString(s string) (GetTopGrowingAPIV1CostsTopGrowingGetRequestShowCostAs, error) {
+	switch s {
+	case "unblended":
+		return GetTopGrowingAPIV1CostsTopGrowingGetRequestShowCostAsUnblended, nil
+	case "amortized":
+		return GetTopGrowingAPIV1CostsTopGrowingGetRequestShowCostAsAmortized, nil
+	case "usage_value":
+		return GetTopGrowingAPIV1CostsTopGrowingGetRequestShowCostAsUsageValue, nil
+	}
+	var t GetTopGrowingAPIV1CostsTopGrowingGetRequestShowCostAs
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetTopGrowingAPIV1CostsTopGrowingGetRequestShowCostAs) Ptr() *GetTopGrowingAPIV1CostsTopGrowingGetRequestShowCostAs {
 	return &g
 }
 
@@ -12222,6 +13365,32 @@ func NewGetUsageAPIV1CostsUsageGetRequestFamilyFromString(s string) (GetUsageAPI
 }
 
 func (g GetUsageAPIV1CostsUsageGetRequestFamily) Ptr() *GetUsageAPIV1CostsUsageGetRequestFamily {
+	return &g
+}
+
+// Cost type: unblended (default), amortized, or usage_value (usage priced at list price, an estimate). Anything but unblended needs one provider that declares it in its cost dimensions.
+type GetUsageAPIV1CostsUsageGetRequestShowCostAs string
+
+const (
+	GetUsageAPIV1CostsUsageGetRequestShowCostAsUnblended  GetUsageAPIV1CostsUsageGetRequestShowCostAs = "unblended"
+	GetUsageAPIV1CostsUsageGetRequestShowCostAsAmortized  GetUsageAPIV1CostsUsageGetRequestShowCostAs = "amortized"
+	GetUsageAPIV1CostsUsageGetRequestShowCostAsUsageValue GetUsageAPIV1CostsUsageGetRequestShowCostAs = "usage_value"
+)
+
+func NewGetUsageAPIV1CostsUsageGetRequestShowCostAsFromString(s string) (GetUsageAPIV1CostsUsageGetRequestShowCostAs, error) {
+	switch s {
+	case "unblended":
+		return GetUsageAPIV1CostsUsageGetRequestShowCostAsUnblended, nil
+	case "amortized":
+		return GetUsageAPIV1CostsUsageGetRequestShowCostAsAmortized, nil
+	case "usage_value":
+		return GetUsageAPIV1CostsUsageGetRequestShowCostAsUsageValue, nil
+	}
+	var t GetUsageAPIV1CostsUsageGetRequestShowCostAs
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (g GetUsageAPIV1CostsUsageGetRequestShowCostAs) Ptr() *GetUsageAPIV1CostsUsageGetRequestShowCostAs {
 	return &g
 }
 
@@ -12291,6 +13460,28 @@ func (l ListByProviderCostsRequestAvailabilityZoneMode) Ptr() *ListByProviderCos
 	return &l
 }
 
+type ListByProviderCostsRequestBenefitNameMode string
+
+const (
+	ListByProviderCostsRequestBenefitNameModeInclude ListByProviderCostsRequestBenefitNameMode = "include"
+	ListByProviderCostsRequestBenefitNameModeExclude ListByProviderCostsRequestBenefitNameMode = "exclude"
+)
+
+func NewListByProviderCostsRequestBenefitNameModeFromString(s string) (ListByProviderCostsRequestBenefitNameMode, error) {
+	switch s {
+	case "include":
+		return ListByProviderCostsRequestBenefitNameModeInclude, nil
+	case "exclude":
+		return ListByProviderCostsRequestBenefitNameModeExclude, nil
+	}
+	var t ListByProviderCostsRequestBenefitNameMode
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (l ListByProviderCostsRequestBenefitNameMode) Ptr() *ListByProviderCostsRequestBenefitNameMode {
+	return &l
+}
+
 type ListByProviderCostsRequestBillingEntityMode string
 
 const (
@@ -12310,6 +13501,28 @@ func NewListByProviderCostsRequestBillingEntityModeFromString(s string) (ListByP
 }
 
 func (l ListByProviderCostsRequestBillingEntityMode) Ptr() *ListByProviderCostsRequestBillingEntityMode {
+	return &l
+}
+
+type ListByProviderCostsRequestBillingProfileMode string
+
+const (
+	ListByProviderCostsRequestBillingProfileModeInclude ListByProviderCostsRequestBillingProfileMode = "include"
+	ListByProviderCostsRequestBillingProfileModeExclude ListByProviderCostsRequestBillingProfileMode = "exclude"
+)
+
+func NewListByProviderCostsRequestBillingProfileModeFromString(s string) (ListByProviderCostsRequestBillingProfileMode, error) {
+	switch s {
+	case "include":
+		return ListByProviderCostsRequestBillingProfileModeInclude, nil
+	case "exclude":
+		return ListByProviderCostsRequestBillingProfileModeExclude, nil
+	}
+	var t ListByProviderCostsRequestBillingProfileMode
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (l ListByProviderCostsRequestBillingProfileMode) Ptr() *ListByProviderCostsRequestBillingProfileMode {
 	return &l
 }
 
@@ -12468,6 +13681,28 @@ func (l ListByProviderCostsRequestInstanceTypeMode) Ptr() *ListByProviderCostsRe
 	return &l
 }
 
+type ListByProviderCostsRequestInvoiceSectionMode string
+
+const (
+	ListByProviderCostsRequestInvoiceSectionModeInclude ListByProviderCostsRequestInvoiceSectionMode = "include"
+	ListByProviderCostsRequestInvoiceSectionModeExclude ListByProviderCostsRequestInvoiceSectionMode = "exclude"
+)
+
+func NewListByProviderCostsRequestInvoiceSectionModeFromString(s string) (ListByProviderCostsRequestInvoiceSectionMode, error) {
+	switch s {
+	case "include":
+		return ListByProviderCostsRequestInvoiceSectionModeInclude, nil
+	case "exclude":
+		return ListByProviderCostsRequestInvoiceSectionModeExclude, nil
+	}
+	var t ListByProviderCostsRequestInvoiceSectionMode
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (l ListByProviderCostsRequestInvoiceSectionMode) Ptr() *ListByProviderCostsRequestInvoiceSectionMode {
+	return &l
+}
+
 type ListByProviderCostsRequestLegalEntityMode string
 
 const (
@@ -12510,6 +13745,50 @@ func NewListByProviderCostsRequestMeasureFromString(s string) (ListByProviderCos
 }
 
 func (l ListByProviderCostsRequestMeasure) Ptr() *ListByProviderCostsRequestMeasure {
+	return &l
+}
+
+type ListByProviderCostsRequestMeterNameMode string
+
+const (
+	ListByProviderCostsRequestMeterNameModeInclude ListByProviderCostsRequestMeterNameMode = "include"
+	ListByProviderCostsRequestMeterNameModeExclude ListByProviderCostsRequestMeterNameMode = "exclude"
+)
+
+func NewListByProviderCostsRequestMeterNameModeFromString(s string) (ListByProviderCostsRequestMeterNameMode, error) {
+	switch s {
+	case "include":
+		return ListByProviderCostsRequestMeterNameModeInclude, nil
+	case "exclude":
+		return ListByProviderCostsRequestMeterNameModeExclude, nil
+	}
+	var t ListByProviderCostsRequestMeterNameMode
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (l ListByProviderCostsRequestMeterNameMode) Ptr() *ListByProviderCostsRequestMeterNameMode {
+	return &l
+}
+
+type ListByProviderCostsRequestMeterSubcategoryMode string
+
+const (
+	ListByProviderCostsRequestMeterSubcategoryModeInclude ListByProviderCostsRequestMeterSubcategoryMode = "include"
+	ListByProviderCostsRequestMeterSubcategoryModeExclude ListByProviderCostsRequestMeterSubcategoryMode = "exclude"
+)
+
+func NewListByProviderCostsRequestMeterSubcategoryModeFromString(s string) (ListByProviderCostsRequestMeterSubcategoryMode, error) {
+	switch s {
+	case "include":
+		return ListByProviderCostsRequestMeterSubcategoryModeInclude, nil
+	case "exclude":
+		return ListByProviderCostsRequestMeterSubcategoryModeExclude, nil
+	}
+	var t ListByProviderCostsRequestMeterSubcategoryMode
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (l ListByProviderCostsRequestMeterSubcategoryMode) Ptr() *ListByProviderCostsRequestMeterSubcategoryMode {
 	return &l
 }
 
@@ -12557,6 +13836,28 @@ func (l ListByProviderCostsRequestPlatformMode) Ptr() *ListByProviderCostsReques
 	return &l
 }
 
+type ListByProviderCostsRequestProductMode string
+
+const (
+	ListByProviderCostsRequestProductModeInclude ListByProviderCostsRequestProductMode = "include"
+	ListByProviderCostsRequestProductModeExclude ListByProviderCostsRequestProductMode = "exclude"
+)
+
+func NewListByProviderCostsRequestProductModeFromString(s string) (ListByProviderCostsRequestProductMode, error) {
+	switch s {
+	case "include":
+		return ListByProviderCostsRequestProductModeInclude, nil
+	case "exclude":
+		return ListByProviderCostsRequestProductModeExclude, nil
+	}
+	var t ListByProviderCostsRequestProductMode
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (l ListByProviderCostsRequestProductMode) Ptr() *ListByProviderCostsRequestProductMode {
+	return &l
+}
+
 type ListByProviderCostsRequestProjectMode string
 
 const (
@@ -12576,6 +13877,28 @@ func NewListByProviderCostsRequestProjectModeFromString(s string) (ListByProvide
 }
 
 func (l ListByProviderCostsRequestProjectMode) Ptr() *ListByProviderCostsRequestProjectMode {
+	return &l
+}
+
+type ListByProviderCostsRequestPublisherTypeMode string
+
+const (
+	ListByProviderCostsRequestPublisherTypeModeInclude ListByProviderCostsRequestPublisherTypeMode = "include"
+	ListByProviderCostsRequestPublisherTypeModeExclude ListByProviderCostsRequestPublisherTypeMode = "exclude"
+)
+
+func NewListByProviderCostsRequestPublisherTypeModeFromString(s string) (ListByProviderCostsRequestPublisherTypeMode, error) {
+	switch s {
+	case "include":
+		return ListByProviderCostsRequestPublisherTypeModeInclude, nil
+	case "exclude":
+		return ListByProviderCostsRequestPublisherTypeModeExclude, nil
+	}
+	var t ListByProviderCostsRequestPublisherTypeMode
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (l ListByProviderCostsRequestPublisherTypeMode) Ptr() *ListByProviderCostsRequestPublisherTypeMode {
 	return &l
 }
 
@@ -12642,6 +13965,28 @@ func NewListByProviderCostsRequestResourceModeFromString(s string) (ListByProvid
 }
 
 func (l ListByProviderCostsRequestResourceMode) Ptr() *ListByProviderCostsRequestResourceMode {
+	return &l
+}
+
+type ListByProviderCostsRequestServiceFamilyMode string
+
+const (
+	ListByProviderCostsRequestServiceFamilyModeInclude ListByProviderCostsRequestServiceFamilyMode = "include"
+	ListByProviderCostsRequestServiceFamilyModeExclude ListByProviderCostsRequestServiceFamilyMode = "exclude"
+)
+
+func NewListByProviderCostsRequestServiceFamilyModeFromString(s string) (ListByProviderCostsRequestServiceFamilyMode, error) {
+	switch s {
+	case "include":
+		return ListByProviderCostsRequestServiceFamilyModeInclude, nil
+	case "exclude":
+		return ListByProviderCostsRequestServiceFamilyModeExclude, nil
+	}
+	var t ListByProviderCostsRequestServiceFamilyMode
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (l ListByProviderCostsRequestServiceFamilyMode) Ptr() *ListByProviderCostsRequestServiceFamilyMode {
 	return &l
 }
 

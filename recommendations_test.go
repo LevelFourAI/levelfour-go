@@ -5864,6 +5864,22 @@ func TestSettersProviderBreakdownItem(t *testing.T) {
 		assert.NotNil(t, obj.explicitFields)
 	})
 
+	t.Run("SetPriceBasis", func(t *testing.T) {
+		obj := &ProviderBreakdownItem{}
+		var fernTestValuePriceBasis *ProviderBreakdownItemPriceBasis
+		obj.SetPriceBasis(fernTestValuePriceBasis)
+		assert.Equal(t, fernTestValuePriceBasis, obj.PriceBasis)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetPriceBasisNote", func(t *testing.T) {
+		obj := &ProviderBreakdownItem{}
+		var fernTestValuePriceBasisNote *string
+		obj.SetPriceBasisNote(fernTestValuePriceBasisNote)
+		assert.Equal(t, fernTestValuePriceBasisNote, obj.PriceBasisNote)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
 	t.Run("SetStatus", func(t *testing.T) {
 		obj := &ProviderBreakdownItem{}
 		var fernTestValueStatus *ProviderBreakdownItemStatus
@@ -6282,6 +6298,72 @@ func TestGettersProviderBreakdownItem(t *testing.T) {
 			}
 		}()
 		_ = obj.GetChildrenSavings() // Should return zero value
+	})
+
+	t.Run("GetPriceBasis", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &ProviderBreakdownItem{}
+		var expected *ProviderBreakdownItemPriceBasis
+		obj.PriceBasis = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetPriceBasis(), "getter should return the property value")
+	})
+
+	t.Run("GetPriceBasis_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &ProviderBreakdownItem{}
+		obj.PriceBasis = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetPriceBasis(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetPriceBasis_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *ProviderBreakdownItem
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetPriceBasis() // Should return zero value
+	})
+
+	t.Run("GetPriceBasisNote", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &ProviderBreakdownItem{}
+		var expected *string
+		obj.PriceBasisNote = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetPriceBasisNote(), "getter should return the property value")
+	})
+
+	t.Run("GetPriceBasisNote_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &ProviderBreakdownItem{}
+		obj.PriceBasisNote = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetPriceBasisNote(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetPriceBasisNote_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *ProviderBreakdownItem
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetPriceBasisNote() // Should return zero value
 	})
 
 	t.Run("GetStatus", func(t *testing.T) {
@@ -7193,6 +7275,68 @@ func TestSettersMarkExplicitProviderBreakdownItem(t *testing.T) {
 
 		// Act
 		obj.SetChildrenSavings(fernTestValueChildrenSavings)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetPriceBasis_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &ProviderBreakdownItem{}
+		var fernTestValuePriceBasis *ProviderBreakdownItemPriceBasis
+
+		// Act
+		obj.SetPriceBasis(fernTestValuePriceBasis)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetPriceBasisNote_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &ProviderBreakdownItem{}
+		var fernTestValuePriceBasisNote *string
+
+		// Act
+		obj.SetPriceBasisNote(fernTestValuePriceBasisNote)
 
 		// Assert - object with explicitly set field can be marshaled/unmarshaled
 		bytes, err := json.Marshal(obj)
@@ -13425,6 +13569,22 @@ func TestSettersRecommendationItem(t *testing.T) {
 		assert.NotNil(t, obj.explicitFields)
 	})
 
+	t.Run("SetPriceBasis", func(t *testing.T) {
+		obj := &RecommendationItem{}
+		var fernTestValuePriceBasis *RecommendationItemPriceBasis
+		obj.SetPriceBasis(fernTestValuePriceBasis)
+		assert.Equal(t, fernTestValuePriceBasis, obj.PriceBasis)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetPriceBasisNote", func(t *testing.T) {
+		obj := &RecommendationItem{}
+		var fernTestValuePriceBasisNote *string
+		obj.SetPriceBasisNote(fernTestValuePriceBasisNote)
+		assert.Equal(t, fernTestValuePriceBasisNote, obj.PriceBasisNote)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
 }
 
 func TestGettersRecommendationItem(t *testing.T) {
@@ -13752,6 +13912,72 @@ func TestGettersRecommendationItem(t *testing.T) {
 			}
 		}()
 		_ = obj.GetRiskAssessment() // Should return zero value
+	})
+
+	t.Run("GetPriceBasis", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &RecommendationItem{}
+		var expected *RecommendationItemPriceBasis
+		obj.PriceBasis = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetPriceBasis(), "getter should return the property value")
+	})
+
+	t.Run("GetPriceBasis_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &RecommendationItem{}
+		obj.PriceBasis = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetPriceBasis(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetPriceBasis_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *RecommendationItem
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetPriceBasis() // Should return zero value
+	})
+
+	t.Run("GetPriceBasisNote", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &RecommendationItem{}
+		var expected *string
+		obj.PriceBasisNote = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetPriceBasisNote(), "getter should return the property value")
+	})
+
+	t.Run("GetPriceBasisNote_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &RecommendationItem{}
+		obj.PriceBasisNote = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetPriceBasisNote(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetPriceBasisNote_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *RecommendationItem
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetPriceBasisNote() // Should return zero value
 	})
 
 }
@@ -14106,6 +14332,68 @@ func TestSettersMarkExplicitRecommendationItem(t *testing.T) {
 
 		// Act
 		obj.SetRiskAssessment(fernTestValueRiskAssessment)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetPriceBasis_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &RecommendationItem{}
+		var fernTestValuePriceBasis *RecommendationItemPriceBasis
+
+		// Act
+		obj.SetPriceBasis(fernTestValuePriceBasis)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetPriceBasisNote_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &RecommendationItem{}
+		var fernTestValuePriceBasisNote *string
+
+		// Act
+		obj.SetPriceBasisNote(fernTestValuePriceBasisNote)
 
 		// Assert - object with explicitly set field can be marshaled/unmarshaled
 		bytes, err := json.Marshal(obj)
@@ -14542,6 +14830,14 @@ func TestSettersRecommendationsOverviewData(t *testing.T) {
 		assert.NotNil(t, obj.explicitFields)
 	})
 
+	t.Run("SetEstimatedAvailableSavings", func(t *testing.T) {
+		obj := &RecommendationsOverviewData{}
+		var fernTestValueEstimatedAvailableSavings *float64
+		obj.SetEstimatedAvailableSavings(fernTestValueEstimatedAvailableSavings)
+		assert.Equal(t, fernTestValueEstimatedAvailableSavings, obj.EstimatedAvailableSavings)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
 	t.Run("SetPendingSavings", func(t *testing.T) {
 		obj := &RecommendationsOverviewData{}
 		var fernTestValuePendingSavings float64
@@ -14831,6 +15127,39 @@ func TestGettersRecommendationsOverviewData(t *testing.T) {
 			}
 		}()
 		_ = obj.GetAvailableSavings() // Should return zero value
+	})
+
+	t.Run("GetEstimatedAvailableSavings", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &RecommendationsOverviewData{}
+		var expected *float64
+		obj.EstimatedAvailableSavings = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetEstimatedAvailableSavings(), "getter should return the property value")
+	})
+
+	t.Run("GetEstimatedAvailableSavings_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &RecommendationsOverviewData{}
+		obj.EstimatedAvailableSavings = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetEstimatedAvailableSavings(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetEstimatedAvailableSavings_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *RecommendationsOverviewData
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetEstimatedAvailableSavings() // Should return zero value
 	})
 
 	t.Run("GetPendingSavings", func(t *testing.T) {
@@ -15643,6 +15972,37 @@ func TestSettersMarkExplicitRecommendationsOverviewData(t *testing.T) {
 
 		// Act
 		obj.SetAvailableSavings(fernTestValueAvailableSavings)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetEstimatedAvailableSavings_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &RecommendationsOverviewData{}
+		var fernTestValueEstimatedAvailableSavings *float64
+
+		// Act
+		obj.SetEstimatedAvailableSavings(fernTestValueEstimatedAvailableSavings)
 
 		// Assert - object with explicitly set field can be marshaled/unmarshaled
 		bytes, err := json.Marshal(obj)
@@ -21510,6 +21870,35 @@ func TestEnumProviderBreakdownItemImplementationStatus(t *testing.T) {
 	})
 }
 
+func TestEnumProviderBreakdownItemPriceBasis(t *testing.T) {
+	t.Run("NewFromString_billed", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewProviderBreakdownItemPriceBasisFromString("billed")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, ProviderBreakdownItemPriceBasis("billed"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_estimate", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewProviderBreakdownItemPriceBasisFromString("estimate")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, ProviderBreakdownItemPriceBasis("estimate"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_Invalid", func(t *testing.T) {
+		_, err := NewProviderBreakdownItemPriceBasisFromString("invalid_value_that_does_not_exist")
+		assert.Error(t, err)
+	})
+
+	t.Run("Ptr", func(t *testing.T) {
+		val, err := NewProviderBreakdownItemPriceBasisFromString("billed")
+		assert.NoError(t, err)
+		ptr := val.Ptr()
+		assert.NotNil(t, ptr)
+		assert.Equal(t, val, *ptr)
+	})
+}
+
 func TestEnumProviderBreakdownItemStatus(t *testing.T) {
 	t.Run("NewFromString_pending", func(t *testing.T) {
 		t.Parallel()
@@ -21745,6 +22134,35 @@ func TestEnumRecommendationItemDisplayStatus(t *testing.T) {
 
 	t.Run("Ptr", func(t *testing.T) {
 		val, err := NewRecommendationItemDisplayStatusFromString("available")
+		assert.NoError(t, err)
+		ptr := val.Ptr()
+		assert.NotNil(t, ptr)
+		assert.Equal(t, val, *ptr)
+	})
+}
+
+func TestEnumRecommendationItemPriceBasis(t *testing.T) {
+	t.Run("NewFromString_billed", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewRecommendationItemPriceBasisFromString("billed")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, RecommendationItemPriceBasis("billed"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_estimate", func(t *testing.T) {
+		t.Parallel()
+		val, err := NewRecommendationItemPriceBasisFromString("estimate")
+		assert.NoError(t, err, "valid enum value should not return error")
+		assert.Equal(t, RecommendationItemPriceBasis("estimate"), val, "enum value should match expected wire value")
+	})
+
+	t.Run("NewFromString_Invalid", func(t *testing.T) {
+		_, err := NewRecommendationItemPriceBasisFromString("invalid_value_that_does_not_exist")
+		assert.Error(t, err)
+	})
+
+	t.Run("Ptr", func(t *testing.T) {
+		val, err := NewRecommendationItemPriceBasisFromString("billed")
 		assert.NoError(t, err)
 		ptr := val.Ptr()
 		assert.NotNil(t, ptr)

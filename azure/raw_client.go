@@ -190,6 +190,54 @@ func (r *RawClient) GetSubscriptions(
 	}, nil
 }
 
+func (r *RawClient) GetInventoryBreakdown(
+	ctx context.Context,
+	request *levelfour.GetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequest,
+	opts ...option.RequestOption,
+) (*core.Response[*levelfour.AzureInventoryBreakdownResponse], error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		r.baseURL,
+		"",
+	)
+	endpointURL := baseURL + "/api/v1/providers/azure/inventory/breakdown"
+	queryParams, err := internal.QueryValues(request)
+	if err != nil {
+		return nil, err
+	}
+	if len(queryParams) > 0 {
+		endpointURL += "?" + queryParams.Encode()
+	}
+	headers := internal.MergeHeaders(
+		r.options.ToHeader(),
+		options.ToHeader(),
+	)
+	var response *levelfour.AzureInventoryBreakdownResponse
+	raw, err := r.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+			ErrorDecoder:    internal.NewErrorDecoder(levelfour.ErrorCodes),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &core.Response[*levelfour.AzureInventoryBreakdownResponse]{
+		StatusCode: raw.StatusCode,
+		Header:     raw.Header,
+		Body:       response,
+	}, nil
+}
+
 func (r *RawClient) GetWasteSignals(
 	ctx context.Context,
 	opts ...option.RequestOption,

@@ -7166,8 +7166,9 @@ var (
 	tagCoverageFieldWindow                = big.NewInt(1 << 0)
 	tagCoverageFieldUsageValue            = big.NewInt(1 << 1)
 	tagCoverageFieldUsageValueWithVirtual = big.NewInt(1 << 2)
-	tagCoverageFieldBySpend               = big.NewInt(1 << 3)
-	tagCoverageFieldByResource            = big.NewInt(1 << 4)
+	tagCoverageFieldByUsageValue          = big.NewInt(1 << 3)
+	tagCoverageFieldBySpend               = big.NewInt(1 << 4)
+	tagCoverageFieldByResource            = big.NewInt(1 << 5)
 )
 
 type TagCoverage struct {
@@ -7175,9 +7176,11 @@ type TagCoverage struct {
 	// Usage a connector values at list price rather than bills, such as Claude Code telemetry. It sits beside spend and is never added to it. Zero on a cloud bill.
 	UsageValue *float64 `json:"usage_value,omitempty" url:"usage_value,omitempty"`
 	// Usage a connector values at list price rather than bills, such as Claude Code telemetry. It sits beside spend and is never added to it. Zero on a cloud bill.
-	UsageValueWithVirtual *float64       `json:"usage_value_with_virtual,omitempty" url:"usage_value_with_virtual,omitempty"`
-	BySpend               *CoverageBasis `json:"by_spend" url:"by_spend"`
-	ByResource            *CoverageBasis `json:"by_resource" url:"by_resource"`
+	UsageValueWithVirtual *float64 `json:"usage_value_with_virtual,omitempty" url:"usage_value_with_virtual,omitempty"`
+	// The same coverage over usage valued at list price, such as an Azure subscription a CSP partner bills with its cost hidden: an estimate, never part of by_spend
+	ByUsageValue *CoverageBasis `json:"by_usage_value,omitempty" url:"by_usage_value,omitempty"`
+	BySpend      *CoverageBasis `json:"by_spend" url:"by_spend"`
+	ByResource   *CoverageBasis `json:"by_resource" url:"by_resource"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -7205,6 +7208,13 @@ func (t *TagCoverage) GetUsageValueWithVirtual() *float64 {
 		return nil
 	}
 	return t.UsageValueWithVirtual
+}
+
+func (t *TagCoverage) GetByUsageValue() *CoverageBasis {
+	if t == nil {
+		return nil
+	}
+	return t.ByUsageValue
 }
 
 func (t *TagCoverage) GetBySpend() *CoverageBasis {
@@ -7254,6 +7264,13 @@ func (t *TagCoverage) SetUsageValue(usageValue *float64) {
 func (t *TagCoverage) SetUsageValueWithVirtual(usageValueWithVirtual *float64) {
 	t.UsageValueWithVirtual = usageValueWithVirtual
 	t.require(tagCoverageFieldUsageValueWithVirtual)
+}
+
+// SetByUsageValue sets the ByUsageValue field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (t *TagCoverage) SetByUsageValue(byUsageValue *CoverageBasis) {
+	t.ByUsageValue = byUsageValue
+	t.require(tagCoverageFieldByUsageValue)
 }
 
 // SetBySpend sets the BySpend field and marks it as non-optional;

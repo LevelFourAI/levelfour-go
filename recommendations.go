@@ -2906,26 +2906,28 @@ var (
 	providerBreakdownItemFieldMonthlySavings         = big.NewInt(1 << 6)
 	providerBreakdownItemFieldSavingsPercentage      = big.NewInt(1 << 7)
 	providerBreakdownItemFieldChildrenSavings        = big.NewInt(1 << 8)
-	providerBreakdownItemFieldStatus                 = big.NewInt(1 << 9)
-	providerBreakdownItemFieldDisplayStatus          = big.NewInt(1 << 10)
-	providerBreakdownItemFieldActions                = big.NewInt(1 << 11)
-	providerBreakdownItemFieldTermsAcceptedAt        = big.NewInt(1 << 12)
-	providerBreakdownItemFieldSavingAcceptedBy       = big.NewInt(1 << 13)
-	providerBreakdownItemFieldSavingAcceptance       = big.NewInt(1 << 14)
-	providerBreakdownItemFieldImplementationMethod   = big.NewInt(1 << 15)
-	providerBreakdownItemFieldImplementationStatus   = big.NewInt(1 << 16)
-	providerBreakdownItemFieldImplementationTags     = big.NewInt(1 << 17)
-	providerBreakdownItemFieldCreatedAt              = big.NewInt(1 << 18)
-	providerBreakdownItemFieldUpdatedAt              = big.NewInt(1 << 19)
-	providerBreakdownItemFieldGroupID                = big.NewInt(1 << 20)
-	providerBreakdownItemFieldGroupName              = big.NewInt(1 << 21)
-	providerBreakdownItemFieldLinkedTo               = big.NewInt(1 << 22)
-	providerBreakdownItemFieldExecutionRequestStatus = big.NewInt(1 << 23)
-	providerBreakdownItemFieldExecutionRequestBy     = big.NewInt(1 << 24)
-	providerBreakdownItemFieldExecutionRequestByName = big.NewInt(1 << 25)
-	providerBreakdownItemFieldExecutionRequestAt     = big.NewInt(1 << 26)
-	providerBreakdownItemFieldVirtualTags            = big.NewInt(1 << 27)
-	providerBreakdownItemFieldRiskAssessment         = big.NewInt(1 << 28)
+	providerBreakdownItemFieldPriceBasis             = big.NewInt(1 << 9)
+	providerBreakdownItemFieldPriceBasisNote         = big.NewInt(1 << 10)
+	providerBreakdownItemFieldStatus                 = big.NewInt(1 << 11)
+	providerBreakdownItemFieldDisplayStatus          = big.NewInt(1 << 12)
+	providerBreakdownItemFieldActions                = big.NewInt(1 << 13)
+	providerBreakdownItemFieldTermsAcceptedAt        = big.NewInt(1 << 14)
+	providerBreakdownItemFieldSavingAcceptedBy       = big.NewInt(1 << 15)
+	providerBreakdownItemFieldSavingAcceptance       = big.NewInt(1 << 16)
+	providerBreakdownItemFieldImplementationMethod   = big.NewInt(1 << 17)
+	providerBreakdownItemFieldImplementationStatus   = big.NewInt(1 << 18)
+	providerBreakdownItemFieldImplementationTags     = big.NewInt(1 << 19)
+	providerBreakdownItemFieldCreatedAt              = big.NewInt(1 << 20)
+	providerBreakdownItemFieldUpdatedAt              = big.NewInt(1 << 21)
+	providerBreakdownItemFieldGroupID                = big.NewInt(1 << 22)
+	providerBreakdownItemFieldGroupName              = big.NewInt(1 << 23)
+	providerBreakdownItemFieldLinkedTo               = big.NewInt(1 << 24)
+	providerBreakdownItemFieldExecutionRequestStatus = big.NewInt(1 << 25)
+	providerBreakdownItemFieldExecutionRequestBy     = big.NewInt(1 << 26)
+	providerBreakdownItemFieldExecutionRequestByName = big.NewInt(1 << 27)
+	providerBreakdownItemFieldExecutionRequestAt     = big.NewInt(1 << 28)
+	providerBreakdownItemFieldVirtualTags            = big.NewInt(1 << 29)
+	providerBreakdownItemFieldRiskAssessment         = big.NewInt(1 << 30)
 )
 
 type ProviderBreakdownItem struct {
@@ -2947,6 +2949,10 @@ type ProviderBreakdownItem struct {
 	SavingsPercentage float64 `json:"savings_percentage" url:"savings_percentage"`
 	// What this batch parent's children save. Null on any other row
 	ChildrenSavings *ChildrenSavings `json:"children_savings,omitempty" url:"children_savings,omitempty"`
+	// Where the savings figures come from: `billed` for an Azure saving priced off the customer's own bill, `estimate` for one priced at Microsoft's list price because a CSP partner bills the subscription (shown as 'Estimate, list price'). A batch parent takes it from its children: `estimate` when any child is one. Null for every other provider and for a row with no price source
+	PriceBasis *ProviderBreakdownItemPriceBasis `json:"price_basis,omitempty" url:"price_basis,omitempty"`
+	// Why the figures are an estimate, in one sentence the dashboard shows beside them (the row's actions.api_pricing.basis). Null unless price_basis is `estimate`
+	PriceBasisNote *string `json:"price_basis_note,omitempty" url:"price_basis_note,omitempty"`
 	// Recommendation status
 	Status *ProviderBreakdownItemStatus `json:"status,omitempty" url:"status,omitempty"`
 	// Status the person reads, served once so the dashboard, the CLI and MCP all print the same word. Derived from status, saving_acceptance and execution_request_status; a request waiting on an approver outranks everything else. Prefer this over status for display
@@ -3055,6 +3061,20 @@ func (p *ProviderBreakdownItem) GetChildrenSavings() *ChildrenSavings {
 		return nil
 	}
 	return p.ChildrenSavings
+}
+
+func (p *ProviderBreakdownItem) GetPriceBasis() *ProviderBreakdownItemPriceBasis {
+	if p == nil {
+		return nil
+	}
+	return p.PriceBasis
+}
+
+func (p *ProviderBreakdownItem) GetPriceBasisNote() *string {
+	if p == nil {
+		return nil
+	}
+	return p.PriceBasisNote
 }
 
 func (p *ProviderBreakdownItem) GetStatus() *ProviderBreakdownItemStatus {
@@ -3272,6 +3292,20 @@ func (p *ProviderBreakdownItem) SetSavingsPercentage(savingsPercentage float64) 
 func (p *ProviderBreakdownItem) SetChildrenSavings(childrenSavings *ChildrenSavings) {
 	p.ChildrenSavings = childrenSavings
 	p.require(providerBreakdownItemFieldChildrenSavings)
+}
+
+// SetPriceBasis sets the PriceBasis field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderBreakdownItem) SetPriceBasis(priceBasis *ProviderBreakdownItemPriceBasis) {
+	p.PriceBasis = priceBasis
+	p.require(providerBreakdownItemFieldPriceBasis)
+}
+
+// SetPriceBasisNote sets the PriceBasisNote field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderBreakdownItem) SetPriceBasisNote(priceBasisNote *string) {
+	p.PriceBasisNote = priceBasisNote
+	p.require(providerBreakdownItemFieldPriceBasisNote)
 }
 
 // SetStatus sets the Status field and marks it as non-optional;
@@ -3621,6 +3655,28 @@ func (p *ProviderBreakdownItemLinkedTo) Accept(visitor ProviderBreakdownItemLink
 		return visitor.VisitLinkedToGroupMember(p.LinkedToGroupMember)
 	}
 	return fmt.Errorf("type %T does not include a non-empty union type", p)
+}
+
+type ProviderBreakdownItemPriceBasis string
+
+const (
+	ProviderBreakdownItemPriceBasisBilled   ProviderBreakdownItemPriceBasis = "billed"
+	ProviderBreakdownItemPriceBasisEstimate ProviderBreakdownItemPriceBasis = "estimate"
+)
+
+func NewProviderBreakdownItemPriceBasisFromString(s string) (ProviderBreakdownItemPriceBasis, error) {
+	switch s {
+	case "billed":
+		return ProviderBreakdownItemPriceBasisBilled, nil
+	case "estimate":
+		return ProviderBreakdownItemPriceBasisEstimate, nil
+	}
+	var t ProviderBreakdownItemPriceBasis
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (p ProviderBreakdownItemPriceBasis) Ptr() *ProviderBreakdownItemPriceBasis {
+	return &p
 }
 
 // Recommendation status
@@ -6071,6 +6127,8 @@ var (
 	recommendationItemFieldDisplayStatus     = big.NewInt(1 << 9)
 	recommendationItemFieldActions           = big.NewInt(1 << 10)
 	recommendationItemFieldRiskAssessment    = big.NewInt(1 << 11)
+	recommendationItemFieldPriceBasis        = big.NewInt(1 << 12)
+	recommendationItemFieldPriceBasisNote    = big.NewInt(1 << 13)
 )
 
 type RecommendationItem struct {
@@ -6090,6 +6148,10 @@ type RecommendationItem struct {
 	Actions       *RecommendationActions           `json:"actions,omitempty" url:"actions,omitempty"`
 	// Risk level denormalized from actions so the list/table Risk column renders (level only; full factors live on the detail endpoint)
 	RiskAssessment any `json:"risk_assessment,omitempty" url:"risk_assessment,omitempty"`
+	// Where the savings figures come from: `billed` for an Azure saving priced off the customer's own bill, `estimate` for one priced at Microsoft's list price because a CSP partner bills the subscription (shown as 'Estimate, list price'). A batch parent takes it from its children: `estimate` when any child is one. Null for every other provider and for a row with no price source
+	PriceBasis *RecommendationItemPriceBasis `json:"price_basis,omitempty" url:"price_basis,omitempty"`
+	// Why the figures are an estimate, in one sentence the dashboard shows beside them (the row's actions.api_pricing.basis). Null unless price_basis is `estimate`
+	PriceBasisNote *string `json:"price_basis_note,omitempty" url:"price_basis_note,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -6180,6 +6242,20 @@ func (r *RecommendationItem) GetRiskAssessment() any {
 		return nil
 	}
 	return r.RiskAssessment
+}
+
+func (r *RecommendationItem) GetPriceBasis() *RecommendationItemPriceBasis {
+	if r == nil {
+		return nil
+	}
+	return r.PriceBasis
+}
+
+func (r *RecommendationItem) GetPriceBasisNote() *string {
+	if r == nil {
+		return nil
+	}
+	return r.PriceBasisNote
 }
 
 func (r *RecommendationItem) GetExtraProperties() map[string]interface{} {
@@ -6280,6 +6356,20 @@ func (r *RecommendationItem) SetRiskAssessment(riskAssessment any) {
 	r.require(recommendationItemFieldRiskAssessment)
 }
 
+// SetPriceBasis sets the PriceBasis field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RecommendationItem) SetPriceBasis(priceBasis *RecommendationItemPriceBasis) {
+	r.PriceBasis = priceBasis
+	r.require(recommendationItemFieldPriceBasis)
+}
+
+// SetPriceBasisNote sets the PriceBasisNote field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RecommendationItem) SetPriceBasisNote(priceBasisNote *string) {
+	r.PriceBasisNote = priceBasisNote
+	r.require(recommendationItemFieldPriceBasisNote)
+}
+
 func (r *RecommendationItem) UnmarshalJSON(data []byte) error {
 	type unmarshaler RecommendationItem
 	var value unmarshaler
@@ -6354,6 +6444,28 @@ func NewRecommendationItemDisplayStatusFromString(s string) (RecommendationItemD
 }
 
 func (r RecommendationItemDisplayStatus) Ptr() *RecommendationItemDisplayStatus {
+	return &r
+}
+
+type RecommendationItemPriceBasis string
+
+const (
+	RecommendationItemPriceBasisBilled   RecommendationItemPriceBasis = "billed"
+	RecommendationItemPriceBasisEstimate RecommendationItemPriceBasis = "estimate"
+)
+
+func NewRecommendationItemPriceBasisFromString(s string) (RecommendationItemPriceBasis, error) {
+	switch s {
+	case "billed":
+		return RecommendationItemPriceBasisBilled, nil
+	case "estimate":
+		return RecommendationItemPriceBasisEstimate, nil
+	}
+	var t RecommendationItemPriceBasis
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (r RecommendationItemPriceBasis) Ptr() *RecommendationItemPriceBasis {
 	return &r
 }
 
@@ -6589,28 +6701,29 @@ var (
 	recommendationsOverviewDataFieldDisplaySavings             = big.NewInt(1 << 1)
 	recommendationsOverviewDataFieldDisplayCounts              = big.NewInt(1 << 2)
 	recommendationsOverviewDataFieldAvailableSavings           = big.NewInt(1 << 3)
-	recommendationsOverviewDataFieldPendingSavings             = big.NewInt(1 << 4)
-	recommendationsOverviewDataFieldOptimizedSavings           = big.NewInt(1 << 5)
-	recommendationsOverviewDataFieldRejectedSavings            = big.NewInt(1 << 6)
-	recommendationsOverviewDataFieldUnavailableSavings         = big.NewInt(1 << 7)
-	recommendationsOverviewDataFieldProcessingSavings          = big.NewInt(1 << 8)
-	recommendationsOverviewDataFieldAvailableCount             = big.NewInt(1 << 9)
-	recommendationsOverviewDataFieldPendingCount               = big.NewInt(1 << 10)
-	recommendationsOverviewDataFieldProcessingCount            = big.NewInt(1 << 11)
-	recommendationsOverviewDataFieldOptimizedCount             = big.NewInt(1 << 12)
-	recommendationsOverviewDataFieldRejectedCount              = big.NewInt(1 << 13)
-	recommendationsOverviewDataFieldUnavailableCount           = big.NewInt(1 << 14)
-	recommendationsOverviewDataFieldTotalCount                 = big.NewInt(1 << 15)
-	recommendationsOverviewDataFieldSavedItd                   = big.NewInt(1 << 16)
-	recommendationsOverviewDataFieldAwaitingApprovalCount      = big.NewInt(1 << 17)
-	recommendationsOverviewDataFieldAwaitingApprovalSavings    = big.NewInt(1 << 18)
-	recommendationsOverviewDataFieldPotentialSavings           = big.NewInt(1 << 19)
-	recommendationsOverviewDataFieldEvaluationAvailableSavings = big.NewInt(1 << 20)
-	recommendationsOverviewDataFieldSavedItdDeltaPct           = big.NewInt(1 << 21)
-	recommendationsOverviewDataFieldTotalPipelineDeltaPct      = big.NewInt(1 << 22)
-	recommendationsOverviewDataFieldSavedItdHistory            = big.NewInt(1 << 23)
-	recommendationsOverviewDataFieldTopRecommendation          = big.NewInt(1 << 24)
-	recommendationsOverviewDataFieldTopRecommendations         = big.NewInt(1 << 25)
+	recommendationsOverviewDataFieldEstimatedAvailableSavings  = big.NewInt(1 << 4)
+	recommendationsOverviewDataFieldPendingSavings             = big.NewInt(1 << 5)
+	recommendationsOverviewDataFieldOptimizedSavings           = big.NewInt(1 << 6)
+	recommendationsOverviewDataFieldRejectedSavings            = big.NewInt(1 << 7)
+	recommendationsOverviewDataFieldUnavailableSavings         = big.NewInt(1 << 8)
+	recommendationsOverviewDataFieldProcessingSavings          = big.NewInt(1 << 9)
+	recommendationsOverviewDataFieldAvailableCount             = big.NewInt(1 << 10)
+	recommendationsOverviewDataFieldPendingCount               = big.NewInt(1 << 11)
+	recommendationsOverviewDataFieldProcessingCount            = big.NewInt(1 << 12)
+	recommendationsOverviewDataFieldOptimizedCount             = big.NewInt(1 << 13)
+	recommendationsOverviewDataFieldRejectedCount              = big.NewInt(1 << 14)
+	recommendationsOverviewDataFieldUnavailableCount           = big.NewInt(1 << 15)
+	recommendationsOverviewDataFieldTotalCount                 = big.NewInt(1 << 16)
+	recommendationsOverviewDataFieldSavedItd                   = big.NewInt(1 << 17)
+	recommendationsOverviewDataFieldAwaitingApprovalCount      = big.NewInt(1 << 18)
+	recommendationsOverviewDataFieldAwaitingApprovalSavings    = big.NewInt(1 << 19)
+	recommendationsOverviewDataFieldPotentialSavings           = big.NewInt(1 << 20)
+	recommendationsOverviewDataFieldEvaluationAvailableSavings = big.NewInt(1 << 21)
+	recommendationsOverviewDataFieldSavedItdDeltaPct           = big.NewInt(1 << 22)
+	recommendationsOverviewDataFieldTotalPipelineDeltaPct      = big.NewInt(1 << 23)
+	recommendationsOverviewDataFieldSavedItdHistory            = big.NewInt(1 << 24)
+	recommendationsOverviewDataFieldTopRecommendation          = big.NewInt(1 << 25)
+	recommendationsOverviewDataFieldTopRecommendations         = big.NewInt(1 << 26)
 )
 
 type RecommendationsOverviewData struct {
@@ -6622,6 +6735,8 @@ type RecommendationsOverviewData struct {
 	DisplayCounts map[string]int `json:"display_counts,omitempty" url:"display_counts,omitempty"`
 	// Savings opportunities identified and available to execute
 	AvailableSavings float64 `json:"available_savings" url:"available_savings"`
+	// The part of available_savings priced at a list-price estimate rather than the bill: an Azure saving on a subscription a CSP partner bills, shown as 'Estimate, list price'. 0 when none
+	EstimatedAvailableSavings *float64 `json:"estimated_available_savings,omitempty" url:"estimated_available_savings,omitempty"`
 	// Savings opportunities pending required actions
 	PendingSavings float64 `json:"pending_savings" url:"pending_savings"`
 	// Monthly savings summed across all recommendations with status optimized (the Saved tab total)
@@ -6700,6 +6815,13 @@ func (r *RecommendationsOverviewData) GetAvailableSavings() float64 {
 		return 0
 	}
 	return r.AvailableSavings
+}
+
+func (r *RecommendationsOverviewData) GetEstimatedAvailableSavings() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.EstimatedAvailableSavings
 }
 
 func (r *RecommendationsOverviewData) GetPendingSavings() float64 {
@@ -6896,6 +7018,13 @@ func (r *RecommendationsOverviewData) SetDisplayCounts(displayCounts map[string]
 func (r *RecommendationsOverviewData) SetAvailableSavings(availableSavings float64) {
 	r.AvailableSavings = availableSavings
 	r.require(recommendationsOverviewDataFieldAvailableSavings)
+}
+
+// SetEstimatedAvailableSavings sets the EstimatedAvailableSavings field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RecommendationsOverviewData) SetEstimatedAvailableSavings(estimatedAvailableSavings *float64) {
+	r.EstimatedAvailableSavings = estimatedAvailableSavings
+	r.require(recommendationsOverviewDataFieldEstimatedAvailableSavings)
 }
 
 // SetPendingSavings sets the PendingSavings field and marks it as non-optional;
