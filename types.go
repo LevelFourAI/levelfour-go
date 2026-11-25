@@ -955,6 +955,242 @@ func (a AddReactionRequestContent) Ptr() *AddReactionRequestContent {
 }
 
 var (
+	agentCPUSetElsewhereFieldNamespace             = big.NewInt(1 << 0)
+	agentCPUSetElsewhereFieldKind                  = big.NewInt(1 << 1)
+	agentCPUSetElsewhereFieldWorkload              = big.NewInt(1 << 2)
+	agentCPUSetElsewhereFieldContainer             = big.NewInt(1 << 3)
+	agentCPUSetElsewhereFieldCPURequest            = big.NewInt(1 << 4)
+	agentCPUSetElsewhereFieldCPURequestTemplate    = big.NewInt(1 << 5)
+	agentCPUSetElsewhereFieldCPULimit              = big.NewInt(1 << 6)
+	agentCPUSetElsewhereFieldCPULimitTemplate      = big.NewInt(1 << 7)
+	agentCPUSetElsewhereFieldThrottledHours        = big.NewInt(1 << 8)
+	agentCPUSetElsewhereFieldThrottleMeasuredHours = big.NewInt(1 << 9)
+)
+
+type AgentCPUSetElsewhere struct {
+	// The namespace the agent runs in
+	Namespace string `json:"namespace" url:"namespace"`
+	Kind      string `json:"kind" url:"kind"`
+	// The agent's workload, such as levelfour-agent
+	Workload  string `json:"workload" url:"workload"`
+	Container string `json:"container" url:"container"`
+	// The CPU request, in millicores, the container's pods hold now
+	CPURequest *int `json:"cpu_request,omitempty" url:"cpu_request,omitempty"`
+	// The CPU request, in millicores, the agent's chart asks for
+	CPURequestTemplate *int `json:"cpu_request_template,omitempty" url:"cpu_request_template,omitempty"`
+	// The CPU limit, in millicores, the container's pods hold now; null when they hold none
+	CPULimit *int `json:"cpu_limit,omitempty" url:"cpu_limit,omitempty"`
+	// The CPU limit, in millicores, the agent's chart sets; null when it sets none
+	CPULimitTemplate *int `json:"cpu_limit_template,omitempty" url:"cpu_limit_template,omitempty"`
+	// The container's hours throttled in the window; null where no hour of them carried a throttling figure, as for a container without a CPU limit
+	ThrottledHours *float64 `json:"throttled_hours,omitempty" url:"throttled_hours,omitempty"`
+	// The container's hours in the window that carried a throttling figure
+	ThrottleMeasuredHours *float64 `json:"throttle_measured_hours,omitempty" url:"throttle_measured_hours,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AgentCPUSetElsewhere) GetNamespace() string {
+	if a == nil {
+		return ""
+	}
+	return a.Namespace
+}
+
+func (a *AgentCPUSetElsewhere) GetKind() string {
+	if a == nil {
+		return ""
+	}
+	return a.Kind
+}
+
+func (a *AgentCPUSetElsewhere) GetWorkload() string {
+	if a == nil {
+		return ""
+	}
+	return a.Workload
+}
+
+func (a *AgentCPUSetElsewhere) GetContainer() string {
+	if a == nil {
+		return ""
+	}
+	return a.Container
+}
+
+func (a *AgentCPUSetElsewhere) GetCPURequest() *int {
+	if a == nil {
+		return nil
+	}
+	return a.CPURequest
+}
+
+func (a *AgentCPUSetElsewhere) GetCPURequestTemplate() *int {
+	if a == nil {
+		return nil
+	}
+	return a.CPURequestTemplate
+}
+
+func (a *AgentCPUSetElsewhere) GetCPULimit() *int {
+	if a == nil {
+		return nil
+	}
+	return a.CPULimit
+}
+
+func (a *AgentCPUSetElsewhere) GetCPULimitTemplate() *int {
+	if a == nil {
+		return nil
+	}
+	return a.CPULimitTemplate
+}
+
+func (a *AgentCPUSetElsewhere) GetThrottledHours() *float64 {
+	if a == nil {
+		return nil
+	}
+	return a.ThrottledHours
+}
+
+func (a *AgentCPUSetElsewhere) GetThrottleMeasuredHours() *float64 {
+	if a == nil {
+		return nil
+	}
+	return a.ThrottleMeasuredHours
+}
+
+func (a *AgentCPUSetElsewhere) GetExtraProperties() map[string]interface{} {
+	if a == nil {
+		return nil
+	}
+	return a.extraProperties
+}
+
+func (a *AgentCPUSetElsewhere) require(field *big.Int) {
+	if a.explicitFields == nil {
+		a.explicitFields = big.NewInt(0)
+	}
+	a.explicitFields.Or(a.explicitFields, field)
+}
+
+// SetNamespace sets the Namespace field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgentCPUSetElsewhere) SetNamespace(namespace string) {
+	a.Namespace = namespace
+	a.require(agentCPUSetElsewhereFieldNamespace)
+}
+
+// SetKind sets the Kind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgentCPUSetElsewhere) SetKind(kind string) {
+	a.Kind = kind
+	a.require(agentCPUSetElsewhereFieldKind)
+}
+
+// SetWorkload sets the Workload field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgentCPUSetElsewhere) SetWorkload(workload string) {
+	a.Workload = workload
+	a.require(agentCPUSetElsewhereFieldWorkload)
+}
+
+// SetContainer sets the Container field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgentCPUSetElsewhere) SetContainer(container string) {
+	a.Container = container
+	a.require(agentCPUSetElsewhereFieldContainer)
+}
+
+// SetCPURequest sets the CPURequest field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgentCPUSetElsewhere) SetCPURequest(cpuRequest *int) {
+	a.CPURequest = cpuRequest
+	a.require(agentCPUSetElsewhereFieldCPURequest)
+}
+
+// SetCPURequestTemplate sets the CPURequestTemplate field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgentCPUSetElsewhere) SetCPURequestTemplate(cpuRequestTemplate *int) {
+	a.CPURequestTemplate = cpuRequestTemplate
+	a.require(agentCPUSetElsewhereFieldCPURequestTemplate)
+}
+
+// SetCPULimit sets the CPULimit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgentCPUSetElsewhere) SetCPULimit(cpuLimit *int) {
+	a.CPULimit = cpuLimit
+	a.require(agentCPUSetElsewhereFieldCPULimit)
+}
+
+// SetCPULimitTemplate sets the CPULimitTemplate field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgentCPUSetElsewhere) SetCPULimitTemplate(cpuLimitTemplate *int) {
+	a.CPULimitTemplate = cpuLimitTemplate
+	a.require(agentCPUSetElsewhereFieldCPULimitTemplate)
+}
+
+// SetThrottledHours sets the ThrottledHours field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgentCPUSetElsewhere) SetThrottledHours(throttledHours *float64) {
+	a.ThrottledHours = throttledHours
+	a.require(agentCPUSetElsewhereFieldThrottledHours)
+}
+
+// SetThrottleMeasuredHours sets the ThrottleMeasuredHours field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AgentCPUSetElsewhere) SetThrottleMeasuredHours(throttleMeasuredHours *float64) {
+	a.ThrottleMeasuredHours = throttleMeasuredHours
+	a.require(agentCPUSetElsewhereFieldThrottleMeasuredHours)
+}
+
+func (a *AgentCPUSetElsewhere) UnmarshalJSON(data []byte) error {
+	type unmarshaler AgentCPUSetElsewhere
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*a = AgentCPUSetElsewhere(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AgentCPUSetElsewhere) MarshalJSON() ([]byte, error) {
+	type embed AgentCPUSetElsewhere
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*a),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, a.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (a *AgentCPUSetElsewhere) String() string {
+	if a == nil {
+		return "<nil>"
+	}
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+var (
 	aiDataAvailabilityDataFieldCosts           = big.NewInt(1 << 0)
 	aiDataAvailabilityDataFieldSku             = big.NewInt(1 << 1)
 	aiDataAvailabilityDataFieldResource        = big.NewInt(1 << 2)
@@ -2523,12 +2759,13 @@ var (
 	automationActionFieldRefusalReason      = big.NewInt(1 << 3)
 	automationActionFieldBefore             = big.NewInt(1 << 4)
 	automationActionFieldAfter              = big.NewInt(1 << 5)
-	automationActionFieldApprovedByEmail    = big.NewInt(1 << 6)
-	automationActionFieldApprovedByDeclared = big.NewInt(1 << 7)
-	automationActionFieldTurnedOnByObject   = big.NewInt(1 << 8)
-	automationActionFieldRecommendationID   = big.NewInt(1 << 9)
-	automationActionFieldRevertRequestedBy  = big.NewInt(1 << 10)
-	automationActionFieldRevertRequestedAt  = big.NewInt(1 << 11)
+	automationActionFieldTrigger            = big.NewInt(1 << 6)
+	automationActionFieldApprovedByEmail    = big.NewInt(1 << 7)
+	automationActionFieldApprovedByDeclared = big.NewInt(1 << 8)
+	automationActionFieldTurnedOnByObject   = big.NewInt(1 << 9)
+	automationActionFieldRecommendationID   = big.NewInt(1 << 10)
+	automationActionFieldRevertRequestedBy  = big.NewInt(1 << 11)
+	automationActionFieldRevertRequestedAt  = big.NewInt(1 << 12)
 )
 
 type AutomationAction struct {
@@ -2538,6 +2775,8 @@ type AutomationAction struct {
 	RefusalReason *AutomationActionRefusalReason `json:"refusal_reason,omitempty" url:"refusal_reason,omitempty"`
 	Before        *ContainerResources            `json:"before,omitempty" url:"before,omitempty"`
 	After         *ContainerResources            `json:"after,omitempty" url:"after,omitempty"`
+	// What set the change off, as the component saw it: oom_kills_last_hour and crash_looping for a memory raise, measured_limit_milli and recommendation_id for a throttling raise
+	Trigger map[string]any `json:"trigger,omitempty" url:"trigger,omitempty"`
 	// The person whose opt-in the change acted on, as the dashboard verified them
 	ApprovedByEmail *string `json:"approved_by_email,omitempty" url:"approved_by_email,omitempty"`
 	// For a change an object turned on, the approver its levelfour.ai/approved-by annotation names: declared by whoever wrote the object, never verified
@@ -2596,6 +2835,13 @@ func (a *AutomationAction) GetAfter() *ContainerResources {
 		return nil
 	}
 	return a.After
+}
+
+func (a *AutomationAction) GetTrigger() map[string]any {
+	if a == nil {
+		return nil
+	}
+	return a.Trigger
 }
 
 func (a *AutomationAction) GetApprovedByEmail() *string {
@@ -2694,6 +2940,13 @@ func (a *AutomationAction) SetBefore(before *ContainerResources) {
 func (a *AutomationAction) SetAfter(after *ContainerResources) {
 	a.After = after
 	a.require(automationActionFieldAfter)
+}
+
+// SetTrigger sets the Trigger field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationAction) SetTrigger(trigger map[string]any) {
+	a.Trigger = trigger
+	a.require(automationActionFieldTrigger)
 }
 
 // SetApprovedByEmail sets the ApprovedByEmail field and marks it as non-optional;
@@ -3115,7 +3368,8 @@ var (
 	automationComponentFieldDesiredVersionAck   = big.NewInt(1 << 5)
 	automationComponentFieldStopVersionAck      = big.NewInt(1 << 6)
 	automationComponentFieldBlockedNamespaces   = big.NewInt(1 << 7)
-	automationComponentFieldConnected           = big.NewInt(1 << 8)
+	automationComponentFieldExcludedNamespaces  = big.NewInt(1 << 8)
+	automationComponentFieldConnected           = big.NewInt(1 << 9)
 )
 
 type AutomationComponent struct {
@@ -3132,6 +3386,8 @@ type AutomationComponent struct {
 	StopVersionAck int `json:"stop_version_ack" url:"stop_version_ack"`
 	// The namespaces labelled levelfour.ai/automation=off
 	BlockedNamespaces []string `json:"blocked_namespaces" url:"blocked_namespaces"`
+	// The namespaces carrying a label the install names in automation.webhook.excludedNamespaceLabels, those another tool still sizes pods in; null while it reports none, as when the install names no such label or an older component, so a takeover is refused (label_not_reported)
+	ExcludedNamespaces []string `json:"excluded_namespaces,omitempty" url:"excluded_namespaces,omitempty"`
 	// It synced in the last five minutes
 	Connected bool `json:"connected" url:"connected"`
 
@@ -3196,6 +3452,13 @@ func (a *AutomationComponent) GetBlockedNamespaces() []string {
 		return nil
 	}
 	return a.BlockedNamespaces
+}
+
+func (a *AutomationComponent) GetExcludedNamespaces() []string {
+	if a == nil {
+		return nil
+	}
+	return a.ExcludedNamespaces
 }
 
 func (a *AutomationComponent) GetConnected() bool {
@@ -3275,6 +3538,13 @@ func (a *AutomationComponent) SetBlockedNamespaces(blockedNamespaces []string) {
 	a.require(automationComponentFieldBlockedNamespaces)
 }
 
+// SetExcludedNamespaces sets the ExcludedNamespaces field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationComponent) SetExcludedNamespaces(excludedNamespaces []string) {
+	a.ExcludedNamespaces = excludedNamespaces
+	a.require(automationComponentFieldExcludedNamespaces)
+}
+
 // SetConnected sets the Connected field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (a *AutomationComponent) SetConnected(connected bool) {
@@ -3345,16 +3615,19 @@ var (
 	automationEventFieldPod          = big.NewInt(1 << 9)
 	automationEventFieldAction       = big.NewInt(1 << 10)
 	automationEventFieldDetail       = big.NewInt(1 << 11)
+	automationEventFieldBefore       = big.NewInt(1 << 12)
+	automationEventFieldAfter        = big.NewInt(1 << 13)
+	automationEventFieldReason       = big.NewInt(1 << 14)
 )
 
 type AutomationEvent struct {
 	EventID string `json:"event_id" url:"event_id"`
-	// What the component reported (revert_finished, with no pod, ends a revert with detail.outcome and its pod counts) or what a person changed
+	// What the component reported (revert_finished, with no pod, ends a revert with detail.outcome and its pod counts), what a person changed, or what LevelFour recorded on its own: in_place_ceiling_reached each time a rightsizing walk gets to the most the component sets in place for a request, twice the template's value, while its target is higher, with detail.resource, detail.reached, detail.wanted (the values the workload's spec needs) and detail.recommendation_id, the newest open pull request recommendation for the container, which changes its spec, read with the page, null with none
 	Type string `json:"type" url:"type"`
 	// raise or cut for a step's events by the way it moves the request, rollback for a rollback or revert, settings for what a person changed, other for the rest
 	Category   AutomationEventCategory `json:"category" url:"category"`
 	OccurredAt time.Time               `json:"occurred_at" url:"occurred_at"`
-	// A person's email, levelfour-automation for the component, or levelfour-takeover (automatic) for a takeover's freeze, whose detail names the admin who marked it
+	// A person's email, levelfour-automation for the component, levelfour for what LevelFour decided on its own (a refusal, the in-place ceiling), or levelfour-takeover (automatic) for a takeover's freeze, whose detail names the admin who marked it
 	Actor        *string           `json:"actor,omitempty" url:"actor,omitempty"`
 	Namespace    *string           `json:"namespace,omitempty" url:"namespace,omitempty"`
 	WorkloadKind *string           `json:"workload_kind,omitempty" url:"workload_kind,omitempty"`
@@ -3363,6 +3636,12 @@ type AutomationEvent struct {
 	Pod          *string           `json:"pod,omitempty" url:"pod,omitempty"`
 	Action       *AutomationAction `json:"action,omitempty" url:"action,omitempty"`
 	Detail       map[string]any    `json:"detail" url:"detail"`
+	// The container's values before this event: the change's starting values, the raised values a revert or a rollback took back, or what the component reported. None for an event that moves nothing
+	Before *ContainerResources `json:"before,omitempty" url:"before,omitempty"`
+	// The values this event left the container on, or would have, on the same reading as before
+	After *ContainerResources `json:"after,omitempty" url:"after,omitempty"`
+	// Why: oom_kills, cpu_throttling or rightsizing_step for a change, the refusal reason for one LevelFour refused, revert for a revert, still_out_of_memory once a raise did not end the OOM kills, the rollback's trigger, in_place_ceiling for a raise the in-place ceiling stopped, or the component's own reason for what it held back or skipped
+	Reason *string `json:"reason,omitempty" url:"reason,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -3453,6 +3732,27 @@ func (a *AutomationEvent) GetDetail() map[string]any {
 		return nil
 	}
 	return a.Detail
+}
+
+func (a *AutomationEvent) GetBefore() *ContainerResources {
+	if a == nil {
+		return nil
+	}
+	return a.Before
+}
+
+func (a *AutomationEvent) GetAfter() *ContainerResources {
+	if a == nil {
+		return nil
+	}
+	return a.After
+}
+
+func (a *AutomationEvent) GetReason() *string {
+	if a == nil {
+		return nil
+	}
+	return a.Reason
 }
 
 func (a *AutomationEvent) GetExtraProperties() map[string]interface{} {
@@ -3551,6 +3851,27 @@ func (a *AutomationEvent) SetAction(action *AutomationAction) {
 func (a *AutomationEvent) SetDetail(detail map[string]any) {
 	a.Detail = detail
 	a.require(automationEventFieldDetail)
+}
+
+// SetBefore sets the Before field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationEvent) SetBefore(before *ContainerResources) {
+	a.Before = before
+	a.require(automationEventFieldBefore)
+}
+
+// SetAfter sets the After field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationEvent) SetAfter(after *ContainerResources) {
+	a.After = after
+	a.require(automationEventFieldAfter)
+}
+
+// SetReason sets the Reason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutomationEvent) SetReason(reason *string) {
+	a.Reason = reason
+	a.require(automationEventFieldReason)
 }
 
 func (a *AutomationEvent) UnmarshalJSON(data []byte) error {
@@ -6185,6 +6506,240 @@ func (b *BodyUploadAttachmentAPIV1RecommendationsRecommendationIDAttachmentsPost
 }
 
 var (
+	bodyUploadInvoiceAPIV1CustomerInvoicesPostFieldFile         = big.NewInt(1 << 0)
+	bodyUploadInvoiceAPIV1CustomerInvoicesPostFieldConnectionID = big.NewInt(1 << 1)
+	bodyUploadInvoiceAPIV1CustomerInvoicesPostFieldDocumentKind = big.NewInt(1 << 2)
+	bodyUploadInvoiceAPIV1CustomerInvoicesPostFieldCurrency     = big.NewInt(1 << 3)
+	bodyUploadInvoiceAPIV1CustomerInvoicesPostFieldTotalPreTax  = big.NewInt(1 << 4)
+)
+
+type BodyUploadInvoiceAPIV1CustomerInvoicesPost struct {
+	File string `json:"file" url:"file"`
+	// The Azure connection the invoice bills
+	ConnectionID string                                                  `json:"connection_id" url:"connection_id"`
+	DocumentKind *BodyUploadInvoiceAPIV1CustomerInvoicesPostDocumentKind `json:"document_kind,omitempty" url:"document_kind,omitempty"`
+	// ISO 4217 code
+	Currency    *string                                                `json:"currency,omitempty" url:"currency,omitempty"`
+	TotalPreTax *BodyUploadInvoiceAPIV1CustomerInvoicesPostTotalPreTax `json:"total_pre_tax,omitempty" url:"total_pre_tax,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (b *BodyUploadInvoiceAPIV1CustomerInvoicesPost) GetFile() string {
+	if b == nil {
+		return ""
+	}
+	return b.File
+}
+
+func (b *BodyUploadInvoiceAPIV1CustomerInvoicesPost) GetConnectionID() string {
+	if b == nil {
+		return ""
+	}
+	return b.ConnectionID
+}
+
+func (b *BodyUploadInvoiceAPIV1CustomerInvoicesPost) GetDocumentKind() *BodyUploadInvoiceAPIV1CustomerInvoicesPostDocumentKind {
+	if b == nil {
+		return nil
+	}
+	return b.DocumentKind
+}
+
+func (b *BodyUploadInvoiceAPIV1CustomerInvoicesPost) GetCurrency() *string {
+	if b == nil {
+		return nil
+	}
+	return b.Currency
+}
+
+func (b *BodyUploadInvoiceAPIV1CustomerInvoicesPost) GetTotalPreTax() *BodyUploadInvoiceAPIV1CustomerInvoicesPostTotalPreTax {
+	if b == nil {
+		return nil
+	}
+	return b.TotalPreTax
+}
+
+func (b *BodyUploadInvoiceAPIV1CustomerInvoicesPost) GetExtraProperties() map[string]interface{} {
+	if b == nil {
+		return nil
+	}
+	return b.extraProperties
+}
+
+func (b *BodyUploadInvoiceAPIV1CustomerInvoicesPost) require(field *big.Int) {
+	if b.explicitFields == nil {
+		b.explicitFields = big.NewInt(0)
+	}
+	b.explicitFields.Or(b.explicitFields, field)
+}
+
+// SetFile sets the File field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BodyUploadInvoiceAPIV1CustomerInvoicesPost) SetFile(file string) {
+	b.File = file
+	b.require(bodyUploadInvoiceAPIV1CustomerInvoicesPostFieldFile)
+}
+
+// SetConnectionID sets the ConnectionID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BodyUploadInvoiceAPIV1CustomerInvoicesPost) SetConnectionID(connectionID string) {
+	b.ConnectionID = connectionID
+	b.require(bodyUploadInvoiceAPIV1CustomerInvoicesPostFieldConnectionID)
+}
+
+// SetDocumentKind sets the DocumentKind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BodyUploadInvoiceAPIV1CustomerInvoicesPost) SetDocumentKind(documentKind *BodyUploadInvoiceAPIV1CustomerInvoicesPostDocumentKind) {
+	b.DocumentKind = documentKind
+	b.require(bodyUploadInvoiceAPIV1CustomerInvoicesPostFieldDocumentKind)
+}
+
+// SetCurrency sets the Currency field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BodyUploadInvoiceAPIV1CustomerInvoicesPost) SetCurrency(currency *string) {
+	b.Currency = currency
+	b.require(bodyUploadInvoiceAPIV1CustomerInvoicesPostFieldCurrency)
+}
+
+// SetTotalPreTax sets the TotalPreTax field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BodyUploadInvoiceAPIV1CustomerInvoicesPost) SetTotalPreTax(totalPreTax *BodyUploadInvoiceAPIV1CustomerInvoicesPostTotalPreTax) {
+	b.TotalPreTax = totalPreTax
+	b.require(bodyUploadInvoiceAPIV1CustomerInvoicesPostFieldTotalPreTax)
+}
+
+func (b *BodyUploadInvoiceAPIV1CustomerInvoicesPost) UnmarshalJSON(data []byte) error {
+	type unmarshaler BodyUploadInvoiceAPIV1CustomerInvoicesPost
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*b = BodyUploadInvoiceAPIV1CustomerInvoicesPost(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *b)
+	if err != nil {
+		return err
+	}
+	b.extraProperties = extraProperties
+	b.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (b *BodyUploadInvoiceAPIV1CustomerInvoicesPost) MarshalJSON() ([]byte, error) {
+	type embed BodyUploadInvoiceAPIV1CustomerInvoicesPost
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*b),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, b.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (b *BodyUploadInvoiceAPIV1CustomerInvoicesPost) String() string {
+	if b == nil {
+		return "<nil>"
+	}
+	if len(b.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(b.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(b); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", b)
+}
+
+type BodyUploadInvoiceAPIV1CustomerInvoicesPostDocumentKind string
+
+const (
+	BodyUploadInvoiceAPIV1CustomerInvoicesPostDocumentKindCustomerInvoice       BodyUploadInvoiceAPIV1CustomerInvoicesPostDocumentKind = "customer_invoice"
+	BodyUploadInvoiceAPIV1CustomerInvoicesPostDocumentKindPartnerReconciliation BodyUploadInvoiceAPIV1CustomerInvoicesPostDocumentKind = "partner_reconciliation"
+)
+
+func NewBodyUploadInvoiceAPIV1CustomerInvoicesPostDocumentKindFromString(s string) (BodyUploadInvoiceAPIV1CustomerInvoicesPostDocumentKind, error) {
+	switch s {
+	case "customer_invoice":
+		return BodyUploadInvoiceAPIV1CustomerInvoicesPostDocumentKindCustomerInvoice, nil
+	case "partner_reconciliation":
+		return BodyUploadInvoiceAPIV1CustomerInvoicesPostDocumentKindPartnerReconciliation, nil
+	}
+	var t BodyUploadInvoiceAPIV1CustomerInvoicesPostDocumentKind
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (b BodyUploadInvoiceAPIV1CustomerInvoicesPostDocumentKind) Ptr() *BodyUploadInvoiceAPIV1CustomerInvoicesPostDocumentKind {
+	return &b
+}
+
+type BodyUploadInvoiceAPIV1CustomerInvoicesPostTotalPreTax struct {
+	Double float64
+	String string
+
+	typ string
+}
+
+func (b *BodyUploadInvoiceAPIV1CustomerInvoicesPostTotalPreTax) GetDouble() float64 {
+	if b == nil {
+		return 0
+	}
+	return b.Double
+}
+
+func (b *BodyUploadInvoiceAPIV1CustomerInvoicesPostTotalPreTax) GetString() string {
+	if b == nil {
+		return ""
+	}
+	return b.String
+}
+
+func (b *BodyUploadInvoiceAPIV1CustomerInvoicesPostTotalPreTax) UnmarshalJSON(data []byte) error {
+	var valueDouble float64
+	if err := json.Unmarshal(data, &valueDouble); err == nil {
+		b.typ = "Double"
+		b.Double = valueDouble
+		return nil
+	}
+	var valueString string
+	if err := json.Unmarshal(data, &valueString); err == nil {
+		b.typ = "String"
+		b.String = valueString
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, b)
+}
+
+func (b BodyUploadInvoiceAPIV1CustomerInvoicesPostTotalPreTax) MarshalJSON() ([]byte, error) {
+	if b.typ == "Double" || b.Double != 0 {
+		return json.Marshal(b.Double)
+	}
+	if b.typ == "String" || b.String != "" {
+		return json.Marshal(b.String)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", b)
+}
+
+type BodyUploadInvoiceAPIV1CustomerInvoicesPostTotalPreTaxVisitor interface {
+	VisitDouble(float64) error
+	VisitString(string) error
+}
+
+func (b *BodyUploadInvoiceAPIV1CustomerInvoicesPostTotalPreTax) Accept(visitor BodyUploadInvoiceAPIV1CustomerInvoicesPostTotalPreTaxVisitor) error {
+	if b.typ == "Double" || b.Double != 0 {
+		return visitor.VisitDouble(b.Double)
+	}
+	if b.typ == "String" || b.String != "" {
+		return visitor.VisitString(b.String)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", b)
+}
+
+var (
 	bothBasesTotalsFieldCost    = big.NewInt(1 << 0)
 	bothBasesTotalsFieldCostNet = big.NewInt(1 << 1)
 )
@@ -7081,6 +7636,7 @@ var (
 	clusterAutomationFieldComponent  = big.NewInt(1 << 1)
 	clusterAutomationFieldNamespaces = big.NewInt(1 << 2)
 	clusterAutomationFieldConfig     = big.NewInt(1 << 3)
+	clusterAutomationFieldKubelets   = big.NewInt(1 << 4)
 )
 
 type ClusterAutomation struct {
@@ -7090,6 +7646,7 @@ type ClusterAutomation struct {
 	// Every current namespace but the system ones
 	Namespaces []*NamespaceAutomation `json:"namespaces" url:"namespaces"`
 	Config     *ClusterConfig         `json:"config" url:"config"`
+	Kubelets   *KubeletResize         `json:"kubelets" url:"kubelets"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -7124,6 +7681,13 @@ func (c *ClusterAutomation) GetConfig() *ClusterConfig {
 		return nil
 	}
 	return c.Config
+}
+
+func (c *ClusterAutomation) GetKubelets() *KubeletResize {
+	if c == nil {
+		return nil
+	}
+	return c.Kubelets
 }
 
 func (c *ClusterAutomation) GetExtraProperties() map[string]interface{} {
@@ -7166,6 +7730,13 @@ func (c *ClusterAutomation) SetNamespaces(namespaces []*NamespaceAutomation) {
 func (c *ClusterAutomation) SetConfig(config *ClusterConfig) {
 	c.Config = config
 	c.require(clusterAutomationFieldConfig)
+}
+
+// SetKubelets sets the Kubelets field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClusterAutomation) SetKubelets(kubelets *KubeletResize) {
+	c.Kubelets = kubelets
+	c.require(clusterAutomationFieldKubelets)
 }
 
 func (c *ClusterAutomation) UnmarshalJSON(data []byte) error {
@@ -8512,50 +9083,51 @@ var (
 	clusterItemFieldUID                     = big.NewInt(1 << 2)
 	clusterItemFieldConnectedAt             = big.NewInt(1 << 3)
 	clusterItemFieldCollectors              = big.NewInt(1 << 4)
-	clusterItemFieldProvider                = big.NewInt(1 << 5)
-	clusterItemFieldRegion                  = big.NewInt(1 << 6)
-	clusterItemFieldAccountID               = big.NewInt(1 << 7)
-	clusterItemFieldK8SVersion              = big.NewInt(1 << 8)
-	clusterItemFieldAgentVersion            = big.NewInt(1 << 9)
-	clusterItemFieldMetricsSource           = big.NewInt(1 << 10)
-	clusterItemFieldStatus                  = big.NewInt(1 << 11)
-	clusterItemFieldSource                  = big.NewInt(1 << 12)
-	clusterItemFieldLastHeartbeatAt         = big.NewInt(1 << 13)
-	clusterItemFieldLastBatchAt             = big.NewInt(1 << 14)
-	clusterItemFieldLiveNodeCount           = big.NewInt(1 << 15)
-	clusterItemFieldLivePodCount            = big.NewInt(1 << 16)
-	clusterItemFieldNodeCount               = big.NewInt(1 << 17)
-	clusterItemFieldNamespaceCount          = big.NewInt(1 << 18)
-	clusterItemFieldNamespacesEnabled       = big.NewInt(1 << 19)
-	clusterItemFieldWorkloadCount           = big.NewInt(1 << 20)
-	clusterItemFieldPodCount                = big.NewInt(1 << 21)
-	clusterItemFieldCPU                     = big.NewInt(1 << 22)
-	clusterItemFieldMemory                  = big.NewInt(1 << 23)
-	clusterItemFieldCost                    = big.NewInt(1 << 24)
-	clusterItemFieldCPUCost                 = big.NewInt(1 << 25)
-	clusterItemFieldMemoryCost              = big.NewInt(1 << 26)
-	clusterItemFieldStorageCost             = big.NewInt(1 << 27)
-	clusterItemFieldPotentialSavingsMonthly = big.NewInt(1 << 28)
-	clusterItemFieldIdleCost                = big.NewInt(1 << 29)
-	clusterItemFieldCostNet                 = big.NewInt(1 << 30)
-	clusterItemFieldIdleCostNet             = big.NewInt(1 << 31)
-	clusterItemFieldIdleShare               = big.NewInt(1 << 32)
-	clusterItemFieldCPUEfficiency           = big.NewInt(1 << 33)
-	clusterItemFieldMemoryEfficiency        = big.NewInt(1 << 34)
-	clusterItemFieldEfficiency              = big.NewInt(1 << 35)
-	clusterItemFieldCostBasis               = big.NewInt(1 << 36)
-	clusterItemFieldPricedThrough           = big.NewInt(1 << 37)
-	clusterItemFieldBillStatus              = big.NewInt(1 << 38)
-	clusterItemFieldBillExpectedBy          = big.NewInt(1 << 39)
-	clusterItemFieldCostChangePct           = big.NewInt(1 << 40)
-	clusterItemFieldWaste                   = big.NewInt(1 << 41)
-	clusterItemFieldNetwork                 = big.NewInt(1 << 42)
-	clusterItemFieldReliability             = big.NewInt(1 << 43)
-	clusterItemFieldWorkloadsAtRisk         = big.NewInt(1 << 44)
-	clusterItemFieldHealth                  = big.NewInt(1 << 45)
-	clusterItemFieldKarpenter               = big.NewInt(1 << 46)
-	clusterItemFieldCo2EKg                  = big.NewInt(1 << 47)
-	clusterItemFieldCo2EMethod              = big.NewInt(1 << 48)
+	clusterItemFieldAgentCPUSetElsewhere    = big.NewInt(1 << 5)
+	clusterItemFieldProvider                = big.NewInt(1 << 6)
+	clusterItemFieldRegion                  = big.NewInt(1 << 7)
+	clusterItemFieldAccountID               = big.NewInt(1 << 8)
+	clusterItemFieldK8SVersion              = big.NewInt(1 << 9)
+	clusterItemFieldAgentVersion            = big.NewInt(1 << 10)
+	clusterItemFieldMetricsSource           = big.NewInt(1 << 11)
+	clusterItemFieldStatus                  = big.NewInt(1 << 12)
+	clusterItemFieldSource                  = big.NewInt(1 << 13)
+	clusterItemFieldLastHeartbeatAt         = big.NewInt(1 << 14)
+	clusterItemFieldLastBatchAt             = big.NewInt(1 << 15)
+	clusterItemFieldLiveNodeCount           = big.NewInt(1 << 16)
+	clusterItemFieldLivePodCount            = big.NewInt(1 << 17)
+	clusterItemFieldNodeCount               = big.NewInt(1 << 18)
+	clusterItemFieldNamespaceCount          = big.NewInt(1 << 19)
+	clusterItemFieldNamespacesEnabled       = big.NewInt(1 << 20)
+	clusterItemFieldWorkloadCount           = big.NewInt(1 << 21)
+	clusterItemFieldPodCount                = big.NewInt(1 << 22)
+	clusterItemFieldCPU                     = big.NewInt(1 << 23)
+	clusterItemFieldMemory                  = big.NewInt(1 << 24)
+	clusterItemFieldCost                    = big.NewInt(1 << 25)
+	clusterItemFieldCPUCost                 = big.NewInt(1 << 26)
+	clusterItemFieldMemoryCost              = big.NewInt(1 << 27)
+	clusterItemFieldStorageCost             = big.NewInt(1 << 28)
+	clusterItemFieldPotentialSavingsMonthly = big.NewInt(1 << 29)
+	clusterItemFieldIdleCost                = big.NewInt(1 << 30)
+	clusterItemFieldCostNet                 = big.NewInt(1 << 31)
+	clusterItemFieldIdleCostNet             = big.NewInt(1 << 32)
+	clusterItemFieldIdleShare               = big.NewInt(1 << 33)
+	clusterItemFieldCPUEfficiency           = big.NewInt(1 << 34)
+	clusterItemFieldMemoryEfficiency        = big.NewInt(1 << 35)
+	clusterItemFieldEfficiency              = big.NewInt(1 << 36)
+	clusterItemFieldCostBasis               = big.NewInt(1 << 37)
+	clusterItemFieldPricedThrough           = big.NewInt(1 << 38)
+	clusterItemFieldBillStatus              = big.NewInt(1 << 39)
+	clusterItemFieldBillExpectedBy          = big.NewInt(1 << 40)
+	clusterItemFieldCostChangePct           = big.NewInt(1 << 41)
+	clusterItemFieldWaste                   = big.NewInt(1 << 42)
+	clusterItemFieldNetwork                 = big.NewInt(1 << 43)
+	clusterItemFieldReliability             = big.NewInt(1 << 44)
+	clusterItemFieldWorkloadsAtRisk         = big.NewInt(1 << 45)
+	clusterItemFieldHealth                  = big.NewInt(1 << 46)
+	clusterItemFieldKarpenter               = big.NewInt(1 << 47)
+	clusterItemFieldCo2EKg                  = big.NewInt(1 << 48)
+	clusterItemFieldCo2EMethod              = big.NewInt(1 << 49)
 )
 
 type ClusterItem struct {
@@ -8565,13 +9137,15 @@ type ClusterItem struct {
 	UID         *string    `json:"uid,omitempty" url:"uid,omitempty"`
 	ConnectedAt *time.Time `json:"connected_at,omitempty" url:"connected_at,omitempty"`
 	// Each agent collector's state at the last heartbeat
-	Collectors    []*CollectorStatus `json:"collectors,omitempty" url:"collectors,omitempty"`
-	Provider      *string            `json:"provider,omitempty" url:"provider,omitempty"`
-	Region        *string            `json:"region,omitempty" url:"region,omitempty"`
-	AccountID     *string            `json:"account_id,omitempty" url:"account_id,omitempty"`
-	K8SVersion    *string            `json:"k8s_version,omitempty" url:"k8s_version,omitempty"`
-	AgentVersion  *string            `json:"agent_version,omitempty" url:"agent_version,omitempty"`
-	MetricsSource *string            `json:"metrics_source,omitempty" url:"metrics_source,omitempty"`
+	Collectors []*CollectorStatus `json:"collectors,omitempty" url:"collectors,omitempty"`
+	// The agent's own containers to which another tool gave less CPU than the agent's chart asks for as their pods were admitted, a lower request or a lower limit, at the latest batch, each with its throttling in the window. A limit taken away is not less. A note on the agent's health: the agent still reports, and no collector fails for it
+	AgentCPUSetElsewhere []*AgentCPUSetElsewhere `json:"agent_cpu_set_elsewhere,omitempty" url:"agent_cpu_set_elsewhere,omitempty"`
+	Provider             *string                 `json:"provider,omitempty" url:"provider,omitempty"`
+	Region               *string                 `json:"region,omitempty" url:"region,omitempty"`
+	AccountID            *string                 `json:"account_id,omitempty" url:"account_id,omitempty"`
+	K8SVersion           *string                 `json:"k8s_version,omitempty" url:"k8s_version,omitempty"`
+	AgentVersion         *string                 `json:"agent_version,omitempty" url:"agent_version,omitempty"`
+	MetricsSource        *string                 `json:"metrics_source,omitempty" url:"metrics_source,omitempty"`
 	// stale when the agent has not sent a heartbeat for 15 minutes; degraded when it reports, and at its last heartbeat its kubelet collector could not read usage from some nodes; agentless for a cluster only the bill names, priced per namespace without the agent
 	Status ClusterItemStatus `json:"status" url:"status"`
 	// agent, or the bill that found it: EKS split cost allocation or GKE cost allocation
@@ -8675,6 +9249,13 @@ func (c *ClusterItem) GetCollectors() []*CollectorStatus {
 		return nil
 	}
 	return c.Collectors
+}
+
+func (c *ClusterItem) GetAgentCPUSetElsewhere() []*AgentCPUSetElsewhere {
+	if c == nil {
+		return nil
+	}
+	return c.AgentCPUSetElsewhere
 }
 
 func (c *ClusterItem) GetProvider() *string {
@@ -9032,6 +9613,13 @@ func (c *ClusterItem) SetConnectedAt(connectedAt *time.Time) {
 func (c *ClusterItem) SetCollectors(collectors []*CollectorStatus) {
 	c.Collectors = collectors
 	c.require(clusterItemFieldCollectors)
+}
+
+// SetAgentCPUSetElsewhere sets the AgentCPUSetElsewhere field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClusterItem) SetAgentCPUSetElsewhere(agentCPUSetElsewhere []*AgentCPUSetElsewhere) {
+	c.AgentCPUSetElsewhere = agentCPUSetElsewhere
+	c.require(clusterItemFieldAgentCPUSetElsewhere)
 }
 
 // SetProvider sets the Provider field and marks it as non-optional;
@@ -15679,6 +16267,7 @@ var (
 	consolidationBlockersDataFieldItems      = big.NewInt(1 << 0)
 	consolidationBlockersDataFieldPagination = big.NewInt(1 << 1)
 	consolidationBlockersDataFieldTotals     = big.NewInt(1 << 2)
+	consolidationBlockersDataFieldFacets     = big.NewInt(1 << 3)
 )
 
 type ConsolidationBlockersData struct {
@@ -15686,6 +16275,7 @@ type ConsolidationBlockersData struct {
 	Items      []*ConsolidationBlocker `json:"items" url:"items"`
 	Pagination *PaginationMeta         `json:"pagination" url:"pagination"`
 	Totals     *BlockerTotals          `json:"totals" url:"totals"`
+	Facets     *HeldOutcomeFacets      `json:"facets" url:"facets"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -15713,6 +16303,13 @@ func (c *ConsolidationBlockersData) GetTotals() *BlockerTotals {
 		return nil
 	}
 	return c.Totals
+}
+
+func (c *ConsolidationBlockersData) GetFacets() *HeldOutcomeFacets {
+	if c == nil {
+		return nil
+	}
+	return c.Facets
 }
 
 func (c *ConsolidationBlockersData) GetExtraProperties() map[string]interface{} {
@@ -15748,6 +16345,13 @@ func (c *ConsolidationBlockersData) SetPagination(pagination *PaginationMeta) {
 func (c *ConsolidationBlockersData) SetTotals(totals *BlockerTotals) {
 	c.Totals = totals
 	c.require(consolidationBlockersDataFieldTotals)
+}
+
+// SetFacets sets the Facets field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationBlockersData) SetFacets(facets *HeldOutcomeFacets) {
+	c.Facets = facets
+	c.require(consolidationBlockersDataFieldFacets)
 }
 
 func (c *ConsolidationBlockersData) UnmarshalJSON(data []byte) error {
@@ -23774,7 +24378,8 @@ var (
 	doWasteSignalFieldCount             = big.NewInt(1 << 1)
 	doWasteSignalFieldSizeGb            = big.NewInt(1 << 2)
 	doWasteSignalFieldMonthlyCost       = big.NewInt(1 << 3)
-	doWasteSignalFieldRecommendationIDs = big.NewInt(1 << 4)
+	doWasteSignalFieldCostBasis         = big.NewInt(1 << 4)
+	doWasteSignalFieldRecommendationIDs = big.NewInt(1 << 5)
 )
 
 type DoWasteSignal struct {
@@ -23783,8 +24388,10 @@ type DoWasteSignal struct {
 	Count int    `json:"count" url:"count"`
 	// Provisioned size in GB, for the kinds the provider reports one for
 	SizeGb *float64 `json:"size_gb,omitempty" url:"size_gb,omitempty"`
-	// What these resources cost last month on the bill, or null unless a bill line names every one
+	// What these resources cost last month on the bill, or at Microsoft's list price for an Azure resource whose cost a CSP partner keeps, or null unless a line names every one
 	MonthlyCost *float64 `json:"monthly_cost,omitempty" url:"monthly_cost,omitempty"`
+	// billed when monthly_cost is all from the bill, estimate when any of it is a list-price estimate, null when monthly_cost is
+	CostBasis *DoWasteSignalCostBasis `json:"cost_basis,omitempty" url:"cost_basis,omitempty"`
 	// Recommendations still pending on these resources, neither applied nor rejected
 	RecommendationIDs []string `json:"recommendation_ids" url:"recommendation_ids"`
 
@@ -23821,6 +24428,13 @@ func (d *DoWasteSignal) GetMonthlyCost() *float64 {
 		return nil
 	}
 	return d.MonthlyCost
+}
+
+func (d *DoWasteSignal) GetCostBasis() *DoWasteSignalCostBasis {
+	if d == nil {
+		return nil
+	}
+	return d.CostBasis
 }
 
 func (d *DoWasteSignal) GetRecommendationIDs() []string {
@@ -23872,6 +24486,13 @@ func (d *DoWasteSignal) SetMonthlyCost(monthlyCost *float64) {
 	d.require(doWasteSignalFieldMonthlyCost)
 }
 
+// SetCostBasis sets the CostBasis field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (d *DoWasteSignal) SetCostBasis(costBasis *DoWasteSignalCostBasis) {
+	d.CostBasis = costBasis
+	d.require(doWasteSignalFieldCostBasis)
+}
+
 // SetRecommendationIDs sets the RecommendationIDs field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (d *DoWasteSignal) SetRecommendationIDs(recommendationIDs []string) {
@@ -23921,13 +24542,36 @@ func (d *DoWasteSignal) String() string {
 	return fmt.Sprintf("%#v", d)
 }
 
+type DoWasteSignalCostBasis string
+
+const (
+	DoWasteSignalCostBasisBilled   DoWasteSignalCostBasis = "billed"
+	DoWasteSignalCostBasisEstimate DoWasteSignalCostBasis = "estimate"
+)
+
+func NewDoWasteSignalCostBasisFromString(s string) (DoWasteSignalCostBasis, error) {
+	switch s {
+	case "billed":
+		return DoWasteSignalCostBasisBilled, nil
+	case "estimate":
+		return DoWasteSignalCostBasisEstimate, nil
+	}
+	var t DoWasteSignalCostBasis
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (d DoWasteSignalCostBasis) Ptr() *DoWasteSignalCostBasis {
+	return &d
+}
+
 var (
 	doWasteSignalsDataFieldSignals         = big.NewInt(1 << 0)
 	doWasteSignalsDataFieldCostAttribution = big.NewInt(1 << 1)
 )
 
 type DoWasteSignalsData struct {
-	Signals         []*DoWasteSignal                  `json:"signals" url:"signals"`
+	Signals []*DoWasteSignal `json:"signals" url:"signals"`
+	// available when resource costs come from the bill, estimate when every one the card reads is a list-price estimate, unavailable when none is attributed yet
 	CostAttribution DoWasteSignalsDataCostAttribution `json:"cost_attribution" url:"cost_attribution"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
@@ -24021,11 +24665,13 @@ func (d *DoWasteSignalsData) String() string {
 	return fmt.Sprintf("%#v", d)
 }
 
+// available when resource costs come from the bill, estimate when every one the card reads is a list-price estimate, unavailable when none is attributed yet
 type DoWasteSignalsDataCostAttribution string
 
 const (
 	DoWasteSignalsDataCostAttributionAvailable   DoWasteSignalsDataCostAttribution = "available"
 	DoWasteSignalsDataCostAttributionUnavailable DoWasteSignalsDataCostAttribution = "unavailable"
+	DoWasteSignalsDataCostAttributionEstimate    DoWasteSignalsDataCostAttribution = "estimate"
 )
 
 func NewDoWasteSignalsDataCostAttributionFromString(s string) (DoWasteSignalsDataCostAttribution, error) {
@@ -24034,6 +24680,8 @@ func NewDoWasteSignalsDataCostAttributionFromString(s string) (DoWasteSignalsDat
 		return DoWasteSignalsDataCostAttributionAvailable, nil
 	case "unavailable":
 		return DoWasteSignalsDataCostAttributionUnavailable, nil
+	case "estimate":
+		return DoWasteSignalsDataCostAttributionEstimate, nil
 	}
 	var t DoWasteSignalsDataCostAttribution
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -26826,6 +27474,274 @@ func (e *ErrorResponseError) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", e)
+}
+
+// What the customer corrects on the review screen before the stored file is read again.
+var (
+	extractRequestFieldDocumentKind       = big.NewInt(1 << 0)
+	extractRequestFieldCurrency           = big.NewInt(1 << 1)
+	extractRequestFieldTotalPreTax        = big.NewInt(1 << 2)
+	extractRequestFieldColumnMapping      = big.NewInt(1 << 3)
+	extractRequestFieldBillingPeriodStart = big.NewInt(1 << 4)
+	extractRequestFieldBillingPeriodEnd   = big.NewInt(1 << 5)
+)
+
+type ExtractRequest struct {
+	// customer_invoice (the reseller's bill to you) or partner_reconciliation
+	DocumentKind *ExtractRequestDocumentKind `json:"document_kind,omitempty" url:"document_kind,omitempty"`
+	// ISO 4217 code
+	Currency *string `json:"currency,omitempty" url:"currency,omitempty"`
+	// The printed total before tax
+	TotalPreTax *ExtractRequestTotalPreTax `json:"total_pre_tax,omitempty" url:"total_pre_tax,omitempty"`
+	// Field name to the printed column header it is read from
+	ColumnMapping map[string]*string `json:"column_mapping,omitempty" url:"column_mapping,omitempty"`
+	// First day of the billing period
+	BillingPeriodStart *time.Time `json:"billing_period_start,omitempty" url:"billing_period_start,omitempty" format:"date"`
+	// First day after the billing period (exclusive), as on the invoice summary
+	BillingPeriodEnd *time.Time `json:"billing_period_end,omitempty" url:"billing_period_end,omitempty" format:"date"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (e *ExtractRequest) GetDocumentKind() *ExtractRequestDocumentKind {
+	if e == nil {
+		return nil
+	}
+	return e.DocumentKind
+}
+
+func (e *ExtractRequest) GetCurrency() *string {
+	if e == nil {
+		return nil
+	}
+	return e.Currency
+}
+
+func (e *ExtractRequest) GetTotalPreTax() *ExtractRequestTotalPreTax {
+	if e == nil {
+		return nil
+	}
+	return e.TotalPreTax
+}
+
+func (e *ExtractRequest) GetColumnMapping() map[string]*string {
+	if e == nil {
+		return nil
+	}
+	return e.ColumnMapping
+}
+
+func (e *ExtractRequest) GetBillingPeriodStart() *time.Time {
+	if e == nil {
+		return nil
+	}
+	return e.BillingPeriodStart
+}
+
+func (e *ExtractRequest) GetBillingPeriodEnd() *time.Time {
+	if e == nil {
+		return nil
+	}
+	return e.BillingPeriodEnd
+}
+
+func (e *ExtractRequest) GetExtraProperties() map[string]interface{} {
+	if e == nil {
+		return nil
+	}
+	return e.extraProperties
+}
+
+func (e *ExtractRequest) require(field *big.Int) {
+	if e.explicitFields == nil {
+		e.explicitFields = big.NewInt(0)
+	}
+	e.explicitFields.Or(e.explicitFields, field)
+}
+
+// SetDocumentKind sets the DocumentKind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExtractRequest) SetDocumentKind(documentKind *ExtractRequestDocumentKind) {
+	e.DocumentKind = documentKind
+	e.require(extractRequestFieldDocumentKind)
+}
+
+// SetCurrency sets the Currency field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExtractRequest) SetCurrency(currency *string) {
+	e.Currency = currency
+	e.require(extractRequestFieldCurrency)
+}
+
+// SetTotalPreTax sets the TotalPreTax field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExtractRequest) SetTotalPreTax(totalPreTax *ExtractRequestTotalPreTax) {
+	e.TotalPreTax = totalPreTax
+	e.require(extractRequestFieldTotalPreTax)
+}
+
+// SetColumnMapping sets the ColumnMapping field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExtractRequest) SetColumnMapping(columnMapping map[string]*string) {
+	e.ColumnMapping = columnMapping
+	e.require(extractRequestFieldColumnMapping)
+}
+
+// SetBillingPeriodStart sets the BillingPeriodStart field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExtractRequest) SetBillingPeriodStart(billingPeriodStart *time.Time) {
+	e.BillingPeriodStart = billingPeriodStart
+	e.require(extractRequestFieldBillingPeriodStart)
+}
+
+// SetBillingPeriodEnd sets the BillingPeriodEnd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (e *ExtractRequest) SetBillingPeriodEnd(billingPeriodEnd *time.Time) {
+	e.BillingPeriodEnd = billingPeriodEnd
+	e.require(extractRequestFieldBillingPeriodEnd)
+}
+
+func (e *ExtractRequest) UnmarshalJSON(data []byte) error {
+	type embed ExtractRequest
+	var unmarshaler = struct {
+		embed
+		BillingPeriodStart *internal.Date `json:"billing_period_start,omitempty"`
+		BillingPeriodEnd   *internal.Date `json:"billing_period_end,omitempty"`
+	}{
+		embed: embed(*e),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*e = ExtractRequest(unmarshaler.embed)
+	e.BillingPeriodStart = unmarshaler.BillingPeriodStart.TimePtr()
+	e.BillingPeriodEnd = unmarshaler.BillingPeriodEnd.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *e)
+	if err != nil {
+		return err
+	}
+	e.extraProperties = extraProperties
+	e.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (e *ExtractRequest) MarshalJSON() ([]byte, error) {
+	type embed ExtractRequest
+	var marshaler = struct {
+		embed
+		BillingPeriodStart *internal.Date `json:"billing_period_start,omitempty"`
+		BillingPeriodEnd   *internal.Date `json:"billing_period_end,omitempty"`
+	}{
+		embed:              embed(*e),
+		BillingPeriodStart: internal.NewOptionalDate(e.BillingPeriodStart),
+		BillingPeriodEnd:   internal.NewOptionalDate(e.BillingPeriodEnd),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, e.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (e *ExtractRequest) String() string {
+	if e == nil {
+		return "<nil>"
+	}
+	if len(e.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(e); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", e)
+}
+
+type ExtractRequestDocumentKind string
+
+const (
+	ExtractRequestDocumentKindCustomerInvoice       ExtractRequestDocumentKind = "customer_invoice"
+	ExtractRequestDocumentKindPartnerReconciliation ExtractRequestDocumentKind = "partner_reconciliation"
+)
+
+func NewExtractRequestDocumentKindFromString(s string) (ExtractRequestDocumentKind, error) {
+	switch s {
+	case "customer_invoice":
+		return ExtractRequestDocumentKindCustomerInvoice, nil
+	case "partner_reconciliation":
+		return ExtractRequestDocumentKindPartnerReconciliation, nil
+	}
+	var t ExtractRequestDocumentKind
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (e ExtractRequestDocumentKind) Ptr() *ExtractRequestDocumentKind {
+	return &e
+}
+
+// The printed total before tax
+type ExtractRequestTotalPreTax struct {
+	Double float64
+	String string
+
+	typ string
+}
+
+func (e *ExtractRequestTotalPreTax) GetDouble() float64 {
+	if e == nil {
+		return 0
+	}
+	return e.Double
+}
+
+func (e *ExtractRequestTotalPreTax) GetString() string {
+	if e == nil {
+		return ""
+	}
+	return e.String
+}
+
+func (e *ExtractRequestTotalPreTax) UnmarshalJSON(data []byte) error {
+	var valueDouble float64
+	if err := json.Unmarshal(data, &valueDouble); err == nil {
+		e.typ = "Double"
+		e.Double = valueDouble
+		return nil
+	}
+	var valueString string
+	if err := json.Unmarshal(data, &valueString); err == nil {
+		e.typ = "String"
+		e.String = valueString
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, e)
+}
+
+func (e ExtractRequestTotalPreTax) MarshalJSON() ([]byte, error) {
+	if e.typ == "Double" || e.Double != 0 {
+		return json.Marshal(e.Double)
+	}
+	if e.typ == "String" || e.String != "" {
+		return json.Marshal(e.String)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", e)
+}
+
+type ExtractRequestTotalPreTaxVisitor interface {
+	VisitDouble(float64) error
+	VisitString(string) error
+}
+
+func (e *ExtractRequestTotalPreTax) Accept(visitor ExtractRequestTotalPreTaxVisitor) error {
+	if e.typ == "Double" || e.Double != 0 {
+		return visitor.VisitDouble(e.Double)
+	}
+	if e.typ == "String" || e.String != "" {
+		return visitor.VisitString(e.String)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", e)
 }
 
 var (
@@ -30328,15 +31244,16 @@ var (
 	fleetSummaryFieldNamespaceCount      = big.NewInt(1 << 15)
 	fleetSummaryFieldNamespacesEnabled   = big.NewInt(1 << 16)
 	fleetSummaryFieldWorkloadCount       = big.NewInt(1 << 17)
-	fleetSummaryFieldCostBasis           = big.NewInt(1 << 18)
-	fleetSummaryFieldPricedThrough       = big.NewInt(1 << 19)
-	fleetSummaryFieldBillStatus          = big.NewInt(1 << 20)
-	fleetSummaryFieldBillExpectedBy      = big.NewInt(1 << 21)
-	fleetSummaryFieldWorkloadsAtRisk     = big.NewInt(1 << 22)
-	fleetSummaryFieldPotentialSavings    = big.NewInt(1 << 23)
-	fleetSummaryFieldRealizedSavings     = big.NewInt(1 << 24)
-	fleetSummaryFieldByProvider          = big.NewInt(1 << 25)
-	fleetSummaryFieldStorage             = big.NewInt(1 << 26)
+	fleetSummaryFieldPodsWaiting         = big.NewInt(1 << 18)
+	fleetSummaryFieldCostBasis           = big.NewInt(1 << 19)
+	fleetSummaryFieldPricedThrough       = big.NewInt(1 << 20)
+	fleetSummaryFieldBillStatus          = big.NewInt(1 << 21)
+	fleetSummaryFieldBillExpectedBy      = big.NewInt(1 << 22)
+	fleetSummaryFieldWorkloadsAtRisk     = big.NewInt(1 << 23)
+	fleetSummaryFieldPotentialSavings    = big.NewInt(1 << 24)
+	fleetSummaryFieldRealizedSavings     = big.NewInt(1 << 25)
+	fleetSummaryFieldByProvider          = big.NewInt(1 << 26)
+	fleetSummaryFieldStorage             = big.NewInt(1 << 27)
 )
 
 type FleetSummary struct {
@@ -30367,6 +31284,8 @@ type FleetSummary struct {
 	NamespaceCount      int                  `json:"namespace_count" url:"namespace_count"`
 	NamespacesEnabled   int                  `json:"namespaces_enabled" url:"namespaces_enabled"`
 	WorkloadCount       int                  `json:"workload_count" url:"workload_count"`
+	// Pods no node took yet at each cluster's latest snapshot, summed over the clusters: what each cluster summary's pods.pending counts
+	PodsWaiting *int `json:"pods_waiting,omitempty" url:"pods_waiting,omitempty"`
 	// cur when every cluster that reported is priced from the bill, partial when some are, pending when none is yet but the bill has priced them before, none otherwise
 	CostBasis FleetSummaryCostBasis `json:"cost_basis" url:"cost_basis"`
 	// The last day every priced cluster is priced through
@@ -30514,6 +31433,13 @@ func (f *FleetSummary) GetWorkloadCount() int {
 		return 0
 	}
 	return f.WorkloadCount
+}
+
+func (f *FleetSummary) GetPodsWaiting() *int {
+	if f == nil {
+		return nil
+	}
+	return f.PodsWaiting
 }
 
 func (f *FleetSummary) GetCostBasis() FleetSummaryCostBasis {
@@ -30717,6 +31643,13 @@ func (f *FleetSummary) SetNamespacesEnabled(namespacesEnabled int) {
 func (f *FleetSummary) SetWorkloadCount(workloadCount int) {
 	f.WorkloadCount = workloadCount
 	f.require(fleetSummaryFieldWorkloadCount)
+}
+
+// SetPodsWaiting sets the PodsWaiting field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FleetSummary) SetPodsWaiting(podsWaiting *int) {
+	f.PodsWaiting = podsWaiting
+	f.require(fleetSummaryFieldPodsWaiting)
 }
 
 // SetCostBasis sets the CostBasis field and marks it as non-optional;
@@ -31940,6 +32873,7 @@ var (
 	fleetWorkloadFieldRisk              = big.NewInt(1 << 12)
 	fleetWorkloadFieldIndicators        = big.NewInt(1 << 13)
 	fleetWorkloadFieldReliability       = big.NewInt(1 << 14)
+	fleetWorkloadFieldPodsWaiting       = big.NewInt(1 << 15)
 )
 
 type FleetWorkload struct {
@@ -31967,6 +32901,8 @@ type FleetWorkload struct {
 	Indicators []*Indicator `json:"indicators" url:"indicators"`
 	// Its OOM kills, restarts, throttling, evictions and Pending time
 	Reliability *ReliabilityCounts `json:"reliability" url:"reliability"`
+	// Its pods no node took yet at its cluster's latest snapshot, the count the cluster summary's pods.pending and the fleet's pods_waiting add up
+	PodsWaiting *int `json:"pods_waiting,omitempty" url:"pods_waiting,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -32078,6 +33014,13 @@ func (f *FleetWorkload) GetReliability() *ReliabilityCounts {
 		return nil
 	}
 	return f.Reliability
+}
+
+func (f *FleetWorkload) GetPodsWaiting() *int {
+	if f == nil {
+		return nil
+	}
+	return f.PodsWaiting
 }
 
 func (f *FleetWorkload) GetExtraProperties() map[string]interface{} {
@@ -32199,6 +33142,13 @@ func (f *FleetWorkload) SetReliability(reliability *ReliabilityCounts) {
 	f.require(fleetWorkloadFieldReliability)
 }
 
+// SetPodsWaiting sets the PodsWaiting field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FleetWorkload) SetPodsWaiting(podsWaiting *int) {
+	f.PodsWaiting = podsWaiting
+	f.require(fleetWorkloadFieldPodsWaiting)
+}
+
 func (f *FleetWorkload) UnmarshalJSON(data []byte) error {
 	type unmarshaler FleetWorkload
 	var value unmarshaler
@@ -32268,7 +33218,7 @@ var (
 )
 
 type FleetWorkloadFacets struct {
-	// Each reliability value with the workloads it keeps under the scope and every other filter, whatever reliability values the request chose, so a count is the list's total_items for that value alone. It names all eight values, at 0 when one keeps none, in the order the Reliability tab shows its figures
+	// Each reliability value with the workloads it keeps under the scope and every other filter, whatever reliability values the request chose, so a count is the list's total_items for that value alone. It names all nine values, at 0 when one keeps none, in the order the Reliability tab shows its figures
 	Reliability []*ReliabilityFacetCount `json:"reliability" url:"reliability"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
@@ -33830,6 +34780,91 @@ func (h *HardLimits) MarshalJSON() ([]byte, error) {
 }
 
 func (h *HardLimits) String() string {
+	if h == nil {
+		return "<nil>"
+	}
+	if len(h.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(h.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(h); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", h)
+}
+
+var (
+	heldOutcomeFacetsFieldOutcome = big.NewInt(1 << 0)
+)
+
+type HeldOutcomeFacets struct {
+	// The held nodes that would go (frees), would stay for their pods (stays) and are not known yet (unknown), as nodes_would_free, nodes_kept and nodes_not_known count them; never narrowed by the outcome asked for
+	Outcome []*FacetCount `json:"outcome" url:"outcome"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (h *HeldOutcomeFacets) GetOutcome() []*FacetCount {
+	if h == nil {
+		return nil
+	}
+	return h.Outcome
+}
+
+func (h *HeldOutcomeFacets) GetExtraProperties() map[string]interface{} {
+	if h == nil {
+		return nil
+	}
+	return h.extraProperties
+}
+
+func (h *HeldOutcomeFacets) require(field *big.Int) {
+	if h.explicitFields == nil {
+		h.explicitFields = big.NewInt(0)
+	}
+	h.explicitFields.Or(h.explicitFields, field)
+}
+
+// SetOutcome sets the Outcome field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (h *HeldOutcomeFacets) SetOutcome(outcome []*FacetCount) {
+	h.Outcome = outcome
+	h.require(heldOutcomeFacetsFieldOutcome)
+}
+
+func (h *HeldOutcomeFacets) UnmarshalJSON(data []byte) error {
+	type unmarshaler HeldOutcomeFacets
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*h = HeldOutcomeFacets(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *h)
+	if err != nil {
+		return err
+	}
+	h.extraProperties = extraProperties
+	h.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (h *HeldOutcomeFacets) MarshalJSON() ([]byte, error) {
+	type embed HeldOutcomeFacets
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*h),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, h.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (h *HeldOutcomeFacets) String() string {
 	if h == nil {
 		return "<nil>"
 	}
@@ -38150,6 +39185,2248 @@ func (i InviteInputRole) Ptr() *InviteInputRole {
 	return &i
 }
 
+var (
+	invoiceDetailFieldID                 = big.NewInt(1 << 0)
+	invoiceDetailFieldConnectionID       = big.NewInt(1 << 1)
+	invoiceDetailFieldFileName           = big.NewInt(1 << 2)
+	invoiceDetailFieldSourceFormat       = big.NewInt(1 << 3)
+	invoiceDetailFieldExtractionMethod   = big.NewInt(1 << 4)
+	invoiceDetailFieldDocumentKind       = big.NewInt(1 << 5)
+	invoiceDetailFieldSellerName         = big.NewInt(1 << 6)
+	invoiceDetailFieldInvoiceNumber      = big.NewInt(1 << 7)
+	invoiceDetailFieldInvoiceDate        = big.NewInt(1 << 8)
+	invoiceDetailFieldBillingPeriodStart = big.NewInt(1 << 9)
+	invoiceDetailFieldBillingPeriodEnd   = big.NewInt(1 << 10)
+	invoiceDetailFieldCurrency           = big.NewInt(1 << 11)
+	invoiceDetailFieldTotalPreTax        = big.NewInt(1 << 12)
+	invoiceDetailFieldTotalTax           = big.NewInt(1 << 13)
+	invoiceDetailFieldStatus             = big.NewInt(1 << 14)
+	invoiceDetailFieldFailureReason      = big.NewInt(1 << 15)
+	invoiceDetailFieldReadStartedAt      = big.NewInt(1 << 16)
+	invoiceDetailFieldNeedsReview        = big.NewInt(1 << 17)
+	invoiceDetailFieldLineCount          = big.NewInt(1 << 18)
+	invoiceDetailFieldLinesTotal         = big.NewInt(1 << 19)
+	invoiceDetailFieldFlaggedLines       = big.NewInt(1 << 20)
+	invoiceDetailFieldCreatedAt          = big.NewInt(1 << 21)
+	invoiceDetailFieldConfirmedBy        = big.NewInt(1 << 22)
+	invoiceDetailFieldConfirmedAt        = big.NewInt(1 << 23)
+	invoiceDetailFieldReviewReasons      = big.NewInt(1 << 24)
+	invoiceDetailFieldColumnMapping      = big.NewInt(1 << 25)
+	invoiceDetailFieldUnmappedColumns    = big.NewInt(1 << 26)
+	invoiceDetailFieldLines              = big.NewInt(1 << 27)
+)
+
+type InvoiceDetail struct {
+	ID               string                        `json:"id" url:"id"`
+	ConnectionID     string                        `json:"connection_id" url:"connection_id"`
+	FileName         string                        `json:"file_name" url:"file_name"`
+	SourceFormat     InvoiceDetailSourceFormat     `json:"source_format" url:"source_format"`
+	ExtractionMethod InvoiceDetailExtractionMethod `json:"extraction_method" url:"extraction_method"`
+	DocumentKind     InvoiceDetailDocumentKind     `json:"document_kind" url:"document_kind"`
+	// ” when the document does not print it
+	SellerName string `json:"seller_name" url:"seller_name"`
+	// ” when the document does not print it
+	InvoiceNumber      string     `json:"invoice_number" url:"invoice_number"`
+	InvoiceDate        *time.Time `json:"invoice_date,omitempty" url:"invoice_date,omitempty" format:"date"`
+	BillingPeriodStart *time.Time `json:"billing_period_start,omitempty" url:"billing_period_start,omitempty" format:"date"`
+	// First day after the period
+	BillingPeriodEnd *time.Time `json:"billing_period_end,omitempty" url:"billing_period_end,omitempty" format:"date"`
+	// ISO 4217 code, or null when the document does not say
+	Currency *string `json:"currency,omitempty" url:"currency,omitempty"`
+	// The printed total before tax, when printed
+	TotalPreTax *string `json:"total_pre_tax,omitempty" url:"total_pre_tax,omitempty"`
+	TotalTax    *string `json:"total_tax,omitempty" url:"total_tax,omitempty"`
+	// reading until the file is read, then extracted (waiting for review) or failed
+	Status InvoiceDetailStatus `json:"status" url:"status"`
+	// Why the file could not be read, for the customer; ” unless failed
+	FailureReason string `json:"failure_reason" url:"failure_reason"`
+	// The last time the read said it is alive; a 'reading' invoice 10 minutes past it has stalled
+	ReadStartedAt *time.Time `json:"read_started_at,omitempty" url:"read_started_at,omitempty"`
+	NeedsReview   bool       `json:"needs_review" url:"needs_review"`
+	LineCount     int        `json:"line_count" url:"line_count"`
+	// Sum of the amounts of every line that is not a tax line
+	LinesTotal string `json:"lines_total" url:"lines_total"`
+	// Lines the customer must check before confirming
+	FlaggedLines int       `json:"flagged_lines" url:"flagged_lines"`
+	CreatedAt    time.Time `json:"created_at" url:"created_at"`
+	// Email of the person who confirmed it
+	ConfirmedBy   *string    `json:"confirmed_by,omitempty" url:"confirmed_by,omitempty"`
+	ConfirmedAt   *time.Time `json:"confirmed_at,omitempty" url:"confirmed_at,omitempty"`
+	ReviewReasons []string   `json:"review_reasons" url:"review_reasons"`
+	// Field name to the printed column it was read from
+	ColumnMapping map[string]string `json:"column_mapping" url:"column_mapping"`
+	// Printed columns no field was read from
+	UnmappedColumns []string       `json:"unmapped_columns" url:"unmapped_columns"`
+	Lines           []*InvoiceLine `json:"lines" url:"lines"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (i *InvoiceDetail) GetID() string {
+	if i == nil {
+		return ""
+	}
+	return i.ID
+}
+
+func (i *InvoiceDetail) GetConnectionID() string {
+	if i == nil {
+		return ""
+	}
+	return i.ConnectionID
+}
+
+func (i *InvoiceDetail) GetFileName() string {
+	if i == nil {
+		return ""
+	}
+	return i.FileName
+}
+
+func (i *InvoiceDetail) GetSourceFormat() InvoiceDetailSourceFormat {
+	if i == nil {
+		return ""
+	}
+	return i.SourceFormat
+}
+
+func (i *InvoiceDetail) GetExtractionMethod() InvoiceDetailExtractionMethod {
+	if i == nil {
+		return ""
+	}
+	return i.ExtractionMethod
+}
+
+func (i *InvoiceDetail) GetDocumentKind() InvoiceDetailDocumentKind {
+	if i == nil {
+		return ""
+	}
+	return i.DocumentKind
+}
+
+func (i *InvoiceDetail) GetSellerName() string {
+	if i == nil {
+		return ""
+	}
+	return i.SellerName
+}
+
+func (i *InvoiceDetail) GetInvoiceNumber() string {
+	if i == nil {
+		return ""
+	}
+	return i.InvoiceNumber
+}
+
+func (i *InvoiceDetail) GetInvoiceDate() *time.Time {
+	if i == nil {
+		return nil
+	}
+	return i.InvoiceDate
+}
+
+func (i *InvoiceDetail) GetBillingPeriodStart() *time.Time {
+	if i == nil {
+		return nil
+	}
+	return i.BillingPeriodStart
+}
+
+func (i *InvoiceDetail) GetBillingPeriodEnd() *time.Time {
+	if i == nil {
+		return nil
+	}
+	return i.BillingPeriodEnd
+}
+
+func (i *InvoiceDetail) GetCurrency() *string {
+	if i == nil {
+		return nil
+	}
+	return i.Currency
+}
+
+func (i *InvoiceDetail) GetTotalPreTax() *string {
+	if i == nil {
+		return nil
+	}
+	return i.TotalPreTax
+}
+
+func (i *InvoiceDetail) GetTotalTax() *string {
+	if i == nil {
+		return nil
+	}
+	return i.TotalTax
+}
+
+func (i *InvoiceDetail) GetStatus() InvoiceDetailStatus {
+	if i == nil {
+		return ""
+	}
+	return i.Status
+}
+
+func (i *InvoiceDetail) GetFailureReason() string {
+	if i == nil {
+		return ""
+	}
+	return i.FailureReason
+}
+
+func (i *InvoiceDetail) GetReadStartedAt() *time.Time {
+	if i == nil {
+		return nil
+	}
+	return i.ReadStartedAt
+}
+
+func (i *InvoiceDetail) GetNeedsReview() bool {
+	if i == nil {
+		return false
+	}
+	return i.NeedsReview
+}
+
+func (i *InvoiceDetail) GetLineCount() int {
+	if i == nil {
+		return 0
+	}
+	return i.LineCount
+}
+
+func (i *InvoiceDetail) GetLinesTotal() string {
+	if i == nil {
+		return ""
+	}
+	return i.LinesTotal
+}
+
+func (i *InvoiceDetail) GetFlaggedLines() int {
+	if i == nil {
+		return 0
+	}
+	return i.FlaggedLines
+}
+
+func (i *InvoiceDetail) GetCreatedAt() time.Time {
+	if i == nil {
+		return time.Time{}
+	}
+	return i.CreatedAt
+}
+
+func (i *InvoiceDetail) GetConfirmedBy() *string {
+	if i == nil {
+		return nil
+	}
+	return i.ConfirmedBy
+}
+
+func (i *InvoiceDetail) GetConfirmedAt() *time.Time {
+	if i == nil {
+		return nil
+	}
+	return i.ConfirmedAt
+}
+
+func (i *InvoiceDetail) GetReviewReasons() []string {
+	if i == nil {
+		return nil
+	}
+	return i.ReviewReasons
+}
+
+func (i *InvoiceDetail) GetColumnMapping() map[string]string {
+	if i == nil {
+		return nil
+	}
+	return i.ColumnMapping
+}
+
+func (i *InvoiceDetail) GetUnmappedColumns() []string {
+	if i == nil {
+		return nil
+	}
+	return i.UnmappedColumns
+}
+
+func (i *InvoiceDetail) GetLines() []*InvoiceLine {
+	if i == nil {
+		return nil
+	}
+	return i.Lines
+}
+
+func (i *InvoiceDetail) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
+	return i.extraProperties
+}
+
+func (i *InvoiceDetail) require(field *big.Int) {
+	if i.explicitFields == nil {
+		i.explicitFields = big.NewInt(0)
+	}
+	i.explicitFields.Or(i.explicitFields, field)
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetID(id string) {
+	i.ID = id
+	i.require(invoiceDetailFieldID)
+}
+
+// SetConnectionID sets the ConnectionID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetConnectionID(connectionID string) {
+	i.ConnectionID = connectionID
+	i.require(invoiceDetailFieldConnectionID)
+}
+
+// SetFileName sets the FileName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetFileName(fileName string) {
+	i.FileName = fileName
+	i.require(invoiceDetailFieldFileName)
+}
+
+// SetSourceFormat sets the SourceFormat field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetSourceFormat(sourceFormat InvoiceDetailSourceFormat) {
+	i.SourceFormat = sourceFormat
+	i.require(invoiceDetailFieldSourceFormat)
+}
+
+// SetExtractionMethod sets the ExtractionMethod field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetExtractionMethod(extractionMethod InvoiceDetailExtractionMethod) {
+	i.ExtractionMethod = extractionMethod
+	i.require(invoiceDetailFieldExtractionMethod)
+}
+
+// SetDocumentKind sets the DocumentKind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetDocumentKind(documentKind InvoiceDetailDocumentKind) {
+	i.DocumentKind = documentKind
+	i.require(invoiceDetailFieldDocumentKind)
+}
+
+// SetSellerName sets the SellerName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetSellerName(sellerName string) {
+	i.SellerName = sellerName
+	i.require(invoiceDetailFieldSellerName)
+}
+
+// SetInvoiceNumber sets the InvoiceNumber field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetInvoiceNumber(invoiceNumber string) {
+	i.InvoiceNumber = invoiceNumber
+	i.require(invoiceDetailFieldInvoiceNumber)
+}
+
+// SetInvoiceDate sets the InvoiceDate field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetInvoiceDate(invoiceDate *time.Time) {
+	i.InvoiceDate = invoiceDate
+	i.require(invoiceDetailFieldInvoiceDate)
+}
+
+// SetBillingPeriodStart sets the BillingPeriodStart field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetBillingPeriodStart(billingPeriodStart *time.Time) {
+	i.BillingPeriodStart = billingPeriodStart
+	i.require(invoiceDetailFieldBillingPeriodStart)
+}
+
+// SetBillingPeriodEnd sets the BillingPeriodEnd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetBillingPeriodEnd(billingPeriodEnd *time.Time) {
+	i.BillingPeriodEnd = billingPeriodEnd
+	i.require(invoiceDetailFieldBillingPeriodEnd)
+}
+
+// SetCurrency sets the Currency field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetCurrency(currency *string) {
+	i.Currency = currency
+	i.require(invoiceDetailFieldCurrency)
+}
+
+// SetTotalPreTax sets the TotalPreTax field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetTotalPreTax(totalPreTax *string) {
+	i.TotalPreTax = totalPreTax
+	i.require(invoiceDetailFieldTotalPreTax)
+}
+
+// SetTotalTax sets the TotalTax field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetTotalTax(totalTax *string) {
+	i.TotalTax = totalTax
+	i.require(invoiceDetailFieldTotalTax)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetStatus(status InvoiceDetailStatus) {
+	i.Status = status
+	i.require(invoiceDetailFieldStatus)
+}
+
+// SetFailureReason sets the FailureReason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetFailureReason(failureReason string) {
+	i.FailureReason = failureReason
+	i.require(invoiceDetailFieldFailureReason)
+}
+
+// SetReadStartedAt sets the ReadStartedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetReadStartedAt(readStartedAt *time.Time) {
+	i.ReadStartedAt = readStartedAt
+	i.require(invoiceDetailFieldReadStartedAt)
+}
+
+// SetNeedsReview sets the NeedsReview field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetNeedsReview(needsReview bool) {
+	i.NeedsReview = needsReview
+	i.require(invoiceDetailFieldNeedsReview)
+}
+
+// SetLineCount sets the LineCount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetLineCount(lineCount int) {
+	i.LineCount = lineCount
+	i.require(invoiceDetailFieldLineCount)
+}
+
+// SetLinesTotal sets the LinesTotal field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetLinesTotal(linesTotal string) {
+	i.LinesTotal = linesTotal
+	i.require(invoiceDetailFieldLinesTotal)
+}
+
+// SetFlaggedLines sets the FlaggedLines field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetFlaggedLines(flaggedLines int) {
+	i.FlaggedLines = flaggedLines
+	i.require(invoiceDetailFieldFlaggedLines)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetCreatedAt(createdAt time.Time) {
+	i.CreatedAt = createdAt
+	i.require(invoiceDetailFieldCreatedAt)
+}
+
+// SetConfirmedBy sets the ConfirmedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetConfirmedBy(confirmedBy *string) {
+	i.ConfirmedBy = confirmedBy
+	i.require(invoiceDetailFieldConfirmedBy)
+}
+
+// SetConfirmedAt sets the ConfirmedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetConfirmedAt(confirmedAt *time.Time) {
+	i.ConfirmedAt = confirmedAt
+	i.require(invoiceDetailFieldConfirmedAt)
+}
+
+// SetReviewReasons sets the ReviewReasons field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetReviewReasons(reviewReasons []string) {
+	i.ReviewReasons = reviewReasons
+	i.require(invoiceDetailFieldReviewReasons)
+}
+
+// SetColumnMapping sets the ColumnMapping field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetColumnMapping(columnMapping map[string]string) {
+	i.ColumnMapping = columnMapping
+	i.require(invoiceDetailFieldColumnMapping)
+}
+
+// SetUnmappedColumns sets the UnmappedColumns field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetUnmappedColumns(unmappedColumns []string) {
+	i.UnmappedColumns = unmappedColumns
+	i.require(invoiceDetailFieldUnmappedColumns)
+}
+
+// SetLines sets the Lines field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetLines(lines []*InvoiceLine) {
+	i.Lines = lines
+	i.require(invoiceDetailFieldLines)
+}
+
+func (i *InvoiceDetail) UnmarshalJSON(data []byte) error {
+	type embed InvoiceDetail
+	var unmarshaler = struct {
+		embed
+		InvoiceDate        *internal.Date     `json:"invoice_date,omitempty"`
+		BillingPeriodStart *internal.Date     `json:"billing_period_start,omitempty"`
+		BillingPeriodEnd   *internal.Date     `json:"billing_period_end,omitempty"`
+		ReadStartedAt      *internal.DateTime `json:"read_started_at,omitempty"`
+		CreatedAt          *internal.DateTime `json:"created_at"`
+		ConfirmedAt        *internal.DateTime `json:"confirmed_at,omitempty"`
+	}{
+		embed: embed(*i),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*i = InvoiceDetail(unmarshaler.embed)
+	i.InvoiceDate = unmarshaler.InvoiceDate.TimePtr()
+	i.BillingPeriodStart = unmarshaler.BillingPeriodStart.TimePtr()
+	i.BillingPeriodEnd = unmarshaler.BillingPeriodEnd.TimePtr()
+	i.ReadStartedAt = unmarshaler.ReadStartedAt.TimePtr()
+	i.CreatedAt = unmarshaler.CreatedAt.Time()
+	i.ConfirmedAt = unmarshaler.ConfirmedAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *i)
+	if err != nil {
+		return err
+	}
+	i.extraProperties = extraProperties
+	i.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (i *InvoiceDetail) MarshalJSON() ([]byte, error) {
+	type embed InvoiceDetail
+	var marshaler = struct {
+		embed
+		InvoiceDate        *internal.Date     `json:"invoice_date,omitempty"`
+		BillingPeriodStart *internal.Date     `json:"billing_period_start,omitempty"`
+		BillingPeriodEnd   *internal.Date     `json:"billing_period_end,omitempty"`
+		ReadStartedAt      *internal.DateTime `json:"read_started_at,omitempty"`
+		CreatedAt          *internal.DateTime `json:"created_at"`
+		ConfirmedAt        *internal.DateTime `json:"confirmed_at,omitempty"`
+	}{
+		embed:              embed(*i),
+		InvoiceDate:        internal.NewOptionalDate(i.InvoiceDate),
+		BillingPeriodStart: internal.NewOptionalDate(i.BillingPeriodStart),
+		BillingPeriodEnd:   internal.NewOptionalDate(i.BillingPeriodEnd),
+		ReadStartedAt:      internal.NewOptionalDateTime(i.ReadStartedAt),
+		CreatedAt:          internal.NewDateTime(i.CreatedAt),
+		ConfirmedAt:        internal.NewOptionalDateTime(i.ConfirmedAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (i *InvoiceDetail) String() string {
+	if i == nil {
+		return "<nil>"
+	}
+	if len(i.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(i); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", i)
+}
+
+type InvoiceDetailDocumentKind string
+
+const (
+	InvoiceDetailDocumentKindCustomerInvoice       InvoiceDetailDocumentKind = "customer_invoice"
+	InvoiceDetailDocumentKindPartnerReconciliation InvoiceDetailDocumentKind = "partner_reconciliation"
+)
+
+func NewInvoiceDetailDocumentKindFromString(s string) (InvoiceDetailDocumentKind, error) {
+	switch s {
+	case "customer_invoice":
+		return InvoiceDetailDocumentKindCustomerInvoice, nil
+	case "partner_reconciliation":
+		return InvoiceDetailDocumentKindPartnerReconciliation, nil
+	}
+	var t InvoiceDetailDocumentKind
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (i InvoiceDetailDocumentKind) Ptr() *InvoiceDetailDocumentKind {
+	return &i
+}
+
+type InvoiceDetailExtractionMethod string
+
+const (
+	InvoiceDetailExtractionMethodTabular  InvoiceDetailExtractionMethod = "tabular"
+	InvoiceDetailExtractionMethodDocument InvoiceDetailExtractionMethod = "document"
+)
+
+func NewInvoiceDetailExtractionMethodFromString(s string) (InvoiceDetailExtractionMethod, error) {
+	switch s {
+	case "tabular":
+		return InvoiceDetailExtractionMethodTabular, nil
+	case "document":
+		return InvoiceDetailExtractionMethodDocument, nil
+	}
+	var t InvoiceDetailExtractionMethod
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (i InvoiceDetailExtractionMethod) Ptr() *InvoiceDetailExtractionMethod {
+	return &i
+}
+
+var (
+	invoiceDetailResponseFieldSuccess   = big.NewInt(1 << 0)
+	invoiceDetailResponseFieldTimestamp = big.NewInt(1 << 1)
+	invoiceDetailResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type InvoiceDetailResponse struct {
+	Success   *bool          `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time     `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *InvoiceDetail `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (i *InvoiceDetailResponse) GetSuccess() *bool {
+	if i == nil {
+		return nil
+	}
+	return i.Success
+}
+
+func (i *InvoiceDetailResponse) GetTimestamp() *time.Time {
+	if i == nil {
+		return nil
+	}
+	return i.Timestamp
+}
+
+func (i *InvoiceDetailResponse) GetData() *InvoiceDetail {
+	if i == nil {
+		return nil
+	}
+	return i.Data
+}
+
+func (i *InvoiceDetailResponse) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
+	return i.extraProperties
+}
+
+func (i *InvoiceDetailResponse) require(field *big.Int) {
+	if i.explicitFields == nil {
+		i.explicitFields = big.NewInt(0)
+	}
+	i.explicitFields.Or(i.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetailResponse) SetSuccess(success *bool) {
+	i.Success = success
+	i.require(invoiceDetailResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetailResponse) SetTimestamp(timestamp *time.Time) {
+	i.Timestamp = timestamp
+	i.require(invoiceDetailResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetailResponse) SetData(data *InvoiceDetail) {
+	i.Data = data
+	i.require(invoiceDetailResponseFieldData)
+}
+
+func (i *InvoiceDetailResponse) UnmarshalJSON(data []byte) error {
+	type embed InvoiceDetailResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*i),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*i = InvoiceDetailResponse(unmarshaler.embed)
+	i.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *i)
+	if err != nil {
+		return err
+	}
+	i.extraProperties = extraProperties
+	i.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (i *InvoiceDetailResponse) MarshalJSON() ([]byte, error) {
+	type embed InvoiceDetailResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*i),
+		Timestamp: internal.NewOptionalDateTime(i.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (i *InvoiceDetailResponse) String() string {
+	if i == nil {
+		return "<nil>"
+	}
+	if len(i.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(i); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", i)
+}
+
+type InvoiceDetailSourceFormat string
+
+const (
+	InvoiceDetailSourceFormatCsv  InvoiceDetailSourceFormat = "csv"
+	InvoiceDetailSourceFormatXlsx InvoiceDetailSourceFormat = "xlsx"
+	InvoiceDetailSourceFormatPdf  InvoiceDetailSourceFormat = "pdf"
+	InvoiceDetailSourceFormatDocx InvoiceDetailSourceFormat = "docx"
+)
+
+func NewInvoiceDetailSourceFormatFromString(s string) (InvoiceDetailSourceFormat, error) {
+	switch s {
+	case "csv":
+		return InvoiceDetailSourceFormatCsv, nil
+	case "xlsx":
+		return InvoiceDetailSourceFormatXlsx, nil
+	case "pdf":
+		return InvoiceDetailSourceFormatPdf, nil
+	case "docx":
+		return InvoiceDetailSourceFormatDocx, nil
+	}
+	var t InvoiceDetailSourceFormat
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (i InvoiceDetailSourceFormat) Ptr() *InvoiceDetailSourceFormat {
+	return &i
+}
+
+// reading until the file is read, then extracted (waiting for review) or failed
+type InvoiceDetailStatus string
+
+const (
+	InvoiceDetailStatusReading    InvoiceDetailStatus = "reading"
+	InvoiceDetailStatusExtracted  InvoiceDetailStatus = "extracted"
+	InvoiceDetailStatusFailed     InvoiceDetailStatus = "failed"
+	InvoiceDetailStatusConfirmed  InvoiceDetailStatus = "confirmed"
+	InvoiceDetailStatusRejected   InvoiceDetailStatus = "rejected"
+	InvoiceDetailStatusSuperseded InvoiceDetailStatus = "superseded"
+)
+
+func NewInvoiceDetailStatusFromString(s string) (InvoiceDetailStatus, error) {
+	switch s {
+	case "reading":
+		return InvoiceDetailStatusReading, nil
+	case "extracted":
+		return InvoiceDetailStatusExtracted, nil
+	case "failed":
+		return InvoiceDetailStatusFailed, nil
+	case "confirmed":
+		return InvoiceDetailStatusConfirmed, nil
+	case "rejected":
+		return InvoiceDetailStatusRejected, nil
+	case "superseded":
+		return InvoiceDetailStatusSuperseded, nil
+	}
+	var t InvoiceDetailStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (i InvoiceDetailStatus) Ptr() *InvoiceDetailStatus {
+	return &i
+}
+
+// One line as printed. Text fields are ” when the document prints nothing.
+var (
+	invoiceLineFieldLineNumber       = big.NewInt(1 << 0)
+	invoiceLineFieldSourcePage       = big.NewInt(1 << 1)
+	invoiceLineFieldSourceRow        = big.NewInt(1 << 2)
+	invoiceLineFieldSubscriptionID   = big.NewInt(1 << 3)
+	invoiceLineFieldSubscriptionName = big.NewInt(1 << 4)
+	invoiceLineFieldService          = big.NewInt(1 << 5)
+	invoiceLineFieldProduct          = big.NewInt(1 << 6)
+	invoiceLineFieldMeterID          = big.NewInt(1 << 7)
+	invoiceLineFieldMeterName        = big.NewInt(1 << 8)
+	invoiceLineFieldRegion           = big.NewInt(1 << 9)
+	invoiceLineFieldResourceID       = big.NewInt(1 << 10)
+	invoiceLineFieldChargeType       = big.NewInt(1 << 11)
+	invoiceLineFieldChargeStart      = big.NewInt(1 << 12)
+	invoiceLineFieldChargeEnd        = big.NewInt(1 << 13)
+	invoiceLineFieldQuantity         = big.NewInt(1 << 14)
+	invoiceLineFieldUnit             = big.NewInt(1 << 15)
+	invoiceLineFieldUnitPrice        = big.NewInt(1 << 16)
+	invoiceLineFieldUnitPriceList    = big.NewInt(1 << 17)
+	invoiceLineFieldAmount           = big.NewInt(1 << 18)
+	invoiceLineFieldNeedsReview      = big.NewInt(1 << 19)
+	invoiceLineFieldReviewReason     = big.NewInt(1 << 20)
+)
+
+type InvoiceLine struct {
+	LineNumber       int                   `json:"line_number" url:"line_number"`
+	SourcePage       *int                  `json:"source_page,omitempty" url:"source_page,omitempty"`
+	SourceRow        *int                  `json:"source_row,omitempty" url:"source_row,omitempty"`
+	SubscriptionID   string                `json:"subscription_id" url:"subscription_id"`
+	SubscriptionName string                `json:"subscription_name" url:"subscription_name"`
+	Service          string                `json:"service" url:"service"`
+	Product          string                `json:"product" url:"product"`
+	MeterID          string                `json:"meter_id" url:"meter_id"`
+	MeterName        string                `json:"meter_name" url:"meter_name"`
+	Region           string                `json:"region" url:"region"`
+	ResourceID       string                `json:"resource_id" url:"resource_id"`
+	ChargeType       InvoiceLineChargeType `json:"charge_type" url:"charge_type"`
+	ChargeStart      *time.Time            `json:"charge_start,omitempty" url:"charge_start,omitempty" format:"date"`
+	// Last day the line covers, inclusive
+	ChargeEnd *time.Time `json:"charge_end,omitempty" url:"charge_end,omitempty" format:"date"`
+	Quantity  *string    `json:"quantity,omitempty" url:"quantity,omitempty"`
+	Unit      string     `json:"unit" url:"unit"`
+	// Effective price per unit, the one that makes the amount
+	UnitPrice *string `json:"unit_price,omitempty" url:"unit_price,omitempty"`
+	// List price per unit, shown for reference
+	UnitPriceList *string `json:"unit_price_list,omitempty" url:"unit_price_list,omitempty"`
+	// Amount before tax in the invoice currency; credits are negative
+	Amount       string `json:"amount" url:"amount"`
+	NeedsReview  bool   `json:"needs_review" url:"needs_review"`
+	ReviewReason string `json:"review_reason" url:"review_reason"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (i *InvoiceLine) GetLineNumber() int {
+	if i == nil {
+		return 0
+	}
+	return i.LineNumber
+}
+
+func (i *InvoiceLine) GetSourcePage() *int {
+	if i == nil {
+		return nil
+	}
+	return i.SourcePage
+}
+
+func (i *InvoiceLine) GetSourceRow() *int {
+	if i == nil {
+		return nil
+	}
+	return i.SourceRow
+}
+
+func (i *InvoiceLine) GetSubscriptionID() string {
+	if i == nil {
+		return ""
+	}
+	return i.SubscriptionID
+}
+
+func (i *InvoiceLine) GetSubscriptionName() string {
+	if i == nil {
+		return ""
+	}
+	return i.SubscriptionName
+}
+
+func (i *InvoiceLine) GetService() string {
+	if i == nil {
+		return ""
+	}
+	return i.Service
+}
+
+func (i *InvoiceLine) GetProduct() string {
+	if i == nil {
+		return ""
+	}
+	return i.Product
+}
+
+func (i *InvoiceLine) GetMeterID() string {
+	if i == nil {
+		return ""
+	}
+	return i.MeterID
+}
+
+func (i *InvoiceLine) GetMeterName() string {
+	if i == nil {
+		return ""
+	}
+	return i.MeterName
+}
+
+func (i *InvoiceLine) GetRegion() string {
+	if i == nil {
+		return ""
+	}
+	return i.Region
+}
+
+func (i *InvoiceLine) GetResourceID() string {
+	if i == nil {
+		return ""
+	}
+	return i.ResourceID
+}
+
+func (i *InvoiceLine) GetChargeType() InvoiceLineChargeType {
+	if i == nil {
+		return ""
+	}
+	return i.ChargeType
+}
+
+func (i *InvoiceLine) GetChargeStart() *time.Time {
+	if i == nil {
+		return nil
+	}
+	return i.ChargeStart
+}
+
+func (i *InvoiceLine) GetChargeEnd() *time.Time {
+	if i == nil {
+		return nil
+	}
+	return i.ChargeEnd
+}
+
+func (i *InvoiceLine) GetQuantity() *string {
+	if i == nil {
+		return nil
+	}
+	return i.Quantity
+}
+
+func (i *InvoiceLine) GetUnit() string {
+	if i == nil {
+		return ""
+	}
+	return i.Unit
+}
+
+func (i *InvoiceLine) GetUnitPrice() *string {
+	if i == nil {
+		return nil
+	}
+	return i.UnitPrice
+}
+
+func (i *InvoiceLine) GetUnitPriceList() *string {
+	if i == nil {
+		return nil
+	}
+	return i.UnitPriceList
+}
+
+func (i *InvoiceLine) GetAmount() string {
+	if i == nil {
+		return ""
+	}
+	return i.Amount
+}
+
+func (i *InvoiceLine) GetNeedsReview() bool {
+	if i == nil {
+		return false
+	}
+	return i.NeedsReview
+}
+
+func (i *InvoiceLine) GetReviewReason() string {
+	if i == nil {
+		return ""
+	}
+	return i.ReviewReason
+}
+
+func (i *InvoiceLine) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
+	return i.extraProperties
+}
+
+func (i *InvoiceLine) require(field *big.Int) {
+	if i.explicitFields == nil {
+		i.explicitFields = big.NewInt(0)
+	}
+	i.explicitFields.Or(i.explicitFields, field)
+}
+
+// SetLineNumber sets the LineNumber field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLine) SetLineNumber(lineNumber int) {
+	i.LineNumber = lineNumber
+	i.require(invoiceLineFieldLineNumber)
+}
+
+// SetSourcePage sets the SourcePage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLine) SetSourcePage(sourcePage *int) {
+	i.SourcePage = sourcePage
+	i.require(invoiceLineFieldSourcePage)
+}
+
+// SetSourceRow sets the SourceRow field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLine) SetSourceRow(sourceRow *int) {
+	i.SourceRow = sourceRow
+	i.require(invoiceLineFieldSourceRow)
+}
+
+// SetSubscriptionID sets the SubscriptionID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLine) SetSubscriptionID(subscriptionID string) {
+	i.SubscriptionID = subscriptionID
+	i.require(invoiceLineFieldSubscriptionID)
+}
+
+// SetSubscriptionName sets the SubscriptionName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLine) SetSubscriptionName(subscriptionName string) {
+	i.SubscriptionName = subscriptionName
+	i.require(invoiceLineFieldSubscriptionName)
+}
+
+// SetService sets the Service field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLine) SetService(service string) {
+	i.Service = service
+	i.require(invoiceLineFieldService)
+}
+
+// SetProduct sets the Product field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLine) SetProduct(product string) {
+	i.Product = product
+	i.require(invoiceLineFieldProduct)
+}
+
+// SetMeterID sets the MeterID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLine) SetMeterID(meterID string) {
+	i.MeterID = meterID
+	i.require(invoiceLineFieldMeterID)
+}
+
+// SetMeterName sets the MeterName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLine) SetMeterName(meterName string) {
+	i.MeterName = meterName
+	i.require(invoiceLineFieldMeterName)
+}
+
+// SetRegion sets the Region field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLine) SetRegion(region string) {
+	i.Region = region
+	i.require(invoiceLineFieldRegion)
+}
+
+// SetResourceID sets the ResourceID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLine) SetResourceID(resourceID string) {
+	i.ResourceID = resourceID
+	i.require(invoiceLineFieldResourceID)
+}
+
+// SetChargeType sets the ChargeType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLine) SetChargeType(chargeType InvoiceLineChargeType) {
+	i.ChargeType = chargeType
+	i.require(invoiceLineFieldChargeType)
+}
+
+// SetChargeStart sets the ChargeStart field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLine) SetChargeStart(chargeStart *time.Time) {
+	i.ChargeStart = chargeStart
+	i.require(invoiceLineFieldChargeStart)
+}
+
+// SetChargeEnd sets the ChargeEnd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLine) SetChargeEnd(chargeEnd *time.Time) {
+	i.ChargeEnd = chargeEnd
+	i.require(invoiceLineFieldChargeEnd)
+}
+
+// SetQuantity sets the Quantity field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLine) SetQuantity(quantity *string) {
+	i.Quantity = quantity
+	i.require(invoiceLineFieldQuantity)
+}
+
+// SetUnit sets the Unit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLine) SetUnit(unit string) {
+	i.Unit = unit
+	i.require(invoiceLineFieldUnit)
+}
+
+// SetUnitPrice sets the UnitPrice field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLine) SetUnitPrice(unitPrice *string) {
+	i.UnitPrice = unitPrice
+	i.require(invoiceLineFieldUnitPrice)
+}
+
+// SetUnitPriceList sets the UnitPriceList field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLine) SetUnitPriceList(unitPriceList *string) {
+	i.UnitPriceList = unitPriceList
+	i.require(invoiceLineFieldUnitPriceList)
+}
+
+// SetAmount sets the Amount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLine) SetAmount(amount string) {
+	i.Amount = amount
+	i.require(invoiceLineFieldAmount)
+}
+
+// SetNeedsReview sets the NeedsReview field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLine) SetNeedsReview(needsReview bool) {
+	i.NeedsReview = needsReview
+	i.require(invoiceLineFieldNeedsReview)
+}
+
+// SetReviewReason sets the ReviewReason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLine) SetReviewReason(reviewReason string) {
+	i.ReviewReason = reviewReason
+	i.require(invoiceLineFieldReviewReason)
+}
+
+func (i *InvoiceLine) UnmarshalJSON(data []byte) error {
+	type embed InvoiceLine
+	var unmarshaler = struct {
+		embed
+		ChargeStart *internal.Date `json:"charge_start,omitempty"`
+		ChargeEnd   *internal.Date `json:"charge_end,omitempty"`
+	}{
+		embed: embed(*i),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*i = InvoiceLine(unmarshaler.embed)
+	i.ChargeStart = unmarshaler.ChargeStart.TimePtr()
+	i.ChargeEnd = unmarshaler.ChargeEnd.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *i)
+	if err != nil {
+		return err
+	}
+	i.extraProperties = extraProperties
+	i.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (i *InvoiceLine) MarshalJSON() ([]byte, error) {
+	type embed InvoiceLine
+	var marshaler = struct {
+		embed
+		ChargeStart *internal.Date `json:"charge_start,omitempty"`
+		ChargeEnd   *internal.Date `json:"charge_end,omitempty"`
+	}{
+		embed:       embed(*i),
+		ChargeStart: internal.NewOptionalDate(i.ChargeStart),
+		ChargeEnd:   internal.NewOptionalDate(i.ChargeEnd),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (i *InvoiceLine) String() string {
+	if i == nil {
+		return "<nil>"
+	}
+	if len(i.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(i); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", i)
+}
+
+type InvoiceLineChargeType string
+
+const (
+	InvoiceLineChargeTypeUsage      InvoiceLineChargeType = "usage"
+	InvoiceLineChargeTypePurchase   InvoiceLineChargeType = "purchase"
+	InvoiceLineChargeTypeTax        InvoiceLineChargeType = "tax"
+	InvoiceLineChargeTypeAdjustment InvoiceLineChargeType = "adjustment"
+	InvoiceLineChargeTypeCredit     InvoiceLineChargeType = "credit"
+)
+
+func NewInvoiceLineChargeTypeFromString(s string) (InvoiceLineChargeType, error) {
+	switch s {
+	case "usage":
+		return InvoiceLineChargeTypeUsage, nil
+	case "purchase":
+		return InvoiceLineChargeTypePurchase, nil
+	case "tax":
+		return InvoiceLineChargeTypeTax, nil
+	case "adjustment":
+		return InvoiceLineChargeTypeAdjustment, nil
+	case "credit":
+		return InvoiceLineChargeTypeCredit, nil
+	}
+	var t InvoiceLineChargeType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (i InvoiceLineChargeType) Ptr() *InvoiceLineChargeType {
+	return &i
+}
+
+var (
+	invoiceListResponseFieldSuccess   = big.NewInt(1 << 0)
+	invoiceListResponseFieldTimestamp = big.NewInt(1 << 1)
+	invoiceListResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type InvoiceListResponse struct {
+	Success   *bool             `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time        `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      []*InvoiceSummary `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (i *InvoiceListResponse) GetSuccess() *bool {
+	if i == nil {
+		return nil
+	}
+	return i.Success
+}
+
+func (i *InvoiceListResponse) GetTimestamp() *time.Time {
+	if i == nil {
+		return nil
+	}
+	return i.Timestamp
+}
+
+func (i *InvoiceListResponse) GetData() []*InvoiceSummary {
+	if i == nil {
+		return nil
+	}
+	return i.Data
+}
+
+func (i *InvoiceListResponse) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
+	return i.extraProperties
+}
+
+func (i *InvoiceListResponse) require(field *big.Int) {
+	if i.explicitFields == nil {
+		i.explicitFields = big.NewInt(0)
+	}
+	i.explicitFields.Or(i.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceListResponse) SetSuccess(success *bool) {
+	i.Success = success
+	i.require(invoiceListResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceListResponse) SetTimestamp(timestamp *time.Time) {
+	i.Timestamp = timestamp
+	i.require(invoiceListResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceListResponse) SetData(data []*InvoiceSummary) {
+	i.Data = data
+	i.require(invoiceListResponseFieldData)
+}
+
+func (i *InvoiceListResponse) UnmarshalJSON(data []byte) error {
+	type embed InvoiceListResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*i),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*i = InvoiceListResponse(unmarshaler.embed)
+	i.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *i)
+	if err != nil {
+		return err
+	}
+	i.extraProperties = extraProperties
+	i.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (i *InvoiceListResponse) MarshalJSON() ([]byte, error) {
+	type embed InvoiceListResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*i),
+		Timestamp: internal.NewOptionalDateTime(i.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (i *InvoiceListResponse) String() string {
+	if i == nil {
+		return "<nil>"
+	}
+	if len(i.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(i); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", i)
+}
+
+var (
+	invoiceSummaryFieldID                 = big.NewInt(1 << 0)
+	invoiceSummaryFieldConnectionID       = big.NewInt(1 << 1)
+	invoiceSummaryFieldFileName           = big.NewInt(1 << 2)
+	invoiceSummaryFieldSourceFormat       = big.NewInt(1 << 3)
+	invoiceSummaryFieldExtractionMethod   = big.NewInt(1 << 4)
+	invoiceSummaryFieldDocumentKind       = big.NewInt(1 << 5)
+	invoiceSummaryFieldSellerName         = big.NewInt(1 << 6)
+	invoiceSummaryFieldInvoiceNumber      = big.NewInt(1 << 7)
+	invoiceSummaryFieldInvoiceDate        = big.NewInt(1 << 8)
+	invoiceSummaryFieldBillingPeriodStart = big.NewInt(1 << 9)
+	invoiceSummaryFieldBillingPeriodEnd   = big.NewInt(1 << 10)
+	invoiceSummaryFieldCurrency           = big.NewInt(1 << 11)
+	invoiceSummaryFieldTotalPreTax        = big.NewInt(1 << 12)
+	invoiceSummaryFieldTotalTax           = big.NewInt(1 << 13)
+	invoiceSummaryFieldStatus             = big.NewInt(1 << 14)
+	invoiceSummaryFieldFailureReason      = big.NewInt(1 << 15)
+	invoiceSummaryFieldReadStartedAt      = big.NewInt(1 << 16)
+	invoiceSummaryFieldNeedsReview        = big.NewInt(1 << 17)
+	invoiceSummaryFieldLineCount          = big.NewInt(1 << 18)
+	invoiceSummaryFieldLinesTotal         = big.NewInt(1 << 19)
+	invoiceSummaryFieldFlaggedLines       = big.NewInt(1 << 20)
+	invoiceSummaryFieldCreatedAt          = big.NewInt(1 << 21)
+	invoiceSummaryFieldConfirmedBy        = big.NewInt(1 << 22)
+	invoiceSummaryFieldConfirmedAt        = big.NewInt(1 << 23)
+)
+
+type InvoiceSummary struct {
+	ID               string                         `json:"id" url:"id"`
+	ConnectionID     string                         `json:"connection_id" url:"connection_id"`
+	FileName         string                         `json:"file_name" url:"file_name"`
+	SourceFormat     InvoiceSummarySourceFormat     `json:"source_format" url:"source_format"`
+	ExtractionMethod InvoiceSummaryExtractionMethod `json:"extraction_method" url:"extraction_method"`
+	DocumentKind     InvoiceSummaryDocumentKind     `json:"document_kind" url:"document_kind"`
+	// ” when the document does not print it
+	SellerName string `json:"seller_name" url:"seller_name"`
+	// ” when the document does not print it
+	InvoiceNumber      string     `json:"invoice_number" url:"invoice_number"`
+	InvoiceDate        *time.Time `json:"invoice_date,omitempty" url:"invoice_date,omitempty" format:"date"`
+	BillingPeriodStart *time.Time `json:"billing_period_start,omitempty" url:"billing_period_start,omitempty" format:"date"`
+	// First day after the period
+	BillingPeriodEnd *time.Time `json:"billing_period_end,omitempty" url:"billing_period_end,omitempty" format:"date"`
+	// ISO 4217 code, or null when the document does not say
+	Currency *string `json:"currency,omitempty" url:"currency,omitempty"`
+	// The printed total before tax, when printed
+	TotalPreTax *string `json:"total_pre_tax,omitempty" url:"total_pre_tax,omitempty"`
+	TotalTax    *string `json:"total_tax,omitempty" url:"total_tax,omitempty"`
+	// reading until the file is read, then extracted (waiting for review) or failed
+	Status InvoiceSummaryStatus `json:"status" url:"status"`
+	// Why the file could not be read, for the customer; ” unless failed
+	FailureReason string `json:"failure_reason" url:"failure_reason"`
+	// The last time the read said it is alive; a 'reading' invoice 10 minutes past it has stalled
+	ReadStartedAt *time.Time `json:"read_started_at,omitempty" url:"read_started_at,omitempty"`
+	NeedsReview   bool       `json:"needs_review" url:"needs_review"`
+	LineCount     int        `json:"line_count" url:"line_count"`
+	// Sum of the amounts of every line that is not a tax line
+	LinesTotal string `json:"lines_total" url:"lines_total"`
+	// Lines the customer must check before confirming
+	FlaggedLines int       `json:"flagged_lines" url:"flagged_lines"`
+	CreatedAt    time.Time `json:"created_at" url:"created_at"`
+	// Email of the person who confirmed it
+	ConfirmedBy *string    `json:"confirmed_by,omitempty" url:"confirmed_by,omitempty"`
+	ConfirmedAt *time.Time `json:"confirmed_at,omitempty" url:"confirmed_at,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (i *InvoiceSummary) GetID() string {
+	if i == nil {
+		return ""
+	}
+	return i.ID
+}
+
+func (i *InvoiceSummary) GetConnectionID() string {
+	if i == nil {
+		return ""
+	}
+	return i.ConnectionID
+}
+
+func (i *InvoiceSummary) GetFileName() string {
+	if i == nil {
+		return ""
+	}
+	return i.FileName
+}
+
+func (i *InvoiceSummary) GetSourceFormat() InvoiceSummarySourceFormat {
+	if i == nil {
+		return ""
+	}
+	return i.SourceFormat
+}
+
+func (i *InvoiceSummary) GetExtractionMethod() InvoiceSummaryExtractionMethod {
+	if i == nil {
+		return ""
+	}
+	return i.ExtractionMethod
+}
+
+func (i *InvoiceSummary) GetDocumentKind() InvoiceSummaryDocumentKind {
+	if i == nil {
+		return ""
+	}
+	return i.DocumentKind
+}
+
+func (i *InvoiceSummary) GetSellerName() string {
+	if i == nil {
+		return ""
+	}
+	return i.SellerName
+}
+
+func (i *InvoiceSummary) GetInvoiceNumber() string {
+	if i == nil {
+		return ""
+	}
+	return i.InvoiceNumber
+}
+
+func (i *InvoiceSummary) GetInvoiceDate() *time.Time {
+	if i == nil {
+		return nil
+	}
+	return i.InvoiceDate
+}
+
+func (i *InvoiceSummary) GetBillingPeriodStart() *time.Time {
+	if i == nil {
+		return nil
+	}
+	return i.BillingPeriodStart
+}
+
+func (i *InvoiceSummary) GetBillingPeriodEnd() *time.Time {
+	if i == nil {
+		return nil
+	}
+	return i.BillingPeriodEnd
+}
+
+func (i *InvoiceSummary) GetCurrency() *string {
+	if i == nil {
+		return nil
+	}
+	return i.Currency
+}
+
+func (i *InvoiceSummary) GetTotalPreTax() *string {
+	if i == nil {
+		return nil
+	}
+	return i.TotalPreTax
+}
+
+func (i *InvoiceSummary) GetTotalTax() *string {
+	if i == nil {
+		return nil
+	}
+	return i.TotalTax
+}
+
+func (i *InvoiceSummary) GetStatus() InvoiceSummaryStatus {
+	if i == nil {
+		return ""
+	}
+	return i.Status
+}
+
+func (i *InvoiceSummary) GetFailureReason() string {
+	if i == nil {
+		return ""
+	}
+	return i.FailureReason
+}
+
+func (i *InvoiceSummary) GetReadStartedAt() *time.Time {
+	if i == nil {
+		return nil
+	}
+	return i.ReadStartedAt
+}
+
+func (i *InvoiceSummary) GetNeedsReview() bool {
+	if i == nil {
+		return false
+	}
+	return i.NeedsReview
+}
+
+func (i *InvoiceSummary) GetLineCount() int {
+	if i == nil {
+		return 0
+	}
+	return i.LineCount
+}
+
+func (i *InvoiceSummary) GetLinesTotal() string {
+	if i == nil {
+		return ""
+	}
+	return i.LinesTotal
+}
+
+func (i *InvoiceSummary) GetFlaggedLines() int {
+	if i == nil {
+		return 0
+	}
+	return i.FlaggedLines
+}
+
+func (i *InvoiceSummary) GetCreatedAt() time.Time {
+	if i == nil {
+		return time.Time{}
+	}
+	return i.CreatedAt
+}
+
+func (i *InvoiceSummary) GetConfirmedBy() *string {
+	if i == nil {
+		return nil
+	}
+	return i.ConfirmedBy
+}
+
+func (i *InvoiceSummary) GetConfirmedAt() *time.Time {
+	if i == nil {
+		return nil
+	}
+	return i.ConfirmedAt
+}
+
+func (i *InvoiceSummary) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
+	return i.extraProperties
+}
+
+func (i *InvoiceSummary) require(field *big.Int) {
+	if i.explicitFields == nil {
+		i.explicitFields = big.NewInt(0)
+	}
+	i.explicitFields.Or(i.explicitFields, field)
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetID(id string) {
+	i.ID = id
+	i.require(invoiceSummaryFieldID)
+}
+
+// SetConnectionID sets the ConnectionID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetConnectionID(connectionID string) {
+	i.ConnectionID = connectionID
+	i.require(invoiceSummaryFieldConnectionID)
+}
+
+// SetFileName sets the FileName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetFileName(fileName string) {
+	i.FileName = fileName
+	i.require(invoiceSummaryFieldFileName)
+}
+
+// SetSourceFormat sets the SourceFormat field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetSourceFormat(sourceFormat InvoiceSummarySourceFormat) {
+	i.SourceFormat = sourceFormat
+	i.require(invoiceSummaryFieldSourceFormat)
+}
+
+// SetExtractionMethod sets the ExtractionMethod field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetExtractionMethod(extractionMethod InvoiceSummaryExtractionMethod) {
+	i.ExtractionMethod = extractionMethod
+	i.require(invoiceSummaryFieldExtractionMethod)
+}
+
+// SetDocumentKind sets the DocumentKind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetDocumentKind(documentKind InvoiceSummaryDocumentKind) {
+	i.DocumentKind = documentKind
+	i.require(invoiceSummaryFieldDocumentKind)
+}
+
+// SetSellerName sets the SellerName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetSellerName(sellerName string) {
+	i.SellerName = sellerName
+	i.require(invoiceSummaryFieldSellerName)
+}
+
+// SetInvoiceNumber sets the InvoiceNumber field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetInvoiceNumber(invoiceNumber string) {
+	i.InvoiceNumber = invoiceNumber
+	i.require(invoiceSummaryFieldInvoiceNumber)
+}
+
+// SetInvoiceDate sets the InvoiceDate field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetInvoiceDate(invoiceDate *time.Time) {
+	i.InvoiceDate = invoiceDate
+	i.require(invoiceSummaryFieldInvoiceDate)
+}
+
+// SetBillingPeriodStart sets the BillingPeriodStart field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetBillingPeriodStart(billingPeriodStart *time.Time) {
+	i.BillingPeriodStart = billingPeriodStart
+	i.require(invoiceSummaryFieldBillingPeriodStart)
+}
+
+// SetBillingPeriodEnd sets the BillingPeriodEnd field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetBillingPeriodEnd(billingPeriodEnd *time.Time) {
+	i.BillingPeriodEnd = billingPeriodEnd
+	i.require(invoiceSummaryFieldBillingPeriodEnd)
+}
+
+// SetCurrency sets the Currency field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetCurrency(currency *string) {
+	i.Currency = currency
+	i.require(invoiceSummaryFieldCurrency)
+}
+
+// SetTotalPreTax sets the TotalPreTax field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetTotalPreTax(totalPreTax *string) {
+	i.TotalPreTax = totalPreTax
+	i.require(invoiceSummaryFieldTotalPreTax)
+}
+
+// SetTotalTax sets the TotalTax field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetTotalTax(totalTax *string) {
+	i.TotalTax = totalTax
+	i.require(invoiceSummaryFieldTotalTax)
+}
+
+// SetStatus sets the Status field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetStatus(status InvoiceSummaryStatus) {
+	i.Status = status
+	i.require(invoiceSummaryFieldStatus)
+}
+
+// SetFailureReason sets the FailureReason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetFailureReason(failureReason string) {
+	i.FailureReason = failureReason
+	i.require(invoiceSummaryFieldFailureReason)
+}
+
+// SetReadStartedAt sets the ReadStartedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetReadStartedAt(readStartedAt *time.Time) {
+	i.ReadStartedAt = readStartedAt
+	i.require(invoiceSummaryFieldReadStartedAt)
+}
+
+// SetNeedsReview sets the NeedsReview field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetNeedsReview(needsReview bool) {
+	i.NeedsReview = needsReview
+	i.require(invoiceSummaryFieldNeedsReview)
+}
+
+// SetLineCount sets the LineCount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetLineCount(lineCount int) {
+	i.LineCount = lineCount
+	i.require(invoiceSummaryFieldLineCount)
+}
+
+// SetLinesTotal sets the LinesTotal field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetLinesTotal(linesTotal string) {
+	i.LinesTotal = linesTotal
+	i.require(invoiceSummaryFieldLinesTotal)
+}
+
+// SetFlaggedLines sets the FlaggedLines field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetFlaggedLines(flaggedLines int) {
+	i.FlaggedLines = flaggedLines
+	i.require(invoiceSummaryFieldFlaggedLines)
+}
+
+// SetCreatedAt sets the CreatedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetCreatedAt(createdAt time.Time) {
+	i.CreatedAt = createdAt
+	i.require(invoiceSummaryFieldCreatedAt)
+}
+
+// SetConfirmedBy sets the ConfirmedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetConfirmedBy(confirmedBy *string) {
+	i.ConfirmedBy = confirmedBy
+	i.require(invoiceSummaryFieldConfirmedBy)
+}
+
+// SetConfirmedAt sets the ConfirmedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummary) SetConfirmedAt(confirmedAt *time.Time) {
+	i.ConfirmedAt = confirmedAt
+	i.require(invoiceSummaryFieldConfirmedAt)
+}
+
+func (i *InvoiceSummary) UnmarshalJSON(data []byte) error {
+	type embed InvoiceSummary
+	var unmarshaler = struct {
+		embed
+		InvoiceDate        *internal.Date     `json:"invoice_date,omitempty"`
+		BillingPeriodStart *internal.Date     `json:"billing_period_start,omitempty"`
+		BillingPeriodEnd   *internal.Date     `json:"billing_period_end,omitempty"`
+		ReadStartedAt      *internal.DateTime `json:"read_started_at,omitempty"`
+		CreatedAt          *internal.DateTime `json:"created_at"`
+		ConfirmedAt        *internal.DateTime `json:"confirmed_at,omitempty"`
+	}{
+		embed: embed(*i),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*i = InvoiceSummary(unmarshaler.embed)
+	i.InvoiceDate = unmarshaler.InvoiceDate.TimePtr()
+	i.BillingPeriodStart = unmarshaler.BillingPeriodStart.TimePtr()
+	i.BillingPeriodEnd = unmarshaler.BillingPeriodEnd.TimePtr()
+	i.ReadStartedAt = unmarshaler.ReadStartedAt.TimePtr()
+	i.CreatedAt = unmarshaler.CreatedAt.Time()
+	i.ConfirmedAt = unmarshaler.ConfirmedAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *i)
+	if err != nil {
+		return err
+	}
+	i.extraProperties = extraProperties
+	i.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (i *InvoiceSummary) MarshalJSON() ([]byte, error) {
+	type embed InvoiceSummary
+	var marshaler = struct {
+		embed
+		InvoiceDate        *internal.Date     `json:"invoice_date,omitempty"`
+		BillingPeriodStart *internal.Date     `json:"billing_period_start,omitempty"`
+		BillingPeriodEnd   *internal.Date     `json:"billing_period_end,omitempty"`
+		ReadStartedAt      *internal.DateTime `json:"read_started_at,omitempty"`
+		CreatedAt          *internal.DateTime `json:"created_at"`
+		ConfirmedAt        *internal.DateTime `json:"confirmed_at,omitempty"`
+	}{
+		embed:              embed(*i),
+		InvoiceDate:        internal.NewOptionalDate(i.InvoiceDate),
+		BillingPeriodStart: internal.NewOptionalDate(i.BillingPeriodStart),
+		BillingPeriodEnd:   internal.NewOptionalDate(i.BillingPeriodEnd),
+		ReadStartedAt:      internal.NewOptionalDateTime(i.ReadStartedAt),
+		CreatedAt:          internal.NewDateTime(i.CreatedAt),
+		ConfirmedAt:        internal.NewOptionalDateTime(i.ConfirmedAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (i *InvoiceSummary) String() string {
+	if i == nil {
+		return "<nil>"
+	}
+	if len(i.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(i); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", i)
+}
+
+type InvoiceSummaryDocumentKind string
+
+const (
+	InvoiceSummaryDocumentKindCustomerInvoice       InvoiceSummaryDocumentKind = "customer_invoice"
+	InvoiceSummaryDocumentKindPartnerReconciliation InvoiceSummaryDocumentKind = "partner_reconciliation"
+)
+
+func NewInvoiceSummaryDocumentKindFromString(s string) (InvoiceSummaryDocumentKind, error) {
+	switch s {
+	case "customer_invoice":
+		return InvoiceSummaryDocumentKindCustomerInvoice, nil
+	case "partner_reconciliation":
+		return InvoiceSummaryDocumentKindPartnerReconciliation, nil
+	}
+	var t InvoiceSummaryDocumentKind
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (i InvoiceSummaryDocumentKind) Ptr() *InvoiceSummaryDocumentKind {
+	return &i
+}
+
+type InvoiceSummaryExtractionMethod string
+
+const (
+	InvoiceSummaryExtractionMethodTabular  InvoiceSummaryExtractionMethod = "tabular"
+	InvoiceSummaryExtractionMethodDocument InvoiceSummaryExtractionMethod = "document"
+)
+
+func NewInvoiceSummaryExtractionMethodFromString(s string) (InvoiceSummaryExtractionMethod, error) {
+	switch s {
+	case "tabular":
+		return InvoiceSummaryExtractionMethodTabular, nil
+	case "document":
+		return InvoiceSummaryExtractionMethodDocument, nil
+	}
+	var t InvoiceSummaryExtractionMethod
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (i InvoiceSummaryExtractionMethod) Ptr() *InvoiceSummaryExtractionMethod {
+	return &i
+}
+
+var (
+	invoiceSummaryResponseFieldSuccess   = big.NewInt(1 << 0)
+	invoiceSummaryResponseFieldTimestamp = big.NewInt(1 << 1)
+	invoiceSummaryResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type InvoiceSummaryResponse struct {
+	Success   *bool           `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time      `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *InvoiceSummary `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (i *InvoiceSummaryResponse) GetSuccess() *bool {
+	if i == nil {
+		return nil
+	}
+	return i.Success
+}
+
+func (i *InvoiceSummaryResponse) GetTimestamp() *time.Time {
+	if i == nil {
+		return nil
+	}
+	return i.Timestamp
+}
+
+func (i *InvoiceSummaryResponse) GetData() *InvoiceSummary {
+	if i == nil {
+		return nil
+	}
+	return i.Data
+}
+
+func (i *InvoiceSummaryResponse) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
+	return i.extraProperties
+}
+
+func (i *InvoiceSummaryResponse) require(field *big.Int) {
+	if i.explicitFields == nil {
+		i.explicitFields = big.NewInt(0)
+	}
+	i.explicitFields.Or(i.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummaryResponse) SetSuccess(success *bool) {
+	i.Success = success
+	i.require(invoiceSummaryResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummaryResponse) SetTimestamp(timestamp *time.Time) {
+	i.Timestamp = timestamp
+	i.require(invoiceSummaryResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceSummaryResponse) SetData(data *InvoiceSummary) {
+	i.Data = data
+	i.require(invoiceSummaryResponseFieldData)
+}
+
+func (i *InvoiceSummaryResponse) UnmarshalJSON(data []byte) error {
+	type embed InvoiceSummaryResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*i),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*i = InvoiceSummaryResponse(unmarshaler.embed)
+	i.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *i)
+	if err != nil {
+		return err
+	}
+	i.extraProperties = extraProperties
+	i.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (i *InvoiceSummaryResponse) MarshalJSON() ([]byte, error) {
+	type embed InvoiceSummaryResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*i),
+		Timestamp: internal.NewOptionalDateTime(i.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (i *InvoiceSummaryResponse) String() string {
+	if i == nil {
+		return "<nil>"
+	}
+	if len(i.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(i); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", i)
+}
+
+type InvoiceSummarySourceFormat string
+
+const (
+	InvoiceSummarySourceFormatCsv  InvoiceSummarySourceFormat = "csv"
+	InvoiceSummarySourceFormatXlsx InvoiceSummarySourceFormat = "xlsx"
+	InvoiceSummarySourceFormatPdf  InvoiceSummarySourceFormat = "pdf"
+	InvoiceSummarySourceFormatDocx InvoiceSummarySourceFormat = "docx"
+)
+
+func NewInvoiceSummarySourceFormatFromString(s string) (InvoiceSummarySourceFormat, error) {
+	switch s {
+	case "csv":
+		return InvoiceSummarySourceFormatCsv, nil
+	case "xlsx":
+		return InvoiceSummarySourceFormatXlsx, nil
+	case "pdf":
+		return InvoiceSummarySourceFormatPdf, nil
+	case "docx":
+		return InvoiceSummarySourceFormatDocx, nil
+	}
+	var t InvoiceSummarySourceFormat
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (i InvoiceSummarySourceFormat) Ptr() *InvoiceSummarySourceFormat {
+	return &i
+}
+
+// reading until the file is read, then extracted (waiting for review) or failed
+type InvoiceSummaryStatus string
+
+const (
+	InvoiceSummaryStatusReading    InvoiceSummaryStatus = "reading"
+	InvoiceSummaryStatusExtracted  InvoiceSummaryStatus = "extracted"
+	InvoiceSummaryStatusFailed     InvoiceSummaryStatus = "failed"
+	InvoiceSummaryStatusConfirmed  InvoiceSummaryStatus = "confirmed"
+	InvoiceSummaryStatusRejected   InvoiceSummaryStatus = "rejected"
+	InvoiceSummaryStatusSuperseded InvoiceSummaryStatus = "superseded"
+)
+
+func NewInvoiceSummaryStatusFromString(s string) (InvoiceSummaryStatus, error) {
+	switch s {
+	case "reading":
+		return InvoiceSummaryStatusReading, nil
+	case "extracted":
+		return InvoiceSummaryStatusExtracted, nil
+	case "failed":
+		return InvoiceSummaryStatusFailed, nil
+	case "confirmed":
+		return InvoiceSummaryStatusConfirmed, nil
+	case "rejected":
+		return InvoiceSummaryStatusRejected, nil
+	case "superseded":
+		return InvoiceSummaryStatusSuperseded, nil
+	}
+	var t InvoiceSummaryStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (i InvoiceSummaryStatus) Ptr() *InvoiceSummaryStatus {
+	return &i
+}
+
+// Each count opens the workloads list with the jvm_check filter named beside it, over the same window and
+// namespace, and lists as many workloads. A workload counts under the first of signs, reader and unchecked that
+// holds for it, and the workloads none holds for were checked and showed no JVM.
+var (
+	jvmChecksFieldWorkloads = big.NewInt(1 << 0)
+	jvmChecksFieldBySigns   = big.NewInt(1 << 1)
+	jvmChecksFieldByReader  = big.NewInt(1 << 2)
+	jvmChecksFieldReader    = big.NewInt(1 << 3)
+	jvmChecksFieldUnchecked = big.NewInt(1 << 4)
+)
+
+type JvmChecks struct {
+	// The workloads checked for a JVM: every current one, the ones the cluster's latest batch reported, ephemeral ones included, in the namespace when one is named. The workloads list opened with removed=exclude lists them
+	Workloads int `json:"workloads" url:"workloads"`
+	// The ones with a container the agent found to run a JVM, by its spec or by its running pods: a heap source of command, env or unresolved. jvm_check=signs
+	BySigns int `json:"by_signs" url:"by_signs"`
+	// The ones with no such container that the JVM reader measured a JVM in, in a container still in the workload, over the window. jvm_check=reader
+	ByReader int `json:"by_reader" url:"by_reader"`
+	// How many nodes the reader answered on in its latest window; null when it never reported
+	Reader *JvmReaderReach `json:"reader,omitempty" url:"reader,omitempty"`
+	// The ones with neither a sign nor a measurement and no pod on a node the reader answered on in its latest window: none runs (scaled to zero, a CronJob between runs), none has a node yet, or every one runs where the reader has another state or no row. The reader never looked at them, so whether they run a JVM is unknown. jvm_check=unchecked. Null when the reader never reported, since it then checked none. The workloads the three counts leave run a pod where the reader answered and showed no JVM
+	Unchecked *int `json:"unchecked,omitempty" url:"unchecked,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JvmChecks) GetWorkloads() int {
+	if j == nil {
+		return 0
+	}
+	return j.Workloads
+}
+
+func (j *JvmChecks) GetBySigns() int {
+	if j == nil {
+		return 0
+	}
+	return j.BySigns
+}
+
+func (j *JvmChecks) GetByReader() int {
+	if j == nil {
+		return 0
+	}
+	return j.ByReader
+}
+
+func (j *JvmChecks) GetReader() *JvmReaderReach {
+	if j == nil {
+		return nil
+	}
+	return j.Reader
+}
+
+func (j *JvmChecks) GetUnchecked() *int {
+	if j == nil {
+		return nil
+	}
+	return j.Unchecked
+}
+
+func (j *JvmChecks) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
+	return j.extraProperties
+}
+
+func (j *JvmChecks) require(field *big.Int) {
+	if j.explicitFields == nil {
+		j.explicitFields = big.NewInt(0)
+	}
+	j.explicitFields.Or(j.explicitFields, field)
+}
+
+// SetWorkloads sets the Workloads field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmChecks) SetWorkloads(workloads int) {
+	j.Workloads = workloads
+	j.require(jvmChecksFieldWorkloads)
+}
+
+// SetBySigns sets the BySigns field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmChecks) SetBySigns(bySigns int) {
+	j.BySigns = bySigns
+	j.require(jvmChecksFieldBySigns)
+}
+
+// SetByReader sets the ByReader field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmChecks) SetByReader(byReader int) {
+	j.ByReader = byReader
+	j.require(jvmChecksFieldByReader)
+}
+
+// SetReader sets the Reader field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmChecks) SetReader(reader *JvmReaderReach) {
+	j.Reader = reader
+	j.require(jvmChecksFieldReader)
+}
+
+// SetUnchecked sets the Unchecked field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmChecks) SetUnchecked(unchecked *int) {
+	j.Unchecked = unchecked
+	j.require(jvmChecksFieldUnchecked)
+}
+
+func (j *JvmChecks) UnmarshalJSON(data []byte) error {
+	type unmarshaler JvmChecks
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JvmChecks(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JvmChecks) MarshalJSON() ([]byte, error) {
+	type embed JvmChecks
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (j *JvmChecks) String() string {
+	if j == nil {
+		return "<nil>"
+	}
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
+}
+
 // The JVM options the reader found set, as numbers: an option not set is absent. incomplete is true when the JVM
 // cut its record of the options, so a later setting may be missing.
 var (
@@ -38973,6 +42250,7 @@ var (
 	jvmReaderHealthFieldClusterID = big.NewInt(1 << 0)
 	jvmReaderHealthFieldWindowEnd = big.NewInt(1 << 1)
 	jvmReaderHealthFieldNodes     = big.NewInt(1 << 2)
+	jvmReaderHealthFieldJvmChecks = big.NewInt(1 << 3)
 )
 
 type JvmReaderHealth struct {
@@ -38981,6 +42259,8 @@ type JvmReaderHealth struct {
 	WindowEnd *time.Time `json:"window_end,omitempty" url:"window_end,omitempty"`
 	// Each node as that window reported it, by name
 	Nodes []*JvmReaderNodeHealth `json:"nodes" url:"nodes"`
+	// How the current workloads were checked for a JVM
+	JvmChecks *JvmChecks `json:"jvm_checks" url:"jvm_checks"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -39008,6 +42288,13 @@ func (j *JvmReaderHealth) GetNodes() []*JvmReaderNodeHealth {
 		return nil
 	}
 	return j.Nodes
+}
+
+func (j *JvmReaderHealth) GetJvmChecks() *JvmChecks {
+	if j == nil {
+		return nil
+	}
+	return j.JvmChecks
 }
 
 func (j *JvmReaderHealth) GetExtraProperties() map[string]interface{} {
@@ -39043,6 +42330,13 @@ func (j *JvmReaderHealth) SetWindowEnd(windowEnd *time.Time) {
 func (j *JvmReaderHealth) SetNodes(nodes []*JvmReaderNodeHealth) {
 	j.Nodes = nodes
 	j.require(jvmReaderHealthFieldNodes)
+}
+
+// SetJvmChecks sets the JvmChecks field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmReaderHealth) SetJvmChecks(jvmChecks *JvmChecks) {
+	j.JvmChecks = jvmChecks
+	j.require(jvmReaderHealthFieldJvmChecks)
 }
 
 func (j *JvmReaderHealth) UnmarshalJSON(data []byte) error {
@@ -39102,6 +42396,7 @@ var (
 	jvmReaderNodeHealthFieldUnmapped = big.NewInt(1 << 3)
 	jvmReaderNodeHealthFieldMissed   = big.NewInt(1 << 4)
 	jvmReaderNodeHealthFieldHidden   = big.NewInt(1 << 5)
+	jvmReaderNodeHealthFieldReason   = big.NewInt(1 << 6)
 )
 
 type JvmReaderNodeHealth struct {
@@ -39116,6 +42411,8 @@ type JvmReaderNodeHealth struct {
 	Missed map[string]int `json:"missed" url:"missed"`
 	// The processes on the node the kernel would not let it see, in its last sample
 	Hidden int `json:"hidden" url:"hidden"`
+	// On a blocked node, what the API server said refusing the reader's pod: Pod Security's and a quota's words whole, a webhook's name. Null on any other node, and from an agent before 0.8.1
+	Reason *string `json:"reason,omitempty" url:"reason,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -39164,6 +42461,13 @@ func (j *JvmReaderNodeHealth) GetHidden() int {
 		return 0
 	}
 	return j.Hidden
+}
+
+func (j *JvmReaderNodeHealth) GetReason() *string {
+	if j == nil {
+		return nil
+	}
+	return j.Reason
 }
 
 func (j *JvmReaderNodeHealth) GetExtraProperties() map[string]interface{} {
@@ -39220,6 +42524,13 @@ func (j *JvmReaderNodeHealth) SetMissed(missed map[string]int) {
 func (j *JvmReaderNodeHealth) SetHidden(hidden int) {
 	j.Hidden = hidden
 	j.require(jvmReaderNodeHealthFieldHidden)
+}
+
+// SetReason sets the Reason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmReaderNodeHealth) SetReason(reason *string) {
+	j.Reason = reason
+	j.require(jvmReaderNodeHealthFieldReason)
 }
 
 func (j *JvmReaderNodeHealth) UnmarshalJSON(data []byte) error {
@@ -39300,6 +42611,108 @@ func NewJvmReaderNodeHealthStateFromString(s string) (JvmReaderNodeHealthState, 
 
 func (j JvmReaderNodeHealthState) Ptr() *JvmReaderNodeHealthState {
 	return &j
+}
+
+var (
+	jvmReaderReachFieldNodesAnswered = big.NewInt(1 << 0)
+	jvmReaderReachFieldNodes         = big.NewInt(1 << 1)
+)
+
+type JvmReaderReach struct {
+	// The nodes the reader answered on, state ok, in its latest window
+	NodesAnswered int `json:"nodes_answered" url:"nodes_answered"`
+	// Every node that window named
+	Nodes int `json:"nodes" url:"nodes"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (j *JvmReaderReach) GetNodesAnswered() int {
+	if j == nil {
+		return 0
+	}
+	return j.NodesAnswered
+}
+
+func (j *JvmReaderReach) GetNodes() int {
+	if j == nil {
+		return 0
+	}
+	return j.Nodes
+}
+
+func (j *JvmReaderReach) GetExtraProperties() map[string]interface{} {
+	if j == nil {
+		return nil
+	}
+	return j.extraProperties
+}
+
+func (j *JvmReaderReach) require(field *big.Int) {
+	if j.explicitFields == nil {
+		j.explicitFields = big.NewInt(0)
+	}
+	j.explicitFields.Or(j.explicitFields, field)
+}
+
+// SetNodesAnswered sets the NodesAnswered field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmReaderReach) SetNodesAnswered(nodesAnswered int) {
+	j.NodesAnswered = nodesAnswered
+	j.require(jvmReaderReachFieldNodesAnswered)
+}
+
+// SetNodes sets the Nodes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (j *JvmReaderReach) SetNodes(nodes int) {
+	j.Nodes = nodes
+	j.require(jvmReaderReachFieldNodes)
+}
+
+func (j *JvmReaderReach) UnmarshalJSON(data []byte) error {
+	type unmarshaler JvmReaderReach
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*j = JvmReaderReach(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *j)
+	if err != nil {
+		return err
+	}
+	j.extraProperties = extraProperties
+	j.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (j *JvmReaderReach) MarshalJSON() ([]byte, error) {
+	type embed JvmReaderReach
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*j),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, j.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (j *JvmReaderReach) String() string {
+	if j == nil {
+		return "<nil>"
+	}
+	if len(j.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(j.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(j); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", j)
 }
 
 var (
@@ -40414,6 +43827,145 @@ func (k *KroInstanceDetail) MarshalJSON() ([]byte, error) {
 }
 
 func (k *KroInstanceDetail) String() string {
+	if k == nil {
+		return "<nil>"
+	}
+	if len(k.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(k); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", k)
+}
+
+// Whether the cluster's kubelets apply an in-place resize to a container that is not running, such as one crash
+// looping after OOM kills. Before 1.35.9, 1.36.4 and 1.37 the kubelet reports such a resize as done without
+// applying it (kubernetes/kubernetes#138760), so the raise never reaches that container.
+var (
+	kubeletResizeFieldNodes      = big.NewInt(1 << 0)
+	kubeletResizeFieldWithoutFix = big.NewInt(1 << 1)
+	kubeletResizeFieldUnknown    = big.NewInt(1 << 2)
+	kubeletResizeFieldFixedIn    = big.NewInt(1 << 3)
+)
+
+type KubeletResize struct {
+	// The cluster's current nodes, from its last batch
+	Nodes int `json:"nodes" url:"nodes"`
+	// Nodes whose kubelet version is older than the fix in its line
+	WithoutFix int `json:"without_fix" url:"without_fix"`
+	// Nodes whose kubelet version the agent did not report, so it was not checked
+	Unknown int `json:"unknown" url:"unknown"`
+	// The first release of each line with the fix, oldest line first
+	FixedIn []string `json:"fixed_in" url:"fixed_in"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (k *KubeletResize) GetNodes() int {
+	if k == nil {
+		return 0
+	}
+	return k.Nodes
+}
+
+func (k *KubeletResize) GetWithoutFix() int {
+	if k == nil {
+		return 0
+	}
+	return k.WithoutFix
+}
+
+func (k *KubeletResize) GetUnknown() int {
+	if k == nil {
+		return 0
+	}
+	return k.Unknown
+}
+
+func (k *KubeletResize) GetFixedIn() []string {
+	if k == nil {
+		return nil
+	}
+	return k.FixedIn
+}
+
+func (k *KubeletResize) GetExtraProperties() map[string]interface{} {
+	if k == nil {
+		return nil
+	}
+	return k.extraProperties
+}
+
+func (k *KubeletResize) require(field *big.Int) {
+	if k.explicitFields == nil {
+		k.explicitFields = big.NewInt(0)
+	}
+	k.explicitFields.Or(k.explicitFields, field)
+}
+
+// SetNodes sets the Nodes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KubeletResize) SetNodes(nodes int) {
+	k.Nodes = nodes
+	k.require(kubeletResizeFieldNodes)
+}
+
+// SetWithoutFix sets the WithoutFix field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KubeletResize) SetWithoutFix(withoutFix int) {
+	k.WithoutFix = withoutFix
+	k.require(kubeletResizeFieldWithoutFix)
+}
+
+// SetUnknown sets the Unknown field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KubeletResize) SetUnknown(unknown int) {
+	k.Unknown = unknown
+	k.require(kubeletResizeFieldUnknown)
+}
+
+// SetFixedIn sets the FixedIn field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KubeletResize) SetFixedIn(fixedIn []string) {
+	k.FixedIn = fixedIn
+	k.require(kubeletResizeFieldFixedIn)
+}
+
+func (k *KubeletResize) UnmarshalJSON(data []byte) error {
+	type unmarshaler KubeletResize
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*k = KubeletResize(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *k)
+	if err != nil {
+		return err
+	}
+	k.extraProperties = extraProperties
+	k.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (k *KubeletResize) MarshalJSON() ([]byte, error) {
+	type embed KubeletResize
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*k),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, k.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (k *KubeletResize) String() string {
 	if k == nil {
 		return "<nil>"
 	}
@@ -45333,20 +48885,26 @@ func (n *NamespaceListResponse) String() string {
 }
 
 var (
-	namespaceReliabilityFieldOomKills       = big.NewInt(1 << 0)
-	namespaceReliabilityFieldRestarts       = big.NewInt(1 << 1)
-	namespaceReliabilityFieldThrottledHours = big.NewInt(1 << 2)
-	namespaceReliabilityFieldEvictions      = big.NewInt(1 << 3)
-	namespaceReliabilityFieldDrainedPods    = big.NewInt(1 << 4)
-	namespaceReliabilityFieldPendingSeconds = big.NewInt(1 << 5)
-	namespaceReliabilityFieldAtRisk         = big.NewInt(1 << 6)
+	namespaceReliabilityFieldOomKills              = big.NewInt(1 << 0)
+	namespaceReliabilityFieldRestarts              = big.NewInt(1 << 1)
+	namespaceReliabilityFieldThrottledHours        = big.NewInt(1 << 2)
+	namespaceReliabilityFieldThrottleMeasuredHours = big.NewInt(1 << 3)
+	namespaceReliabilityFieldCPULimitedHours       = big.NewInt(1 << 4)
+	namespaceReliabilityFieldEvictions             = big.NewInt(1 << 5)
+	namespaceReliabilityFieldDrainedPods           = big.NewInt(1 << 6)
+	namespaceReliabilityFieldPendingSeconds        = big.NewInt(1 << 7)
+	namespaceReliabilityFieldAtRisk                = big.NewInt(1 << 8)
 )
 
 type NamespaceReliability struct {
 	OomKills *int `json:"oom_kills,omitempty" url:"oom_kills,omitempty"`
 	Restarts *int `json:"restarts,omitempty" url:"restarts,omitempty"`
-	// Container-hours throttled a quarter of the time or more
+	// Container-hours throttled a quarter of the time or more, counted over the hours that carried a throttling figure, and null when none did. Read why from the two counts beside it: throttling was measured when throttle_measured_hours is above 0, no container had a CPU limit when it is not and cpu_limited_hours is 0, and it was not measured otherwise
 	ThrottledHours *int `json:"throttled_hours,omitempty" url:"throttled_hours,omitempty"`
+	// Container-hours that carried a throttling figure. The agent sends one only for a container with a CPU limit whose cAdvisor read worked, and an hour backfilled from Prometheus never carries one. Null when not known: no container day in scope, or every one rolled up before the API counted this
+	ThrottleMeasuredHours *int `json:"throttle_measured_hours,omitempty" url:"throttle_measured_hours,omitempty"`
+	// Container-hours whose pods held a CPU limit. 0 means no container had one, so none could be throttled. Null when not known, as for throttle_measured_hours
+	CPULimitedHours *int `json:"cpu_limited_hours,omitempty" url:"cpu_limited_hours,omitempty"`
 	// Pods the kubelet evicted for node pressure
 	Evictions *int `json:"evictions,omitempty" url:"evictions,omitempty"`
 	// At most the pods moved off a node that a Spot interruption, an instance event or a Karpenter disruption (consolidation, drift, expiry) removed. They leave through the Eviction API, so evictions does not count them. Per removal, each workload counts the most of its pods that ran on the node at once in the hour the removal began, a pod that left the node earlier in that hour included. DaemonSet and static pods go with their node and are not counted, nor is a removal that began while the agent was not watching. A day is measured from agent 0.6.2 on, when every watched hour a removal's pods are read from carries the pods' peaks. Null unless the row's cluster measured every day of the window it reported
@@ -45381,6 +48939,20 @@ func (n *NamespaceReliability) GetThrottledHours() *int {
 		return nil
 	}
 	return n.ThrottledHours
+}
+
+func (n *NamespaceReliability) GetThrottleMeasuredHours() *int {
+	if n == nil {
+		return nil
+	}
+	return n.ThrottleMeasuredHours
+}
+
+func (n *NamespaceReliability) GetCPULimitedHours() *int {
+	if n == nil {
+		return nil
+	}
+	return n.CPULimitedHours
 }
 
 func (n *NamespaceReliability) GetEvictions() *int {
@@ -45444,6 +49016,20 @@ func (n *NamespaceReliability) SetRestarts(restarts *int) {
 func (n *NamespaceReliability) SetThrottledHours(throttledHours *int) {
 	n.ThrottledHours = throttledHours
 	n.require(namespaceReliabilityFieldThrottledHours)
+}
+
+// SetThrottleMeasuredHours sets the ThrottleMeasuredHours field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceReliability) SetThrottleMeasuredHours(throttleMeasuredHours *int) {
+	n.ThrottleMeasuredHours = throttleMeasuredHours
+	n.require(namespaceReliabilityFieldThrottleMeasuredHours)
+}
+
+// SetCPULimitedHours sets the CPULimitedHours field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NamespaceReliability) SetCPULimitedHours(cpuLimitedHours *int) {
+	n.CPULimitedHours = cpuLimitedHours
+	n.require(namespaceReliabilityFieldCPULimitedHours)
 }
 
 // SetEvictions sets the Evictions field and marks it as non-optional;
@@ -48135,6 +51721,7 @@ var (
 	nodeFacetsFieldPurchaseType = big.NewInt(1 << 0)
 	nodeFacetsFieldStatus       = big.NewInt(1 << 1)
 	nodeFacetsFieldState        = big.NewInt(1 << 2)
+	nodeFacetsFieldKubelet      = big.NewInt(1 << 3)
 )
 
 type NodeFacets struct {
@@ -48144,6 +51731,8 @@ type NodeFacets struct {
 	Status []*FacetCount `json:"status,omitempty" url:"status,omitempty"`
 	// current for a node still in the cluster, removed for one gone from it that the list still shows
 	State []*FacetCount `json:"state,omitempty" url:"state,omitempty"`
+	// Nodes still in the cluster by kubelet_fix: fixed, without_fix or unknown
+	Kubelet []*FacetCount `json:"kubelet,omitempty" url:"kubelet,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -48171,6 +51760,13 @@ func (n *NodeFacets) GetState() []*FacetCount {
 		return nil
 	}
 	return n.State
+}
+
+func (n *NodeFacets) GetKubelet() []*FacetCount {
+	if n == nil {
+		return nil
+	}
+	return n.Kubelet
 }
 
 func (n *NodeFacets) GetExtraProperties() map[string]interface{} {
@@ -48206,6 +51802,13 @@ func (n *NodeFacets) SetStatus(status []*FacetCount) {
 func (n *NodeFacets) SetState(state []*FacetCount) {
 	n.State = state
 	n.require(nodeFacetsFieldState)
+}
+
+// SetKubelet sets the Kubelet field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NodeFacets) SetKubelet(kubelet []*FacetCount) {
+	n.Kubelet = kubelet
+	n.require(nodeFacetsFieldKubelet)
 }
 
 func (n *NodeFacets) UnmarshalJSON(data []byte) error {
@@ -48841,54 +52444,55 @@ var (
 	nodeItemFieldName                   = big.NewInt(1 << 0)
 	nodeItemFieldRemoved                = big.NewInt(1 << 1)
 	nodeItemFieldLastSeenAt             = big.NewInt(1 << 2)
-	nodeItemFieldProviderID             = big.NewInt(1 << 3)
-	nodeItemFieldInstanceID             = big.NewInt(1 << 4)
-	nodeItemFieldInstanceType           = big.NewInt(1 << 5)
-	nodeItemFieldZone                   = big.NewInt(1 << 6)
-	nodeItemFieldArch                   = big.NewInt(1 << 7)
-	nodeItemFieldOs                     = big.NewInt(1 << 8)
-	nodeItemFieldReady                  = big.NewInt(1 << 9)
-	nodeItemFieldCreatedAt              = big.NewInt(1 << 10)
-	nodeItemFieldLabels                 = big.NewInt(1 << 11)
-	nodeItemFieldNodePool               = big.NewInt(1 << 12)
-	nodeItemFieldNodeGroup              = big.NewInt(1 << 13)
-	nodeItemFieldCapacityType           = big.NewInt(1 << 14)
-	nodeItemFieldPurchaseType           = big.NewInt(1 << 15)
-	nodeItemFieldCapacity               = big.NewInt(1 << 16)
-	nodeItemFieldAllocatable            = big.NewInt(1 << 17)
-	nodeItemFieldCapacityCPUMilli       = big.NewInt(1 << 18)
-	nodeItemFieldCapacityMemoryBytes    = big.NewInt(1 << 19)
-	nodeItemFieldAllocatableCPUMilli    = big.NewInt(1 << 20)
-	nodeItemFieldAllocatableMemoryBytes = big.NewInt(1 << 21)
-	nodeItemFieldRequestedCPUMilli      = big.NewInt(1 << 22)
-	nodeItemFieldRequestedMemoryBytes   = big.NewInt(1 << 23)
-	nodeItemFieldUsedCPUMilli           = big.NewInt(1 << 24)
-	nodeItemFieldUsedMemoryBytes        = big.NewInt(1 << 25)
-	nodeItemFieldUsedCPUP95Milli        = big.NewInt(1 << 26)
-	nodeItemFieldUsedMemoryP95Bytes     = big.NewInt(1 << 27)
-	nodeItemFieldOverheadCPUMilli       = big.NewInt(1 << 28)
-	nodeItemFieldOverheadMemoryBytes    = big.NewInt(1 << 29)
-	nodeItemFieldHourlyCost             = big.NewInt(1 << 30)
-	nodeItemFieldPeriodCost             = big.NewInt(1 << 31)
-	nodeItemFieldUnpricedHours          = big.NewInt(1 << 32)
-	nodeItemFieldCPUCost                = big.NewInt(1 << 33)
-	nodeItemFieldMemoryCost             = big.NewInt(1 << 34)
-	nodeItemFieldGpuCost                = big.NewInt(1 << 35)
-	nodeItemFieldIdleCost               = big.NewInt(1 << 36)
-	nodeItemFieldIdleShare              = big.NewInt(1 << 37)
-	nodeItemFieldNetworkCost            = big.NewInt(1 << 38)
-	nodeItemFieldNetwork                = big.NewInt(1 << 39)
-	nodeItemFieldPressureHours          = big.NewInt(1 << 40)
-	nodeItemFieldFilesystem             = big.NewInt(1 << 41)
-	nodeItemFieldPids                   = big.NewInt(1 << 42)
-	nodeItemFieldPodCount               = big.NewInt(1 << 43)
-	nodeItemFieldPodSlotsUsed           = big.NewInt(1 << 44)
-	nodeItemFieldTaints                 = big.NewInt(1 << 45)
-	nodeItemFieldUnschedulable          = big.NewInt(1 << 46)
-	nodeItemFieldDeletingSince          = big.NewInt(1 << 47)
-	nodeItemFieldDoNotDisrupt           = big.NewInt(1 << 48)
-	nodeItemFieldBlockingPods           = big.NewInt(1 << 49)
-	nodeItemFieldInterruptedAt          = big.NewInt(1 << 50)
+	nodeItemFieldKubeletFix             = big.NewInt(1 << 3)
+	nodeItemFieldProviderID             = big.NewInt(1 << 4)
+	nodeItemFieldInstanceID             = big.NewInt(1 << 5)
+	nodeItemFieldInstanceType           = big.NewInt(1 << 6)
+	nodeItemFieldZone                   = big.NewInt(1 << 7)
+	nodeItemFieldArch                   = big.NewInt(1 << 8)
+	nodeItemFieldOs                     = big.NewInt(1 << 9)
+	nodeItemFieldReady                  = big.NewInt(1 << 10)
+	nodeItemFieldCreatedAt              = big.NewInt(1 << 11)
+	nodeItemFieldLabels                 = big.NewInt(1 << 12)
+	nodeItemFieldNodePool               = big.NewInt(1 << 13)
+	nodeItemFieldNodeGroup              = big.NewInt(1 << 14)
+	nodeItemFieldCapacityType           = big.NewInt(1 << 15)
+	nodeItemFieldPurchaseType           = big.NewInt(1 << 16)
+	nodeItemFieldCapacity               = big.NewInt(1 << 17)
+	nodeItemFieldAllocatable            = big.NewInt(1 << 18)
+	nodeItemFieldCapacityCPUMilli       = big.NewInt(1 << 19)
+	nodeItemFieldCapacityMemoryBytes    = big.NewInt(1 << 20)
+	nodeItemFieldAllocatableCPUMilli    = big.NewInt(1 << 21)
+	nodeItemFieldAllocatableMemoryBytes = big.NewInt(1 << 22)
+	nodeItemFieldRequestedCPUMilli      = big.NewInt(1 << 23)
+	nodeItemFieldRequestedMemoryBytes   = big.NewInt(1 << 24)
+	nodeItemFieldUsedCPUMilli           = big.NewInt(1 << 25)
+	nodeItemFieldUsedMemoryBytes        = big.NewInt(1 << 26)
+	nodeItemFieldUsedCPUP95Milli        = big.NewInt(1 << 27)
+	nodeItemFieldUsedMemoryP95Bytes     = big.NewInt(1 << 28)
+	nodeItemFieldOverheadCPUMilli       = big.NewInt(1 << 29)
+	nodeItemFieldOverheadMemoryBytes    = big.NewInt(1 << 30)
+	nodeItemFieldHourlyCost             = big.NewInt(1 << 31)
+	nodeItemFieldPeriodCost             = big.NewInt(1 << 32)
+	nodeItemFieldUnpricedHours          = big.NewInt(1 << 33)
+	nodeItemFieldCPUCost                = big.NewInt(1 << 34)
+	nodeItemFieldMemoryCost             = big.NewInt(1 << 35)
+	nodeItemFieldGpuCost                = big.NewInt(1 << 36)
+	nodeItemFieldIdleCost               = big.NewInt(1 << 37)
+	nodeItemFieldIdleShare              = big.NewInt(1 << 38)
+	nodeItemFieldNetworkCost            = big.NewInt(1 << 39)
+	nodeItemFieldNetwork                = big.NewInt(1 << 40)
+	nodeItemFieldPressureHours          = big.NewInt(1 << 41)
+	nodeItemFieldFilesystem             = big.NewInt(1 << 42)
+	nodeItemFieldPids                   = big.NewInt(1 << 43)
+	nodeItemFieldPodCount               = big.NewInt(1 << 44)
+	nodeItemFieldPodSlotsUsed           = big.NewInt(1 << 45)
+	nodeItemFieldTaints                 = big.NewInt(1 << 46)
+	nodeItemFieldUnschedulable          = big.NewInt(1 << 47)
+	nodeItemFieldDeletingSince          = big.NewInt(1 << 48)
+	nodeItemFieldDoNotDisrupt           = big.NewInt(1 << 49)
+	nodeItemFieldBlockingPods           = big.NewInt(1 << 50)
+	nodeItemFieldInterruptedAt          = big.NewInt(1 << 51)
 )
 
 type NodeItem struct {
@@ -48896,13 +52500,15 @@ type NodeItem struct {
 	// No longer in the cluster, listed for its cost in the window
 	Removed *bool `json:"removed,omitempty" url:"removed,omitempty"`
 	// The end of the last batch that listed the node: for a node gone, when LevelFour last saw it
-	LastSeenAt   *time.Time `json:"last_seen_at,omitempty" url:"last_seen_at,omitempty"`
-	ProviderID   *string    `json:"provider_id,omitempty" url:"provider_id,omitempty"`
-	InstanceID   *string    `json:"instance_id,omitempty" url:"instance_id,omitempty"`
-	InstanceType *string    `json:"instance_type,omitempty" url:"instance_type,omitempty"`
-	Zone         *string    `json:"zone,omitempty" url:"zone,omitempty"`
-	Arch         *string    `json:"arch,omitempty" url:"arch,omitempty"`
-	Os           *string    `json:"os,omitempty" url:"os,omitempty"`
+	LastSeenAt *time.Time `json:"last_seen_at,omitempty" url:"last_seen_at,omitempty"`
+	// Whether the node's kubelet applies an in-place resize to a container that is not running (kubernetes#138760, fixed in 1.35.9, 1.36.4 and 1.37): unknown when the agent sent no kubelet version, null for a node gone from the cluster
+	KubeletFix   *NodeItemKubeletFix `json:"kubelet_fix,omitempty" url:"kubelet_fix,omitempty"`
+	ProviderID   *string             `json:"provider_id,omitempty" url:"provider_id,omitempty"`
+	InstanceID   *string             `json:"instance_id,omitempty" url:"instance_id,omitempty"`
+	InstanceType *string             `json:"instance_type,omitempty" url:"instance_type,omitempty"`
+	Zone         *string             `json:"zone,omitempty" url:"zone,omitempty"`
+	Arch         *string             `json:"arch,omitempty" url:"arch,omitempty"`
+	Os           *string             `json:"os,omitempty" url:"os,omitempty"`
 	// Ready in the latest batch; a node gone from the cluster is not
 	Ready     bool              `json:"ready" url:"ready"`
 	CreatedAt *time.Time        `json:"created_at,omitempty" url:"created_at,omitempty"`
@@ -48991,6 +52597,13 @@ func (n *NodeItem) GetLastSeenAt() *time.Time {
 		return nil
 	}
 	return n.LastSeenAt
+}
+
+func (n *NodeItem) GetKubeletFix() *NodeItemKubeletFix {
+	if n == nil {
+		return nil
+	}
+	return n.KubeletFix
 }
 
 func (n *NodeItem) GetProviderID() *string {
@@ -49362,6 +52975,13 @@ func (n *NodeItem) SetRemoved(removed *bool) {
 func (n *NodeItem) SetLastSeenAt(lastSeenAt *time.Time) {
 	n.LastSeenAt = lastSeenAt
 	n.require(nodeItemFieldLastSeenAt)
+}
+
+// SetKubeletFix sets the KubeletFix field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NodeItem) SetKubeletFix(kubeletFix *NodeItemKubeletFix) {
+	n.KubeletFix = kubeletFix
+	n.require(nodeItemFieldKubeletFix)
 }
 
 // SetProviderID sets the ProviderID field and marks it as non-optional;
@@ -49760,6 +53380,31 @@ func (n *NodeItem) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", n)
+}
+
+type NodeItemKubeletFix string
+
+const (
+	NodeItemKubeletFixFixed      NodeItemKubeletFix = "fixed"
+	NodeItemKubeletFixWithoutFix NodeItemKubeletFix = "without_fix"
+	NodeItemKubeletFixUnknown    NodeItemKubeletFix = "unknown"
+)
+
+func NewNodeItemKubeletFixFromString(s string) (NodeItemKubeletFix, error) {
+	switch s {
+	case "fixed":
+		return NodeItemKubeletFixFixed, nil
+	case "without_fix":
+		return NodeItemKubeletFixWithoutFix, nil
+	case "unknown":
+		return NodeItemKubeletFixUnknown, nil
+	}
+	var t NodeItemKubeletFix
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (n NodeItemKubeletFix) Ptr() *NodeItemKubeletFix {
+	return &n
 }
 
 // Spot from its label, else how the bill bought its name's On-Demand capacity on the latest day it ran that the bill priced, else unknown
@@ -54349,7 +57994,7 @@ var (
 type PodPhases struct {
 	// Pods placed on a node, starting ones included: the agent reports no phase
 	Running *int `json:"running,omitempty" url:"running,omitempty"`
-	// Pods no node has taken yet
+	// Pods no node has taken yet at the latest snapshot; the fleet summary's pods_waiting sums the same count over its clusters
 	Pending *int `json:"pending,omitempty" url:"pending,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
@@ -56206,11 +59851,19 @@ var (
 	providerServiceBreakdownItemFieldPurchaseType     = big.NewInt(1 << 12)
 	providerServiceBreakdownItemFieldInstanceType     = big.NewInt(1 << 13)
 	providerServiceBreakdownItemFieldChargeType       = big.NewInt(1 << 14)
-	providerServiceBreakdownItemFieldVirtualTag       = big.NewInt(1 << 15)
-	providerServiceBreakdownItemFieldCost             = big.NewInt(1 << 16)
-	providerServiceBreakdownItemFieldPreviousCost     = big.NewInt(1 << 17)
-	providerServiceBreakdownItemFieldChangePercentage = big.NewInt(1 << 18)
-	providerServiceBreakdownItemFieldSpendingsByDate  = big.NewInt(1 << 19)
+	providerServiceBreakdownItemFieldMeterName        = big.NewInt(1 << 15)
+	providerServiceBreakdownItemFieldMeterSubcategory = big.NewInt(1 << 16)
+	providerServiceBreakdownItemFieldServiceFamily    = big.NewInt(1 << 17)
+	providerServiceBreakdownItemFieldPublisherType    = big.NewInt(1 << 18)
+	providerServiceBreakdownItemFieldBenefitName      = big.NewInt(1 << 19)
+	providerServiceBreakdownItemFieldProduct          = big.NewInt(1 << 20)
+	providerServiceBreakdownItemFieldBillingProfile   = big.NewInt(1 << 21)
+	providerServiceBreakdownItemFieldInvoiceSection   = big.NewInt(1 << 22)
+	providerServiceBreakdownItemFieldVirtualTag       = big.NewInt(1 << 23)
+	providerServiceBreakdownItemFieldCost             = big.NewInt(1 << 24)
+	providerServiceBreakdownItemFieldPreviousCost     = big.NewInt(1 << 25)
+	providerServiceBreakdownItemFieldChangePercentage = big.NewInt(1 << 26)
+	providerServiceBreakdownItemFieldSpendingsByDate  = big.NewInt(1 << 27)
 )
 
 type ProviderServiceBreakdownItem struct {
@@ -56244,6 +59897,22 @@ type ProviderServiceBreakdownItem struct {
 	InstanceType *string `json:"instance_type,omitempty" url:"instance_type,omitempty"`
 	// Charge type (set when grouped by charge_type)
 	ChargeType *string `json:"charge_type,omitempty" url:"charge_type,omitempty"`
+	// Azure meter name, or its id when unnamed (grouped by meter_name)
+	MeterName *string `json:"meter_name,omitempty" url:"meter_name,omitempty"`
+	// Azure meter subcategory (grouped by meter_subcategory)
+	MeterSubcategory *string `json:"meter_subcategory,omitempty" url:"meter_subcategory,omitempty"`
+	// Azure service family (grouped by service_family)
+	ServiceFamily *string `json:"service_family,omitempty" url:"service_family,omitempty"`
+	// Azure publisher type (grouped by publisher_type)
+	PublisherType *string `json:"publisher_type,omitempty" url:"publisher_type,omitempty"`
+	// Azure reservation or savings plan that priced the line (grouped by benefit_name)
+	BenefitName *string `json:"benefit_name,omitempty" url:"benefit_name,omitempty"`
+	// Azure product (grouped by product)
+	Product *string `json:"product,omitempty" url:"product,omitempty"`
+	// Azure billing profile (grouped by billing_profile)
+	BillingProfile *string `json:"billing_profile,omitempty" url:"billing_profile,omitempty"`
+	// Azure invoice section (grouped by invoice_section)
+	InvoiceSection *string `json:"invoice_section,omitempty" url:"invoice_section,omitempty"`
 	// Virtual tag value (set when grouped by virtual_tag). __unallocated__ is cost no config matched
 	VirtualTag *string `json:"virtual_tag,omitempty" url:"virtual_tag,omitempty"`
 	// Current period cost
@@ -56365,6 +60034,62 @@ func (p *ProviderServiceBreakdownItem) GetChargeType() *string {
 		return nil
 	}
 	return p.ChargeType
+}
+
+func (p *ProviderServiceBreakdownItem) GetMeterName() *string {
+	if p == nil {
+		return nil
+	}
+	return p.MeterName
+}
+
+func (p *ProviderServiceBreakdownItem) GetMeterSubcategory() *string {
+	if p == nil {
+		return nil
+	}
+	return p.MeterSubcategory
+}
+
+func (p *ProviderServiceBreakdownItem) GetServiceFamily() *string {
+	if p == nil {
+		return nil
+	}
+	return p.ServiceFamily
+}
+
+func (p *ProviderServiceBreakdownItem) GetPublisherType() *string {
+	if p == nil {
+		return nil
+	}
+	return p.PublisherType
+}
+
+func (p *ProviderServiceBreakdownItem) GetBenefitName() *string {
+	if p == nil {
+		return nil
+	}
+	return p.BenefitName
+}
+
+func (p *ProviderServiceBreakdownItem) GetProduct() *string {
+	if p == nil {
+		return nil
+	}
+	return p.Product
+}
+
+func (p *ProviderServiceBreakdownItem) GetBillingProfile() *string {
+	if p == nil {
+		return nil
+	}
+	return p.BillingProfile
+}
+
+func (p *ProviderServiceBreakdownItem) GetInvoiceSection() *string {
+	if p == nil {
+		return nil
+	}
+	return p.InvoiceSection
 }
 
 func (p *ProviderServiceBreakdownItem) GetVirtualTag() *string {
@@ -56519,6 +60244,62 @@ func (p *ProviderServiceBreakdownItem) SetInstanceType(instanceType *string) {
 func (p *ProviderServiceBreakdownItem) SetChargeType(chargeType *string) {
 	p.ChargeType = chargeType
 	p.require(providerServiceBreakdownItemFieldChargeType)
+}
+
+// SetMeterName sets the MeterName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderServiceBreakdownItem) SetMeterName(meterName *string) {
+	p.MeterName = meterName
+	p.require(providerServiceBreakdownItemFieldMeterName)
+}
+
+// SetMeterSubcategory sets the MeterSubcategory field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderServiceBreakdownItem) SetMeterSubcategory(meterSubcategory *string) {
+	p.MeterSubcategory = meterSubcategory
+	p.require(providerServiceBreakdownItemFieldMeterSubcategory)
+}
+
+// SetServiceFamily sets the ServiceFamily field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderServiceBreakdownItem) SetServiceFamily(serviceFamily *string) {
+	p.ServiceFamily = serviceFamily
+	p.require(providerServiceBreakdownItemFieldServiceFamily)
+}
+
+// SetPublisherType sets the PublisherType field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderServiceBreakdownItem) SetPublisherType(publisherType *string) {
+	p.PublisherType = publisherType
+	p.require(providerServiceBreakdownItemFieldPublisherType)
+}
+
+// SetBenefitName sets the BenefitName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderServiceBreakdownItem) SetBenefitName(benefitName *string) {
+	p.BenefitName = benefitName
+	p.require(providerServiceBreakdownItemFieldBenefitName)
+}
+
+// SetProduct sets the Product field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderServiceBreakdownItem) SetProduct(product *string) {
+	p.Product = product
+	p.require(providerServiceBreakdownItemFieldProduct)
+}
+
+// SetBillingProfile sets the BillingProfile field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderServiceBreakdownItem) SetBillingProfile(billingProfile *string) {
+	p.BillingProfile = billingProfile
+	p.require(providerServiceBreakdownItemFieldBillingProfile)
+}
+
+// SetInvoiceSection sets the InvoiceSection field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderServiceBreakdownItem) SetInvoiceSection(invoiceSection *string) {
+	p.InvoiceSection = invoiceSection
+	p.require(providerServiceBreakdownItemFieldInvoiceSection)
 }
 
 // SetVirtualTag sets the VirtualTag field and marks it as non-optional;
@@ -61168,19 +64949,25 @@ func (r *RegenerateMessage) String() string {
 }
 
 var (
-	reliabilityCountsFieldOomKills       = big.NewInt(1 << 0)
-	reliabilityCountsFieldRestarts       = big.NewInt(1 << 1)
-	reliabilityCountsFieldThrottledHours = big.NewInt(1 << 2)
-	reliabilityCountsFieldEvictions      = big.NewInt(1 << 3)
-	reliabilityCountsFieldDrainedPods    = big.NewInt(1 << 4)
-	reliabilityCountsFieldPendingSeconds = big.NewInt(1 << 5)
+	reliabilityCountsFieldOomKills              = big.NewInt(1 << 0)
+	reliabilityCountsFieldRestarts              = big.NewInt(1 << 1)
+	reliabilityCountsFieldThrottledHours        = big.NewInt(1 << 2)
+	reliabilityCountsFieldThrottleMeasuredHours = big.NewInt(1 << 3)
+	reliabilityCountsFieldCPULimitedHours       = big.NewInt(1 << 4)
+	reliabilityCountsFieldEvictions             = big.NewInt(1 << 5)
+	reliabilityCountsFieldDrainedPods           = big.NewInt(1 << 6)
+	reliabilityCountsFieldPendingSeconds        = big.NewInt(1 << 7)
 )
 
 type ReliabilityCounts struct {
 	OomKills *int `json:"oom_kills,omitempty" url:"oom_kills,omitempty"`
 	Restarts *int `json:"restarts,omitempty" url:"restarts,omitempty"`
-	// Container-hours throttled a quarter of the time or more
+	// Container-hours throttled a quarter of the time or more, counted over the hours that carried a throttling figure, and null when none did. Read why from the two counts beside it: throttling was measured when throttle_measured_hours is above 0, no container had a CPU limit when it is not and cpu_limited_hours is 0, and it was not measured otherwise
 	ThrottledHours *int `json:"throttled_hours,omitempty" url:"throttled_hours,omitempty"`
+	// Container-hours that carried a throttling figure. The agent sends one only for a container with a CPU limit whose cAdvisor read worked, and an hour backfilled from Prometheus never carries one. Null when not known: no container day in scope, or every one rolled up before the API counted this
+	ThrottleMeasuredHours *int `json:"throttle_measured_hours,omitempty" url:"throttle_measured_hours,omitempty"`
+	// Container-hours whose pods held a CPU limit. 0 means no container had one, so none could be throttled. Null when not known, as for throttle_measured_hours
+	CPULimitedHours *int `json:"cpu_limited_hours,omitempty" url:"cpu_limited_hours,omitempty"`
 	// Pods the kubelet evicted for node pressure
 	Evictions *int `json:"evictions,omitempty" url:"evictions,omitempty"`
 	// At most the pods moved off a node that a Spot interruption, an instance event or a Karpenter disruption (consolidation, drift, expiry) removed. They leave through the Eviction API, so evictions does not count them. Per removal, each workload counts the most of its pods that ran on the node at once in the hour the removal began, a pod that left the node earlier in that hour included. DaemonSet and static pods go with their node and are not counted, nor is a removal that began while the agent was not watching. A day is measured from agent 0.6.2 on, when every watched hour a removal's pods are read from carries the pods' peaks. Null unless the row's cluster measured every day of the window it reported
@@ -61213,6 +65000,20 @@ func (r *ReliabilityCounts) GetThrottledHours() *int {
 		return nil
 	}
 	return r.ThrottledHours
+}
+
+func (r *ReliabilityCounts) GetThrottleMeasuredHours() *int {
+	if r == nil {
+		return nil
+	}
+	return r.ThrottleMeasuredHours
+}
+
+func (r *ReliabilityCounts) GetCPULimitedHours() *int {
+	if r == nil {
+		return nil
+	}
+	return r.CPULimitedHours
 }
 
 func (r *ReliabilityCounts) GetEvictions() *int {
@@ -61269,6 +65070,20 @@ func (r *ReliabilityCounts) SetRestarts(restarts *int) {
 func (r *ReliabilityCounts) SetThrottledHours(throttledHours *int) {
 	r.ThrottledHours = throttledHours
 	r.require(reliabilityCountsFieldThrottledHours)
+}
+
+// SetThrottleMeasuredHours sets the ThrottleMeasuredHours field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ReliabilityCounts) SetThrottleMeasuredHours(throttleMeasuredHours *int) {
+	r.ThrottleMeasuredHours = throttleMeasuredHours
+	r.require(reliabilityCountsFieldThrottleMeasuredHours)
+}
+
+// SetCPULimitedHours sets the CPULimitedHours field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ReliabilityCounts) SetCPULimitedHours(cpuLimitedHours *int) {
+	r.CPULimitedHours = cpuLimitedHours
+	r.require(reliabilityCountsFieldCPULimitedHours)
 }
 
 // SetEvictions sets the Evictions field and marks it as non-optional;
@@ -61335,13 +65150,15 @@ func (r *ReliabilityCounts) String() string {
 }
 
 var (
-	reliabilityDayFieldDay             = big.NewInt(1 << 0)
-	reliabilityDayFieldOomKills        = big.NewInt(1 << 1)
-	reliabilityDayFieldRestarts        = big.NewInt(1 << 2)
-	reliabilityDayFieldEvictions       = big.NewInt(1 << 3)
-	reliabilityDayFieldDrainedPods     = big.NewInt(1 << 4)
-	reliabilityDayFieldThrottledHours  = big.NewInt(1 << 5)
-	reliabilityDayFieldPendingPodHours = big.NewInt(1 << 6)
+	reliabilityDayFieldDay                   = big.NewInt(1 << 0)
+	reliabilityDayFieldOomKills              = big.NewInt(1 << 1)
+	reliabilityDayFieldRestarts              = big.NewInt(1 << 2)
+	reliabilityDayFieldEvictions             = big.NewInt(1 << 3)
+	reliabilityDayFieldDrainedPods           = big.NewInt(1 << 4)
+	reliabilityDayFieldThrottledHours        = big.NewInt(1 << 5)
+	reliabilityDayFieldThrottleMeasuredHours = big.NewInt(1 << 6)
+	reliabilityDayFieldCPULimitedHours       = big.NewInt(1 << 7)
+	reliabilityDayFieldPendingPodHours       = big.NewInt(1 << 8)
 )
 
 type ReliabilityDay struct {
@@ -61351,8 +65168,13 @@ type ReliabilityDay struct {
 	Restarts  *int `json:"restarts,omitempty" url:"restarts,omitempty"`
 	Evictions *int `json:"evictions,omitempty" url:"evictions,omitempty"`
 	// At most the pods moved off a node that a Spot interruption, an instance event or a Karpenter disruption (consolidation, drift, expiry) removed. They leave through the Eviction API, so evictions does not count them. Per removal, each workload counts the most of its pods that ran on the node at once in the hour the removal began, a pod that left the node earlier in that hour included. DaemonSet and static pods go with their node and are not counted, nor is a removal that began while the agent was not watching. A day is measured from agent 0.6.2 on, when every watched hour a removal's pods are read from carries the pods' peaks. Null unless every cluster in scope watched that day measured it
-	DrainedPods     *int     `json:"drained_pods,omitempty" url:"drained_pods,omitempty"`
-	ThrottledHours  *int     `json:"throttled_hours,omitempty" url:"throttled_hours,omitempty"`
+	DrainedPods *int `json:"drained_pods,omitempty" url:"drained_pods,omitempty"`
+	// Container-hours throttled a quarter of the time or more, counted over the hours that carried a throttling figure, and null when none did. Read why from the two counts beside it: throttling was measured when throttle_measured_hours is above 0, no container had a CPU limit when it is not and cpu_limited_hours is 0, and it was not measured otherwise. Null too for a day the agent watched none of
+	ThrottledHours *int `json:"throttled_hours,omitempty" url:"throttled_hours,omitempty"`
+	// Container-hours that carried a throttling figure. The agent sends one only for a container with a CPU limit whose cAdvisor read worked, and an hour backfilled from Prometheus never carries one. Null when not known: no container day in scope, or every one rolled up before the API counted this
+	ThrottleMeasuredHours *int `json:"throttle_measured_hours,omitempty" url:"throttle_measured_hours,omitempty"`
+	// Container-hours whose pods held a CPU limit. 0 means no container had one, so none could be throttled. Null when not known, as for throttle_measured_hours
+	CPULimitedHours *int     `json:"cpu_limited_hours,omitempty" url:"cpu_limited_hours,omitempty"`
 	PendingPodHours *float64 `json:"pending_pod_hours,omitempty" url:"pending_pod_hours,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
@@ -61402,6 +65224,20 @@ func (r *ReliabilityDay) GetThrottledHours() *int {
 		return nil
 	}
 	return r.ThrottledHours
+}
+
+func (r *ReliabilityDay) GetThrottleMeasuredHours() *int {
+	if r == nil {
+		return nil
+	}
+	return r.ThrottleMeasuredHours
+}
+
+func (r *ReliabilityDay) GetCPULimitedHours() *int {
+	if r == nil {
+		return nil
+	}
+	return r.CPULimitedHours
 }
 
 func (r *ReliabilityDay) GetPendingPodHours() *float64 {
@@ -61465,6 +65301,20 @@ func (r *ReliabilityDay) SetDrainedPods(drainedPods *int) {
 func (r *ReliabilityDay) SetThrottledHours(throttledHours *int) {
 	r.ThrottledHours = throttledHours
 	r.require(reliabilityDayFieldThrottledHours)
+}
+
+// SetThrottleMeasuredHours sets the ThrottleMeasuredHours field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ReliabilityDay) SetThrottleMeasuredHours(throttleMeasuredHours *int) {
+	r.ThrottleMeasuredHours = throttleMeasuredHours
+	r.require(reliabilityDayFieldThrottleMeasuredHours)
+}
+
+// SetCPULimitedHours sets the CPULimitedHours field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ReliabilityDay) SetCPULimitedHours(cpuLimitedHours *int) {
+	r.CPULimitedHours = cpuLimitedHours
+	r.require(reliabilityDayFieldCPULimitedHours)
 }
 
 // SetPendingPodHours sets the PendingPodHours field and marks it as non-optional;
@@ -61776,6 +65626,7 @@ const (
 	ReliabilityFacetCountValueNoRequests    ReliabilityFacetCountValue = "no_requests"
 	ReliabilityFacetCountValueNoMemoryLimit ReliabilityFacetCountValue = "no_memory_limit"
 	ReliabilityFacetCountValuePending       ReliabilityFacetCountValue = "pending"
+	ReliabilityFacetCountValueWaiting       ReliabilityFacetCountValue = "waiting"
 )
 
 func NewReliabilityFacetCountValueFromString(s string) (ReliabilityFacetCountValue, error) {
@@ -61796,6 +65647,8 @@ func NewReliabilityFacetCountValueFromString(s string) (ReliabilityFacetCountVal
 		return ReliabilityFacetCountValueNoMemoryLimit, nil
 	case "pending":
 		return ReliabilityFacetCountValuePending, nil
+	case "waiting":
+		return ReliabilityFacetCountValueWaiting, nil
 	}
 	var t ReliabilityFacetCountValue
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -62178,22 +66031,28 @@ var (
 	reliabilityTotalsFieldOomKills                  = big.NewInt(1 << 0)
 	reliabilityTotalsFieldRestarts                  = big.NewInt(1 << 1)
 	reliabilityTotalsFieldThrottledHours            = big.NewInt(1 << 2)
-	reliabilityTotalsFieldEvictions                 = big.NewInt(1 << 3)
-	reliabilityTotalsFieldDrainedPods               = big.NewInt(1 << 4)
-	reliabilityTotalsFieldPendingPodHours           = big.NewInt(1 << 5)
-	reliabilityTotalsFieldWorkloadsAtRisk           = big.NewInt(1 << 6)
-	reliabilityTotalsFieldContainersWithoutRequests = big.NewInt(1 << 7)
-	reliabilityTotalsFieldContainersWithoutLimits   = big.NewInt(1 << 8)
-	reliabilityTotalsFieldNoReadyReplica            = big.NewInt(1 << 9)
-	reliabilityTotalsFieldPodsPending               = big.NewInt(1 << 10)
+	reliabilityTotalsFieldThrottleMeasuredHours     = big.NewInt(1 << 3)
+	reliabilityTotalsFieldCPULimitedHours           = big.NewInt(1 << 4)
+	reliabilityTotalsFieldEvictions                 = big.NewInt(1 << 5)
+	reliabilityTotalsFieldDrainedPods               = big.NewInt(1 << 6)
+	reliabilityTotalsFieldPendingPodHours           = big.NewInt(1 << 7)
+	reliabilityTotalsFieldWorkloadsAtRisk           = big.NewInt(1 << 8)
+	reliabilityTotalsFieldContainersWithoutRequests = big.NewInt(1 << 9)
+	reliabilityTotalsFieldContainersWithoutLimits   = big.NewInt(1 << 10)
+	reliabilityTotalsFieldNoReadyReplica            = big.NewInt(1 << 11)
+	reliabilityTotalsFieldPodsPending               = big.NewInt(1 << 12)
 )
 
 type ReliabilityTotals struct {
 	OomKills int `json:"oom_kills" url:"oom_kills"`
 	// Container restarts. Kubernetes counts the restart an OOM kill causes, so they hold every OOM kill that restarted a container: never add oom_kills to them
 	Restarts int `json:"restarts" url:"restarts"`
-	// Container-hours throttled a quarter of the time or more
-	ThrottledHours int `json:"throttled_hours" url:"throttled_hours"`
+	// Container-hours throttled a quarter of the time or more, counted over the hours that carried a throttling figure, and null when none did. Read why from the two counts beside it: throttling was measured when throttle_measured_hours is above 0, no container had a CPU limit when it is not and cpu_limited_hours is 0, and it was not measured otherwise
+	ThrottledHours *int `json:"throttled_hours,omitempty" url:"throttled_hours,omitempty"`
+	// Container-hours that carried a throttling figure. The agent sends one only for a container with a CPU limit whose cAdvisor read worked, and an hour backfilled from Prometheus never carries one. Null when not known: no container day in scope, or every one rolled up before the API counted this
+	ThrottleMeasuredHours *int `json:"throttle_measured_hours,omitempty" url:"throttle_measured_hours,omitempty"`
+	// Container-hours whose pods held a CPU limit. 0 means no container had one, so none could be throttled. Null when not known, as for throttle_measured_hours
+	CPULimitedHours *int `json:"cpu_limited_hours,omitempty" url:"cpu_limited_hours,omitempty"`
 	// Pods the kubelet evicted for node pressure
 	Evictions int `json:"evictions" url:"evictions"`
 	// At most the pods moved off a node that a Spot interruption, an instance event or a Karpenter disruption (consolidation, drift, expiry) removed. They leave through the Eviction API, so evictions does not count them. Per removal, each workload counts the most of its pods that ran on the node at once in the hour the removal began, a pod that left the node earlier in that hour included. DaemonSet and static pods go with their node and are not counted, nor is a removal that began while the agent was not watching. A day is measured from agent 0.6.2 on, when every watched hour a removal's pods are read from carries the pods' peaks. Null unless every day of the window watched measured it, so it never counts part of the window
@@ -62231,11 +66090,25 @@ func (r *ReliabilityTotals) GetRestarts() int {
 	return r.Restarts
 }
 
-func (r *ReliabilityTotals) GetThrottledHours() int {
+func (r *ReliabilityTotals) GetThrottledHours() *int {
 	if r == nil {
-		return 0
+		return nil
 	}
 	return r.ThrottledHours
+}
+
+func (r *ReliabilityTotals) GetThrottleMeasuredHours() *int {
+	if r == nil {
+		return nil
+	}
+	return r.ThrottleMeasuredHours
+}
+
+func (r *ReliabilityTotals) GetCPULimitedHours() *int {
+	if r == nil {
+		return nil
+	}
+	return r.CPULimitedHours
 }
 
 func (r *ReliabilityTotals) GetEvictions() int {
@@ -62324,9 +66197,23 @@ func (r *ReliabilityTotals) SetRestarts(restarts int) {
 
 // SetThrottledHours sets the ThrottledHours field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (r *ReliabilityTotals) SetThrottledHours(throttledHours int) {
+func (r *ReliabilityTotals) SetThrottledHours(throttledHours *int) {
 	r.ThrottledHours = throttledHours
 	r.require(reliabilityTotalsFieldThrottledHours)
+}
+
+// SetThrottleMeasuredHours sets the ThrottleMeasuredHours field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ReliabilityTotals) SetThrottleMeasuredHours(throttleMeasuredHours *int) {
+	r.ThrottleMeasuredHours = throttleMeasuredHours
+	r.require(reliabilityTotalsFieldThrottleMeasuredHours)
+}
+
+// SetCPULimitedHours sets the CPULimitedHours field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ReliabilityTotals) SetCPULimitedHours(cpuLimitedHours *int) {
+	r.CPULimitedHours = cpuLimitedHours
+	r.require(reliabilityTotalsFieldCPULimitedHours)
 }
 
 // SetEvictions sets the Evictions field and marks it as non-optional;
@@ -62988,6 +66875,108 @@ func (r *ReplicaSpan) MarshalJSON() ([]byte, error) {
 }
 
 func (r *ReplicaSpan) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
+}
+
+var (
+	requestAmountsFieldCPUMilli    = big.NewInt(1 << 0)
+	requestAmountsFieldMemoryBytes = big.NewInt(1 << 1)
+)
+
+type RequestAmounts struct {
+	// Millicores, summed over every pod
+	CPUMilli int `json:"cpu_milli" url:"cpu_milli"`
+	// Bytes, summed over every pod
+	MemoryBytes int `json:"memory_bytes" url:"memory_bytes"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RequestAmounts) GetCPUMilli() int {
+	if r == nil {
+		return 0
+	}
+	return r.CPUMilli
+}
+
+func (r *RequestAmounts) GetMemoryBytes() int {
+	if r == nil {
+		return 0
+	}
+	return r.MemoryBytes
+}
+
+func (r *RequestAmounts) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RequestAmounts) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetCPUMilli sets the CPUMilli field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RequestAmounts) SetCPUMilli(cpuMilli int) {
+	r.CPUMilli = cpuMilli
+	r.require(requestAmountsFieldCPUMilli)
+}
+
+// SetMemoryBytes sets the MemoryBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RequestAmounts) SetMemoryBytes(memoryBytes int) {
+	r.MemoryBytes = memoryBytes
+	r.require(requestAmountsFieldMemoryBytes)
+}
+
+func (r *RequestAmounts) UnmarshalJSON(data []byte) error {
+	type unmarshaler RequestAmounts
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = RequestAmounts(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RequestAmounts) MarshalJSON() ([]byte, error) {
+	type embed RequestAmounts
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RequestAmounts) String() string {
 	if r == nil {
 		return "<nil>"
 	}
@@ -64120,10 +68109,11 @@ var (
 	resourceItemFieldListPriceMonthlyUsd = big.NewInt(1 << 12)
 	resourceItemFieldMonthToDateCostUsd  = big.NewInt(1 << 13)
 	resourceItemFieldLastMonthCostUsd    = big.NewInt(1 << 14)
-	resourceItemFieldCreatedAtProvider   = big.NewInt(1 << 15)
-	resourceItemFieldFirstSeenAt         = big.NewInt(1 << 16)
-	resourceItemFieldLastSeenAt          = big.NewInt(1 << 17)
-	resourceItemFieldRemovedAt           = big.NewInt(1 << 18)
+	resourceItemFieldCostBasis           = big.NewInt(1 << 15)
+	resourceItemFieldCreatedAtProvider   = big.NewInt(1 << 16)
+	resourceItemFieldFirstSeenAt         = big.NewInt(1 << 17)
+	resourceItemFieldLastSeenAt          = big.NewInt(1 << 18)
+	resourceItemFieldRemovedAt           = big.NewInt(1 << 19)
 )
 
 type ResourceItem struct {
@@ -64143,13 +68133,15 @@ type ResourceItem struct {
 	Attributes  map[string]*ResourceItemAttributesValue `json:"attributes,omitempty" url:"attributes,omitempty"`
 	// Estimate from the provider's list prices, not what was billed
 	ListPriceMonthlyUsd *float64 `json:"list_price_monthly_usd,omitempty" url:"list_price_monthly_usd,omitempty"`
-	// Invoice line items for this resource so far
+	// Invoice line items for this resource so far, or its list-price estimate where a CSP partner keeps the subscription's cost (cost_basis says which)
 	MonthToDateCostUsd *float64 `json:"month_to_date_cost_usd,omitempty" url:"month_to_date_cost_usd,omitempty"`
-	// Invoice line items for this resource last month
-	LastMonthCostUsd  *float64   `json:"last_month_cost_usd,omitempty" url:"last_month_cost_usd,omitempty"`
-	CreatedAtProvider *time.Time `json:"created_at_provider,omitempty" url:"created_at_provider,omitempty"`
-	FirstSeenAt       time.Time  `json:"first_seen_at" url:"first_seen_at"`
-	LastSeenAt        time.Time  `json:"last_seen_at" url:"last_seen_at"`
+	// Invoice line items for this resource last month, or its list-price estimate
+	LastMonthCostUsd *float64 `json:"last_month_cost_usd,omitempty" url:"last_month_cost_usd,omitempty"`
+	// billed when the costs are the bill's, estimate when either month is Microsoft's list price because a partner keeps the cost, null when no cost is attributed
+	CostBasis         *ResourceItemCostBasis `json:"cost_basis,omitempty" url:"cost_basis,omitempty"`
+	CreatedAtProvider *time.Time             `json:"created_at_provider,omitempty" url:"created_at_provider,omitempty"`
+	FirstSeenAt       time.Time              `json:"first_seen_at" url:"first_seen_at"`
+	LastSeenAt        time.Time              `json:"last_seen_at" url:"last_seen_at"`
 	// When the resource stopped appearing in the listing
 	RemovedAt *time.Time `json:"removed_at,omitempty" url:"removed_at,omitempty"`
 
@@ -64263,6 +68255,13 @@ func (r *ResourceItem) GetLastMonthCostUsd() *float64 {
 		return nil
 	}
 	return r.LastMonthCostUsd
+}
+
+func (r *ResourceItem) GetCostBasis() *ResourceItemCostBasis {
+	if r == nil {
+		return nil
+	}
+	return r.CostBasis
 }
 
 func (r *ResourceItem) GetCreatedAtProvider() *time.Time {
@@ -64410,6 +68409,13 @@ func (r *ResourceItem) SetMonthToDateCostUsd(monthToDateCostUsd *float64) {
 func (r *ResourceItem) SetLastMonthCostUsd(lastMonthCostUsd *float64) {
 	r.LastMonthCostUsd = lastMonthCostUsd
 	r.require(resourceItemFieldLastMonthCostUsd)
+}
+
+// SetCostBasis sets the CostBasis field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceItem) SetCostBasis(costBasis *ResourceItemCostBasis) {
+	r.CostBasis = costBasis
+	r.require(resourceItemFieldCostBasis)
 }
 
 // SetCreatedAtProvider sets the CreatedAtProvider field and marks it as non-optional;
@@ -64604,6 +68610,28 @@ func (r *ResourceItemAttributesValue) Accept(visitor ResourceItemAttributesValue
 		return visitor.VisitBoolean(r.Boolean)
 	}
 	return fmt.Errorf("type %T does not include a non-empty union type", r)
+}
+
+type ResourceItemCostBasis string
+
+const (
+	ResourceItemCostBasisBilled   ResourceItemCostBasis = "billed"
+	ResourceItemCostBasisEstimate ResourceItemCostBasis = "estimate"
+)
+
+func NewResourceItemCostBasisFromString(s string) (ResourceItemCostBasis, error) {
+	switch s {
+	case "billed":
+		return ResourceItemCostBasisBilled, nil
+	case "estimate":
+		return ResourceItemCostBasisEstimate, nil
+	}
+	var t ResourceItemCostBasis
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (r ResourceItemCostBasis) Ptr() *ResourceItemCostBasis {
+	return &r
 }
 
 var (
@@ -65528,12 +69556,15 @@ var (
 	resourceTotalsFieldListPriceMonthlyUsd = big.NewInt(1 << 0)
 	resourceTotalsFieldMonthToDateCostUsd  = big.NewInt(1 << 1)
 	resourceTotalsFieldLastMonthCostUsd    = big.NewInt(1 << 2)
+	resourceTotalsFieldCostBasis           = big.NewInt(1 << 3)
 )
 
 type ResourceTotals struct {
 	ListPriceMonthlyUsd float64 `json:"list_price_monthly_usd" url:"list_price_monthly_usd"`
 	MonthToDateCostUsd  float64 `json:"month_to_date_cost_usd" url:"month_to_date_cost_usd"`
 	LastMonthCostUsd    float64 `json:"last_month_cost_usd" url:"last_month_cost_usd"`
+	// estimate when any resource in the totals carries an estimate, billed when none does
+	CostBasis *ResourceTotalsCostBasis `json:"cost_basis,omitempty" url:"cost_basis,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -65561,6 +69592,13 @@ func (r *ResourceTotals) GetLastMonthCostUsd() float64 {
 		return 0
 	}
 	return r.LastMonthCostUsd
+}
+
+func (r *ResourceTotals) GetCostBasis() *ResourceTotalsCostBasis {
+	if r == nil {
+		return nil
+	}
+	return r.CostBasis
 }
 
 func (r *ResourceTotals) GetExtraProperties() map[string]interface{} {
@@ -65596,6 +69634,13 @@ func (r *ResourceTotals) SetMonthToDateCostUsd(monthToDateCostUsd float64) {
 func (r *ResourceTotals) SetLastMonthCostUsd(lastMonthCostUsd float64) {
 	r.LastMonthCostUsd = lastMonthCostUsd
 	r.require(resourceTotalsFieldLastMonthCostUsd)
+}
+
+// SetCostBasis sets the CostBasis field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ResourceTotals) SetCostBasis(costBasis *ResourceTotalsCostBasis) {
+	r.CostBasis = costBasis
+	r.require(resourceTotalsFieldCostBasis)
 }
 
 func (r *ResourceTotals) UnmarshalJSON(data []byte) error {
@@ -65638,6 +69683,28 @@ func (r *ResourceTotals) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", r)
+}
+
+type ResourceTotalsCostBasis string
+
+const (
+	ResourceTotalsCostBasisBilled   ResourceTotalsCostBasis = "billed"
+	ResourceTotalsCostBasisEstimate ResourceTotalsCostBasis = "estimate"
+)
+
+func NewResourceTotalsCostBasisFromString(s string) (ResourceTotalsCostBasis, error) {
+	switch s {
+	case "billed":
+		return ResourceTotalsCostBasisBilled, nil
+	case "estimate":
+		return ResourceTotalsCostBasisEstimate, nil
+	}
+	var t ResourceTotalsCostBasis
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (r ResourceTotalsCostBasis) Ptr() *ResourceTotalsCostBasis {
+	return &r
 }
 
 var (
@@ -71598,6 +75665,554 @@ func NewSetWorkloadAutomationRequestModeFromString(s string) (SetWorkloadAutomat
 
 func (s SetWorkloadAutomationRequestMode) Ptr() *SetWorkloadAutomationRequestMode {
 	return &s
+}
+
+var (
+	sizedElsewhereFieldComputedAt        = big.NewInt(1 << 0)
+	sizedElsewhereFieldWorkloads         = big.NewInt(1 << 1)
+	sizedElsewhereFieldNamespaces        = big.NewInt(1 << 2)
+	sizedElsewhereFieldMeasuredWorkloads = big.NewInt(1 << 3)
+	sizedElsewhereFieldCut               = big.NewInt(1 << 4)
+	sizedElsewhereFieldRaised            = big.NewInt(1 << 5)
+	sizedElsewhereFieldBillEffect        = big.NewInt(1 << 6)
+	sizedElsewhereFieldNodesFreed        = big.NewInt(1 << 7)
+	sizedElsewhereFieldPools             = big.NewInt(1 << 8)
+)
+
+type SizedElsewhere struct {
+	// When the daily scan last measured what the held requests free; null before its first run
+	ComputedAt *time.Time `json:"computed_at,omitempty" url:"computed_at,omitempty"`
+	// The current workloads another tool sizes at admission
+	Workloads int `json:"workloads" url:"workloads"`
+	// The namespaces those workloads run in
+	Namespaces int `json:"namespaces" url:"namespaces"`
+	// Of those workloads, the ones the scan measured: running pods in a node pool it could fit
+	MeasuredWorkloads int `json:"measured_workloads" url:"measured_workloads"`
+	// What the tool took off the templates' requests, over every pool
+	Cut *RequestAmounts `json:"cut" url:"cut"`
+	// What it added over the templates' requests, over every pool
+	Raised *RequestAmounts `json:"raised" url:"raised"`
+	// What the cut takes off a month of the bill, over every pool; null until the scan measured one and while any pool it measured is unpriced. Already off the bill, so never part of potential savings
+	BillEffect *CostPair `json:"bill_effect,omitempty" url:"bill_effect,omitempty"`
+	// The nodes the cluster needs fewer than with the templates' requests
+	NodesFreed float64 `json:"nodes_freed" url:"nodes_freed"`
+	// By node pool, the largest bill effect first
+	Pools []*SizedElsewherePool `json:"pools" url:"pools"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SizedElsewhere) GetComputedAt() *time.Time {
+	if s == nil {
+		return nil
+	}
+	return s.ComputedAt
+}
+
+func (s *SizedElsewhere) GetWorkloads() int {
+	if s == nil {
+		return 0
+	}
+	return s.Workloads
+}
+
+func (s *SizedElsewhere) GetNamespaces() int {
+	if s == nil {
+		return 0
+	}
+	return s.Namespaces
+}
+
+func (s *SizedElsewhere) GetMeasuredWorkloads() int {
+	if s == nil {
+		return 0
+	}
+	return s.MeasuredWorkloads
+}
+
+func (s *SizedElsewhere) GetCut() *RequestAmounts {
+	if s == nil {
+		return nil
+	}
+	return s.Cut
+}
+
+func (s *SizedElsewhere) GetRaised() *RequestAmounts {
+	if s == nil {
+		return nil
+	}
+	return s.Raised
+}
+
+func (s *SizedElsewhere) GetBillEffect() *CostPair {
+	if s == nil {
+		return nil
+	}
+	return s.BillEffect
+}
+
+func (s *SizedElsewhere) GetNodesFreed() float64 {
+	if s == nil {
+		return 0
+	}
+	return s.NodesFreed
+}
+
+func (s *SizedElsewhere) GetPools() []*SizedElsewherePool {
+	if s == nil {
+		return nil
+	}
+	return s.Pools
+}
+
+func (s *SizedElsewhere) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *SizedElsewhere) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetComputedAt sets the ComputedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizedElsewhere) SetComputedAt(computedAt *time.Time) {
+	s.ComputedAt = computedAt
+	s.require(sizedElsewhereFieldComputedAt)
+}
+
+// SetWorkloads sets the Workloads field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizedElsewhere) SetWorkloads(workloads int) {
+	s.Workloads = workloads
+	s.require(sizedElsewhereFieldWorkloads)
+}
+
+// SetNamespaces sets the Namespaces field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizedElsewhere) SetNamespaces(namespaces int) {
+	s.Namespaces = namespaces
+	s.require(sizedElsewhereFieldNamespaces)
+}
+
+// SetMeasuredWorkloads sets the MeasuredWorkloads field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizedElsewhere) SetMeasuredWorkloads(measuredWorkloads int) {
+	s.MeasuredWorkloads = measuredWorkloads
+	s.require(sizedElsewhereFieldMeasuredWorkloads)
+}
+
+// SetCut sets the Cut field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizedElsewhere) SetCut(cut *RequestAmounts) {
+	s.Cut = cut
+	s.require(sizedElsewhereFieldCut)
+}
+
+// SetRaised sets the Raised field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizedElsewhere) SetRaised(raised *RequestAmounts) {
+	s.Raised = raised
+	s.require(sizedElsewhereFieldRaised)
+}
+
+// SetBillEffect sets the BillEffect field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizedElsewhere) SetBillEffect(billEffect *CostPair) {
+	s.BillEffect = billEffect
+	s.require(sizedElsewhereFieldBillEffect)
+}
+
+// SetNodesFreed sets the NodesFreed field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizedElsewhere) SetNodesFreed(nodesFreed float64) {
+	s.NodesFreed = nodesFreed
+	s.require(sizedElsewhereFieldNodesFreed)
+}
+
+// SetPools sets the Pools field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizedElsewhere) SetPools(pools []*SizedElsewherePool) {
+	s.Pools = pools
+	s.require(sizedElsewhereFieldPools)
+}
+
+func (s *SizedElsewhere) UnmarshalJSON(data []byte) error {
+	type embed SizedElsewhere
+	var unmarshaler = struct {
+		embed
+		ComputedAt *internal.DateTime `json:"computed_at,omitempty"`
+	}{
+		embed: embed(*s),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*s = SizedElsewhere(unmarshaler.embed)
+	s.ComputedAt = unmarshaler.ComputedAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SizedElsewhere) MarshalJSON() ([]byte, error) {
+	type embed SizedElsewhere
+	var marshaler = struct {
+		embed
+		ComputedAt *internal.DateTime `json:"computed_at,omitempty"`
+	}{
+		embed:      embed(*s),
+		ComputedAt: internal.NewOptionalDateTime(s.ComputedAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *SizedElsewhere) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+var (
+	sizedElsewherePoolFieldNodePool          = big.NewInt(1 << 0)
+	sizedElsewherePoolFieldWorkloads         = big.NewInt(1 << 1)
+	sizedElsewherePoolFieldCut               = big.NewInt(1 << 2)
+	sizedElsewherePoolFieldRaised            = big.NewInt(1 << 3)
+	sizedElsewherePoolFieldBillEffect        = big.NewInt(1 << 4)
+	sizedElsewherePoolFieldNodesFreed        = big.NewInt(1 << 5)
+	sizedElsewherePoolFieldPriced            = big.NewInt(1 << 6)
+	sizedElsewherePoolFieldRequiresScaleDown = big.NewInt(1 << 7)
+)
+
+type SizedElsewherePool struct {
+	NodePool string `json:"node_pool" url:"node_pool"`
+	// The workloads another tool sizes at admission with pods in the pool
+	Workloads int `json:"workloads" url:"workloads"`
+	// What it took off their templates' requests
+	Cut *RequestAmounts `json:"cut" url:"cut"`
+	// What it added over their templates' requests
+	Raised *RequestAmounts `json:"raised" url:"raised"`
+	// A month of the nodes the cut frees, priced at the margin from the bill; null when the bill does not price the pool
+	BillEffect *CostPair `json:"bill_effect,omitempty" url:"bill_effect,omitempty"`
+	// The nodes the pool needs fewer than with the templates' requests
+	NodesFreed float64 `json:"nodes_freed" url:"nodes_freed"`
+	// The bill prices the pool, so bill_effect is set
+	Priced bool `json:"priced" url:"priced"`
+	// A node group no autoscaler shrinks: its freed nodes leave once someone lowers its size
+	RequiresScaleDown bool `json:"requires_scale_down" url:"requires_scale_down"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SizedElsewherePool) GetNodePool() string {
+	if s == nil {
+		return ""
+	}
+	return s.NodePool
+}
+
+func (s *SizedElsewherePool) GetWorkloads() int {
+	if s == nil {
+		return 0
+	}
+	return s.Workloads
+}
+
+func (s *SizedElsewherePool) GetCut() *RequestAmounts {
+	if s == nil {
+		return nil
+	}
+	return s.Cut
+}
+
+func (s *SizedElsewherePool) GetRaised() *RequestAmounts {
+	if s == nil {
+		return nil
+	}
+	return s.Raised
+}
+
+func (s *SizedElsewherePool) GetBillEffect() *CostPair {
+	if s == nil {
+		return nil
+	}
+	return s.BillEffect
+}
+
+func (s *SizedElsewherePool) GetNodesFreed() float64 {
+	if s == nil {
+		return 0
+	}
+	return s.NodesFreed
+}
+
+func (s *SizedElsewherePool) GetPriced() bool {
+	if s == nil {
+		return false
+	}
+	return s.Priced
+}
+
+func (s *SizedElsewherePool) GetRequiresScaleDown() bool {
+	if s == nil {
+		return false
+	}
+	return s.RequiresScaleDown
+}
+
+func (s *SizedElsewherePool) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *SizedElsewherePool) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetNodePool sets the NodePool field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizedElsewherePool) SetNodePool(nodePool string) {
+	s.NodePool = nodePool
+	s.require(sizedElsewherePoolFieldNodePool)
+}
+
+// SetWorkloads sets the Workloads field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizedElsewherePool) SetWorkloads(workloads int) {
+	s.Workloads = workloads
+	s.require(sizedElsewherePoolFieldWorkloads)
+}
+
+// SetCut sets the Cut field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizedElsewherePool) SetCut(cut *RequestAmounts) {
+	s.Cut = cut
+	s.require(sizedElsewherePoolFieldCut)
+}
+
+// SetRaised sets the Raised field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizedElsewherePool) SetRaised(raised *RequestAmounts) {
+	s.Raised = raised
+	s.require(sizedElsewherePoolFieldRaised)
+}
+
+// SetBillEffect sets the BillEffect field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizedElsewherePool) SetBillEffect(billEffect *CostPair) {
+	s.BillEffect = billEffect
+	s.require(sizedElsewherePoolFieldBillEffect)
+}
+
+// SetNodesFreed sets the NodesFreed field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizedElsewherePool) SetNodesFreed(nodesFreed float64) {
+	s.NodesFreed = nodesFreed
+	s.require(sizedElsewherePoolFieldNodesFreed)
+}
+
+// SetPriced sets the Priced field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizedElsewherePool) SetPriced(priced bool) {
+	s.Priced = priced
+	s.require(sizedElsewherePoolFieldPriced)
+}
+
+// SetRequiresScaleDown sets the RequiresScaleDown field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizedElsewherePool) SetRequiresScaleDown(requiresScaleDown bool) {
+	s.RequiresScaleDown = requiresScaleDown
+	s.require(sizedElsewherePoolFieldRequiresScaleDown)
+}
+
+func (s *SizedElsewherePool) UnmarshalJSON(data []byte) error {
+	type unmarshaler SizedElsewherePool
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SizedElsewherePool(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SizedElsewherePool) MarshalJSON() ([]byte, error) {
+	type embed SizedElsewherePool
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *SizedElsewherePool) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+var (
+	sizedElsewhereResponseFieldSuccess   = big.NewInt(1 << 0)
+	sizedElsewhereResponseFieldData      = big.NewInt(1 << 1)
+	sizedElsewhereResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type SizedElsewhereResponse struct {
+	Success   *bool           `json:"success,omitempty" url:"success,omitempty"`
+	Data      *SizedElsewhere `json:"data" url:"data"`
+	Timestamp string          `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SizedElsewhereResponse) GetSuccess() *bool {
+	if s == nil {
+		return nil
+	}
+	return s.Success
+}
+
+func (s *SizedElsewhereResponse) GetData() *SizedElsewhere {
+	if s == nil {
+		return nil
+	}
+	return s.Data
+}
+
+func (s *SizedElsewhereResponse) GetTimestamp() string {
+	if s == nil {
+		return ""
+	}
+	return s.Timestamp
+}
+
+func (s *SizedElsewhereResponse) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *SizedElsewhereResponse) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizedElsewhereResponse) SetSuccess(success *bool) {
+	s.Success = success
+	s.require(sizedElsewhereResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizedElsewhereResponse) SetData(data *SizedElsewhere) {
+	s.Data = data
+	s.require(sizedElsewhereResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizedElsewhereResponse) SetTimestamp(timestamp string) {
+	s.Timestamp = timestamp
+	s.require(sizedElsewhereResponseFieldTimestamp)
+}
+
+func (s *SizedElsewhereResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler SizedElsewhereResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SizedElsewhereResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SizedElsewhereResponse) MarshalJSON() ([]byte, error) {
+	type embed SizedElsewhereResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *SizedElsewhereResponse) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
 }
 
 var (
@@ -81527,6 +86142,404 @@ func (u *UnitCosts) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", u)
+}
+
+var (
+	unmonitoredClusterFieldProvider  = big.NewInt(1 << 0)
+	unmonitoredClusterFieldName      = big.NewInt(1 << 1)
+	unmonitoredClusterFieldAccountID = big.NewInt(1 << 2)
+	unmonitoredClusterFieldRegion    = big.NewInt(1 << 3)
+	unmonitoredClusterFieldSource    = big.NewInt(1 << 4)
+)
+
+type UnmonitoredCluster struct {
+	// aws for an EKS cluster, gcp for a GKE cluster
+	Provider UnmonitoredClusterProvider `json:"provider" url:"provider"`
+	Name     string                     `json:"name" url:"name"`
+	// The AWS account or GCP project the cluster runs in
+	AccountID *string `json:"account_id,omitempty" url:"account_id,omitempty"`
+	Region    *string `json:"region,omitempty" url:"region,omitempty"`
+	// bill when the bill names the cluster (its EKS control plane, or a cost split by pod), inventory when only the GCP inventory does
+	Source UnmonitoredClusterSource `json:"source" url:"source"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (u *UnmonitoredCluster) GetProvider() UnmonitoredClusterProvider {
+	if u == nil {
+		return ""
+	}
+	return u.Provider
+}
+
+func (u *UnmonitoredCluster) GetName() string {
+	if u == nil {
+		return ""
+	}
+	return u.Name
+}
+
+func (u *UnmonitoredCluster) GetAccountID() *string {
+	if u == nil {
+		return nil
+	}
+	return u.AccountID
+}
+
+func (u *UnmonitoredCluster) GetRegion() *string {
+	if u == nil {
+		return nil
+	}
+	return u.Region
+}
+
+func (u *UnmonitoredCluster) GetSource() UnmonitoredClusterSource {
+	if u == nil {
+		return ""
+	}
+	return u.Source
+}
+
+func (u *UnmonitoredCluster) GetExtraProperties() map[string]interface{} {
+	if u == nil {
+		return nil
+	}
+	return u.extraProperties
+}
+
+func (u *UnmonitoredCluster) require(field *big.Int) {
+	if u.explicitFields == nil {
+		u.explicitFields = big.NewInt(0)
+	}
+	u.explicitFields.Or(u.explicitFields, field)
+}
+
+// SetProvider sets the Provider field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UnmonitoredCluster) SetProvider(provider UnmonitoredClusterProvider) {
+	u.Provider = provider
+	u.require(unmonitoredClusterFieldProvider)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UnmonitoredCluster) SetName(name string) {
+	u.Name = name
+	u.require(unmonitoredClusterFieldName)
+}
+
+// SetAccountID sets the AccountID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UnmonitoredCluster) SetAccountID(accountID *string) {
+	u.AccountID = accountID
+	u.require(unmonitoredClusterFieldAccountID)
+}
+
+// SetRegion sets the Region field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UnmonitoredCluster) SetRegion(region *string) {
+	u.Region = region
+	u.require(unmonitoredClusterFieldRegion)
+}
+
+// SetSource sets the Source field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UnmonitoredCluster) SetSource(source UnmonitoredClusterSource) {
+	u.Source = source
+	u.require(unmonitoredClusterFieldSource)
+}
+
+func (u *UnmonitoredCluster) UnmarshalJSON(data []byte) error {
+	type unmarshaler UnmonitoredCluster
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*u = UnmonitoredCluster(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *u)
+	if err != nil {
+		return err
+	}
+	u.extraProperties = extraProperties
+	u.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (u *UnmonitoredCluster) MarshalJSON() ([]byte, error) {
+	type embed UnmonitoredCluster
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*u),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, u.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (u *UnmonitoredCluster) String() string {
+	if u == nil {
+		return "<nil>"
+	}
+	if len(u.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(u); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", u)
+}
+
+var (
+	unmonitoredClusterListFieldItems = big.NewInt(1 << 0)
+)
+
+type UnmonitoredClusterList struct {
+	// The EKS and GKE clusters the tenant runs that no connected agent reports, each once
+	Items []*UnmonitoredCluster `json:"items" url:"items"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (u *UnmonitoredClusterList) GetItems() []*UnmonitoredCluster {
+	if u == nil {
+		return nil
+	}
+	return u.Items
+}
+
+func (u *UnmonitoredClusterList) GetExtraProperties() map[string]interface{} {
+	if u == nil {
+		return nil
+	}
+	return u.extraProperties
+}
+
+func (u *UnmonitoredClusterList) require(field *big.Int) {
+	if u.explicitFields == nil {
+		u.explicitFields = big.NewInt(0)
+	}
+	u.explicitFields.Or(u.explicitFields, field)
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UnmonitoredClusterList) SetItems(items []*UnmonitoredCluster) {
+	u.Items = items
+	u.require(unmonitoredClusterListFieldItems)
+}
+
+func (u *UnmonitoredClusterList) UnmarshalJSON(data []byte) error {
+	type unmarshaler UnmonitoredClusterList
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*u = UnmonitoredClusterList(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *u)
+	if err != nil {
+		return err
+	}
+	u.extraProperties = extraProperties
+	u.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (u *UnmonitoredClusterList) MarshalJSON() ([]byte, error) {
+	type embed UnmonitoredClusterList
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*u),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, u.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (u *UnmonitoredClusterList) String() string {
+	if u == nil {
+		return "<nil>"
+	}
+	if len(u.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(u); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", u)
+}
+
+var (
+	unmonitoredClusterListResponseFieldSuccess   = big.NewInt(1 << 0)
+	unmonitoredClusterListResponseFieldData      = big.NewInt(1 << 1)
+	unmonitoredClusterListResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type UnmonitoredClusterListResponse struct {
+	Success   *bool                   `json:"success,omitempty" url:"success,omitempty"`
+	Data      *UnmonitoredClusterList `json:"data" url:"data"`
+	Timestamp string                  `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (u *UnmonitoredClusterListResponse) GetSuccess() *bool {
+	if u == nil {
+		return nil
+	}
+	return u.Success
+}
+
+func (u *UnmonitoredClusterListResponse) GetData() *UnmonitoredClusterList {
+	if u == nil {
+		return nil
+	}
+	return u.Data
+}
+
+func (u *UnmonitoredClusterListResponse) GetTimestamp() string {
+	if u == nil {
+		return ""
+	}
+	return u.Timestamp
+}
+
+func (u *UnmonitoredClusterListResponse) GetExtraProperties() map[string]interface{} {
+	if u == nil {
+		return nil
+	}
+	return u.extraProperties
+}
+
+func (u *UnmonitoredClusterListResponse) require(field *big.Int) {
+	if u.explicitFields == nil {
+		u.explicitFields = big.NewInt(0)
+	}
+	u.explicitFields.Or(u.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UnmonitoredClusterListResponse) SetSuccess(success *bool) {
+	u.Success = success
+	u.require(unmonitoredClusterListResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UnmonitoredClusterListResponse) SetData(data *UnmonitoredClusterList) {
+	u.Data = data
+	u.require(unmonitoredClusterListResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UnmonitoredClusterListResponse) SetTimestamp(timestamp string) {
+	u.Timestamp = timestamp
+	u.require(unmonitoredClusterListResponseFieldTimestamp)
+}
+
+func (u *UnmonitoredClusterListResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler UnmonitoredClusterListResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*u = UnmonitoredClusterListResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *u)
+	if err != nil {
+		return err
+	}
+	u.extraProperties = extraProperties
+	u.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (u *UnmonitoredClusterListResponse) MarshalJSON() ([]byte, error) {
+	type embed UnmonitoredClusterListResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*u),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, u.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (u *UnmonitoredClusterListResponse) String() string {
+	if u == nil {
+		return "<nil>"
+	}
+	if len(u.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(u); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", u)
+}
+
+// aws for an EKS cluster, gcp for a GKE cluster
+type UnmonitoredClusterProvider string
+
+const (
+	UnmonitoredClusterProviderAws UnmonitoredClusterProvider = "aws"
+	UnmonitoredClusterProviderGcp UnmonitoredClusterProvider = "gcp"
+)
+
+func NewUnmonitoredClusterProviderFromString(s string) (UnmonitoredClusterProvider, error) {
+	switch s {
+	case "aws":
+		return UnmonitoredClusterProviderAws, nil
+	case "gcp":
+		return UnmonitoredClusterProviderGcp, nil
+	}
+	var t UnmonitoredClusterProvider
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UnmonitoredClusterProvider) Ptr() *UnmonitoredClusterProvider {
+	return &u
+}
+
+// bill when the bill names the cluster (its EKS control plane, or a cost split by pod), inventory when only the GCP inventory does
+type UnmonitoredClusterSource string
+
+const (
+	UnmonitoredClusterSourceBill      UnmonitoredClusterSource = "bill"
+	UnmonitoredClusterSourceInventory UnmonitoredClusterSource = "inventory"
+)
+
+func NewUnmonitoredClusterSourceFromString(s string) (UnmonitoredClusterSource, error) {
+	switch s {
+	case "bill":
+		return UnmonitoredClusterSourceBill, nil
+	case "inventory":
+		return UnmonitoredClusterSourceInventory, nil
+	}
+	var t UnmonitoredClusterSource
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UnmonitoredClusterSource) Ptr() *UnmonitoredClusterSource {
+	return &u
 }
 
 var (

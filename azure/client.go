@@ -92,6 +92,23 @@ func (c *Client) GetSubscriptions(
 	return response.Body, nil
 }
 
+// Active resources with what they cost this month and last, each from its own bill line, or from Microsoft's list-price estimate for a subscription whose cost a CSP partner keeps. cost_basis says which.
+func (c *Client) GetInventoryBreakdown(
+	ctx context.Context,
+	request *levelfour.GetInventoryBreakdownAPIV1ProvidersAzureInventoryBreakdownGetRequest,
+	opts ...option.RequestOption,
+) (*levelfour.AzureInventoryBreakdownResponse, error) {
+	response, err := c.WithRawResponse.GetInventoryBreakdown(
+		ctx,
+		request,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
 // Each condition is that savings detector's own rule over the inventory. The idle VM and idle SQL rules need a fortnight of metrics and have no signal here, and a count can exceed the open recommendations, which also wait for a dwell and a priced basis.
 func (c *Client) GetWasteSignals(
 	ctx context.Context,

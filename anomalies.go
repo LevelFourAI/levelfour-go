@@ -481,6 +481,7 @@ var (
 	anomalyDetailFieldFeedback         = big.NewInt(1 << 17)
 	anomalyDetailFieldAnomalyStartDate = big.NewInt(1 << 18)
 	anomalyDetailFieldAnomalyEndDate   = big.NewInt(1 << 19)
+	anomalyDetailFieldImpactBasis      = big.NewInt(1 << 20)
 )
 
 type AnomalyDetail struct {
@@ -514,6 +515,8 @@ type AnomalyDetail struct {
 	AnomalyStartDate *string `json:"anomaly_start_date,omitempty" url:"anomaly_start_date,omitempty"`
 	// ISO date string for when the anomaly window closed, from AWS Cost Explorer. Null while the anomaly is still ongoing.
 	AnomalyEndDate *string `json:"anomaly_end_date,omitempty" url:"anomaly_end_date,omitempty"`
+	// billed when the impact is measured on the bill, estimate when it is measured on Microsoft's list price for an Azure subscription whose cost a CSP partner keeps
+	ImpactBasis *AnomalyDetailImpactBasis `json:"impact_basis,omitempty" url:"impact_basis,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -660,6 +663,13 @@ func (a *AnomalyDetail) GetAnomalyEndDate() *string {
 		return nil
 	}
 	return a.AnomalyEndDate
+}
+
+func (a *AnomalyDetail) GetImpactBasis() *AnomalyDetailImpactBasis {
+	if a == nil {
+		return nil
+	}
+	return a.ImpactBasis
 }
 
 func (a *AnomalyDetail) GetExtraProperties() map[string]interface{} {
@@ -816,6 +826,13 @@ func (a *AnomalyDetail) SetAnomalyEndDate(anomalyEndDate *string) {
 	a.require(anomalyDetailFieldAnomalyEndDate)
 }
 
+// SetImpactBasis sets the ImpactBasis field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AnomalyDetail) SetImpactBasis(impactBasis *AnomalyDetailImpactBasis) {
+	a.ImpactBasis = impactBasis
+	a.require(anomalyDetailFieldImpactBasis)
+}
+
 func (a *AnomalyDetail) UnmarshalJSON(data []byte) error {
 	type unmarshaler AnomalyDetail
 	var value unmarshaler
@@ -880,6 +897,29 @@ func NewAnomalyDetailFeedbackFromString(s string) (AnomalyDetailFeedback, error)
 }
 
 func (a AnomalyDetailFeedback) Ptr() *AnomalyDetailFeedback {
+	return &a
+}
+
+// billed when the impact is measured on the bill, estimate when it is measured on Microsoft's list price for an Azure subscription whose cost a CSP partner keeps
+type AnomalyDetailImpactBasis string
+
+const (
+	AnomalyDetailImpactBasisBilled   AnomalyDetailImpactBasis = "billed"
+	AnomalyDetailImpactBasisEstimate AnomalyDetailImpactBasis = "estimate"
+)
+
+func NewAnomalyDetailImpactBasisFromString(s string) (AnomalyDetailImpactBasis, error) {
+	switch s {
+	case "billed":
+		return AnomalyDetailImpactBasisBilled, nil
+	case "estimate":
+		return AnomalyDetailImpactBasisEstimate, nil
+	}
+	var t AnomalyDetailImpactBasis
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AnomalyDetailImpactBasis) Ptr() *AnomalyDetailImpactBasis {
 	return &a
 }
 
@@ -1174,6 +1214,7 @@ var (
 	anomalyListItemFieldAnomalyStartDate = big.NewInt(1 << 16)
 	anomalyListItemFieldAnomalyEndDate   = big.NewInt(1 << 17)
 	anomalyListItemFieldTimestamp        = big.NewInt(1 << 18)
+	anomalyListItemFieldImpactBasis      = big.NewInt(1 << 19)
 )
 
 type AnomalyListItem struct {
@@ -1207,6 +1248,8 @@ type AnomalyListItem struct {
 	// ISO date string for when the anomaly window closed, as reported by AWS Cost Explorer. Null while the anomaly is still ongoing.
 	AnomalyEndDate *string `json:"anomaly_end_date,omitempty" url:"anomaly_end_date,omitempty"`
 	Timestamp      string  `json:"timestamp" url:"timestamp"`
+	// billed when the impact is measured on the bill, estimate when it is measured on Microsoft's list price for an Azure subscription whose cost a CSP partner keeps
+	ImpactBasis *AnomalyListItemImpactBasis `json:"impact_basis,omitempty" url:"impact_basis,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -1346,6 +1389,13 @@ func (a *AnomalyListItem) GetTimestamp() string {
 		return ""
 	}
 	return a.Timestamp
+}
+
+func (a *AnomalyListItem) GetImpactBasis() *AnomalyListItemImpactBasis {
+	if a == nil {
+		return nil
+	}
+	return a.ImpactBasis
 }
 
 func (a *AnomalyListItem) GetExtraProperties() map[string]interface{} {
@@ -1495,6 +1545,13 @@ func (a *AnomalyListItem) SetTimestamp(timestamp string) {
 	a.require(anomalyListItemFieldTimestamp)
 }
 
+// SetImpactBasis sets the ImpactBasis field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AnomalyListItem) SetImpactBasis(impactBasis *AnomalyListItemImpactBasis) {
+	a.ImpactBasis = impactBasis
+	a.require(anomalyListItemFieldImpactBasis)
+}
+
 func (a *AnomalyListItem) UnmarshalJSON(data []byte) error {
 	type unmarshaler AnomalyListItem
 	var value unmarshaler
@@ -1559,6 +1616,29 @@ func NewAnomalyListItemFeedbackFromString(s string) (AnomalyListItemFeedback, er
 }
 
 func (a AnomalyListItemFeedback) Ptr() *AnomalyListItemFeedback {
+	return &a
+}
+
+// billed when the impact is measured on the bill, estimate when it is measured on Microsoft's list price for an Azure subscription whose cost a CSP partner keeps
+type AnomalyListItemImpactBasis string
+
+const (
+	AnomalyListItemImpactBasisBilled   AnomalyListItemImpactBasis = "billed"
+	AnomalyListItemImpactBasisEstimate AnomalyListItemImpactBasis = "estimate"
+)
+
+func NewAnomalyListItemImpactBasisFromString(s string) (AnomalyListItemImpactBasis, error) {
+	switch s {
+	case "billed":
+		return AnomalyListItemImpactBasisBilled, nil
+	case "estimate":
+		return AnomalyListItemImpactBasisEstimate, nil
+	}
+	var t AnomalyListItemImpactBasis
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AnomalyListItemImpactBasis) Ptr() *AnomalyListItemImpactBasis {
 	return &a
 }
 
