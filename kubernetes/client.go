@@ -32,6 +32,21 @@ func NewClient(options *core.RequestOptions) *Client {
 	}
 }
 
+// Answers every organization, with or without the Kubernetes module, so the dashboard can show the module to those who run Kubernetes. In use means a bill carries EKS, GKE or AKS spend in the last 30 days, or an agent cluster reported. Each cloud's cost is the bill's own: its Kubernetes service line plus the nodes the bill ties to a cluster, partial when some could not be tied. Its clusters are the agent clusters plus those GET /v1/k8s/unmonitored-clusters lists for it. It only reads: it never turns the module on.
+func (c *Client) GetKubernetesUsage(
+	ctx context.Context,
+	opts ...option.RequestOption,
+) (*levelfour.KubernetesUsageResponse, error) {
+	response, err := c.WithRawResponse.GetKubernetesUsage(
+		ctx,
+		opts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return response.Body, nil
+}
+
 // Read through the customer's own role every few hours. A cluster LevelFour could not match to an EKS cluster in a connected account, or whose role refused a read, says why in state and reason.
 func (c *Client) GetClusterEks(
 	ctx context.Context,

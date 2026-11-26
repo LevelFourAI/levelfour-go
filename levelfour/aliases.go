@@ -1188,6 +1188,8 @@ type (
 	InvoiceDetailStatus                                                                = rootpkg.InvoiceDetailStatus
 	InvoiceLine                                                                        = rootpkg.InvoiceLine
 	InvoiceLineChargeType                                                              = rootpkg.InvoiceLineChargeType
+	InvoiceLinesPage                                                                   = rootpkg.InvoiceLinesPage
+	InvoiceLinesResponse                                                               = rootpkg.InvoiceLinesResponse
 	InvoiceListResponse                                                                = rootpkg.InvoiceListResponse
 	InvoiceMonth                                                                       = rootpkg.InvoiceMonth
 	InvoiceSummary                                                                     = rootpkg.InvoiceSummary
@@ -1236,6 +1238,11 @@ type (
 	KubernetesRequestInputMetric                                                       = rootpkg.KubernetesRequestInputMetric
 	KubernetesRequestOutput                                                            = rootpkg.KubernetesRequestOutput
 	KubernetesRequestOutputMetric                                                      = rootpkg.KubernetesRequestOutputMetric
+	KubernetesUsage                                                                    = rootpkg.KubernetesUsage
+	KubernetesUsageResponse                                                            = rootpkg.KubernetesUsageResponse
+	KubernetesUsageSource                                                              = rootpkg.KubernetesUsageSource
+	KubernetesUsageSourceCostScope                                                     = rootpkg.KubernetesUsageSourceCostScope
+	KubernetesUsageSourceKind                                                          = rootpkg.KubernetesUsageSourceKind
 	LabelCoverageItem                                                                  = rootpkg.LabelCoverageItem
 	LabelHierarchyItem                                                                 = rootpkg.LabelHierarchyItem
 	LabelHygieneData                                                                   = rootpkg.LabelHygieneData
@@ -1816,6 +1823,8 @@ type (
 	SetNamespaceScopeRequest                                                           = rootpkg.SetNamespaceScopeRequest
 	SetNodePricesRequest                                                               = rootpkg.SetNodePricesRequest
 	SetSizingPolicyRequest                                                             = rootpkg.SetSizingPolicyRequest
+	SetSizingPolicyRequestCPUPolicy                                                    = rootpkg.SetSizingPolicyRequestCPUPolicy
+	SetSizingPolicyRequestMemoryPolicy                                                 = rootpkg.SetSizingPolicyRequestMemoryPolicy
 	SetSizingPolicyRequestPolicy                                                       = rootpkg.SetSizingPolicyRequestPolicy
 	SetTakeoverRequest                                                                 = rootpkg.SetTakeoverRequest
 	SetTakeoverRequestTakeover                                                         = rootpkg.SetTakeoverRequestTakeover
@@ -1831,6 +1840,8 @@ type (
 	SizingPoliciesDefault                                                              = rootpkg.SizingPoliciesDefault
 	SizingPoliciesResponse                                                             = rootpkg.SizingPoliciesResponse
 	SizingPolicy                                                                       = rootpkg.SizingPolicy
+	SizingPolicyCPUPolicy                                                              = rootpkg.SizingPolicyCPUPolicy
+	SizingPolicyMemoryPolicy                                                           = rootpkg.SizingPolicyMemoryPolicy
 	SizingPolicyPolicy                                                                 = rootpkg.SizingPolicyPolicy
 	SizingPolicyResponse                                                               = rootpkg.SizingPolicyResponse
 	SlackAlertChannel                                                                  = rootpkg.SlackAlertChannel
@@ -2534,6 +2545,8 @@ var (
 	NewKroBindingFieldFromString                                                             = rootpkg.NewKroBindingFieldFromString
 	NewKubernetesRequestInputMetricFromString                                                = rootpkg.NewKubernetesRequestInputMetricFromString
 	NewKubernetesRequestOutputMetricFromString                                               = rootpkg.NewKubernetesRequestOutputMetricFromString
+	NewKubernetesUsageSourceCostScopeFromString                                              = rootpkg.NewKubernetesUsageSourceCostScopeFromString
+	NewKubernetesUsageSourceKindFromString                                                   = rootpkg.NewKubernetesUsageSourceKindFromString
 	NewListApmServicesAPIV1ProvidersDatadogApmServicesGetRequestOrderFromString              = rootpkg.NewListApmServicesAPIV1ProvidersDatadogApmServicesGetRequestOrderFromString
 	NewListApmServicesAPIV1ProvidersDatadogApmServicesGetRequestSortFromString               = rootpkg.NewListApmServicesAPIV1ProvidersDatadogApmServicesGetRequestSortFromString
 	NewListAwsResourcesAPIV1ProvidersDatadogAwsResourcesGetRequestOrderFromString            = rootpkg.NewListAwsResourcesAPIV1ProvidersDatadogAwsResourcesGetRequestOrderFromString
@@ -2717,12 +2730,16 @@ var (
 	NewScalingHourKindFromString                                                             = rootpkg.NewScalingHourKindFromString
 	NewSetNamespaceAutomationRequestAutomergeClassesItemFromString                           = rootpkg.NewSetNamespaceAutomationRequestAutomergeClassesItemFromString
 	NewSetNamespaceAutomationRequestModeFromString                                           = rootpkg.NewSetNamespaceAutomationRequestModeFromString
+	NewSetSizingPolicyRequestCPUPolicyFromString                                             = rootpkg.NewSetSizingPolicyRequestCPUPolicyFromString
+	NewSetSizingPolicyRequestMemoryPolicyFromString                                          = rootpkg.NewSetSizingPolicyRequestMemoryPolicyFromString
 	NewSetSizingPolicyRequestPolicyFromString                                                = rootpkg.NewSetSizingPolicyRequestPolicyFromString
 	NewSetTakeoverRequestTakeoverFromString                                                  = rootpkg.NewSetTakeoverRequestTakeoverFromString
 	NewSetWorkloadAutomationRequestModeFromString                                            = rootpkg.NewSetWorkloadAutomationRequestModeFromString
 	NewSizingEvidenceKindFromString                                                          = rootpkg.NewSizingEvidenceKindFromString
 	NewSizingEvidenceResourceFromString                                                      = rootpkg.NewSizingEvidenceResourceFromString
 	NewSizingPoliciesDefaultFromString                                                       = rootpkg.NewSizingPoliciesDefaultFromString
+	NewSizingPolicyCPUPolicyFromString                                                       = rootpkg.NewSizingPolicyCPUPolicyFromString
+	NewSizingPolicyMemoryPolicyFromString                                                    = rootpkg.NewSizingPolicyMemoryPolicyFromString
 	NewSizingPolicyPolicyFromString                                                          = rootpkg.NewSizingPolicyPolicyFromString
 	NewSourceKeyOriginFromString                                                             = rootpkg.NewSourceKeyOriginFromString
 	NewSpendDayCostUnknownReasonFromString                                                   = rootpkg.NewSpendDayCostUnknownReasonFromString

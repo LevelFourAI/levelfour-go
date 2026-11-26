@@ -3622,12 +3622,12 @@ var (
 
 type AutomationEvent struct {
 	EventID string `json:"event_id" url:"event_id"`
-	// What the component reported (revert_finished, with no pod, ends a revert with detail.outcome and its pod counts), what a person changed, or what LevelFour recorded on its own: in_place_ceiling_reached each time a rightsizing walk gets to the most the component sets in place for a request, twice the template's value, while its target is higher, with detail.resource, detail.reached, detail.wanted (the values the workload's spec needs) and detail.recommendation_id, the newest open pull request recommendation for the container, which changes its spec, read with the page, null with none
+	// What the component reported (revert_finished, with no pod, ends a revert with detail.outcome and its pod counts), what a person changed, or what LevelFour recorded on its own: in_place_ceiling_reached each time a rightsizing walk gets to the most the component sets in place for a request, twice the template's value, while its target is higher, with detail.resource, detail.reached, detail.wanted (the values the workload's spec needs) and detail.recommendation_id, the newest open pull request recommendation for the container, which changes its spec, read with the page, null with none; and hard_limit_exceeded each time a walk would take a step that leaves a request or a limit above the install's hard limits, which the component refuses, with the same fields and detail.hard_limit
 	Type string `json:"type" url:"type"`
 	// raise or cut for a step's events by the way it moves the request, rollback for a rollback or revert, settings for what a person changed, other for the rest
 	Category   AutomationEventCategory `json:"category" url:"category"`
 	OccurredAt time.Time               `json:"occurred_at" url:"occurred_at"`
-	// A person's email, levelfour-automation for the component, levelfour for what LevelFour decided on its own (a refusal, the in-place ceiling), or levelfour-takeover (automatic) for a takeover's freeze, whose detail names the admin who marked it
+	// A person's email, levelfour-automation for the component, levelfour for what LevelFour decided on its own (a refusal, the in-place ceiling, the hard limit), or levelfour-takeover (automatic) for a takeover's freeze, whose detail names the admin who marked it
 	Actor        *string           `json:"actor,omitempty" url:"actor,omitempty"`
 	Namespace    *string           `json:"namespace,omitempty" url:"namespace,omitempty"`
 	WorkloadKind *string           `json:"workload_kind,omitempty" url:"workload_kind,omitempty"`
@@ -3640,7 +3640,7 @@ type AutomationEvent struct {
 	Before *ContainerResources `json:"before,omitempty" url:"before,omitempty"`
 	// The values this event left the container on, or would have, on the same reading as before
 	After *ContainerResources `json:"after,omitempty" url:"after,omitempty"`
-	// Why: oom_kills, cpu_throttling or rightsizing_step for a change, the refusal reason for one LevelFour refused, revert for a revert, still_out_of_memory once a raise did not end the OOM kills, the rollback's trigger, in_place_ceiling for a raise the in-place ceiling stopped, or the component's own reason for what it held back or skipped
+	// Why: oom_kills, cpu_throttling or rightsizing_step for a change, the refusal reason for one LevelFour refused, revert for a revert, still_out_of_memory once a raise did not end the OOM kills, the rollback's trigger, in_place_ceiling for a raise the in-place ceiling stopped, hard_limit for a step the install's hard limits stopped, or the component's own reason for what it held back or skipped
 	Reason *string `json:"reason,omitempty" url:"reason,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
@@ -39213,7 +39213,8 @@ var (
 	invoiceDetailFieldReviewReasons      = big.NewInt(1 << 24)
 	invoiceDetailFieldColumnMapping      = big.NewInt(1 << 25)
 	invoiceDetailFieldUnmappedColumns    = big.NewInt(1 << 26)
-	invoiceDetailFieldLines              = big.NewInt(1 << 27)
+	invoiceDetailFieldChargeLineCount    = big.NewInt(1 << 27)
+	invoiceDetailFieldLines              = big.NewInt(1 << 28)
 )
 
 type InvoiceDetail struct {
@@ -39256,7 +39257,9 @@ type InvoiceDetail struct {
 	// Field name to the printed column it was read from
 	ColumnMapping map[string]string `json:"column_mapping" url:"column_mapping"`
 	// Printed columns no field was read from
-	UnmappedColumns []string       `json:"unmapped_columns" url:"unmapped_columns"`
+	UnmappedColumns []string `json:"unmapped_columns" url:"unmapped_columns"`
+	// Lines that are not tax, the ones `lines_total` adds up; `line_count` counts every line
+	ChargeLineCount int            `json:"charge_line_count" url:"charge_line_count"`
 	Lines           []*InvoiceLine `json:"lines" url:"lines"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
@@ -39453,6 +39456,13 @@ func (i *InvoiceDetail) GetUnmappedColumns() []string {
 		return nil
 	}
 	return i.UnmappedColumns
+}
+
+func (i *InvoiceDetail) GetChargeLineCount() int {
+	if i == nil {
+		return 0
+	}
+	return i.ChargeLineCount
 }
 
 func (i *InvoiceDetail) GetLines() []*InvoiceLine {
@@ -39663,6 +39673,13 @@ func (i *InvoiceDetail) SetColumnMapping(columnMapping map[string]string) {
 func (i *InvoiceDetail) SetUnmappedColumns(unmappedColumns []string) {
 	i.UnmappedColumns = unmappedColumns
 	i.require(invoiceDetailFieldUnmappedColumns)
+}
+
+// SetChargeLineCount sets the ChargeLineCount field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceDetail) SetChargeLineCount(chargeLineCount int) {
+	i.ChargeLineCount = chargeLineCount
+	i.require(invoiceDetailFieldChargeLineCount)
 }
 
 // SetLines sets the Lines field and marks it as non-optional;
@@ -40423,6 +40440,232 @@ func NewInvoiceLineChargeTypeFromString(s string) (InvoiceLineChargeType, error)
 
 func (i InvoiceLineChargeType) Ptr() *InvoiceLineChargeType {
 	return &i
+}
+
+var (
+	invoiceLinesPageFieldLines         = big.NewInt(1 << 0)
+	invoiceLinesPageFieldNextAfterLine = big.NewInt(1 << 1)
+)
+
+type InvoiceLinesPage struct {
+	// The lines after `after_line`, in printed order
+	Lines []*InvoiceLine `json:"lines" url:"lines"`
+	// The `after_line` that reads the next page, or null when this page holds the last line
+	NextAfterLine *int `json:"next_after_line,omitempty" url:"next_after_line,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (i *InvoiceLinesPage) GetLines() []*InvoiceLine {
+	if i == nil {
+		return nil
+	}
+	return i.Lines
+}
+
+func (i *InvoiceLinesPage) GetNextAfterLine() *int {
+	if i == nil {
+		return nil
+	}
+	return i.NextAfterLine
+}
+
+func (i *InvoiceLinesPage) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
+	return i.extraProperties
+}
+
+func (i *InvoiceLinesPage) require(field *big.Int) {
+	if i.explicitFields == nil {
+		i.explicitFields = big.NewInt(0)
+	}
+	i.explicitFields.Or(i.explicitFields, field)
+}
+
+// SetLines sets the Lines field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLinesPage) SetLines(lines []*InvoiceLine) {
+	i.Lines = lines
+	i.require(invoiceLinesPageFieldLines)
+}
+
+// SetNextAfterLine sets the NextAfterLine field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLinesPage) SetNextAfterLine(nextAfterLine *int) {
+	i.NextAfterLine = nextAfterLine
+	i.require(invoiceLinesPageFieldNextAfterLine)
+}
+
+func (i *InvoiceLinesPage) UnmarshalJSON(data []byte) error {
+	type unmarshaler InvoiceLinesPage
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*i = InvoiceLinesPage(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *i)
+	if err != nil {
+		return err
+	}
+	i.extraProperties = extraProperties
+	i.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (i *InvoiceLinesPage) MarshalJSON() ([]byte, error) {
+	type embed InvoiceLinesPage
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*i),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (i *InvoiceLinesPage) String() string {
+	if i == nil {
+		return "<nil>"
+	}
+	if len(i.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(i); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", i)
+}
+
+var (
+	invoiceLinesResponseFieldSuccess   = big.NewInt(1 << 0)
+	invoiceLinesResponseFieldTimestamp = big.NewInt(1 << 1)
+	invoiceLinesResponseFieldData      = big.NewInt(1 << 2)
+)
+
+type InvoiceLinesResponse struct {
+	Success   *bool             `json:"success,omitempty" url:"success,omitempty"`
+	Timestamp *time.Time        `json:"timestamp,omitempty" url:"timestamp,omitempty"`
+	Data      *InvoiceLinesPage `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (i *InvoiceLinesResponse) GetSuccess() *bool {
+	if i == nil {
+		return nil
+	}
+	return i.Success
+}
+
+func (i *InvoiceLinesResponse) GetTimestamp() *time.Time {
+	if i == nil {
+		return nil
+	}
+	return i.Timestamp
+}
+
+func (i *InvoiceLinesResponse) GetData() *InvoiceLinesPage {
+	if i == nil {
+		return nil
+	}
+	return i.Data
+}
+
+func (i *InvoiceLinesResponse) GetExtraProperties() map[string]interface{} {
+	if i == nil {
+		return nil
+	}
+	return i.extraProperties
+}
+
+func (i *InvoiceLinesResponse) require(field *big.Int) {
+	if i.explicitFields == nil {
+		i.explicitFields = big.NewInt(0)
+	}
+	i.explicitFields.Or(i.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLinesResponse) SetSuccess(success *bool) {
+	i.Success = success
+	i.require(invoiceLinesResponseFieldSuccess)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLinesResponse) SetTimestamp(timestamp *time.Time) {
+	i.Timestamp = timestamp
+	i.require(invoiceLinesResponseFieldTimestamp)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (i *InvoiceLinesResponse) SetData(data *InvoiceLinesPage) {
+	i.Data = data
+	i.require(invoiceLinesResponseFieldData)
+}
+
+func (i *InvoiceLinesResponse) UnmarshalJSON(data []byte) error {
+	type embed InvoiceLinesResponse
+	var unmarshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed: embed(*i),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*i = InvoiceLinesResponse(unmarshaler.embed)
+	i.Timestamp = unmarshaler.Timestamp.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *i)
+	if err != nil {
+		return err
+	}
+	i.extraProperties = extraProperties
+	i.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (i *InvoiceLinesResponse) MarshalJSON() ([]byte, error) {
+	type embed InvoiceLinesResponse
+	var marshaler = struct {
+		embed
+		Timestamp *internal.DateTime `json:"timestamp,omitempty"`
+	}{
+		embed:     embed(*i),
+		Timestamp: internal.NewOptionalDateTime(i.Timestamp),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, i.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (i *InvoiceLinesResponse) String() string {
+	if i == nil {
+		return "<nil>"
+	}
+	if len(i.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(i.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(i); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", i)
 }
 
 var (
@@ -52062,8 +52305,9 @@ var (
 	nodeHealthDayFieldDiskPressureHours   = big.NewInt(1 << 4)
 	nodeHealthDayFieldPidPressureHours    = big.NewInt(1 << 5)
 	nodeHealthDayFieldEvictions           = big.NewInt(1 << 6)
-	nodeHealthDayFieldPidsRunningMax      = big.NewInt(1 << 7)
-	nodeHealthDayFieldPidLimit            = big.NewInt(1 << 8)
+	nodeHealthDayFieldDrainedPods         = big.NewInt(1 << 7)
+	nodeHealthDayFieldPidsRunningMax      = big.NewInt(1 << 8)
+	nodeHealthDayFieldPidLimit            = big.NewInt(1 << 9)
 )
 
 type NodeHealthDay struct {
@@ -52075,7 +52319,9 @@ type NodeHealthDay struct {
 	DiskPressureHours   float64  `json:"disk_pressure_hours" url:"disk_pressure_hours"`
 	PidPressureHours    float64  `json:"pid_pressure_hours" url:"pid_pressure_hours"`
 	// Pods evicted from the node
-	Evictions      int  `json:"evictions" url:"evictions"`
+	Evictions int `json:"evictions" url:"evictions"`
+	// At most the pods moved off a node that a Spot interruption, an instance event or a Karpenter disruption (consolidation, drift, expiry) removed. They leave through the Eviction API, so evictions does not count them. Per removal, each workload counts the most of its pods that ran on the node at once in the hour the removal began, a pod that left the node earlier in that hour included. DaemonSet and static pods go with their node and are not counted, nor is a removal that began while the agent was not watching. A day is measured from agent 0.6.2 on, when every watched hour a removal's pods are read from carries the pods' peaks. Here the removals of the instance the drawer shows, those that began while it held the name, each counted on the day it began. Null on a day its cluster did not measure, and on a day before the removal events kept are whole: ingest keeps them 90 days, and a day's count also reads the day before it
+	DrainedPods    *int `json:"drained_pods,omitempty" url:"drained_pods,omitempty"`
 	PidsRunningMax *int `json:"pids_running_max,omitempty" url:"pids_running_max,omitempty"`
 	PidLimit       *int `json:"pid_limit,omitempty" url:"pid_limit,omitempty"`
 
@@ -52133,6 +52379,13 @@ func (n *NodeHealthDay) GetEvictions() int {
 		return 0
 	}
 	return n.Evictions
+}
+
+func (n *NodeHealthDay) GetDrainedPods() *int {
+	if n == nil {
+		return nil
+	}
+	return n.DrainedPods
 }
 
 func (n *NodeHealthDay) GetPidsRunningMax() *int {
@@ -52210,6 +52463,13 @@ func (n *NodeHealthDay) SetPidPressureHours(pidPressureHours float64) {
 func (n *NodeHealthDay) SetEvictions(evictions int) {
 	n.Evictions = evictions
 	n.require(nodeHealthDayFieldEvictions)
+}
+
+// SetDrainedPods sets the DrainedPods field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (n *NodeHealthDay) SetDrainedPods(drainedPods *int) {
+	n.DrainedPods = drainedPods
+	n.require(nodeHealthDayFieldDrainedPods)
 }
 
 // SetPidsRunningMax sets the PidsRunningMax field and marks it as non-optional;
@@ -58221,6 +58481,8 @@ var (
 	podsOnNodeFieldZone         = big.NewInt(1 << 3)
 	podsOnNodeFieldCapacityType = big.NewInt(1 << 4)
 	podsOnNodeFieldPurchaseType = big.NewInt(1 << 5)
+	podsOnNodeFieldRunningNow   = big.NewInt(1 << 6)
+	podsOnNodeFieldLastSeen     = big.NewInt(1 << 7)
 )
 
 type PodsOnNode struct {
@@ -58232,6 +58494,10 @@ type PodsOnNode struct {
 	CapacityType *string `json:"capacity_type,omitempty" url:"capacity_type,omitempty"`
 	// From the bill, else the node's label
 	PurchaseType *PodsOnNodePurchaseType `json:"purchase_type,omitempty" url:"purchase_type,omitempty"`
+	// Its pods run on the node in the newest hour the cluster reported, whatever the window
+	RunningNow *bool `json:"running_now,omitempty" url:"running_now,omitempty"`
+	// The last hour in the window its pods ran on the node
+	LastSeen *time.Time `json:"last_seen,omitempty" url:"last_seen,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -58280,6 +58546,20 @@ func (p *PodsOnNode) GetPurchaseType() *PodsOnNodePurchaseType {
 		return nil
 	}
 	return p.PurchaseType
+}
+
+func (p *PodsOnNode) GetRunningNow() *bool {
+	if p == nil {
+		return nil
+	}
+	return p.RunningNow
+}
+
+func (p *PodsOnNode) GetLastSeen() *time.Time {
+	if p == nil {
+		return nil
+	}
+	return p.LastSeen
 }
 
 func (p *PodsOnNode) GetExtraProperties() map[string]interface{} {
@@ -58338,13 +58618,33 @@ func (p *PodsOnNode) SetPurchaseType(purchaseType *PodsOnNodePurchaseType) {
 	p.require(podsOnNodeFieldPurchaseType)
 }
 
+// SetRunningNow sets the RunningNow field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PodsOnNode) SetRunningNow(runningNow *bool) {
+	p.RunningNow = runningNow
+	p.require(podsOnNodeFieldRunningNow)
+}
+
+// SetLastSeen sets the LastSeen field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *PodsOnNode) SetLastSeen(lastSeen *time.Time) {
+	p.LastSeen = lastSeen
+	p.require(podsOnNodeFieldLastSeen)
+}
+
 func (p *PodsOnNode) UnmarshalJSON(data []byte) error {
-	type unmarshaler PodsOnNode
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
+	type embed PodsOnNode
+	var unmarshaler = struct {
+		embed
+		LastSeen *internal.DateTime `json:"last_seen,omitempty"`
+	}{
+		embed: embed(*p),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*p = PodsOnNode(value)
+	*p = PodsOnNode(unmarshaler.embed)
+	p.LastSeen = unmarshaler.LastSeen.TimePtr()
 	extraProperties, err := internal.ExtractExtraProperties(data, *p)
 	if err != nil {
 		return err
@@ -58358,8 +58658,10 @@ func (p *PodsOnNode) MarshalJSON() ([]byte, error) {
 	type embed PodsOnNode
 	var marshaler = struct {
 		embed
+		LastSeen *internal.DateTime `json:"last_seen,omitempty"`
 	}{
-		embed: embed(*p),
+		embed:    embed(*p),
+		LastSeen: internal.NewOptionalDateTime(p.LastSeen),
 	}
 	explicitMarshaler := internal.HandleExplicitFields(marshaler, p.explicitFields)
 	return json.Marshal(explicitMarshaler)
@@ -65375,10 +65677,11 @@ func (r *ReliabilityDay) String() string {
 }
 
 var (
-	reliabilityEventDayFieldDay       = big.NewInt(1 << 0)
-	reliabilityEventDayFieldOomKills  = big.NewInt(1 << 1)
-	reliabilityEventDayFieldRestarts  = big.NewInt(1 << 2)
-	reliabilityEventDayFieldEvictions = big.NewInt(1 << 3)
+	reliabilityEventDayFieldDay         = big.NewInt(1 << 0)
+	reliabilityEventDayFieldOomKills    = big.NewInt(1 << 1)
+	reliabilityEventDayFieldRestarts    = big.NewInt(1 << 2)
+	reliabilityEventDayFieldEvictions   = big.NewInt(1 << 3)
+	reliabilityEventDayFieldDrainedPods = big.NewInt(1 << 4)
 )
 
 type ReliabilityEventDay struct {
@@ -65387,6 +65690,8 @@ type ReliabilityEventDay struct {
 	OomKills  *int `json:"oom_kills,omitempty" url:"oom_kills,omitempty"`
 	Restarts  *int `json:"restarts,omitempty" url:"restarts,omitempty"`
 	Evictions *int `json:"evictions,omitempty" url:"evictions,omitempty"`
+	// At most the pods moved off a node that a Spot interruption, an instance event or a Karpenter disruption (consolidation, drift, expiry) removed. They leave through the Eviction API, so evictions does not count them. Per removal, each workload counts the most of its pods that ran on the node at once in the hour the removal began, a pod that left the node earlier in that hour included. DaemonSet and static pods go with their node and are not counted, nor is a removal that began while the agent was not watching. A day is measured from agent 0.6.2 on, when every watched hour a removal's pods are read from carries the pods' peaks. Null on a day the cluster did not measure it, and for a namespace on a day any cluster in scope did not
+	DrainedPods *int `json:"drained_pods,omitempty" url:"drained_pods,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -65421,6 +65726,13 @@ func (r *ReliabilityEventDay) GetEvictions() *int {
 		return nil
 	}
 	return r.Evictions
+}
+
+func (r *ReliabilityEventDay) GetDrainedPods() *int {
+	if r == nil {
+		return nil
+	}
+	return r.DrainedPods
 }
 
 func (r *ReliabilityEventDay) GetExtraProperties() map[string]interface{} {
@@ -65463,6 +65775,13 @@ func (r *ReliabilityEventDay) SetRestarts(restarts *int) {
 func (r *ReliabilityEventDay) SetEvictions(evictions *int) {
 	r.Evictions = evictions
 	r.require(reliabilityEventDayFieldEvictions)
+}
+
+// SetDrainedPods sets the DrainedPods field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ReliabilityEventDay) SetDrainedPods(drainedPods *int) {
+	r.DrainedPods = drainedPods
+	r.require(reliabilityEventDayFieldDrainedPods)
 }
 
 func (r *ReliabilityEventDay) UnmarshalJSON(data []byte) error {
@@ -65622,6 +65941,7 @@ const (
 	ReliabilityFacetCountValueRestarts      ReliabilityFacetCountValue = "restarts"
 	ReliabilityFacetCountValueThrottled     ReliabilityFacetCountValue = "throttled"
 	ReliabilityFacetCountValueEvictions     ReliabilityFacetCountValue = "evictions"
+	ReliabilityFacetCountValueDrained       ReliabilityFacetCountValue = "drained"
 	ReliabilityFacetCountValueAtRisk        ReliabilityFacetCountValue = "at_risk"
 	ReliabilityFacetCountValueNoRequests    ReliabilityFacetCountValue = "no_requests"
 	ReliabilityFacetCountValueNoMemoryLimit ReliabilityFacetCountValue = "no_memory_limit"
@@ -65639,6 +65959,8 @@ func NewReliabilityFacetCountValueFromString(s string) (ReliabilityFacetCountVal
 		return ReliabilityFacetCountValueThrottled, nil
 	case "evictions":
 		return ReliabilityFacetCountValueEvictions, nil
+	case "drained":
+		return ReliabilityFacetCountValueDrained, nil
 	case "at_risk":
 		return ReliabilityFacetCountValueAtRisk, nil
 	case "no_requests":
@@ -65789,7 +66111,7 @@ type ReliabilityLens struct {
 	Totals     *ReliabilityTotals `json:"totals" url:"totals"`
 	Indicators []*IndicatorCount  `json:"indicators" url:"indicators"`
 	Days       []*ReliabilityDay  `json:"days" url:"days"`
-	// With group_by, each cluster or namespace with an event in the window, most restarts and evictions first, then most OOM kills; a namespace sums across the clusters in scope. Their days add up to days
+	// With group_by, each cluster or namespace with an event shown in the window, most restarts, evictions and drained pods first as its days show them, then most OOM kills; a namespace sums across the clusters in scope. Their OOM kills, restarts and evictions add up to days. Their drained pods do too on a day days counts them; on a day days reads null, a namespace reads null as well, and a cluster that measured the day shows its own count
 	Groups []*ReliabilityGroup `json:"groups,omitempty" url:"groups,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
@@ -75281,14 +75603,21 @@ var (
 	setSizingPolicyRequestFieldWorkloadKind = big.NewInt(1 << 1)
 	setSizingPolicyRequestFieldWorkloadName = big.NewInt(1 << 2)
 	setSizingPolicyRequestFieldPolicy       = big.NewInt(1 << 3)
+	setSizingPolicyRequestFieldCPUPolicy    = big.NewInt(1 << 4)
+	setSizingPolicyRequestFieldMemoryPolicy = big.NewInt(1 << 5)
 )
 
 type SetSizingPolicyRequest struct {
-	Namespace    string  `json:"namespace" url:"namespace"`
+	// Left out for the cluster's default
+	Namespace    *string `json:"namespace,omitempty" url:"namespace,omitempty"`
 	WorkloadKind *string `json:"workload_kind,omitempty" url:"workload_kind,omitempty"`
 	WorkloadName *string `json:"workload_name,omitempty" url:"workload_name,omitempty"`
-	// max_savings sizes CPU from p95 with the least headroom; balanced, the default, sizes CPU from p99 and memory from the peak with headroom from the usage spread; extra_headroom adds 15 points to balanced
-	Policy SetSizingPolicyRequestPolicy `json:"policy" url:"policy"`
+	// CPU's and memory's policy together. max_savings sizes CPU from p95 with the least headroom; balanced, the default, sizes CPU from p99 and memory from the peak with headroom from the usage spread; extra_headroom adds 15 points to balanced and max_headroom 30
+	Policy *SetSizingPolicyRequestPolicy `json:"policy,omitempty" url:"policy,omitempty"`
+	// CPU's own policy, in place of policy. Left out, CPU follows the wider scope
+	CPUPolicy *SetSizingPolicyRequestCPUPolicy `json:"cpu_policy,omitempty" url:"cpu_policy,omitempty"`
+	// Memory's own policy, in place of policy. Left out, memory follows the wider scope
+	MemoryPolicy *SetSizingPolicyRequestMemoryPolicy `json:"memory_policy,omitempty" url:"memory_policy,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -75297,9 +75626,9 @@ type SetSizingPolicyRequest struct {
 	rawJSON         json.RawMessage
 }
 
-func (s *SetSizingPolicyRequest) GetNamespace() string {
+func (s *SetSizingPolicyRequest) GetNamespace() *string {
 	if s == nil {
-		return ""
+		return nil
 	}
 	return s.Namespace
 }
@@ -75318,11 +75647,25 @@ func (s *SetSizingPolicyRequest) GetWorkloadName() *string {
 	return s.WorkloadName
 }
 
-func (s *SetSizingPolicyRequest) GetPolicy() SetSizingPolicyRequestPolicy {
+func (s *SetSizingPolicyRequest) GetPolicy() *SetSizingPolicyRequestPolicy {
 	if s == nil {
-		return ""
+		return nil
 	}
 	return s.Policy
+}
+
+func (s *SetSizingPolicyRequest) GetCPUPolicy() *SetSizingPolicyRequestCPUPolicy {
+	if s == nil {
+		return nil
+	}
+	return s.CPUPolicy
+}
+
+func (s *SetSizingPolicyRequest) GetMemoryPolicy() *SetSizingPolicyRequestMemoryPolicy {
+	if s == nil {
+		return nil
+	}
+	return s.MemoryPolicy
 }
 
 func (s *SetSizingPolicyRequest) GetExtraProperties() map[string]interface{} {
@@ -75341,7 +75684,7 @@ func (s *SetSizingPolicyRequest) require(field *big.Int) {
 
 // SetNamespace sets the Namespace field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (s *SetSizingPolicyRequest) SetNamespace(namespace string) {
+func (s *SetSizingPolicyRequest) SetNamespace(namespace *string) {
 	s.Namespace = namespace
 	s.require(setSizingPolicyRequestFieldNamespace)
 }
@@ -75362,9 +75705,23 @@ func (s *SetSizingPolicyRequest) SetWorkloadName(workloadName *string) {
 
 // SetPolicy sets the Policy field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (s *SetSizingPolicyRequest) SetPolicy(policy SetSizingPolicyRequestPolicy) {
+func (s *SetSizingPolicyRequest) SetPolicy(policy *SetSizingPolicyRequestPolicy) {
 	s.Policy = policy
 	s.require(setSizingPolicyRequestFieldPolicy)
+}
+
+// SetCPUPolicy sets the CPUPolicy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SetSizingPolicyRequest) SetCPUPolicy(cpuPolicy *SetSizingPolicyRequestCPUPolicy) {
+	s.CPUPolicy = cpuPolicy
+	s.require(setSizingPolicyRequestFieldCPUPolicy)
+}
+
+// SetMemoryPolicy sets the MemoryPolicy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SetSizingPolicyRequest) SetMemoryPolicy(memoryPolicy *SetSizingPolicyRequestMemoryPolicy) {
+	s.MemoryPolicy = memoryPolicy
+	s.require(setSizingPolicyRequestFieldMemoryPolicy)
 }
 
 func (s *SetSizingPolicyRequest) UnmarshalJSON(data []byte) error {
@@ -75409,13 +75766,69 @@ func (s *SetSizingPolicyRequest) String() string {
 	return fmt.Sprintf("%#v", s)
 }
 
-// max_savings sizes CPU from p95 with the least headroom; balanced, the default, sizes CPU from p99 and memory from the peak with headroom from the usage spread; extra_headroom adds 15 points to balanced
+type SetSizingPolicyRequestCPUPolicy string
+
+const (
+	SetSizingPolicyRequestCPUPolicyMaxSavings    SetSizingPolicyRequestCPUPolicy = "max_savings"
+	SetSizingPolicyRequestCPUPolicyBalanced      SetSizingPolicyRequestCPUPolicy = "balanced"
+	SetSizingPolicyRequestCPUPolicyExtraHeadroom SetSizingPolicyRequestCPUPolicy = "extra_headroom"
+	SetSizingPolicyRequestCPUPolicyMaxHeadroom   SetSizingPolicyRequestCPUPolicy = "max_headroom"
+)
+
+func NewSetSizingPolicyRequestCPUPolicyFromString(s string) (SetSizingPolicyRequestCPUPolicy, error) {
+	switch s {
+	case "max_savings":
+		return SetSizingPolicyRequestCPUPolicyMaxSavings, nil
+	case "balanced":
+		return SetSizingPolicyRequestCPUPolicyBalanced, nil
+	case "extra_headroom":
+		return SetSizingPolicyRequestCPUPolicyExtraHeadroom, nil
+	case "max_headroom":
+		return SetSizingPolicyRequestCPUPolicyMaxHeadroom, nil
+	}
+	var t SetSizingPolicyRequestCPUPolicy
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SetSizingPolicyRequestCPUPolicy) Ptr() *SetSizingPolicyRequestCPUPolicy {
+	return &s
+}
+
+type SetSizingPolicyRequestMemoryPolicy string
+
+const (
+	SetSizingPolicyRequestMemoryPolicyMaxSavings    SetSizingPolicyRequestMemoryPolicy = "max_savings"
+	SetSizingPolicyRequestMemoryPolicyBalanced      SetSizingPolicyRequestMemoryPolicy = "balanced"
+	SetSizingPolicyRequestMemoryPolicyExtraHeadroom SetSizingPolicyRequestMemoryPolicy = "extra_headroom"
+	SetSizingPolicyRequestMemoryPolicyMaxHeadroom   SetSizingPolicyRequestMemoryPolicy = "max_headroom"
+)
+
+func NewSetSizingPolicyRequestMemoryPolicyFromString(s string) (SetSizingPolicyRequestMemoryPolicy, error) {
+	switch s {
+	case "max_savings":
+		return SetSizingPolicyRequestMemoryPolicyMaxSavings, nil
+	case "balanced":
+		return SetSizingPolicyRequestMemoryPolicyBalanced, nil
+	case "extra_headroom":
+		return SetSizingPolicyRequestMemoryPolicyExtraHeadroom, nil
+	case "max_headroom":
+		return SetSizingPolicyRequestMemoryPolicyMaxHeadroom, nil
+	}
+	var t SetSizingPolicyRequestMemoryPolicy
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SetSizingPolicyRequestMemoryPolicy) Ptr() *SetSizingPolicyRequestMemoryPolicy {
+	return &s
+}
+
 type SetSizingPolicyRequestPolicy string
 
 const (
 	SetSizingPolicyRequestPolicyMaxSavings    SetSizingPolicyRequestPolicy = "max_savings"
 	SetSizingPolicyRequestPolicyBalanced      SetSizingPolicyRequestPolicy = "balanced"
 	SetSizingPolicyRequestPolicyExtraHeadroom SetSizingPolicyRequestPolicy = "extra_headroom"
+	SetSizingPolicyRequestPolicyMaxHeadroom   SetSizingPolicyRequestPolicy = "max_headroom"
 )
 
 func NewSetSizingPolicyRequestPolicyFromString(s string) (SetSizingPolicyRequestPolicy, error) {
@@ -75426,6 +75839,8 @@ func NewSetSizingPolicyRequestPolicyFromString(s string) (SetSizingPolicyRequest
 		return SetSizingPolicyRequestPolicyBalanced, nil
 	case "extra_headroom":
 		return SetSizingPolicyRequestPolicyExtraHeadroom, nil
+	case "max_headroom":
+		return SetSizingPolicyRequestPolicyMaxHeadroom, nil
 	}
 	var t SetSizingPolicyRequestPolicy
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -76467,13 +76882,16 @@ func (s SizingEvidenceResource) Ptr() *SizingEvidenceResource {
 
 var (
 	sizingPoliciesFieldDefault  = big.NewInt(1 << 0)
-	sizingPoliciesFieldPolicies = big.NewInt(1 << 1)
+	sizingPoliciesFieldCluster  = big.NewInt(1 << 1)
+	sizingPoliciesFieldPolicies = big.NewInt(1 << 2)
 )
 
 type SizingPolicies struct {
-	// What a namespace or workload without a policy of its own uses
+	// What CPU and memory use where no scope sets a policy
 	Default SizingPoliciesDefault `json:"default" url:"default"`
-	// A workload's policy wins over its namespace's
+	// The cluster's default, under every namespace and workload policy
+	Cluster *SizingPolicy `json:"cluster,omitempty" url:"cluster,omitempty"`
+	// Namespace and workload policies; a workload's wins over its namespace's, resource by resource
 	Policies []*SizingPolicy `json:"policies" url:"policies"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
@@ -76488,6 +76906,13 @@ func (s *SizingPolicies) GetDefault() SizingPoliciesDefault {
 		return ""
 	}
 	return s.Default
+}
+
+func (s *SizingPolicies) GetCluster() *SizingPolicy {
+	if s == nil {
+		return nil
+	}
+	return s.Cluster
 }
 
 func (s *SizingPolicies) GetPolicies() []*SizingPolicy {
@@ -76516,6 +76941,13 @@ func (s *SizingPolicies) require(field *big.Int) {
 func (s *SizingPolicies) SetDefault(default_ SizingPoliciesDefault) {
 	s.Default = default_
 	s.require(sizingPoliciesFieldDefault)
+}
+
+// SetCluster sets the Cluster field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizingPolicies) SetCluster(cluster *SizingPolicy) {
+	s.Cluster = cluster
+	s.require(sizingPoliciesFieldCluster)
 }
 
 // SetPolicies sets the Policies field and marks it as non-optional;
@@ -76567,13 +76999,14 @@ func (s *SizingPolicies) String() string {
 	return fmt.Sprintf("%#v", s)
 }
 
-// What a namespace or workload without a policy of its own uses
+// What CPU and memory use where no scope sets a policy
 type SizingPoliciesDefault string
 
 const (
 	SizingPoliciesDefaultMaxSavings    SizingPoliciesDefault = "max_savings"
 	SizingPoliciesDefaultBalanced      SizingPoliciesDefault = "balanced"
 	SizingPoliciesDefaultExtraHeadroom SizingPoliciesDefault = "extra_headroom"
+	SizingPoliciesDefaultMaxHeadroom   SizingPoliciesDefault = "max_headroom"
 )
 
 func NewSizingPoliciesDefaultFromString(s string) (SizingPoliciesDefault, error) {
@@ -76584,6 +77017,8 @@ func NewSizingPoliciesDefaultFromString(s string) (SizingPoliciesDefault, error)
 		return SizingPoliciesDefaultBalanced, nil
 	case "extra_headroom":
 		return SizingPoliciesDefaultExtraHeadroom, nil
+	case "max_headroom":
+		return SizingPoliciesDefaultMaxHeadroom, nil
 	}
 	var t SizingPoliciesDefault
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -76714,16 +77149,24 @@ var (
 	sizingPolicyFieldWorkloadKind = big.NewInt(1 << 1)
 	sizingPolicyFieldWorkloadName = big.NewInt(1 << 2)
 	sizingPolicyFieldPolicy       = big.NewInt(1 << 3)
-	sizingPolicyFieldUpdatedBy    = big.NewInt(1 << 4)
-	sizingPolicyFieldUpdatedAt    = big.NewInt(1 << 5)
+	sizingPolicyFieldCPUPolicy    = big.NewInt(1 << 4)
+	sizingPolicyFieldMemoryPolicy = big.NewInt(1 << 5)
+	sizingPolicyFieldUpdatedBy    = big.NewInt(1 << 6)
+	sizingPolicyFieldUpdatedAt    = big.NewInt(1 << 7)
 )
 
 type SizingPolicy struct {
-	Namespace string `json:"namespace" url:"namespace"`
-	// Null for a policy on the whole namespace
-	WorkloadKind *string            `json:"workload_kind,omitempty" url:"workload_kind,omitempty"`
-	WorkloadName *string            `json:"workload_name,omitempty" url:"workload_name,omitempty"`
-	Policy       SizingPolicyPolicy `json:"policy" url:"policy"`
+	// Null for the cluster's default
+	Namespace *string `json:"namespace,omitempty" url:"namespace,omitempty"`
+	// Null for a policy on a whole namespace or the cluster
+	WorkloadKind *string `json:"workload_kind,omitempty" url:"workload_kind,omitempty"`
+	WorkloadName *string `json:"workload_name,omitempty" url:"workload_name,omitempty"`
+	// CPU's and memory's when they share one, otherwise null
+	Policy *SizingPolicyPolicy `json:"policy,omitempty" url:"policy,omitempty"`
+	// Null where CPU follows the wider scope
+	CPUPolicy *SizingPolicyCPUPolicy `json:"cpu_policy,omitempty" url:"cpu_policy,omitempty"`
+	// Null where memory follows the wider scope
+	MemoryPolicy *SizingPolicyMemoryPolicy `json:"memory_policy,omitempty" url:"memory_policy,omitempty"`
 	// Email of the person who set it
 	UpdatedBy string    `json:"updated_by" url:"updated_by"`
 	UpdatedAt time.Time `json:"updated_at" url:"updated_at"`
@@ -76735,9 +77178,9 @@ type SizingPolicy struct {
 	rawJSON         json.RawMessage
 }
 
-func (s *SizingPolicy) GetNamespace() string {
+func (s *SizingPolicy) GetNamespace() *string {
 	if s == nil {
-		return ""
+		return nil
 	}
 	return s.Namespace
 }
@@ -76756,11 +77199,25 @@ func (s *SizingPolicy) GetWorkloadName() *string {
 	return s.WorkloadName
 }
 
-func (s *SizingPolicy) GetPolicy() SizingPolicyPolicy {
+func (s *SizingPolicy) GetPolicy() *SizingPolicyPolicy {
 	if s == nil {
-		return ""
+		return nil
 	}
 	return s.Policy
+}
+
+func (s *SizingPolicy) GetCPUPolicy() *SizingPolicyCPUPolicy {
+	if s == nil {
+		return nil
+	}
+	return s.CPUPolicy
+}
+
+func (s *SizingPolicy) GetMemoryPolicy() *SizingPolicyMemoryPolicy {
+	if s == nil {
+		return nil
+	}
+	return s.MemoryPolicy
 }
 
 func (s *SizingPolicy) GetUpdatedBy() string {
@@ -76793,7 +77250,7 @@ func (s *SizingPolicy) require(field *big.Int) {
 
 // SetNamespace sets the Namespace field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (s *SizingPolicy) SetNamespace(namespace string) {
+func (s *SizingPolicy) SetNamespace(namespace *string) {
 	s.Namespace = namespace
 	s.require(sizingPolicyFieldNamespace)
 }
@@ -76814,9 +77271,23 @@ func (s *SizingPolicy) SetWorkloadName(workloadName *string) {
 
 // SetPolicy sets the Policy field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (s *SizingPolicy) SetPolicy(policy SizingPolicyPolicy) {
+func (s *SizingPolicy) SetPolicy(policy *SizingPolicyPolicy) {
 	s.Policy = policy
 	s.require(sizingPolicyFieldPolicy)
+}
+
+// SetCPUPolicy sets the CPUPolicy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizingPolicy) SetCPUPolicy(cpuPolicy *SizingPolicyCPUPolicy) {
+	s.CPUPolicy = cpuPolicy
+	s.require(sizingPolicyFieldCPUPolicy)
+}
+
+// SetMemoryPolicy sets the MemoryPolicy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizingPolicy) SetMemoryPolicy(memoryPolicy *SizingPolicyMemoryPolicy) {
+	s.MemoryPolicy = memoryPolicy
+	s.require(sizingPolicyFieldMemoryPolicy)
 }
 
 // SetUpdatedBy sets the UpdatedBy field and marks it as non-optional;
@@ -76883,12 +77354,69 @@ func (s *SizingPolicy) String() string {
 	return fmt.Sprintf("%#v", s)
 }
 
+type SizingPolicyCPUPolicy string
+
+const (
+	SizingPolicyCPUPolicyMaxSavings    SizingPolicyCPUPolicy = "max_savings"
+	SizingPolicyCPUPolicyBalanced      SizingPolicyCPUPolicy = "balanced"
+	SizingPolicyCPUPolicyExtraHeadroom SizingPolicyCPUPolicy = "extra_headroom"
+	SizingPolicyCPUPolicyMaxHeadroom   SizingPolicyCPUPolicy = "max_headroom"
+)
+
+func NewSizingPolicyCPUPolicyFromString(s string) (SizingPolicyCPUPolicy, error) {
+	switch s {
+	case "max_savings":
+		return SizingPolicyCPUPolicyMaxSavings, nil
+	case "balanced":
+		return SizingPolicyCPUPolicyBalanced, nil
+	case "extra_headroom":
+		return SizingPolicyCPUPolicyExtraHeadroom, nil
+	case "max_headroom":
+		return SizingPolicyCPUPolicyMaxHeadroom, nil
+	}
+	var t SizingPolicyCPUPolicy
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SizingPolicyCPUPolicy) Ptr() *SizingPolicyCPUPolicy {
+	return &s
+}
+
+type SizingPolicyMemoryPolicy string
+
+const (
+	SizingPolicyMemoryPolicyMaxSavings    SizingPolicyMemoryPolicy = "max_savings"
+	SizingPolicyMemoryPolicyBalanced      SizingPolicyMemoryPolicy = "balanced"
+	SizingPolicyMemoryPolicyExtraHeadroom SizingPolicyMemoryPolicy = "extra_headroom"
+	SizingPolicyMemoryPolicyMaxHeadroom   SizingPolicyMemoryPolicy = "max_headroom"
+)
+
+func NewSizingPolicyMemoryPolicyFromString(s string) (SizingPolicyMemoryPolicy, error) {
+	switch s {
+	case "max_savings":
+		return SizingPolicyMemoryPolicyMaxSavings, nil
+	case "balanced":
+		return SizingPolicyMemoryPolicyBalanced, nil
+	case "extra_headroom":
+		return SizingPolicyMemoryPolicyExtraHeadroom, nil
+	case "max_headroom":
+		return SizingPolicyMemoryPolicyMaxHeadroom, nil
+	}
+	var t SizingPolicyMemoryPolicy
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SizingPolicyMemoryPolicy) Ptr() *SizingPolicyMemoryPolicy {
+	return &s
+}
+
 type SizingPolicyPolicy string
 
 const (
 	SizingPolicyPolicyMaxSavings    SizingPolicyPolicy = "max_savings"
 	SizingPolicyPolicyBalanced      SizingPolicyPolicy = "balanced"
 	SizingPolicyPolicyExtraHeadroom SizingPolicyPolicy = "extra_headroom"
+	SizingPolicyPolicyMaxHeadroom   SizingPolicyPolicy = "max_headroom"
 )
 
 func NewSizingPolicyPolicyFromString(s string) (SizingPolicyPolicy, error) {
@@ -76899,6 +77427,8 @@ func NewSizingPolicyPolicyFromString(s string) (SizingPolicyPolicy, error) {
 		return SizingPolicyPolicyBalanced, nil
 	case "extra_headroom":
 		return SizingPolicyPolicyExtraHeadroom, nil
+	case "max_headroom":
+		return SizingPolicyPolicyMaxHeadroom, nil
 	}
 	var t SizingPolicyPolicy
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -86145,11 +86675,12 @@ func (u *UnitCosts) String() string {
 }
 
 var (
-	unmonitoredClusterFieldProvider  = big.NewInt(1 << 0)
-	unmonitoredClusterFieldName      = big.NewInt(1 << 1)
-	unmonitoredClusterFieldAccountID = big.NewInt(1 << 2)
-	unmonitoredClusterFieldRegion    = big.NewInt(1 << 3)
-	unmonitoredClusterFieldSource    = big.NewInt(1 << 4)
+	unmonitoredClusterFieldProvider    = big.NewInt(1 << 0)
+	unmonitoredClusterFieldName        = big.NewInt(1 << 1)
+	unmonitoredClusterFieldAccountID   = big.NewInt(1 << 2)
+	unmonitoredClusterFieldAccountName = big.NewInt(1 << 3)
+	unmonitoredClusterFieldRegion      = big.NewInt(1 << 4)
+	unmonitoredClusterFieldSource      = big.NewInt(1 << 5)
 )
 
 type UnmonitoredCluster struct {
@@ -86158,7 +86689,9 @@ type UnmonitoredCluster struct {
 	Name     string                     `json:"name" url:"name"`
 	// The AWS account or GCP project the cluster runs in
 	AccountID *string `json:"account_id,omitempty" url:"account_id,omitempty"`
-	Region    *string `json:"region,omitempty" url:"region,omitempty"`
+	// The name the organization's connected account or project carries, so clusters of one name in several accounts read apart; null when the account is not connected or has no name
+	AccountName *string `json:"account_name,omitempty" url:"account_name,omitempty"`
+	Region      *string `json:"region,omitempty" url:"region,omitempty"`
 	// bill when the bill names the cluster (its EKS control plane, or a cost split by pod), inventory when only the GCP inventory does
 	Source UnmonitoredClusterSource `json:"source" url:"source"`
 
@@ -86188,6 +86721,13 @@ func (u *UnmonitoredCluster) GetAccountID() *string {
 		return nil
 	}
 	return u.AccountID
+}
+
+func (u *UnmonitoredCluster) GetAccountName() *string {
+	if u == nil {
+		return nil
+	}
+	return u.AccountName
 }
 
 func (u *UnmonitoredCluster) GetRegion() *string {
@@ -86237,6 +86777,13 @@ func (u *UnmonitoredCluster) SetName(name string) {
 func (u *UnmonitoredCluster) SetAccountID(accountID *string) {
 	u.AccountID = accountID
 	u.require(unmonitoredClusterFieldAccountID)
+}
+
+// SetAccountName sets the AccountName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UnmonitoredCluster) SetAccountName(accountName *string) {
+	u.AccountName = accountName
+	u.require(unmonitoredClusterFieldAccountName)
 }
 
 // SetRegion sets the Region field and marks it as non-optional;
@@ -93786,6 +94333,8 @@ var (
 	workloadItemFieldAPIVersion            = big.NewInt(1 << 56)
 	workloadItemFieldRevisionCount         = big.NewInt(1 << 57)
 	workloadItemFieldSizedBy               = big.NewInt(1 << 58)
+	workloadItemFieldCPUCutMilli           = big.NewInt(1 << 59)
+	workloadItemFieldMemoryCutBytes        = big.NewInt(1 << 60)
 )
 
 type WorkloadItem struct {
@@ -93876,6 +94425,10 @@ type WorkloadItem struct {
 	RevisionCount *int `json:"revision_count,omitempty" url:"revision_count,omitempty"`
 	// Who sizes its containers besides its template: vpa, a VPA that writes their requests; addon_resizer, an addon-resizer container beside them; admission, another tool that set what its pods hold as they were admitted or in place (a container's cpu_set_by or memory_set_by admission that neither a VPA nor LevelFour's own automation explains). Empty when only the template does, and for a workload gone from the cluster. Automation never acts in a namespace addon-resizer or another tool at admission sizes
 	SizedBy []WorkloadItemSizedByItem `json:"sized_by,omitempty" url:"sized_by,omitempty"`
+	// The CPU another tool cut from its requests at admission, in millicores over its pods, as the sized-elsewhere card sums it (a raise left out); null before the daily scan measures it, and in a system-scoped namespace
+	CPUCutMilli *int `json:"cpu_cut_milli,omitempty" url:"cpu_cut_milli,omitempty"`
+	// The memory another tool cut from its requests at admission, in bytes over its pods, as cpu_cut_milli
+	MemoryCutBytes *int `json:"memory_cut_bytes,omitempty" url:"memory_cut_bytes,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -94295,6 +94848,20 @@ func (w *WorkloadItem) GetSizedBy() []WorkloadItemSizedByItem {
 		return nil
 	}
 	return w.SizedBy
+}
+
+func (w *WorkloadItem) GetCPUCutMilli() *int {
+	if w == nil {
+		return nil
+	}
+	return w.CPUCutMilli
+}
+
+func (w *WorkloadItem) GetMemoryCutBytes() *int {
+	if w == nil {
+		return nil
+	}
+	return w.MemoryCutBytes
 }
 
 func (w *WorkloadItem) GetExtraProperties() map[string]interface{} {
@@ -94722,6 +95289,20 @@ func (w *WorkloadItem) SetRevisionCount(revisionCount *int) {
 func (w *WorkloadItem) SetSizedBy(sizedBy []WorkloadItemSizedByItem) {
 	w.SizedBy = sizedBy
 	w.require(workloadItemFieldSizedBy)
+}
+
+// SetCPUCutMilli sets the CPUCutMilli field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadItem) SetCPUCutMilli(cpuCutMilli *int) {
+	w.CPUCutMilli = cpuCutMilli
+	w.require(workloadItemFieldCPUCutMilli)
+}
+
+// SetMemoryCutBytes sets the MemoryCutBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadItem) SetMemoryCutBytes(memoryCutBytes *int) {
+	w.MemoryCutBytes = memoryCutBytes
+	w.require(workloadItemFieldMemoryCutBytes)
 }
 
 func (w *WorkloadItem) UnmarshalJSON(data []byte) error {
@@ -95365,7 +95946,9 @@ var (
 	workloadListItemFieldAPIVersion            = big.NewInt(1 << 56)
 	workloadListItemFieldRevisionCount         = big.NewInt(1 << 57)
 	workloadListItemFieldSizedBy               = big.NewInt(1 << 58)
-	workloadListItemFieldJvm                   = big.NewInt(1 << 59)
+	workloadListItemFieldCPUCutMilli           = big.NewInt(1 << 59)
+	workloadListItemFieldMemoryCutBytes        = big.NewInt(1 << 60)
+	workloadListItemFieldJvm                   = big.NewInt(1 << 61)
 )
 
 type WorkloadListItem struct {
@@ -95456,6 +96039,10 @@ type WorkloadListItem struct {
 	RevisionCount *int `json:"revision_count,omitempty" url:"revision_count,omitempty"`
 	// Who sizes its containers besides its template: vpa, a VPA that writes their requests; addon_resizer, an addon-resizer container beside them; admission, another tool that set what its pods hold as they were admitted or in place (a container's cpu_set_by or memory_set_by admission that neither a VPA nor LevelFour's own automation explains). Empty when only the template does, and for a workload gone from the cluster. Automation never acts in a namespace addon-resizer or another tool at admission sizes
 	SizedBy []WorkloadListItemSizedByItem `json:"sized_by,omitempty" url:"sized_by,omitempty"`
+	// The CPU another tool cut from its requests at admission, in millicores over its pods, as the sized-elsewhere card sums it (a raise left out); null before the daily scan measures it, and in a system-scoped namespace
+	CPUCutMilli *int `json:"cpu_cut_milli,omitempty" url:"cpu_cut_milli,omitempty"`
+	// The memory another tool cut from its requests at admission, in bytes over its pods, as cpu_cut_milli
+	MemoryCutBytes *int `json:"memory_cut_bytes,omitempty" url:"memory_cut_bytes,omitempty"`
 	// Null when none of its containers runs a JVM
 	Jvm *WorkloadJvm `json:"jvm,omitempty" url:"jvm,omitempty"`
 
@@ -95877,6 +96464,20 @@ func (w *WorkloadListItem) GetSizedBy() []WorkloadListItemSizedByItem {
 		return nil
 	}
 	return w.SizedBy
+}
+
+func (w *WorkloadListItem) GetCPUCutMilli() *int {
+	if w == nil {
+		return nil
+	}
+	return w.CPUCutMilli
+}
+
+func (w *WorkloadListItem) GetMemoryCutBytes() *int {
+	if w == nil {
+		return nil
+	}
+	return w.MemoryCutBytes
 }
 
 func (w *WorkloadListItem) GetJvm() *WorkloadJvm {
@@ -96311,6 +96912,20 @@ func (w *WorkloadListItem) SetRevisionCount(revisionCount *int) {
 func (w *WorkloadListItem) SetSizedBy(sizedBy []WorkloadListItemSizedByItem) {
 	w.SizedBy = sizedBy
 	w.require(workloadListItemFieldSizedBy)
+}
+
+// SetCPUCutMilli sets the CPUCutMilli field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetCPUCutMilli(cpuCutMilli *int) {
+	w.CPUCutMilli = cpuCutMilli
+	w.require(workloadListItemFieldCPUCutMilli)
+}
+
+// SetMemoryCutBytes sets the MemoryCutBytes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadListItem) SetMemoryCutBytes(memoryCutBytes *int) {
+	w.MemoryCutBytes = memoryCutBytes
+	w.require(workloadListItemFieldMemoryCutBytes)
 }
 
 // SetJvm sets the Jvm field and marks it as non-optional;
