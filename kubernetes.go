@@ -2125,3 +2125,467 @@ func (e *EksUnreadable) String() string {
 	}
 	return fmt.Sprintf("%#v", e)
 }
+
+var (
+	kubernetesUsageFieldInUse       = big.NewInt(1 << 0)
+	kubernetesUsageFieldFirstSeenAt = big.NewInt(1 << 1)
+	kubernetesUsageFieldSources     = big.NewInt(1 << 2)
+)
+
+type KubernetesUsage struct {
+	// True when a bill carries EKS, GKE or AKS spend in the last 30 days, or an agent cluster reported
+	InUse bool `json:"in_use" url:"in_use"`
+	// The first day a bill carried Kubernetes spend or a cluster was seen; null if never
+	FirstSeenAt *time.Time `json:"first_seen_at,omitempty" url:"first_seen_at,omitempty" format:"date"`
+	// One per cloud, then agent; empty when not in use
+	Sources []*KubernetesUsageSource `json:"sources" url:"sources"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (k *KubernetesUsage) GetInUse() bool {
+	if k == nil {
+		return false
+	}
+	return k.InUse
+}
+
+func (k *KubernetesUsage) GetFirstSeenAt() *time.Time {
+	if k == nil {
+		return nil
+	}
+	return k.FirstSeenAt
+}
+
+func (k *KubernetesUsage) GetSources() []*KubernetesUsageSource {
+	if k == nil {
+		return nil
+	}
+	return k.Sources
+}
+
+func (k *KubernetesUsage) GetExtraProperties() map[string]interface{} {
+	if k == nil {
+		return nil
+	}
+	return k.extraProperties
+}
+
+func (k *KubernetesUsage) require(field *big.Int) {
+	if k.explicitFields == nil {
+		k.explicitFields = big.NewInt(0)
+	}
+	k.explicitFields.Or(k.explicitFields, field)
+}
+
+// SetInUse sets the InUse field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KubernetesUsage) SetInUse(inUse bool) {
+	k.InUse = inUse
+	k.require(kubernetesUsageFieldInUse)
+}
+
+// SetFirstSeenAt sets the FirstSeenAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KubernetesUsage) SetFirstSeenAt(firstSeenAt *time.Time) {
+	k.FirstSeenAt = firstSeenAt
+	k.require(kubernetesUsageFieldFirstSeenAt)
+}
+
+// SetSources sets the Sources field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KubernetesUsage) SetSources(sources []*KubernetesUsageSource) {
+	k.Sources = sources
+	k.require(kubernetesUsageFieldSources)
+}
+
+func (k *KubernetesUsage) UnmarshalJSON(data []byte) error {
+	type embed KubernetesUsage
+	var unmarshaler = struct {
+		embed
+		FirstSeenAt *internal.Date `json:"first_seen_at,omitempty"`
+	}{
+		embed: embed(*k),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*k = KubernetesUsage(unmarshaler.embed)
+	k.FirstSeenAt = unmarshaler.FirstSeenAt.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *k)
+	if err != nil {
+		return err
+	}
+	k.extraProperties = extraProperties
+	k.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (k *KubernetesUsage) MarshalJSON() ([]byte, error) {
+	type embed KubernetesUsage
+	var marshaler = struct {
+		embed
+		FirstSeenAt *internal.Date `json:"first_seen_at,omitempty"`
+	}{
+		embed:       embed(*k),
+		FirstSeenAt: internal.NewOptionalDate(k.FirstSeenAt),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, k.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (k *KubernetesUsage) String() string {
+	if k == nil {
+		return "<nil>"
+	}
+	if len(k.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(k); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", k)
+}
+
+var (
+	kubernetesUsageResponseFieldSuccess   = big.NewInt(1 << 0)
+	kubernetesUsageResponseFieldData      = big.NewInt(1 << 1)
+	kubernetesUsageResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type KubernetesUsageResponse struct {
+	Success   *bool            `json:"success,omitempty" url:"success,omitempty"`
+	Data      *KubernetesUsage `json:"data" url:"data"`
+	Timestamp string           `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (k *KubernetesUsageResponse) GetSuccess() *bool {
+	if k == nil {
+		return nil
+	}
+	return k.Success
+}
+
+func (k *KubernetesUsageResponse) GetData() *KubernetesUsage {
+	if k == nil {
+		return nil
+	}
+	return k.Data
+}
+
+func (k *KubernetesUsageResponse) GetTimestamp() string {
+	if k == nil {
+		return ""
+	}
+	return k.Timestamp
+}
+
+func (k *KubernetesUsageResponse) GetExtraProperties() map[string]interface{} {
+	if k == nil {
+		return nil
+	}
+	return k.extraProperties
+}
+
+func (k *KubernetesUsageResponse) require(field *big.Int) {
+	if k.explicitFields == nil {
+		k.explicitFields = big.NewInt(0)
+	}
+	k.explicitFields.Or(k.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KubernetesUsageResponse) SetSuccess(success *bool) {
+	k.Success = success
+	k.require(kubernetesUsageResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KubernetesUsageResponse) SetData(data *KubernetesUsage) {
+	k.Data = data
+	k.require(kubernetesUsageResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KubernetesUsageResponse) SetTimestamp(timestamp string) {
+	k.Timestamp = timestamp
+	k.require(kubernetesUsageResponseFieldTimestamp)
+}
+
+func (k *KubernetesUsageResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler KubernetesUsageResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*k = KubernetesUsageResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *k)
+	if err != nil {
+		return err
+	}
+	k.extraProperties = extraProperties
+	k.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (k *KubernetesUsageResponse) MarshalJSON() ([]byte, error) {
+	type embed KubernetesUsageResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*k),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, k.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (k *KubernetesUsageResponse) String() string {
+	if k == nil {
+		return "<nil>"
+	}
+	if len(k.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(k); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", k)
+}
+
+var (
+	kubernetesUsageSourceFieldKind             = big.NewInt(1 << 0)
+	kubernetesUsageSourceFieldMonthlyCost      = big.NewInt(1 << 1)
+	kubernetesUsageSourceFieldControlPlaneCost = big.NewInt(1 << 2)
+	kubernetesUsageSourceFieldNodesCost        = big.NewInt(1 << 3)
+	kubernetesUsageSourceFieldCostScope        = big.NewInt(1 << 4)
+	kubernetesUsageSourceFieldClusters         = big.NewInt(1 << 5)
+)
+
+type KubernetesUsageSource struct {
+	// eks, gke or aks from that cloud's bill and clusters, agent for the clusters a LevelFour agent reports
+	Kind KubernetesUsageSourceKind `json:"kind" url:"kind"`
+	// USD over the last 30 days from the bill: the cloud's Kubernetes service line plus the nodes the bill ties to a cluster; null for agent, or when the bill has no line for the cloud
+	MonthlyCost *float64 `json:"monthly_cost,omitempty" url:"monthly_cost,omitempty"`
+	// The Kubernetes service line alone (EKS and GKE control planes, AKS paid tiers); null for agent
+	ControlPlaneCost *float64 `json:"control_plane_cost,omitempty" url:"control_plane_cost,omitempty"`
+	// The nodes the bill ties to a cluster: priced from the bill through an agent or a cost split, and on AWS the EC2 lines tagged aws:eks:cluster-name where that tag is activated; null for agent
+	NodesCost *float64 `json:"nodes_cost,omitempty" url:"nodes_cost,omitempty"`
+	// complete when every cluster of the cloud had its nodes on every day of the 30; partial when some were not tied to a cluster, so monthly_cost is a floor; null for agent
+	CostScope *KubernetesUsageSourceCostScope `json:"cost_scope,omitempty" url:"cost_scope,omitempty"`
+	// The cloud's agent clusters plus those GET /v1/k8s/unmonitored-clusters lists for it, or the reporting agent clusters for agent; null when unknown (AKS for now)
+	Clusters *int `json:"clusters,omitempty" url:"clusters,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (k *KubernetesUsageSource) GetKind() KubernetesUsageSourceKind {
+	if k == nil {
+		return ""
+	}
+	return k.Kind
+}
+
+func (k *KubernetesUsageSource) GetMonthlyCost() *float64 {
+	if k == nil {
+		return nil
+	}
+	return k.MonthlyCost
+}
+
+func (k *KubernetesUsageSource) GetControlPlaneCost() *float64 {
+	if k == nil {
+		return nil
+	}
+	return k.ControlPlaneCost
+}
+
+func (k *KubernetesUsageSource) GetNodesCost() *float64 {
+	if k == nil {
+		return nil
+	}
+	return k.NodesCost
+}
+
+func (k *KubernetesUsageSource) GetCostScope() *KubernetesUsageSourceCostScope {
+	if k == nil {
+		return nil
+	}
+	return k.CostScope
+}
+
+func (k *KubernetesUsageSource) GetClusters() *int {
+	if k == nil {
+		return nil
+	}
+	return k.Clusters
+}
+
+func (k *KubernetesUsageSource) GetExtraProperties() map[string]interface{} {
+	if k == nil {
+		return nil
+	}
+	return k.extraProperties
+}
+
+func (k *KubernetesUsageSource) require(field *big.Int) {
+	if k.explicitFields == nil {
+		k.explicitFields = big.NewInt(0)
+	}
+	k.explicitFields.Or(k.explicitFields, field)
+}
+
+// SetKind sets the Kind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KubernetesUsageSource) SetKind(kind KubernetesUsageSourceKind) {
+	k.Kind = kind
+	k.require(kubernetesUsageSourceFieldKind)
+}
+
+// SetMonthlyCost sets the MonthlyCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KubernetesUsageSource) SetMonthlyCost(monthlyCost *float64) {
+	k.MonthlyCost = monthlyCost
+	k.require(kubernetesUsageSourceFieldMonthlyCost)
+}
+
+// SetControlPlaneCost sets the ControlPlaneCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KubernetesUsageSource) SetControlPlaneCost(controlPlaneCost *float64) {
+	k.ControlPlaneCost = controlPlaneCost
+	k.require(kubernetesUsageSourceFieldControlPlaneCost)
+}
+
+// SetNodesCost sets the NodesCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KubernetesUsageSource) SetNodesCost(nodesCost *float64) {
+	k.NodesCost = nodesCost
+	k.require(kubernetesUsageSourceFieldNodesCost)
+}
+
+// SetCostScope sets the CostScope field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KubernetesUsageSource) SetCostScope(costScope *KubernetesUsageSourceCostScope) {
+	k.CostScope = costScope
+	k.require(kubernetesUsageSourceFieldCostScope)
+}
+
+// SetClusters sets the Clusters field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (k *KubernetesUsageSource) SetClusters(clusters *int) {
+	k.Clusters = clusters
+	k.require(kubernetesUsageSourceFieldClusters)
+}
+
+func (k *KubernetesUsageSource) UnmarshalJSON(data []byte) error {
+	type unmarshaler KubernetesUsageSource
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*k = KubernetesUsageSource(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *k)
+	if err != nil {
+		return err
+	}
+	k.extraProperties = extraProperties
+	k.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (k *KubernetesUsageSource) MarshalJSON() ([]byte, error) {
+	type embed KubernetesUsageSource
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*k),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, k.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (k *KubernetesUsageSource) String() string {
+	if k == nil {
+		return "<nil>"
+	}
+	if len(k.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(k.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(k); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", k)
+}
+
+type KubernetesUsageSourceCostScope string
+
+const (
+	KubernetesUsageSourceCostScopeComplete KubernetesUsageSourceCostScope = "complete"
+	KubernetesUsageSourceCostScopePartial  KubernetesUsageSourceCostScope = "partial"
+)
+
+func NewKubernetesUsageSourceCostScopeFromString(s string) (KubernetesUsageSourceCostScope, error) {
+	switch s {
+	case "complete":
+		return KubernetesUsageSourceCostScopeComplete, nil
+	case "partial":
+		return KubernetesUsageSourceCostScopePartial, nil
+	}
+	var t KubernetesUsageSourceCostScope
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (k KubernetesUsageSourceCostScope) Ptr() *KubernetesUsageSourceCostScope {
+	return &k
+}
+
+// eks, gke or aks from that cloud's bill and clusters, agent for the clusters a LevelFour agent reports
+type KubernetesUsageSourceKind string
+
+const (
+	KubernetesUsageSourceKindEks   KubernetesUsageSourceKind = "eks"
+	KubernetesUsageSourceKindGke   KubernetesUsageSourceKind = "gke"
+	KubernetesUsageSourceKindAks   KubernetesUsageSourceKind = "aks"
+	KubernetesUsageSourceKindAgent KubernetesUsageSourceKind = "agent"
+)
+
+func NewKubernetesUsageSourceKindFromString(s string) (KubernetesUsageSourceKind, error) {
+	switch s {
+	case "eks":
+		return KubernetesUsageSourceKindEks, nil
+	case "gke":
+		return KubernetesUsageSourceKindGke, nil
+	case "aks":
+		return KubernetesUsageSourceKindAks, nil
+	case "agent":
+		return KubernetesUsageSourceKindAgent, nil
+	}
+	var t KubernetesUsageSourceKind
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (k KubernetesUsageSourceKind) Ptr() *KubernetesUsageSourceKind {
+	return &k
+}
