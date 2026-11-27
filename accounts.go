@@ -450,7 +450,15 @@ var (
 	connectedAccountFieldPricingStatus         = big.NewInt(1 << 18)
 	connectedAccountFieldPricingLastIngestedAt = big.NewInt(1 << 19)
 	connectedAccountFieldPricingLastError      = big.NewInt(1 << 20)
-	connectedAccountFieldCurDeliveryState      = big.NewInt(1 << 21)
+	connectedAccountFieldAccessError           = big.NewInt(1 << 21)
+	connectedAccountFieldAccessCheckedAt       = big.NewInt(1 << 22)
+	connectedAccountFieldOrgState              = big.NewInt(1 << 23)
+	connectedAccountFieldOrgCheckedAt          = big.NewInt(1 << 24)
+	connectedAccountFieldCost30D               = big.NewInt(1 << 25)
+	connectedAccountFieldOrganizationalUnit    = big.NewInt(1 << 26)
+	connectedAccountFieldLastCostAt            = big.NewInt(1 << 27)
+	connectedAccountFieldCostDataStatus        = big.NewInt(1 << 28)
+	connectedAccountFieldCurDeliveryState      = big.NewInt(1 << 29)
 )
 
 type ConnectedAccount struct {
@@ -490,6 +498,22 @@ type ConnectedAccount struct {
 	PricingLastIngestedAt *time.Time `json:"pricing_last_ingested_at,omitempty" url:"pricing_last_ingested_at,omitempty"`
 	// Last pricing ingestion error for this account, when pricing_status is 'error'
 	PricingLastError *string `json:"pricing_last_error,omitempty" url:"pricing_last_error,omitempty"`
+	// AWS error code (AccessDenied) that refused LevelFour's last check of the account's role, when status is 'error'. Null once the role answers
+	AccessError *string `json:"access_error,omitempty" url:"access_error,omitempty"`
+	// When LevelFour last tried the account's role, whether or not it answered. AWS only
+	AccessCheckedAt *time.Time `json:"access_checked_at,omitempty" url:"access_checked_at,omitempty"`
+	// Where AWS Organizations places the account: in an organizational unit, at the root, outside any organization, in one whose payer this organization has not connected, or unknown because the role may not read AWS Organizations. Null until LevelFour reads it. AWS only
+	OrgState *ConnectedAccountOrgState `json:"org_state,omitempty" url:"org_state,omitempty"`
+	// When LevelFour last read the account's place in its organization. AWS only
+	OrgCheckedAt *time.Time `json:"org_checked_at,omitempty" url:"org_checked_at,omitempty"`
+	// The account's cost over the last 30 days. 0 with cost before that, null with none at all
+	Cost30D *float64 `json:"cost_30d,omitempty" url:"cost_30d,omitempty"`
+	// The organizational unit the account sits in, or null at the root or when it is unknown
+	OrganizationalUnit *OrganizationalUnit `json:"organizational_unit,omitempty" url:"organizational_unit,omitempty"`
+	// The last day LevelFour holds a cost for the account, within 120 days
+	LastCostAt *time.Time `json:"last_cost_at,omitempty" url:"last_cost_at,omitempty" format:"date"`
+	// Whether the account's cost keeps arriving: receiving within CUR_FRESHNESS_LAG_DAYS plus a day, no_spend with no cost in 30 days, delayed otherwise, null when no cost ever arrived
+	CostDataStatus *ConnectedAccountCostDataStatus `json:"cost_data_status,omitempty" url:"cost_data_status,omitempty"`
 	// Whether the Google Cloud billing export is still delivering: stalled once its last usage day is more than GCP_BQ_STALE_AFTER_DAYS old, unknown when nothing has been ingested
 	CurDeliveryState *ConnectedAccountCurDeliveryState `json:"cur_delivery_state,omitempty" url:"cur_delivery_state,omitempty"`
 
@@ -645,6 +669,62 @@ func (c *ConnectedAccount) GetPricingLastError() *string {
 		return nil
 	}
 	return c.PricingLastError
+}
+
+func (c *ConnectedAccount) GetAccessError() *string {
+	if c == nil {
+		return nil
+	}
+	return c.AccessError
+}
+
+func (c *ConnectedAccount) GetAccessCheckedAt() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.AccessCheckedAt
+}
+
+func (c *ConnectedAccount) GetOrgState() *ConnectedAccountOrgState {
+	if c == nil {
+		return nil
+	}
+	return c.OrgState
+}
+
+func (c *ConnectedAccount) GetOrgCheckedAt() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.OrgCheckedAt
+}
+
+func (c *ConnectedAccount) GetCost30D() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.Cost30D
+}
+
+func (c *ConnectedAccount) GetOrganizationalUnit() *OrganizationalUnit {
+	if c == nil {
+		return nil
+	}
+	return c.OrganizationalUnit
+}
+
+func (c *ConnectedAccount) GetLastCostAt() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.LastCostAt
+}
+
+func (c *ConnectedAccount) GetCostDataStatus() *ConnectedAccountCostDataStatus {
+	if c == nil {
+		return nil
+	}
+	return c.CostDataStatus
 }
 
 func (c *ConnectedAccount) GetCurDeliveryState() *ConnectedAccountCurDeliveryState {
@@ -815,6 +895,62 @@ func (c *ConnectedAccount) SetPricingLastError(pricingLastError *string) {
 	c.require(connectedAccountFieldPricingLastError)
 }
 
+// SetAccessError sets the AccessError field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectedAccount) SetAccessError(accessError *string) {
+	c.AccessError = accessError
+	c.require(connectedAccountFieldAccessError)
+}
+
+// SetAccessCheckedAt sets the AccessCheckedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectedAccount) SetAccessCheckedAt(accessCheckedAt *time.Time) {
+	c.AccessCheckedAt = accessCheckedAt
+	c.require(connectedAccountFieldAccessCheckedAt)
+}
+
+// SetOrgState sets the OrgState field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectedAccount) SetOrgState(orgState *ConnectedAccountOrgState) {
+	c.OrgState = orgState
+	c.require(connectedAccountFieldOrgState)
+}
+
+// SetOrgCheckedAt sets the OrgCheckedAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectedAccount) SetOrgCheckedAt(orgCheckedAt *time.Time) {
+	c.OrgCheckedAt = orgCheckedAt
+	c.require(connectedAccountFieldOrgCheckedAt)
+}
+
+// SetCost30D sets the Cost30D field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectedAccount) SetCost30D(cost30D *float64) {
+	c.Cost30D = cost30D
+	c.require(connectedAccountFieldCost30D)
+}
+
+// SetOrganizationalUnit sets the OrganizationalUnit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectedAccount) SetOrganizationalUnit(organizationalUnit *OrganizationalUnit) {
+	c.OrganizationalUnit = organizationalUnit
+	c.require(connectedAccountFieldOrganizationalUnit)
+}
+
+// SetLastCostAt sets the LastCostAt field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectedAccount) SetLastCostAt(lastCostAt *time.Time) {
+	c.LastCostAt = lastCostAt
+	c.require(connectedAccountFieldLastCostAt)
+}
+
+// SetCostDataStatus sets the CostDataStatus field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConnectedAccount) SetCostDataStatus(costDataStatus *ConnectedAccountCostDataStatus) {
+	c.CostDataStatus = costDataStatus
+	c.require(connectedAccountFieldCostDataStatus)
+}
+
 // SetCurDeliveryState sets the CurDeliveryState field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (c *ConnectedAccount) SetCurDeliveryState(curDeliveryState *ConnectedAccountCurDeliveryState) {
@@ -833,6 +969,9 @@ func (c *ConnectedAccount) UnmarshalJSON(data []byte) error {
 		CurLastDeliveryAt     *internal.DateTime `json:"cur_last_delivery_at,omitempty"`
 		CudLastIngestedAt     *internal.DateTime `json:"cud_last_ingested_at,omitempty"`
 		PricingLastIngestedAt *internal.DateTime `json:"pricing_last_ingested_at,omitempty"`
+		AccessCheckedAt       *internal.DateTime `json:"access_checked_at,omitempty"`
+		OrgCheckedAt          *internal.DateTime `json:"org_checked_at,omitempty"`
+		LastCostAt            *internal.Date     `json:"last_cost_at,omitempty"`
 	}{
 		embed: embed(*c),
 	}
@@ -847,6 +986,9 @@ func (c *ConnectedAccount) UnmarshalJSON(data []byte) error {
 	c.CurLastDeliveryAt = unmarshaler.CurLastDeliveryAt.TimePtr()
 	c.CudLastIngestedAt = unmarshaler.CudLastIngestedAt.TimePtr()
 	c.PricingLastIngestedAt = unmarshaler.PricingLastIngestedAt.TimePtr()
+	c.AccessCheckedAt = unmarshaler.AccessCheckedAt.TimePtr()
+	c.OrgCheckedAt = unmarshaler.OrgCheckedAt.TimePtr()
+	c.LastCostAt = unmarshaler.LastCostAt.TimePtr()
 	extraProperties, err := internal.ExtractExtraProperties(data, *c)
 	if err != nil {
 		return err
@@ -867,6 +1009,9 @@ func (c *ConnectedAccount) MarshalJSON() ([]byte, error) {
 		CurLastDeliveryAt     *internal.DateTime `json:"cur_last_delivery_at,omitempty"`
 		CudLastIngestedAt     *internal.DateTime `json:"cud_last_ingested_at,omitempty"`
 		PricingLastIngestedAt *internal.DateTime `json:"pricing_last_ingested_at,omitempty"`
+		AccessCheckedAt       *internal.DateTime `json:"access_checked_at,omitempty"`
+		OrgCheckedAt          *internal.DateTime `json:"org_checked_at,omitempty"`
+		LastCostAt            *internal.Date     `json:"last_cost_at,omitempty"`
 	}{
 		embed:                 embed(*c),
 		ConnectedAt:           internal.NewOptionalDateTime(c.ConnectedAt),
@@ -876,6 +1021,9 @@ func (c *ConnectedAccount) MarshalJSON() ([]byte, error) {
 		CurLastDeliveryAt:     internal.NewOptionalDateTime(c.CurLastDeliveryAt),
 		CudLastIngestedAt:     internal.NewOptionalDateTime(c.CudLastIngestedAt),
 		PricingLastIngestedAt: internal.NewOptionalDateTime(c.PricingLastIngestedAt),
+		AccessCheckedAt:       internal.NewOptionalDateTime(c.AccessCheckedAt),
+		OrgCheckedAt:          internal.NewOptionalDateTime(c.OrgCheckedAt),
+		LastCostAt:            internal.NewOptionalDate(c.LastCostAt),
 	}
 	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
 	return json.Marshal(explicitMarshaler)
@@ -894,6 +1042,31 @@ func (c *ConnectedAccount) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", c)
+}
+
+type ConnectedAccountCostDataStatus string
+
+const (
+	ConnectedAccountCostDataStatusReceiving ConnectedAccountCostDataStatus = "receiving"
+	ConnectedAccountCostDataStatusDelayed   ConnectedAccountCostDataStatus = "delayed"
+	ConnectedAccountCostDataStatusNoSpend   ConnectedAccountCostDataStatus = "no_spend"
+)
+
+func NewConnectedAccountCostDataStatusFromString(s string) (ConnectedAccountCostDataStatus, error) {
+	switch s {
+	case "receiving":
+		return ConnectedAccountCostDataStatusReceiving, nil
+	case "delayed":
+		return ConnectedAccountCostDataStatusDelayed, nil
+	case "no_spend":
+		return ConnectedAccountCostDataStatusNoSpend, nil
+	}
+	var t ConnectedAccountCostDataStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c ConnectedAccountCostDataStatus) Ptr() *ConnectedAccountCostDataStatus {
+	return &c
 }
 
 // Committed Use Discount (CUD) metadata export ingestion state for this account (GCP)
@@ -983,6 +1156,37 @@ func NewConnectedAccountCurStatusFromString(s string) (ConnectedAccountCurStatus
 }
 
 func (c ConnectedAccountCurStatus) Ptr() *ConnectedAccountCurStatus {
+	return &c
+}
+
+type ConnectedAccountOrgState string
+
+const (
+	ConnectedAccountOrgStateInOu              ConnectedAccountOrgState = "in_ou"
+	ConnectedAccountOrgStateRoot              ConnectedAccountOrgState = "root"
+	ConnectedAccountOrgStateOutsideOrg        ConnectedAccountOrgState = "outside_org"
+	ConnectedAccountOrgStatePayerNotConnected ConnectedAccountOrgState = "payer_not_connected"
+	ConnectedAccountOrgStateNoOrgAccess       ConnectedAccountOrgState = "no_org_access"
+)
+
+func NewConnectedAccountOrgStateFromString(s string) (ConnectedAccountOrgState, error) {
+	switch s {
+	case "in_ou":
+		return ConnectedAccountOrgStateInOu, nil
+	case "root":
+		return ConnectedAccountOrgStateRoot, nil
+	case "outside_org":
+		return ConnectedAccountOrgStateOutsideOrg, nil
+	case "payer_not_connected":
+		return ConnectedAccountOrgStatePayerNotConnected, nil
+	case "no_org_access":
+		return ConnectedAccountOrgStateNoOrgAccess, nil
+	}
+	var t ConnectedAccountOrgState
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c ConnectedAccountOrgState) Ptr() *ConnectedAccountOrgState {
 	return &c
 }
 
@@ -4918,6 +5122,107 @@ func (j *JiraSiteSummary) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", j)
+}
+
+var (
+	organizationalUnitFieldID   = big.NewInt(1 << 0)
+	organizationalUnitFieldName = big.NewInt(1 << 1)
+)
+
+type OrganizationalUnit struct {
+	// The organizational unit's ID, ou-...
+	ID   string `json:"id" url:"id"`
+	Name string `json:"name" url:"name"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (o *OrganizationalUnit) GetID() string {
+	if o == nil {
+		return ""
+	}
+	return o.ID
+}
+
+func (o *OrganizationalUnit) GetName() string {
+	if o == nil {
+		return ""
+	}
+	return o.Name
+}
+
+func (o *OrganizationalUnit) GetExtraProperties() map[string]interface{} {
+	if o == nil {
+		return nil
+	}
+	return o.extraProperties
+}
+
+func (o *OrganizationalUnit) require(field *big.Int) {
+	if o.explicitFields == nil {
+		o.explicitFields = big.NewInt(0)
+	}
+	o.explicitFields.Or(o.explicitFields, field)
+}
+
+// SetID sets the ID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OrganizationalUnit) SetID(id string) {
+	o.ID = id
+	o.require(organizationalUnitFieldID)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OrganizationalUnit) SetName(name string) {
+	o.Name = name
+	o.require(organizationalUnitFieldName)
+}
+
+func (o *OrganizationalUnit) UnmarshalJSON(data []byte) error {
+	type unmarshaler OrganizationalUnit
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*o = OrganizationalUnit(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *o)
+	if err != nil {
+		return err
+	}
+	o.extraProperties = extraProperties
+	o.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (o *OrganizationalUnit) MarshalJSON() ([]byte, error) {
+	type embed OrganizationalUnit
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*o),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, o.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (o *OrganizationalUnit) String() string {
+	if o == nil {
+		return "<nil>"
+	}
+	if len(o.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(o.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(o); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", o)
 }
 
 var (
