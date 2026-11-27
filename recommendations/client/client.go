@@ -397,11 +397,13 @@ func (c *Client) ListByProvider(
 func (c *Client) GetProviderOverview(
 	ctx context.Context,
 	providerID string,
+	request *levelfour.GetProviderOverviewRecommendationsRequest,
 	opts ...option.RequestOption,
 ) (*levelfour.RecommendationsOverviewResponse, error) {
 	response, err := c.WithRawResponse.GetProviderOverview(
 		ctx,
 		providerID,
+		request,
 		opts...,
 	)
 	if err != nil {

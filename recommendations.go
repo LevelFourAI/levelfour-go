@@ -135,6 +135,42 @@ func (s *SavingsDecisionRequest) MarshalJSON() ([]byte, error) {
 }
 
 var (
+	getProviderOverviewRecommendationsRequestFieldService   = big.NewInt(1 << 0)
+	getProviderOverviewRecommendationsRequestFieldClusterID = big.NewInt(1 << 1)
+)
+
+type GetProviderOverviewRecommendationsRequest struct {
+	// Keep the savings of these services (e.g. Kubernetes). total_spend and the saved history stay the provider's
+	Service []string `json:"-" url:"service,omitempty"`
+	// Keep the Kubernetes savings of these clusters, by k8s cluster id - can be repeated
+	ClusterID []string `json:"-" url:"cluster_id,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+}
+
+func (g *GetProviderOverviewRecommendationsRequest) require(field *big.Int) {
+	if g.explicitFields == nil {
+		g.explicitFields = big.NewInt(0)
+	}
+	g.explicitFields.Or(g.explicitFields, field)
+}
+
+// SetService sets the Service field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetProviderOverviewRecommendationsRequest) SetService(service []string) {
+	g.Service = service
+	g.require(getProviderOverviewRecommendationsRequestFieldService)
+}
+
+// SetClusterID sets the ClusterID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetProviderOverviewRecommendationsRequest) SetClusterID(clusterID []string) {
+	g.ClusterID = clusterID
+	g.require(getProviderOverviewRecommendationsRequestFieldClusterID)
+}
+
+var (
 	listRecommendationsRequestFieldPage      = big.NewInt(1 << 0)
 	listRecommendationsRequestFieldPageSize  = big.NewInt(1 << 1)
 	listRecommendationsRequestFieldSortBy    = big.NewInt(1 << 2)
@@ -201,20 +237,21 @@ var (
 	listByProviderRecommendationsRequestFieldEnvironment         = big.NewInt(1 << 7)
 	listByProviderRecommendationsRequestFieldAccount             = big.NewInt(1 << 8)
 	listByProviderRecommendationsRequestFieldTag                 = big.NewInt(1 << 9)
-	listByProviderRecommendationsRequestFieldServiceNot          = big.NewInt(1 << 10)
-	listByProviderRecommendationsRequestFieldEnvironmentNot      = big.NewInt(1 << 11)
-	listByProviderRecommendationsRequestFieldAccountNot          = big.NewInt(1 << 12)
-	listByProviderRecommendationsRequestFieldTagNot              = big.NewInt(1 << 13)
-	listByProviderRecommendationsRequestFieldResourceType        = big.NewInt(1 << 14)
-	listByProviderRecommendationsRequestFieldResourceTypeNot     = big.NewInt(1 << 15)
-	listByProviderRecommendationsRequestFieldDisplayStatus       = big.NewInt(1 << 16)
-	listByProviderRecommendationsRequestFieldSearch              = big.NewInt(1 << 17)
-	listByProviderRecommendationsRequestFieldSavings             = big.NewInt(1 << 18)
-	listByProviderRecommendationsRequestFieldSavingsNot          = big.NewInt(1 << 19)
-	listByProviderRecommendationsRequestFieldAvailableFormats    = big.NewInt(1 << 20)
-	listByProviderRecommendationsRequestFieldAvailableFormatsNot = big.NewInt(1 << 21)
-	listByProviderRecommendationsRequestFieldVirtualTagKey       = big.NewInt(1 << 22)
-	listByProviderRecommendationsRequestFieldVirtualTagValue     = big.NewInt(1 << 23)
+	listByProviderRecommendationsRequestFieldClusterID           = big.NewInt(1 << 10)
+	listByProviderRecommendationsRequestFieldServiceNot          = big.NewInt(1 << 11)
+	listByProviderRecommendationsRequestFieldEnvironmentNot      = big.NewInt(1 << 12)
+	listByProviderRecommendationsRequestFieldAccountNot          = big.NewInt(1 << 13)
+	listByProviderRecommendationsRequestFieldTagNot              = big.NewInt(1 << 14)
+	listByProviderRecommendationsRequestFieldResourceType        = big.NewInt(1 << 15)
+	listByProviderRecommendationsRequestFieldResourceTypeNot     = big.NewInt(1 << 16)
+	listByProviderRecommendationsRequestFieldDisplayStatus       = big.NewInt(1 << 17)
+	listByProviderRecommendationsRequestFieldSearch              = big.NewInt(1 << 18)
+	listByProviderRecommendationsRequestFieldSavings             = big.NewInt(1 << 19)
+	listByProviderRecommendationsRequestFieldSavingsNot          = big.NewInt(1 << 20)
+	listByProviderRecommendationsRequestFieldAvailableFormats    = big.NewInt(1 << 21)
+	listByProviderRecommendationsRequestFieldAvailableFormatsNot = big.NewInt(1 << 22)
+	listByProviderRecommendationsRequestFieldVirtualTagKey       = big.NewInt(1 << 23)
+	listByProviderRecommendationsRequestFieldVirtualTagValue     = big.NewInt(1 << 24)
 )
 
 type ListByProviderRecommendationsRequest struct {
@@ -238,6 +275,8 @@ type ListByProviderRecommendationsRequest struct {
 	Account []string `json:"-" url:"account,omitempty"`
 	// Filter by tag(s) - can be repeated for multiple values
 	Tag []string `json:"-" url:"tag,omitempty"`
+	// Keep the Kubernetes savings of these clusters, by k8s cluster id - can be repeated
+	ClusterID []string `json:"-" url:"cluster_id,omitempty"`
 	// Exclude service(s) - can be repeated for multiple values
 	ServiceNot []string `json:"-" url:"service_not,omitempty"`
 	// Exclude environment(s) - can be repeated for multiple values
@@ -346,6 +385,13 @@ func (l *ListByProviderRecommendationsRequest) SetAccount(account []string) {
 func (l *ListByProviderRecommendationsRequest) SetTag(tag []string) {
 	l.Tag = tag
 	l.require(listByProviderRecommendationsRequestFieldTag)
+}
+
+// SetClusterID sets the ClusterID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListByProviderRecommendationsRequest) SetClusterID(clusterID []string) {
+	l.ClusterID = clusterID
+	l.require(listByProviderRecommendationsRequestFieldClusterID)
 }
 
 // SetServiceNot sets the ServiceNot field and marks it as non-optional;
@@ -2903,31 +2949,33 @@ var (
 	providerBreakdownItemFieldEnvironment            = big.NewInt(1 << 3)
 	providerBreakdownItemFieldAccount                = big.NewInt(1 << 4)
 	providerBreakdownItemFieldTag                    = big.NewInt(1 << 5)
-	providerBreakdownItemFieldMonthlySavings         = big.NewInt(1 << 6)
-	providerBreakdownItemFieldSavingsPercentage      = big.NewInt(1 << 7)
-	providerBreakdownItemFieldChildrenSavings        = big.NewInt(1 << 8)
-	providerBreakdownItemFieldPriceBasis             = big.NewInt(1 << 9)
-	providerBreakdownItemFieldPriceBasisNote         = big.NewInt(1 << 10)
-	providerBreakdownItemFieldStatus                 = big.NewInt(1 << 11)
-	providerBreakdownItemFieldDisplayStatus          = big.NewInt(1 << 12)
-	providerBreakdownItemFieldActions                = big.NewInt(1 << 13)
-	providerBreakdownItemFieldTermsAcceptedAt        = big.NewInt(1 << 14)
-	providerBreakdownItemFieldSavingAcceptedBy       = big.NewInt(1 << 15)
-	providerBreakdownItemFieldSavingAcceptance       = big.NewInt(1 << 16)
-	providerBreakdownItemFieldImplementationMethod   = big.NewInt(1 << 17)
-	providerBreakdownItemFieldImplementationStatus   = big.NewInt(1 << 18)
-	providerBreakdownItemFieldImplementationTags     = big.NewInt(1 << 19)
-	providerBreakdownItemFieldCreatedAt              = big.NewInt(1 << 20)
-	providerBreakdownItemFieldUpdatedAt              = big.NewInt(1 << 21)
-	providerBreakdownItemFieldGroupID                = big.NewInt(1 << 22)
-	providerBreakdownItemFieldGroupName              = big.NewInt(1 << 23)
-	providerBreakdownItemFieldLinkedTo               = big.NewInt(1 << 24)
-	providerBreakdownItemFieldExecutionRequestStatus = big.NewInt(1 << 25)
-	providerBreakdownItemFieldExecutionRequestBy     = big.NewInt(1 << 26)
-	providerBreakdownItemFieldExecutionRequestByName = big.NewInt(1 << 27)
-	providerBreakdownItemFieldExecutionRequestAt     = big.NewInt(1 << 28)
-	providerBreakdownItemFieldVirtualTags            = big.NewInt(1 << 29)
-	providerBreakdownItemFieldRiskAssessment         = big.NewInt(1 << 30)
+	providerBreakdownItemFieldClusterID              = big.NewInt(1 << 6)
+	providerBreakdownItemFieldClusterName            = big.NewInt(1 << 7)
+	providerBreakdownItemFieldMonthlySavings         = big.NewInt(1 << 8)
+	providerBreakdownItemFieldSavingsPercentage      = big.NewInt(1 << 9)
+	providerBreakdownItemFieldChildrenSavings        = big.NewInt(1 << 10)
+	providerBreakdownItemFieldPriceBasis             = big.NewInt(1 << 11)
+	providerBreakdownItemFieldPriceBasisNote         = big.NewInt(1 << 12)
+	providerBreakdownItemFieldStatus                 = big.NewInt(1 << 13)
+	providerBreakdownItemFieldDisplayStatus          = big.NewInt(1 << 14)
+	providerBreakdownItemFieldActions                = big.NewInt(1 << 15)
+	providerBreakdownItemFieldTermsAcceptedAt        = big.NewInt(1 << 16)
+	providerBreakdownItemFieldSavingAcceptedBy       = big.NewInt(1 << 17)
+	providerBreakdownItemFieldSavingAcceptance       = big.NewInt(1 << 18)
+	providerBreakdownItemFieldImplementationMethod   = big.NewInt(1 << 19)
+	providerBreakdownItemFieldImplementationStatus   = big.NewInt(1 << 20)
+	providerBreakdownItemFieldImplementationTags     = big.NewInt(1 << 21)
+	providerBreakdownItemFieldCreatedAt              = big.NewInt(1 << 22)
+	providerBreakdownItemFieldUpdatedAt              = big.NewInt(1 << 23)
+	providerBreakdownItemFieldGroupID                = big.NewInt(1 << 24)
+	providerBreakdownItemFieldGroupName              = big.NewInt(1 << 25)
+	providerBreakdownItemFieldLinkedTo               = big.NewInt(1 << 26)
+	providerBreakdownItemFieldExecutionRequestStatus = big.NewInt(1 << 27)
+	providerBreakdownItemFieldExecutionRequestBy     = big.NewInt(1 << 28)
+	providerBreakdownItemFieldExecutionRequestByName = big.NewInt(1 << 29)
+	providerBreakdownItemFieldExecutionRequestAt     = big.NewInt(1 << 30)
+	providerBreakdownItemFieldVirtualTags            = big.NewInt(1 << 31)
+	providerBreakdownItemFieldRiskAssessment         = big.NewInt(1 << 32)
 )
 
 type ProviderBreakdownItem struct {
@@ -2943,6 +2991,10 @@ type ProviderBreakdownItem struct {
 	Account *string `json:"account,omitempty" url:"account,omitempty"`
 	// Resource tag value
 	Tag *string `json:"tag,omitempty" url:"tag,omitempty"`
+	// The Kubernetes cluster the saving changes. Null on any other row
+	ClusterID *string `json:"cluster_id,omitempty" url:"cluster_id,omitempty"`
+	// That cluster's name. Null on any other row
+	ClusterName *string `json:"cluster_name,omitempty" url:"cluster_name,omitempty"`
 	// Monthly savings amount
 	MonthlySavings float64 `json:"monthly_savings" url:"monthly_savings"`
 	// Savings as percentage of current spending
@@ -3040,6 +3092,20 @@ func (p *ProviderBreakdownItem) GetTag() *string {
 		return nil
 	}
 	return p.Tag
+}
+
+func (p *ProviderBreakdownItem) GetClusterID() *string {
+	if p == nil {
+		return nil
+	}
+	return p.ClusterID
+}
+
+func (p *ProviderBreakdownItem) GetClusterName() *string {
+	if p == nil {
+		return nil
+	}
+	return p.ClusterName
 }
 
 func (p *ProviderBreakdownItem) GetMonthlySavings() float64 {
@@ -3271,6 +3337,20 @@ func (p *ProviderBreakdownItem) SetAccount(account *string) {
 func (p *ProviderBreakdownItem) SetTag(tag *string) {
 	p.Tag = tag
 	p.require(providerBreakdownItemFieldTag)
+}
+
+// SetClusterID sets the ClusterID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderBreakdownItem) SetClusterID(clusterID *string) {
+	p.ClusterID = clusterID
+	p.require(providerBreakdownItemFieldClusterID)
+}
+
+// SetClusterName sets the ClusterName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (p *ProviderBreakdownItem) SetClusterName(clusterName *string) {
+	p.ClusterName = clusterName
+	p.require(providerBreakdownItemFieldClusterName)
 }
 
 // SetMonthlySavings sets the MonthlySavings field and marks it as non-optional;

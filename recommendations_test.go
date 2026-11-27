@@ -217,6 +217,90 @@ func TestSettersMarkExplicitSavingsDecisionRequest(t *testing.T) {
 
 }
 
+func TestSettersGetProviderOverviewRecommendationsRequest(t *testing.T) {
+	t.Run("SetService", func(t *testing.T) {
+		obj := &GetProviderOverviewRecommendationsRequest{}
+		var fernTestValueService []string
+		obj.SetService(fernTestValueService)
+		assert.Equal(t, fernTestValueService, obj.Service)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetClusterID", func(t *testing.T) {
+		obj := &GetProviderOverviewRecommendationsRequest{}
+		var fernTestValueClusterID []string
+		obj.SetClusterID(fernTestValueClusterID)
+		assert.Equal(t, fernTestValueClusterID, obj.ClusterID)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+}
+
+func TestSettersMarkExplicitGetProviderOverviewRecommendationsRequest(t *testing.T) {
+	t.Run("SetService_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &GetProviderOverviewRecommendationsRequest{}
+		var fernTestValueService []string
+
+		// Act
+		obj.SetService(fernTestValueService)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetClusterID_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &GetProviderOverviewRecommendationsRequest{}
+		var fernTestValueClusterID []string
+
+		// Act
+		obj.SetClusterID(fernTestValueClusterID)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+}
+
 func TestSettersListRecommendationsRequest(t *testing.T) {
 	t.Run("SetPage", func(t *testing.T) {
 		obj := &ListRecommendationsRequest{}
@@ -457,6 +541,14 @@ func TestSettersListByProviderRecommendationsRequest(t *testing.T) {
 		var fernTestValueTag []string
 		obj.SetTag(fernTestValueTag)
 		assert.Equal(t, fernTestValueTag, obj.Tag)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetClusterID", func(t *testing.T) {
+		obj := &ListByProviderRecommendationsRequest{}
+		var fernTestValueClusterID []string
+		obj.SetClusterID(fernTestValueClusterID)
+		assert.Equal(t, fernTestValueClusterID, obj.ClusterID)
 		assert.NotNil(t, obj.explicitFields)
 	})
 
@@ -862,6 +954,37 @@ func TestSettersMarkExplicitListByProviderRecommendationsRequest(t *testing.T) {
 
 		// Act
 		obj.SetTag(fernTestValueTag)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetClusterID_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &ListByProviderRecommendationsRequest{}
+		var fernTestValueClusterID []string
+
+		// Act
+		obj.SetClusterID(fernTestValueClusterID)
 
 		// Assert - object with explicitly set field can be marshaled/unmarshaled
 		bytes, err := json.Marshal(obj)
@@ -5840,6 +5963,22 @@ func TestSettersProviderBreakdownItem(t *testing.T) {
 		assert.NotNil(t, obj.explicitFields)
 	})
 
+	t.Run("SetClusterID", func(t *testing.T) {
+		obj := &ProviderBreakdownItem{}
+		var fernTestValueClusterID *string
+		obj.SetClusterID(fernTestValueClusterID)
+		assert.Equal(t, fernTestValueClusterID, obj.ClusterID)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetClusterName", func(t *testing.T) {
+		obj := &ProviderBreakdownItem{}
+		var fernTestValueClusterName *string
+		obj.SetClusterName(fernTestValueClusterName)
+		assert.Equal(t, fernTestValueClusterName, obj.ClusterName)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
 	t.Run("SetMonthlySavings", func(t *testing.T) {
 		obj := &ProviderBreakdownItem{}
 		var fernTestValueMonthlySavings float64
@@ -6219,6 +6358,72 @@ func TestGettersProviderBreakdownItem(t *testing.T) {
 			}
 		}()
 		_ = obj.GetTag() // Should return zero value
+	})
+
+	t.Run("GetClusterID", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &ProviderBreakdownItem{}
+		var expected *string
+		obj.ClusterID = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetClusterID(), "getter should return the property value")
+	})
+
+	t.Run("GetClusterID_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &ProviderBreakdownItem{}
+		obj.ClusterID = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetClusterID(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetClusterID_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *ProviderBreakdownItem
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetClusterID() // Should return zero value
+	})
+
+	t.Run("GetClusterName", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &ProviderBreakdownItem{}
+		var expected *string
+		obj.ClusterName = expected
+
+		// Act & Assert
+		assert.Equal(t, expected, obj.GetClusterName(), "getter should return the property value")
+	})
+
+	t.Run("GetClusterName_NilValue", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &ProviderBreakdownItem{}
+		obj.ClusterName = nil
+
+		// Act & Assert
+		assert.Nil(t, obj.GetClusterName(), "getter should return nil when property is nil")
+	})
+
+	t.Run("GetClusterName_NilReceiver", func(t *testing.T) {
+		t.Parallel()
+		var obj *ProviderBreakdownItem
+		// Should not panic - getters should handle nil receiver gracefully
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Getter panicked on nil receiver: %v", r)
+			}
+		}()
+		_ = obj.GetClusterName() // Should return zero value
 	})
 
 	t.Run("GetMonthlySavings", func(t *testing.T) {
@@ -7182,6 +7387,68 @@ func TestSettersMarkExplicitProviderBreakdownItem(t *testing.T) {
 
 		// Act
 		obj.SetTag(fernTestValueTag)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetClusterID_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &ProviderBreakdownItem{}
+		var fernTestValueClusterID *string
+
+		// Act
+		obj.SetClusterID(fernTestValueClusterID)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetClusterName_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &ProviderBreakdownItem{}
+		var fernTestValueClusterName *string
+
+		// Act
+		obj.SetClusterName(fernTestValueClusterName)
 
 		// Assert - object with explicitly set field can be marshaled/unmarshaled
 		bytes, err := json.Marshal(obj)

@@ -597,6 +597,7 @@ func (r *RawClient) GetTop(
 func (r *RawClient) GetProviderOverview(
 	ctx context.Context,
 	providerID string,
+	request *levelfour.GetProviderOverviewRecommendationsRequest,
 	opts ...option.RequestOption,
 ) (*core.Response[*levelfour.RecommendationsOverviewResponse], error) {
 	options := core.NewRequestOptions(opts...)
@@ -609,6 +610,13 @@ func (r *RawClient) GetProviderOverview(
 		baseURL+"/api/v1/providers/%v/recommendations/overview",
 		providerID,
 	)
+	queryParams, err := internal.QueryValues(request)
+	if err != nil {
+		return nil, err
+	}
+	if len(queryParams) > 0 {
+		endpointURL += "?" + queryParams.Encode()
+	}
 	headers := internal.MergeHeaders(
 		r.options.ToHeader(),
 		options.ToHeader(),
