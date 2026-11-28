@@ -2389,7 +2389,7 @@ type KubernetesUsageSource struct {
 	NodesCost *float64 `json:"nodes_cost,omitempty" url:"nodes_cost,omitempty"`
 	// complete when every cluster of the cloud had its nodes on every day of the 30; partial when some were not tied to a cluster, so monthly_cost is a floor; null for agent
 	CostScope *KubernetesUsageSourceCostScope `json:"cost_scope,omitempty" url:"cost_scope,omitempty"`
-	// The cloud's agent clusters plus those GET /v1/k8s/unmonitored-clusters lists for it, or the reporting agent clusters for agent; null when unknown (AKS for now)
+	// The cloud's agent clusters plus those GET /v1/k8s/unmonitored-clusters lists for it, or the reporting agent clusters for agent
 	Clusters *int `json:"clusters,omitempty" url:"clusters,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted

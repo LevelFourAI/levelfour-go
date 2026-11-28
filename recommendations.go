@@ -135,8 +135,10 @@ func (s *SavingsDecisionRequest) MarshalJSON() ([]byte, error) {
 }
 
 var (
-	getProviderOverviewRecommendationsRequestFieldService   = big.NewInt(1 << 0)
-	getProviderOverviewRecommendationsRequestFieldClusterID = big.NewInt(1 << 1)
+	getProviderOverviewRecommendationsRequestFieldService       = big.NewInt(1 << 0)
+	getProviderOverviewRecommendationsRequestFieldClusterID     = big.NewInt(1 << 1)
+	getProviderOverviewRecommendationsRequestFieldTargetKind    = big.NewInt(1 << 2)
+	getProviderOverviewRecommendationsRequestFieldTargetKindNot = big.NewInt(1 << 3)
 )
 
 type GetProviderOverviewRecommendationsRequest struct {
@@ -144,6 +146,10 @@ type GetProviderOverviewRecommendationsRequest struct {
 	Service []string `json:"-" url:"service,omitempty"`
 	// Keep the Kubernetes savings of these clusters, by k8s cluster id - can be repeated
 	ClusterID []string `json:"-" url:"cluster_id,omitempty"`
+	// Keep the Kubernetes savings that change one of these: container (a container's requests or limits), workload, NodePool, NodeGroup or PersistentVolumeClaim. A row that names a container counts as container - can be repeated
+	TargetKind []string `json:"-" url:"target_kind,omitempty"`
+	// Leave out the savings that change one of these, as target_kind names them; any row that is not a Kubernetes saving counts as workload. target_kind_not=container keeps the Kubernetes Optimizations' other savings - can be repeated
+	TargetKindNot []string `json:"-" url:"target_kind_not,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -168,6 +174,20 @@ func (g *GetProviderOverviewRecommendationsRequest) SetService(service []string)
 func (g *GetProviderOverviewRecommendationsRequest) SetClusterID(clusterID []string) {
 	g.ClusterID = clusterID
 	g.require(getProviderOverviewRecommendationsRequestFieldClusterID)
+}
+
+// SetTargetKind sets the TargetKind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetProviderOverviewRecommendationsRequest) SetTargetKind(targetKind []string) {
+	g.TargetKind = targetKind
+	g.require(getProviderOverviewRecommendationsRequestFieldTargetKind)
+}
+
+// SetTargetKindNot sets the TargetKindNot field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (g *GetProviderOverviewRecommendationsRequest) SetTargetKindNot(targetKindNot []string) {
+	g.TargetKindNot = targetKindNot
+	g.require(getProviderOverviewRecommendationsRequestFieldTargetKindNot)
 }
 
 var (
@@ -244,14 +264,16 @@ var (
 	listByProviderRecommendationsRequestFieldTagNot              = big.NewInt(1 << 14)
 	listByProviderRecommendationsRequestFieldResourceType        = big.NewInt(1 << 15)
 	listByProviderRecommendationsRequestFieldResourceTypeNot     = big.NewInt(1 << 16)
-	listByProviderRecommendationsRequestFieldDisplayStatus       = big.NewInt(1 << 17)
-	listByProviderRecommendationsRequestFieldSearch              = big.NewInt(1 << 18)
-	listByProviderRecommendationsRequestFieldSavings             = big.NewInt(1 << 19)
-	listByProviderRecommendationsRequestFieldSavingsNot          = big.NewInt(1 << 20)
-	listByProviderRecommendationsRequestFieldAvailableFormats    = big.NewInt(1 << 21)
-	listByProviderRecommendationsRequestFieldAvailableFormatsNot = big.NewInt(1 << 22)
-	listByProviderRecommendationsRequestFieldVirtualTagKey       = big.NewInt(1 << 23)
-	listByProviderRecommendationsRequestFieldVirtualTagValue     = big.NewInt(1 << 24)
+	listByProviderRecommendationsRequestFieldTargetKind          = big.NewInt(1 << 17)
+	listByProviderRecommendationsRequestFieldTargetKindNot       = big.NewInt(1 << 18)
+	listByProviderRecommendationsRequestFieldDisplayStatus       = big.NewInt(1 << 19)
+	listByProviderRecommendationsRequestFieldSearch              = big.NewInt(1 << 20)
+	listByProviderRecommendationsRequestFieldSavings             = big.NewInt(1 << 21)
+	listByProviderRecommendationsRequestFieldSavingsNot          = big.NewInt(1 << 22)
+	listByProviderRecommendationsRequestFieldAvailableFormats    = big.NewInt(1 << 23)
+	listByProviderRecommendationsRequestFieldAvailableFormatsNot = big.NewInt(1 << 24)
+	listByProviderRecommendationsRequestFieldVirtualTagKey       = big.NewInt(1 << 25)
+	listByProviderRecommendationsRequestFieldVirtualTagValue     = big.NewInt(1 << 26)
 )
 
 type ListByProviderRecommendationsRequest struct {
@@ -289,6 +311,10 @@ type ListByProviderRecommendationsRequest struct {
 	ResourceType []string `json:"-" url:"resource_type,omitempty"`
 	// Exclude resource type(s) - can be repeated for multiple values
 	ResourceTypeNot []string `json:"-" url:"resource_type_not,omitempty"`
+	// Keep the Kubernetes savings that change one of these: container (a container's requests or limits), workload, NodePool, NodeGroup or PersistentVolumeClaim. A row that names a container counts as container - can be repeated
+	TargetKind []string `json:"-" url:"target_kind,omitempty"`
+	// Leave out the savings that change one of these, as target_kind names them; any row that is not a Kubernetes saving counts as workload. target_kind_not=container keeps the Kubernetes Optimizations' other savings - can be repeated
+	TargetKindNot []string `json:"-" url:"target_kind_not,omitempty"`
 	// Filter by display status(es): available, pending, awaiting_approval, processing, optimized (alias: saved), in_progress, failed, rejected, unavailable
 	DisplayStatus []string `json:"-" url:"display_status,omitempty"`
 	// Search across recommendation fields (case-insensitive)
@@ -434,6 +460,20 @@ func (l *ListByProviderRecommendationsRequest) SetResourceType(resourceType []st
 func (l *ListByProviderRecommendationsRequest) SetResourceTypeNot(resourceTypeNot []string) {
 	l.ResourceTypeNot = resourceTypeNot
 	l.require(listByProviderRecommendationsRequestFieldResourceTypeNot)
+}
+
+// SetTargetKind sets the TargetKind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListByProviderRecommendationsRequest) SetTargetKind(targetKind []string) {
+	l.TargetKind = targetKind
+	l.require(listByProviderRecommendationsRequestFieldTargetKind)
+}
+
+// SetTargetKindNot sets the TargetKindNot field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (l *ListByProviderRecommendationsRequest) SetTargetKindNot(targetKindNot []string) {
+	l.TargetKindNot = targetKindNot
+	l.require(listByProviderRecommendationsRequestFieldTargetKindNot)
 }
 
 // SetDisplayStatus sets the DisplayStatus field and marks it as non-optional;

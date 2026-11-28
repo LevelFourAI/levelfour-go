@@ -247,6 +247,7 @@ type (
 	BadRequestError                                                                    = rootpkg.BadRequestError
 	BindReposRequest                                                                   = rootpkg.BindReposRequest
 	BlockerTotals                                                                      = rootpkg.BlockerTotals
+	BlockingPdb                                                                        = rootpkg.BlockingPdb
 	BlockingReason                                                                     = rootpkg.BlockingReason
 	BlockingReasonReason                                                               = rootpkg.BlockingReasonReason
 	Board                                                                              = rootpkg.Board
@@ -306,6 +307,12 @@ type (
 	CategoryFallbackDimension                                                          = rootpkg.CategoryFallbackDimension
 	CategoryTransfer                                                                   = rootpkg.CategoryTransfer
 	CategoryTransferCategory                                                           = rootpkg.CategoryTransferCategory
+	ChangeWatch                                                                        = rootpkg.ChangeWatch
+	ChangeWatchAfter                                                                   = rootpkg.ChangeWatchAfter
+	ChangeWatchAfterVisitor                                                            = rootpkg.ChangeWatchAfterVisitor
+	ChangeWatchBefore                                                                  = rootpkg.ChangeWatchBefore
+	ChangeWatchBeforeVisitor                                                           = rootpkg.ChangeWatchBeforeVisitor
+	ChangeWatchVerdict                                                                 = rootpkg.ChangeWatchVerdict
 	ChangesParamsInput                                                                 = rootpkg.ChangesParamsInput
 	ChangesParamsInputAmount                                                           = rootpkg.ChangesParamsInputAmount
 	ChangesParamsInputAmountVisitor                                                    = rootpkg.ChangesParamsInputAmountVisitor
@@ -319,6 +326,10 @@ type (
 	ChangesParamsOutputCostBasis                                                       = rootpkg.ChangesParamsOutputCostBasis
 	ChangesParamsOutputMeasure                                                         = rootpkg.ChangesParamsOutputMeasure
 	ChartForecast                                                                      = rootpkg.ChartForecast
+	CheckedByKind                                                                      = rootpkg.CheckedByKind
+	CheckedObject                                                                      = rootpkg.CheckedObject
+	CheckedObjectKind                                                                  = rootpkg.CheckedObjectKind
+	CheckedObjectState                                                                 = rootpkg.CheckedObjectState
 	ChildrenSavings                                                                    = rootpkg.ChildrenSavings
 	ClaimBillRate                                                                      = rootpkg.ClaimBillRate
 	ClaimDay                                                                           = rootpkg.ClaimDay
@@ -525,6 +536,13 @@ type (
 	ConsolidationBlockerNodePricedBy                                                   = rootpkg.ConsolidationBlockerNodePricedBy
 	ConsolidationBlockersData                                                          = rootpkg.ConsolidationBlockersData
 	ConsolidationBlockersResponse                                                      = rootpkg.ConsolidationBlockersResponse
+	ConsolidationChange                                                                = rootpkg.ConsolidationChange
+	ConsolidationChangeNode                                                            = rootpkg.ConsolidationChangeNode
+	ConsolidationChangeReasonsItem                                                     = rootpkg.ConsolidationChangeReasonsItem
+	ConsolidationChangeTotals                                                          = rootpkg.ConsolidationChangeTotals
+	ConsolidationChangesData                                                           = rootpkg.ConsolidationChangesData
+	ConsolidationChangesResponse                                                       = rootpkg.ConsolidationChangesResponse
+	ConsolidationLever                                                                 = rootpkg.ConsolidationLever
 	ContainerDetail                                                                    = rootpkg.ContainerDetail
 	ContainerGpu                                                                       = rootpkg.ContainerGpu
 	ContainerJvmDay                                                                    = rootpkg.ContainerJvmDay
@@ -903,6 +921,7 @@ type (
 	ExtractRequestTotalPreTax                                                          = rootpkg.ExtractRequestTotalPreTax
 	ExtractRequestTotalPreTaxVisitor                                                   = rootpkg.ExtractRequestTotalPreTaxVisitor
 	FacetCount                                                                         = rootpkg.FacetCount
+	FailingShare                                                                       = rootpkg.FailingShare
 	FileParam                                                                          = rootpkg.FileParam
 	FileParamOption                                                                    = rootpkg.FileParamOption
 	FileUIPart                                                                         = rootpkg.FileUIPart
@@ -910,7 +929,13 @@ type (
 	FilesystemUse                                                                      = rootpkg.FilesystemUse
 	FitNodes                                                                           = rootpkg.FitNodes
 	FitSet                                                                             = rootpkg.FitSet
+	FixAmount                                                                          = rootpkg.FixAmount
+	FixChange                                                                          = rootpkg.FixChange
+	FixChangeResource                                                                  = rootpkg.FixChangeResource
+	FixSizedBy                                                                         = rootpkg.FixSizedBy
+	FixSizedByKind                                                                     = rootpkg.FixSizedByKind
 	FlagCount                                                                          = rootpkg.FlagCount
+	FleetConsolidationLever                                                            = rootpkg.FleetConsolidationLever
 	FleetLabelKey                                                                      = rootpkg.FleetLabelKey
 	FleetLabelKeysData                                                                 = rootpkg.FleetLabelKeysData
 	FleetLabelKeysResponse                                                             = rootpkg.FleetLabelKeysResponse
@@ -944,6 +969,7 @@ type (
 	FleetWorkload                                                                      = rootpkg.FleetWorkload
 	FleetWorkloadCostUnknownReason                                                     = rootpkg.FleetWorkloadCostUnknownReason
 	FleetWorkloadFacets                                                                = rootpkg.FleetWorkloadFacets
+	FleetWorkloadFixState                                                              = rootpkg.FleetWorkloadFixState
 	FleetWorkloadListData                                                              = rootpkg.FleetWorkloadListData
 	FleetWorkloadListResponse                                                          = rootpkg.FleetWorkloadListResponse
 	FleetWorkloadPair                                                                  = rootpkg.FleetWorkloadPair
@@ -1471,11 +1497,16 @@ type (
 	NodeWorkload                                                                       = rootpkg.NodeWorkload
 	NotFound                                                                           = rootpkg.NotFound
 	NotFoundError                                                                      = rootpkg.NotFoundError
+	OffNamespacesWaste                                                                 = rootpkg.OffNamespacesWaste
 	OfferingsData                                                                      = rootpkg.OfferingsData
 	OfferingsResponse                                                                  = rootpkg.OfferingsResponse
 	OrganizationalUnit                                                                 = rootpkg.OrganizationalUnit
+	OtherCheckedData                                                                   = rootpkg.OtherCheckedData
+	OtherCheckedResponse                                                               = rootpkg.OtherCheckedResponse
 	OtherRightsizer                                                                    = rootpkg.OtherRightsizer
 	OtherRightsizerKind                                                                = rootpkg.OtherRightsizerKind
+	OtherSavings                                                                       = rootpkg.OtherSavings
+	OtherSavingsByKind                                                                 = rootpkg.OtherSavingsByKind
 	Pagination                                                                         = rootpkg.Pagination
 	PaginationMeta                                                                     = rootpkg.PaginationMeta
 	PendingApprovalItem                                                                = rootpkg.PendingApprovalItem
@@ -1812,6 +1843,7 @@ type (
 	RightsizedContainerPhase                                                           = rootpkg.RightsizedContainerPhase
 	RightsizedContainerSizedByItem                                                     = rootpkg.RightsizedContainerSizedByItem
 	RightsizedContainerUnpricedReason                                                  = rootpkg.RightsizedContainerUnpricedReason
+	RightsizingFrees                                                                   = rootpkg.RightsizingFrees
 	RosterAsked                                                                        = rootpkg.RosterAsked
 	RosterAskedFormat                                                                  = rootpkg.RosterAskedFormat
 	RotateCredentialRequest                                                            = rootpkg.RotateCredentialRequest
@@ -1856,6 +1888,7 @@ type (
 	SizedElsewhere                                                                     = rootpkg.SizedElsewhere
 	SizedElsewherePool                                                                 = rootpkg.SizedElsewherePool
 	SizedElsewhereResponse                                                             = rootpkg.SizedElsewhereResponse
+	SizerFlag                                                                          = rootpkg.SizerFlag
 	SizingEvidence                                                                     = rootpkg.SizingEvidence
 	SizingEvidenceKind                                                                 = rootpkg.SizingEvidenceKind
 	SizingEvidenceResource                                                             = rootpkg.SizingEvidenceResource
@@ -2097,6 +2130,7 @@ type (
 	UnmonitoredClusterListResponse                                                     = rootpkg.UnmonitoredClusterListResponse
 	UnmonitoredClusterProvider                                                         = rootpkg.UnmonitoredClusterProvider
 	UnmonitoredClusterSource                                                           = rootpkg.UnmonitoredClusterSource
+	UnpricedFindings                                                                   = rootpkg.UnpricedFindings
 	UnprocessableEntityError                                                           = rootpkg.UnprocessableEntityError
 	UnreportedInClusters                                                               = rootpkg.UnreportedInClusters
 	UpdateAlertRequest                                                                 = rootpkg.UpdateAlertRequest
@@ -2184,6 +2218,8 @@ type (
 	WasteSignalsDataCostAttribution                                                    = rootpkg.WasteSignalsDataCostAttribution
 	WasteSignalsResponse                                                               = rootpkg.WasteSignalsResponse
 	WasteTotal                                                                         = rootpkg.WasteTotal
+	WatchPoolSignals                                                                   = rootpkg.WatchPoolSignals
+	WatchWorkloadSignals                                                               = rootpkg.WatchWorkloadSignals
 	WhoamiData                                                                         = rootpkg.WhoamiData
 	WhoamiResponse                                                                     = rootpkg.WhoamiResponse
 	WorkloadAutomation                                                                 = rootpkg.WorkloadAutomation
@@ -2196,6 +2232,7 @@ type (
 	WorkloadEvent                                                                      = rootpkg.WorkloadEvent
 	WorkloadEventType                                                                  = rootpkg.WorkloadEventType
 	WorkloadFacets                                                                     = rootpkg.WorkloadFacets
+	WorkloadFix                                                                        = rootpkg.WorkloadFix
 	WorkloadItem                                                                       = rootpkg.WorkloadItem
 	WorkloadItemCPUSetBy                                                               = rootpkg.WorkloadItemCPUSetBy
 	WorkloadItemCostUnknownReason                                                      = rootpkg.WorkloadItemCostUnknownReason
@@ -2219,6 +2256,8 @@ type (
 	WorkloadPodEvent                                                                   = rootpkg.WorkloadPodEvent
 	WorkloadPodEventType                                                               = rootpkg.WorkloadPodEventType
 	WorkloadRef                                                                        = rootpkg.WorkloadRef
+	WorkloadScaler                                                                     = rootpkg.WorkloadScaler
+	WorkloadScalerKind                                                                 = rootpkg.WorkloadScalerKind
 	WorkloadSource                                                                     = rootpkg.WorkloadSource
 	WorkloadSourceKind                                                                 = rootpkg.WorkloadSourceKind
 	WorkloadTermination                                                                = rootpkg.WorkloadTermination
@@ -2319,12 +2358,15 @@ var (
 	NewCategoryCandidatesCategoryFromString                                                  = rootpkg.NewCategoryCandidatesCategoryFromString
 	NewCategoryFallbackDimensionFromString                                                   = rootpkg.NewCategoryFallbackDimensionFromString
 	NewCategoryTransferCategoryFromString                                                    = rootpkg.NewCategoryTransferCategoryFromString
+	NewChangeWatchVerdictFromString                                                          = rootpkg.NewChangeWatchVerdictFromString
 	NewChangesParamsInputComparisonFromString                                                = rootpkg.NewChangesParamsInputComparisonFromString
 	NewChangesParamsInputCostBasisFromString                                                 = rootpkg.NewChangesParamsInputCostBasisFromString
 	NewChangesParamsInputMeasureFromString                                                   = rootpkg.NewChangesParamsInputMeasureFromString
 	NewChangesParamsOutputComparisonFromString                                               = rootpkg.NewChangesParamsOutputComparisonFromString
 	NewChangesParamsOutputCostBasisFromString                                                = rootpkg.NewChangesParamsOutputCostBasisFromString
 	NewChangesParamsOutputMeasureFromString                                                  = rootpkg.NewChangesParamsOutputMeasureFromString
+	NewCheckedObjectKindFromString                                                           = rootpkg.NewCheckedObjectKindFromString
+	NewCheckedObjectStateFromString                                                          = rootpkg.NewCheckedObjectStateFromString
 	NewClaudeTeamPersonRecommendationFromString                                              = rootpkg.NewClaudeTeamPersonRecommendationFromString
 	NewClaudeTeamPersonSeatFromString                                                        = rootpkg.NewClaudeTeamPersonSeatFromString
 	NewClaudeTeamPersonStatesItemFromString                                                  = rootpkg.NewClaudeTeamPersonStatesItemFromString
@@ -2390,6 +2432,7 @@ var (
 	NewConsolidationBlockerNodeKeptReasonFromString                                          = rootpkg.NewConsolidationBlockerNodeKeptReasonFromString
 	NewConsolidationBlockerNodeNotKnownReasonFromString                                      = rootpkg.NewConsolidationBlockerNodeNotKnownReasonFromString
 	NewConsolidationBlockerNodePricedByFromString                                            = rootpkg.NewConsolidationBlockerNodePricedByFromString
+	NewConsolidationChangeReasonsItemFromString                                              = rootpkg.NewConsolidationChangeReasonsItemFromString
 	NewContainerJvmHeapSourceFromString                                                      = rootpkg.NewContainerJvmHeapSourceFromString
 	NewContainerJvmMeasuredCollectorFromString                                               = rootpkg.NewContainerJvmMeasuredCollectorFromString
 	NewContractLineSourceFromString                                                          = rootpkg.NewContractLineSourceFromString
@@ -2445,6 +2488,8 @@ var (
 	NewExecutionStepSchemaStatusFromString                                                   = rootpkg.NewExecutionStepSchemaStatusFromString
 	NewExtractRequestDocumentKindFromString                                                  = rootpkg.NewExtractRequestDocumentKindFromString
 	NewFileParam                                                                             = rootpkg.NewFileParam
+	NewFixChangeResourceFromString                                                           = rootpkg.NewFixChangeResourceFromString
+	NewFixSizedByKindFromString                                                              = rootpkg.NewFixSizedByKindFromString
 	NewFleetNamespaceAutomationStatusFromString                                              = rootpkg.NewFleetNamespaceAutomationStatusFromString
 	NewFleetNamespaceCostUnknownReasonFromString                                             = rootpkg.NewFleetNamespaceCostUnknownReasonFromString
 	NewFleetNamespaceKindFromString                                                          = rootpkg.NewFleetNamespaceKindFromString
@@ -2456,6 +2501,7 @@ var (
 	NewFleetVolumeCostUnknownReasonFromString                                                = rootpkg.NewFleetVolumeCostUnknownReasonFromString
 	NewFleetVolumeUseUnknownReasonFromString                                                 = rootpkg.NewFleetVolumeUseUnknownReasonFromString
 	NewFleetWorkloadCostUnknownReasonFromString                                              = rootpkg.NewFleetWorkloadCostUnknownReasonFromString
+	NewFleetWorkloadFixStateFromString                                                       = rootpkg.NewFleetWorkloadFixStateFromString
 	NewFleetWorkloadRiskFromString                                                           = rootpkg.NewFleetWorkloadRiskFromString
 	NewForecastDataCreditsFromString                                                         = rootpkg.NewForecastDataCreditsFromString
 	NewForecastDataShowCostAsFromString                                                      = rootpkg.NewForecastDataShowCostAsFromString
@@ -2838,6 +2884,7 @@ var (
 	NewWorkloadListItemRiskFromString                                                        = rootpkg.NewWorkloadListItemRiskFromString
 	NewWorkloadListItemSizedByItemFromString                                                 = rootpkg.NewWorkloadListItemSizedByItemFromString
 	NewWorkloadPodEventTypeFromString                                                        = rootpkg.NewWorkloadPodEventTypeFromString
+	NewWorkloadScalerKindFromString                                                          = rootpkg.NewWorkloadScalerKindFromString
 	NewWorkloadSourceKindFromString                                                          = rootpkg.NewWorkloadSourceKindFromString
 	NewWorkspaceStatusFromString                                                             = rootpkg.NewWorkspaceStatusFromString
 	Rune                                                                                     = rootpkg.Rune
