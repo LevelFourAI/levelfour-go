@@ -3081,6 +3081,7 @@ const (
 	AutomationActionRefusalReasonStepTooLarge         AutomationActionRefusalReason = "step_too_large"
 	AutomationActionRefusalReasonNotAnIncrease        AutomationActionRefusalReason = "not_an_increase"
 	AutomationActionRefusalReasonVpaManaged           AutomationActionRefusalReason = "vpa_managed"
+	AutomationActionRefusalReasonAutoModeManaged      AutomationActionRefusalReason = "auto_mode_managed"
 	AutomationActionRefusalReasonStaleStep            AutomationActionRefusalReason = "stale_step"
 	AutomationActionRefusalReasonConcurrencyCap       AutomationActionRefusalReason = "concurrency_cap"
 	AutomationActionRefusalReasonStepInterval         AutomationActionRefusalReason = "step_interval"
@@ -3125,6 +3126,8 @@ func NewAutomationActionRefusalReasonFromString(s string) (AutomationActionRefus
 		return AutomationActionRefusalReasonNotAnIncrease, nil
 	case "vpa_managed":
 		return AutomationActionRefusalReasonVpaManaged, nil
+	case "auto_mode_managed":
+		return AutomationActionRefusalReasonAutoModeManaged, nil
 	case "stale_step":
 		return AutomationActionRefusalReasonStaleStep, nil
 	case "concurrency_cap":
@@ -4982,11 +4985,16 @@ func (a AutoscalerInsightKind) Ptr() *AutoscalerInsightKind {
 }
 
 var (
-	autoscalingDataFieldNodePools     = big.NewInt(1 << 0)
-	autoscalingDataFieldNodeClasses   = big.NewInt(1 << 1)
-	autoscalingDataFieldHpas          = big.NewInt(1 << 2)
-	autoscalingDataFieldScaledObjects = big.NewInt(1 << 3)
-	autoscalingDataFieldVpas          = big.NewInt(1 << 4)
+	autoscalingDataFieldNodePools                    = big.NewInt(1 << 0)
+	autoscalingDataFieldNodeClasses                  = big.NewInt(1 << 1)
+	autoscalingDataFieldHpas                         = big.NewInt(1 << 2)
+	autoscalingDataFieldScaledObjects                = big.NewInt(1 << 3)
+	autoscalingDataFieldVpas                         = big.NewInt(1 << 4)
+	autoscalingDataFieldPdbs                         = big.NewInt(1 << 5)
+	autoscalingDataFieldResourceOptimizationPolicies = big.NewInt(1 << 6)
+	autoscalingDataFieldResourceOptimizations        = big.NewInt(1 << 7)
+	autoscalingDataFieldAdmissionWebhooks            = big.NewInt(1 << 8)
+	autoscalingDataFieldCrds                         = big.NewInt(1 << 9)
 )
 
 type AutoscalingData struct {
@@ -4995,6 +5003,16 @@ type AutoscalingData struct {
 	Hpas          []*ReplicaScaler `json:"hpas" url:"hpas"`
 	ScaledObjects []*ReplicaScaler `json:"scaled_objects" url:"scaled_objects"`
 	Vpas          []*VpaScaler     `json:"vpas" url:"vpas"`
+	// The PodDisruptionBudgets, each with its applier in its spec
+	Pdbs []*NamedSpec `json:"pdbs" url:"pdbs"`
+	// EKS Auto Mode's ClusterResourceOptimizationPolicies: spec.mode, profile, the workload counts, the Ready reason and the applier. Empty on a cluster without Auto Mode's rightsizing
+	ResourceOptimizationPolicies []*NamedSpec `json:"resource_optimization_policies" url:"resource_optimization_policies"`
+	// The object EKS Auto Mode keeps for each workload it sizes: spec.target, mode (Apply resizes pods), profile, the policy that won it and the Ready reason (VPAConflict while a VPA not in Off mode targets it)
+	ResourceOptimizations []*NamedSpec `json:"resource_optimizations" url:"resource_optimizations"`
+	// Each mutating and validating webhook, named <configuration>/<webhook>: its type, failure policy, the Service behind it or only that it calls a URL, and the resources and operations its rules match. Empty from an agent before 0.8.5
+	AdmissionWebhooks []*NamedSpec `json:"admission_webhooks" url:"admission_webhooks"`
+	// The custom resources the cluster serves among those the agent lists, as <resource>.<group>, so a missing VPA CRD and no VPA read apart. Null until an agent of 0.8.5 or later reports them
+	Crds []string `json:"crds,omitempty" url:"crds,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -5036,6 +5054,41 @@ func (a *AutoscalingData) GetVpas() []*VpaScaler {
 		return nil
 	}
 	return a.Vpas
+}
+
+func (a *AutoscalingData) GetPdbs() []*NamedSpec {
+	if a == nil {
+		return nil
+	}
+	return a.Pdbs
+}
+
+func (a *AutoscalingData) GetResourceOptimizationPolicies() []*NamedSpec {
+	if a == nil {
+		return nil
+	}
+	return a.ResourceOptimizationPolicies
+}
+
+func (a *AutoscalingData) GetResourceOptimizations() []*NamedSpec {
+	if a == nil {
+		return nil
+	}
+	return a.ResourceOptimizations
+}
+
+func (a *AutoscalingData) GetAdmissionWebhooks() []*NamedSpec {
+	if a == nil {
+		return nil
+	}
+	return a.AdmissionWebhooks
+}
+
+func (a *AutoscalingData) GetCrds() []string {
+	if a == nil {
+		return nil
+	}
+	return a.Crds
 }
 
 func (a *AutoscalingData) GetExtraProperties() map[string]interface{} {
@@ -5085,6 +5138,41 @@ func (a *AutoscalingData) SetScaledObjects(scaledObjects []*ReplicaScaler) {
 func (a *AutoscalingData) SetVpas(vpas []*VpaScaler) {
 	a.Vpas = vpas
 	a.require(autoscalingDataFieldVpas)
+}
+
+// SetPdbs sets the Pdbs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutoscalingData) SetPdbs(pdbs []*NamedSpec) {
+	a.Pdbs = pdbs
+	a.require(autoscalingDataFieldPdbs)
+}
+
+// SetResourceOptimizationPolicies sets the ResourceOptimizationPolicies field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutoscalingData) SetResourceOptimizationPolicies(resourceOptimizationPolicies []*NamedSpec) {
+	a.ResourceOptimizationPolicies = resourceOptimizationPolicies
+	a.require(autoscalingDataFieldResourceOptimizationPolicies)
+}
+
+// SetResourceOptimizations sets the ResourceOptimizations field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutoscalingData) SetResourceOptimizations(resourceOptimizations []*NamedSpec) {
+	a.ResourceOptimizations = resourceOptimizations
+	a.require(autoscalingDataFieldResourceOptimizations)
+}
+
+// SetAdmissionWebhooks sets the AdmissionWebhooks field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutoscalingData) SetAdmissionWebhooks(admissionWebhooks []*NamedSpec) {
+	a.AdmissionWebhooks = admissionWebhooks
+	a.require(autoscalingDataFieldAdmissionWebhooks)
+}
+
+// SetCrds sets the Crds field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (a *AutoscalingData) SetCrds(crds []string) {
+	a.Crds = crds
+	a.require(autoscalingDataFieldCrds)
 }
 
 func (a *AutoscalingData) UnmarshalJSON(data []byte) error {
@@ -5883,6 +5971,191 @@ func (b *BlockerTotals) MarshalJSON() ([]byte, error) {
 }
 
 func (b *BlockerTotals) String() string {
+	if b == nil {
+		return "<nil>"
+	}
+	if len(b.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(b.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(b); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", b)
+}
+
+// A PodDisruptionBudget that allows the pod no disruption now, as the cluster's latest batch reports it.
+var (
+	blockingPdbFieldName                       = big.NewInt(1 << 0)
+	blockingPdbFieldMinAvailable               = big.NewInt(1 << 1)
+	blockingPdbFieldMaxUnavailable             = big.NewInt(1 << 2)
+	blockingPdbFieldCurrentHealthy             = big.NewInt(1 << 3)
+	blockingPdbFieldDesiredHealthy             = big.NewInt(1 << 4)
+	blockingPdbFieldDisruptionsAllowed         = big.NewInt(1 << 5)
+	blockingPdbFieldUnhealthyPodEvictionPolicy = big.NewInt(1 << 6)
+)
+
+type BlockingPdb struct {
+	Name string `json:"name" url:"name"`
+	// As the PDB sets it, a count or a percentage, such as "1" or "30%"
+	MinAvailable *string `json:"min_available,omitempty" url:"min_available,omitempty"`
+	// As the PDB sets it, such as "30%"
+	MaxUnavailable *string `json:"max_unavailable,omitempty" url:"max_unavailable,omitempty"`
+	CurrentHealthy *int    `json:"current_healthy,omitempty" url:"current_healthy,omitempty"`
+	DesiredHealthy *int    `json:"desired_healthy,omitempty" url:"desired_healthy,omitempty"`
+	// 0 for every PDB listed here
+	DisruptionsAllowed *int `json:"disruptions_allowed,omitempty" url:"disruptions_allowed,omitempty"`
+	// IfHealthyBudget or AlwaysAllow as the PDB sets it; null until the agent reports it, which it does not yet
+	UnhealthyPodEvictionPolicy *string `json:"unhealthy_pod_eviction_policy,omitempty" url:"unhealthy_pod_eviction_policy,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (b *BlockingPdb) GetName() string {
+	if b == nil {
+		return ""
+	}
+	return b.Name
+}
+
+func (b *BlockingPdb) GetMinAvailable() *string {
+	if b == nil {
+		return nil
+	}
+	return b.MinAvailable
+}
+
+func (b *BlockingPdb) GetMaxUnavailable() *string {
+	if b == nil {
+		return nil
+	}
+	return b.MaxUnavailable
+}
+
+func (b *BlockingPdb) GetCurrentHealthy() *int {
+	if b == nil {
+		return nil
+	}
+	return b.CurrentHealthy
+}
+
+func (b *BlockingPdb) GetDesiredHealthy() *int {
+	if b == nil {
+		return nil
+	}
+	return b.DesiredHealthy
+}
+
+func (b *BlockingPdb) GetDisruptionsAllowed() *int {
+	if b == nil {
+		return nil
+	}
+	return b.DisruptionsAllowed
+}
+
+func (b *BlockingPdb) GetUnhealthyPodEvictionPolicy() *string {
+	if b == nil {
+		return nil
+	}
+	return b.UnhealthyPodEvictionPolicy
+}
+
+func (b *BlockingPdb) GetExtraProperties() map[string]interface{} {
+	if b == nil {
+		return nil
+	}
+	return b.extraProperties
+}
+
+func (b *BlockingPdb) require(field *big.Int) {
+	if b.explicitFields == nil {
+		b.explicitFields = big.NewInt(0)
+	}
+	b.explicitFields.Or(b.explicitFields, field)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BlockingPdb) SetName(name string) {
+	b.Name = name
+	b.require(blockingPdbFieldName)
+}
+
+// SetMinAvailable sets the MinAvailable field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BlockingPdb) SetMinAvailable(minAvailable *string) {
+	b.MinAvailable = minAvailable
+	b.require(blockingPdbFieldMinAvailable)
+}
+
+// SetMaxUnavailable sets the MaxUnavailable field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BlockingPdb) SetMaxUnavailable(maxUnavailable *string) {
+	b.MaxUnavailable = maxUnavailable
+	b.require(blockingPdbFieldMaxUnavailable)
+}
+
+// SetCurrentHealthy sets the CurrentHealthy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BlockingPdb) SetCurrentHealthy(currentHealthy *int) {
+	b.CurrentHealthy = currentHealthy
+	b.require(blockingPdbFieldCurrentHealthy)
+}
+
+// SetDesiredHealthy sets the DesiredHealthy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BlockingPdb) SetDesiredHealthy(desiredHealthy *int) {
+	b.DesiredHealthy = desiredHealthy
+	b.require(blockingPdbFieldDesiredHealthy)
+}
+
+// SetDisruptionsAllowed sets the DisruptionsAllowed field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BlockingPdb) SetDisruptionsAllowed(disruptionsAllowed *int) {
+	b.DisruptionsAllowed = disruptionsAllowed
+	b.require(blockingPdbFieldDisruptionsAllowed)
+}
+
+// SetUnhealthyPodEvictionPolicy sets the UnhealthyPodEvictionPolicy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (b *BlockingPdb) SetUnhealthyPodEvictionPolicy(unhealthyPodEvictionPolicy *string) {
+	b.UnhealthyPodEvictionPolicy = unhealthyPodEvictionPolicy
+	b.require(blockingPdbFieldUnhealthyPodEvictionPolicy)
+}
+
+func (b *BlockingPdb) UnmarshalJSON(data []byte) error {
+	type unmarshaler BlockingPdb
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*b = BlockingPdb(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *b)
+	if err != nil {
+		return err
+	}
+	b.extraProperties = extraProperties
+	b.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (b *BlockingPdb) MarshalJSON() ([]byte, error) {
+	type embed BlockingPdb
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*b),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, b.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (b *BlockingPdb) String() string {
 	if b == nil {
 		return "<nil>"
 	}
@@ -7036,6 +7309,318 @@ func (c CategoryTransferCategory) Ptr() *CategoryTransferCategory {
 	return &c
 }
 
+// What the worker's watch saw of a change: a container or HPA change's workload signals, or a NodePool's or node
+// group's, before and after the rollout, its verdict and why. A removal or a claim resize records no signals, nor
+// does a change still watched.
+var (
+	changeWatchFieldVerdict = big.NewInt(1 << 0)
+	changeWatchFieldBefore  = big.NewInt(1 << 1)
+	changeWatchFieldAfter   = big.NewInt(1 << 2)
+	changeWatchFieldReasons = big.NewInt(1 << 3)
+	changeWatchFieldUntil   = big.NewInt(1 << 4)
+)
+
+type ChangeWatch struct {
+	// `watching` in the week after the rollout, until a regression shows or the week ends
+	Verdict ChangeWatchVerdict `json:"verdict" url:"verdict"`
+	Before  *ChangeWatchBefore `json:"before,omitempty" url:"before,omitempty"`
+	After   *ChangeWatchAfter  `json:"after,omitempty" url:"after,omitempty"`
+	// Why it regressed; empty when it held
+	Reasons []string `json:"reasons,omitempty" url:"reasons,omitempty"`
+	// The day the verdict is due, while watching
+	Until *time.Time `json:"until,omitempty" url:"until,omitempty" format:"date"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ChangeWatch) GetVerdict() ChangeWatchVerdict {
+	if c == nil {
+		return ""
+	}
+	return c.Verdict
+}
+
+func (c *ChangeWatch) GetBefore() *ChangeWatchBefore {
+	if c == nil {
+		return nil
+	}
+	return c.Before
+}
+
+func (c *ChangeWatch) GetAfter() *ChangeWatchAfter {
+	if c == nil {
+		return nil
+	}
+	return c.After
+}
+
+func (c *ChangeWatch) GetReasons() []string {
+	if c == nil {
+		return nil
+	}
+	return c.Reasons
+}
+
+func (c *ChangeWatch) GetUntil() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.Until
+}
+
+func (c *ChangeWatch) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ChangeWatch) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetVerdict sets the Verdict field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ChangeWatch) SetVerdict(verdict ChangeWatchVerdict) {
+	c.Verdict = verdict
+	c.require(changeWatchFieldVerdict)
+}
+
+// SetBefore sets the Before field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ChangeWatch) SetBefore(before *ChangeWatchBefore) {
+	c.Before = before
+	c.require(changeWatchFieldBefore)
+}
+
+// SetAfter sets the After field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ChangeWatch) SetAfter(after *ChangeWatchAfter) {
+	c.After = after
+	c.require(changeWatchFieldAfter)
+}
+
+// SetReasons sets the Reasons field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ChangeWatch) SetReasons(reasons []string) {
+	c.Reasons = reasons
+	c.require(changeWatchFieldReasons)
+}
+
+// SetUntil sets the Until field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ChangeWatch) SetUntil(until *time.Time) {
+	c.Until = until
+	c.require(changeWatchFieldUntil)
+}
+
+func (c *ChangeWatch) UnmarshalJSON(data []byte) error {
+	type embed ChangeWatch
+	var unmarshaler = struct {
+		embed
+		Until *internal.Date `json:"until,omitempty"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = ChangeWatch(unmarshaler.embed)
+	c.Until = unmarshaler.Until.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ChangeWatch) MarshalJSON() ([]byte, error) {
+	type embed ChangeWatch
+	var marshaler = struct {
+		embed
+		Until *internal.Date `json:"until,omitempty"`
+	}{
+		embed: embed(*c),
+		Until: internal.NewOptionalDate(c.Until),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ChangeWatch) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type ChangeWatchAfter struct {
+	WatchWorkloadSignals *WatchWorkloadSignals
+	WatchPoolSignals     *WatchPoolSignals
+
+	typ string
+}
+
+func (c *ChangeWatchAfter) GetWatchWorkloadSignals() *WatchWorkloadSignals {
+	if c == nil {
+		return nil
+	}
+	return c.WatchWorkloadSignals
+}
+
+func (c *ChangeWatchAfter) GetWatchPoolSignals() *WatchPoolSignals {
+	if c == nil {
+		return nil
+	}
+	return c.WatchPoolSignals
+}
+
+func (c *ChangeWatchAfter) UnmarshalJSON(data []byte) error {
+	valueWatchWorkloadSignals := new(WatchWorkloadSignals)
+	if err := json.Unmarshal(data, &valueWatchWorkloadSignals); err == nil {
+		c.typ = "WatchWorkloadSignals"
+		c.WatchWorkloadSignals = valueWatchWorkloadSignals
+		return nil
+	}
+	valueWatchPoolSignals := new(WatchPoolSignals)
+	if err := json.Unmarshal(data, &valueWatchPoolSignals); err == nil {
+		c.typ = "WatchPoolSignals"
+		c.WatchPoolSignals = valueWatchPoolSignals
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, c)
+}
+
+func (c ChangeWatchAfter) MarshalJSON() ([]byte, error) {
+	if c.typ == "WatchWorkloadSignals" || c.WatchWorkloadSignals != nil {
+		return json.Marshal(c.WatchWorkloadSignals)
+	}
+	if c.typ == "WatchPoolSignals" || c.WatchPoolSignals != nil {
+		return json.Marshal(c.WatchPoolSignals)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", c)
+}
+
+type ChangeWatchAfterVisitor interface {
+	VisitWatchWorkloadSignals(*WatchWorkloadSignals) error
+	VisitWatchPoolSignals(*WatchPoolSignals) error
+}
+
+func (c *ChangeWatchAfter) Accept(visitor ChangeWatchAfterVisitor) error {
+	if c.typ == "WatchWorkloadSignals" || c.WatchWorkloadSignals != nil {
+		return visitor.VisitWatchWorkloadSignals(c.WatchWorkloadSignals)
+	}
+	if c.typ == "WatchPoolSignals" || c.WatchPoolSignals != nil {
+		return visitor.VisitWatchPoolSignals(c.WatchPoolSignals)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", c)
+}
+
+type ChangeWatchBefore struct {
+	WatchWorkloadSignals *WatchWorkloadSignals
+	WatchPoolSignals     *WatchPoolSignals
+
+	typ string
+}
+
+func (c *ChangeWatchBefore) GetWatchWorkloadSignals() *WatchWorkloadSignals {
+	if c == nil {
+		return nil
+	}
+	return c.WatchWorkloadSignals
+}
+
+func (c *ChangeWatchBefore) GetWatchPoolSignals() *WatchPoolSignals {
+	if c == nil {
+		return nil
+	}
+	return c.WatchPoolSignals
+}
+
+func (c *ChangeWatchBefore) UnmarshalJSON(data []byte) error {
+	valueWatchWorkloadSignals := new(WatchWorkloadSignals)
+	if err := json.Unmarshal(data, &valueWatchWorkloadSignals); err == nil {
+		c.typ = "WatchWorkloadSignals"
+		c.WatchWorkloadSignals = valueWatchWorkloadSignals
+		return nil
+	}
+	valueWatchPoolSignals := new(WatchPoolSignals)
+	if err := json.Unmarshal(data, &valueWatchPoolSignals); err == nil {
+		c.typ = "WatchPoolSignals"
+		c.WatchPoolSignals = valueWatchPoolSignals
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, c)
+}
+
+func (c ChangeWatchBefore) MarshalJSON() ([]byte, error) {
+	if c.typ == "WatchWorkloadSignals" || c.WatchWorkloadSignals != nil {
+		return json.Marshal(c.WatchWorkloadSignals)
+	}
+	if c.typ == "WatchPoolSignals" || c.WatchPoolSignals != nil {
+		return json.Marshal(c.WatchPoolSignals)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", c)
+}
+
+type ChangeWatchBeforeVisitor interface {
+	VisitWatchWorkloadSignals(*WatchWorkloadSignals) error
+	VisitWatchPoolSignals(*WatchPoolSignals) error
+}
+
+func (c *ChangeWatchBefore) Accept(visitor ChangeWatchBeforeVisitor) error {
+	if c.typ == "WatchWorkloadSignals" || c.WatchWorkloadSignals != nil {
+		return visitor.VisitWatchWorkloadSignals(c.WatchWorkloadSignals)
+	}
+	if c.typ == "WatchPoolSignals" || c.WatchPoolSignals != nil {
+		return visitor.VisitWatchPoolSignals(c.WatchPoolSignals)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", c)
+}
+
+// `watching` in the week after the rollout, until a regression shows or the week ends
+type ChangeWatchVerdict string
+
+const (
+	ChangeWatchVerdictVerified  ChangeWatchVerdict = "verified"
+	ChangeWatchVerdictRegressed ChangeWatchVerdict = "regressed"
+	ChangeWatchVerdictWatching  ChangeWatchVerdict = "watching"
+)
+
+func NewChangeWatchVerdictFromString(s string) (ChangeWatchVerdict, error) {
+	switch s {
+	case "verified":
+		return ChangeWatchVerdictVerified, nil
+	case "regressed":
+		return ChangeWatchVerdictRegressed, nil
+	case "watching":
+		return ChangeWatchVerdictWatching, nil
+	}
+	var t ChangeWatchVerdict
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c ChangeWatchVerdict) Ptr() *ChangeWatchVerdict {
+	return &c
+}
+
 // Each series carried past the last complete day at its run rate over the 30 days before it.
 var (
 	chartForecastFieldStartDate  = big.NewInt(1 << 0)
@@ -7153,6 +7738,409 @@ func (c *ChartForecast) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	checkedByKindFieldNodePool     = big.NewInt(1 << 0)
+	checkedByKindFieldVolume       = big.NewInt(1 << 1)
+	checkedByKindFieldAutoscaler   = big.NewInt(1 << 2)
+	checkedByKindFieldIdleWorkload = big.NewInt(1 << 3)
+)
+
+type CheckedByKind struct {
+	// NodePools and node groups the scan reviewed
+	NodePool int `json:"node_pool" url:"node_pool"`
+	// Volume claims in the namespaces with recommendations on
+	Volume int `json:"volume" url:"volume"`
+	// HPAs in the namespaces with recommendations on
+	Autoscaler int `json:"autoscaler" url:"autoscaler"`
+	// Workloads in the namespaces with recommendations on
+	IdleWorkload int `json:"idle_workload" url:"idle_workload"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CheckedByKind) GetNodePool() int {
+	if c == nil {
+		return 0
+	}
+	return c.NodePool
+}
+
+func (c *CheckedByKind) GetVolume() int {
+	if c == nil {
+		return 0
+	}
+	return c.Volume
+}
+
+func (c *CheckedByKind) GetAutoscaler() int {
+	if c == nil {
+		return 0
+	}
+	return c.Autoscaler
+}
+
+func (c *CheckedByKind) GetIdleWorkload() int {
+	if c == nil {
+		return 0
+	}
+	return c.IdleWorkload
+}
+
+func (c *CheckedByKind) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CheckedByKind) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetNodePool sets the NodePool field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CheckedByKind) SetNodePool(nodePool int) {
+	c.NodePool = nodePool
+	c.require(checkedByKindFieldNodePool)
+}
+
+// SetVolume sets the Volume field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CheckedByKind) SetVolume(volume int) {
+	c.Volume = volume
+	c.require(checkedByKindFieldVolume)
+}
+
+// SetAutoscaler sets the Autoscaler field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CheckedByKind) SetAutoscaler(autoscaler int) {
+	c.Autoscaler = autoscaler
+	c.require(checkedByKindFieldAutoscaler)
+}
+
+// SetIdleWorkload sets the IdleWorkload field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CheckedByKind) SetIdleWorkload(idleWorkload int) {
+	c.IdleWorkload = idleWorkload
+	c.require(checkedByKindFieldIdleWorkload)
+}
+
+func (c *CheckedByKind) UnmarshalJSON(data []byte) error {
+	type unmarshaler CheckedByKind
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CheckedByKind(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CheckedByKind) MarshalJSON() ([]byte, error) {
+	type embed CheckedByKind
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CheckedByKind) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+// One object the other savings checked, with what the worker found in it (dashboard#1505).
+var (
+	checkedObjectFieldClusterID        = big.NewInt(1 << 0)
+	checkedObjectFieldClusterName      = big.NewInt(1 << 1)
+	checkedObjectFieldKind             = big.NewInt(1 << 2)
+	checkedObjectFieldNamespace        = big.NewInt(1 << 3)
+	checkedObjectFieldName             = big.NewInt(1 << 4)
+	checkedObjectFieldState            = big.NewInt(1 << 5)
+	checkedObjectFieldMonthly          = big.NewInt(1 << 6)
+	checkedObjectFieldRecommendationID = big.NewInt(1 << 7)
+	checkedObjectFieldReason           = big.NewInt(1 << 8)
+)
+
+type CheckedObject struct {
+	ClusterID   string `json:"cluster_id" url:"cluster_id"`
+	ClusterName string `json:"cluster_name" url:"cluster_name"`
+	// node_pool: a NodePool or node group; autoscaler: an HPA; idle_workload: a workload
+	Kind CheckedObjectKind `json:"kind" url:"kind"`
+	// Null for a node pool, which belongs to the cluster
+	Namespace *string `json:"namespace,omitempty" url:"namespace,omitempty"`
+	Name      string  `json:"name" url:"name"`
+	// recommendation: one available to approve; to_check: a finding the worker could not price; nothing: nothing to save
+	State CheckedObjectState `json:"state" url:"state"`
+	// What its recommendation saves a month; null otherwise
+	Monthly *float64 `json:"monthly,omitempty" url:"monthly,omitempty"`
+	// The recommendation to open, on a recommendation
+	RecommendationID *string `json:"recommendation_id,omitempty" url:"recommendation_id,omitempty"`
+	// Why it could not be priced, on to_check
+	Reason *string `json:"reason,omitempty" url:"reason,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *CheckedObject) GetClusterID() string {
+	if c == nil {
+		return ""
+	}
+	return c.ClusterID
+}
+
+func (c *CheckedObject) GetClusterName() string {
+	if c == nil {
+		return ""
+	}
+	return c.ClusterName
+}
+
+func (c *CheckedObject) GetKind() CheckedObjectKind {
+	if c == nil {
+		return ""
+	}
+	return c.Kind
+}
+
+func (c *CheckedObject) GetNamespace() *string {
+	if c == nil {
+		return nil
+	}
+	return c.Namespace
+}
+
+func (c *CheckedObject) GetName() string {
+	if c == nil {
+		return ""
+	}
+	return c.Name
+}
+
+func (c *CheckedObject) GetState() CheckedObjectState {
+	if c == nil {
+		return ""
+	}
+	return c.State
+}
+
+func (c *CheckedObject) GetMonthly() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.Monthly
+}
+
+func (c *CheckedObject) GetRecommendationID() *string {
+	if c == nil {
+		return nil
+	}
+	return c.RecommendationID
+}
+
+func (c *CheckedObject) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *CheckedObject) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetClusterID sets the ClusterID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CheckedObject) SetClusterID(clusterID string) {
+	c.ClusterID = clusterID
+	c.require(checkedObjectFieldClusterID)
+}
+
+// SetClusterName sets the ClusterName field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CheckedObject) SetClusterName(clusterName string) {
+	c.ClusterName = clusterName
+	c.require(checkedObjectFieldClusterName)
+}
+
+// SetKind sets the Kind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CheckedObject) SetKind(kind CheckedObjectKind) {
+	c.Kind = kind
+	c.require(checkedObjectFieldKind)
+}
+
+// SetNamespace sets the Namespace field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CheckedObject) SetNamespace(namespace *string) {
+	c.Namespace = namespace
+	c.require(checkedObjectFieldNamespace)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CheckedObject) SetName(name string) {
+	c.Name = name
+	c.require(checkedObjectFieldName)
+}
+
+// SetState sets the State field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CheckedObject) SetState(state CheckedObjectState) {
+	c.State = state
+	c.require(checkedObjectFieldState)
+}
+
+// SetMonthly sets the Monthly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CheckedObject) SetMonthly(monthly *float64) {
+	c.Monthly = monthly
+	c.require(checkedObjectFieldMonthly)
+}
+
+// SetRecommendationID sets the RecommendationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CheckedObject) SetRecommendationID(recommendationID *string) {
+	c.RecommendationID = recommendationID
+	c.require(checkedObjectFieldRecommendationID)
+}
+
+// SetReason sets the Reason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *CheckedObject) SetReason(reason *string) {
+	c.Reason = reason
+	c.require(checkedObjectFieldReason)
+}
+
+func (c *CheckedObject) UnmarshalJSON(data []byte) error {
+	type unmarshaler CheckedObject
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = CheckedObject(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *CheckedObject) MarshalJSON() ([]byte, error) {
+	type embed CheckedObject
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *CheckedObject) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+// node_pool: a NodePool or node group; autoscaler: an HPA; idle_workload: a workload
+type CheckedObjectKind string
+
+const (
+	CheckedObjectKindNodePool     CheckedObjectKind = "node_pool"
+	CheckedObjectKindVolume       CheckedObjectKind = "volume"
+	CheckedObjectKindAutoscaler   CheckedObjectKind = "autoscaler"
+	CheckedObjectKindIdleWorkload CheckedObjectKind = "idle_workload"
+)
+
+func NewCheckedObjectKindFromString(s string) (CheckedObjectKind, error) {
+	switch s {
+	case "node_pool":
+		return CheckedObjectKindNodePool, nil
+	case "volume":
+		return CheckedObjectKindVolume, nil
+	case "autoscaler":
+		return CheckedObjectKindAutoscaler, nil
+	case "idle_workload":
+		return CheckedObjectKindIdleWorkload, nil
+	}
+	var t CheckedObjectKind
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CheckedObjectKind) Ptr() *CheckedObjectKind {
+	return &c
+}
+
+// recommendation: one available to approve; to_check: a finding the worker could not price; nothing: nothing to save
+type CheckedObjectState string
+
+const (
+	CheckedObjectStateRecommendation CheckedObjectState = "recommendation"
+	CheckedObjectStateNothing        CheckedObjectState = "nothing"
+	CheckedObjectStateToCheck        CheckedObjectState = "to_check"
+)
+
+func NewCheckedObjectStateFromString(s string) (CheckedObjectState, error) {
+	switch s {
+	case "recommendation":
+		return CheckedObjectStateRecommendation, nil
+	case "nothing":
+		return CheckedObjectStateNothing, nil
+	case "to_check":
+		return CheckedObjectStateToCheck, nil
+	}
+	var t CheckedObjectState
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c CheckedObjectState) Ptr() *CheckedObjectState {
+	return &c
 }
 
 // The rate the tenant's bill charged for a volume type's storage, which AWS bills by the GiB-month (it writes
@@ -9238,60 +10226,61 @@ var (
 	clusterItemFieldAutomationNamespacesActing = big.NewInt(1 << 4)
 	clusterItemFieldAutomationNamespacesTotal  = big.NewInt(1 << 5)
 	clusterItemFieldLevers                     = big.NewInt(1 << 6)
-	clusterItemFieldMonthlyCost                = big.NewInt(1 << 7)
-	clusterItemFieldRealized                   = big.NewInt(1 << 8)
-	clusterItemFieldID                         = big.NewInt(1 << 9)
-	clusterItemFieldName                       = big.NewInt(1 << 10)
-	clusterItemFieldUID                        = big.NewInt(1 << 11)
-	clusterItemFieldConnectedAt                = big.NewInt(1 << 12)
-	clusterItemFieldCollectors                 = big.NewInt(1 << 13)
-	clusterItemFieldAgentCPUSetElsewhere       = big.NewInt(1 << 14)
-	clusterItemFieldProvider                   = big.NewInt(1 << 15)
-	clusterItemFieldRegion                     = big.NewInt(1 << 16)
-	clusterItemFieldAccountID                  = big.NewInt(1 << 17)
-	clusterItemFieldK8SVersion                 = big.NewInt(1 << 18)
-	clusterItemFieldAgentVersion               = big.NewInt(1 << 19)
-	clusterItemFieldLatestAgentVersion         = big.NewInt(1 << 20)
-	clusterItemFieldMetricsSource              = big.NewInt(1 << 21)
-	clusterItemFieldStatus                     = big.NewInt(1 << 22)
-	clusterItemFieldSource                     = big.NewInt(1 << 23)
-	clusterItemFieldLastHeartbeatAt            = big.NewInt(1 << 24)
-	clusterItemFieldLastBatchAt                = big.NewInt(1 << 25)
-	clusterItemFieldUnreportedLists            = big.NewInt(1 << 26)
-	clusterItemFieldLiveNodeCount              = big.NewInt(1 << 27)
-	clusterItemFieldLivePodCount               = big.NewInt(1 << 28)
-	clusterItemFieldNodeCount                  = big.NewInt(1 << 29)
-	clusterItemFieldNamespaceCount             = big.NewInt(1 << 30)
-	clusterItemFieldNamespacesEnabled          = big.NewInt(1 << 31)
-	clusterItemFieldWorkloadCount              = big.NewInt(1 << 32)
-	clusterItemFieldPodCount                   = big.NewInt(1 << 33)
-	clusterItemFieldCPU                        = big.NewInt(1 << 34)
-	clusterItemFieldMemory                     = big.NewInt(1 << 35)
-	clusterItemFieldCost                       = big.NewInt(1 << 36)
-	clusterItemFieldCPUCost                    = big.NewInt(1 << 37)
-	clusterItemFieldMemoryCost                 = big.NewInt(1 << 38)
-	clusterItemFieldStorageCost                = big.NewInt(1 << 39)
-	clusterItemFieldPotentialSavingsMonthly    = big.NewInt(1 << 40)
-	clusterItemFieldIdleCost                   = big.NewInt(1 << 41)
-	clusterItemFieldCostNet                    = big.NewInt(1 << 42)
-	clusterItemFieldIdleCostNet                = big.NewInt(1 << 43)
-	clusterItemFieldIdleShare                  = big.NewInt(1 << 44)
-	clusterItemFieldCPUEfficiency              = big.NewInt(1 << 45)
-	clusterItemFieldMemoryEfficiency           = big.NewInt(1 << 46)
-	clusterItemFieldEfficiency                 = big.NewInt(1 << 47)
-	clusterItemFieldCostBasis                  = big.NewInt(1 << 48)
-	clusterItemFieldPricedThrough              = big.NewInt(1 << 49)
-	clusterItemFieldBillStatus                 = big.NewInt(1 << 50)
-	clusterItemFieldBillExpectedBy             = big.NewInt(1 << 51)
-	clusterItemFieldCostChangePct              = big.NewInt(1 << 52)
-	clusterItemFieldWaste                      = big.NewInt(1 << 53)
-	clusterItemFieldNetwork                    = big.NewInt(1 << 54)
-	clusterItemFieldReliability                = big.NewInt(1 << 55)
-	clusterItemFieldWorkloadsAtRisk            = big.NewInt(1 << 56)
-	clusterItemFieldHealth                     = big.NewInt(1 << 57)
-	clusterItemFieldKarpenter                  = big.NewInt(1 << 58)
-	clusterItemFieldCo2EKg                     = big.NewInt(1 << 59)
-	clusterItemFieldCo2EMethod                 = big.NewInt(1 << 60)
+	clusterItemFieldOtherSavings               = big.NewInt(1 << 7)
+	clusterItemFieldMonthlyCost                = big.NewInt(1 << 8)
+	clusterItemFieldRealized                   = big.NewInt(1 << 9)
+	clusterItemFieldID                         = big.NewInt(1 << 10)
+	clusterItemFieldName                       = big.NewInt(1 << 11)
+	clusterItemFieldUID                        = big.NewInt(1 << 12)
+	clusterItemFieldConnectedAt                = big.NewInt(1 << 13)
+	clusterItemFieldCollectors                 = big.NewInt(1 << 14)
+	clusterItemFieldAgentCPUSetElsewhere       = big.NewInt(1 << 15)
+	clusterItemFieldProvider                   = big.NewInt(1 << 16)
+	clusterItemFieldRegion                     = big.NewInt(1 << 17)
+	clusterItemFieldAccountID                  = big.NewInt(1 << 18)
+	clusterItemFieldK8SVersion                 = big.NewInt(1 << 19)
+	clusterItemFieldAgentVersion               = big.NewInt(1 << 20)
+	clusterItemFieldLatestAgentVersion         = big.NewInt(1 << 21)
+	clusterItemFieldMetricsSource              = big.NewInt(1 << 22)
+	clusterItemFieldStatus                     = big.NewInt(1 << 23)
+	clusterItemFieldSource                     = big.NewInt(1 << 24)
+	clusterItemFieldLastHeartbeatAt            = big.NewInt(1 << 25)
+	clusterItemFieldLastBatchAt                = big.NewInt(1 << 26)
+	clusterItemFieldUnreportedLists            = big.NewInt(1 << 27)
+	clusterItemFieldLiveNodeCount              = big.NewInt(1 << 28)
+	clusterItemFieldLivePodCount               = big.NewInt(1 << 29)
+	clusterItemFieldNodeCount                  = big.NewInt(1 << 30)
+	clusterItemFieldNamespaceCount             = big.NewInt(1 << 31)
+	clusterItemFieldNamespacesEnabled          = big.NewInt(1 << 32)
+	clusterItemFieldWorkloadCount              = big.NewInt(1 << 33)
+	clusterItemFieldPodCount                   = big.NewInt(1 << 34)
+	clusterItemFieldCPU                        = big.NewInt(1 << 35)
+	clusterItemFieldMemory                     = big.NewInt(1 << 36)
+	clusterItemFieldCost                       = big.NewInt(1 << 37)
+	clusterItemFieldCPUCost                    = big.NewInt(1 << 38)
+	clusterItemFieldMemoryCost                 = big.NewInt(1 << 39)
+	clusterItemFieldStorageCost                = big.NewInt(1 << 40)
+	clusterItemFieldPotentialSavingsMonthly    = big.NewInt(1 << 41)
+	clusterItemFieldIdleCost                   = big.NewInt(1 << 42)
+	clusterItemFieldCostNet                    = big.NewInt(1 << 43)
+	clusterItemFieldIdleCostNet                = big.NewInt(1 << 44)
+	clusterItemFieldIdleShare                  = big.NewInt(1 << 45)
+	clusterItemFieldCPUEfficiency              = big.NewInt(1 << 46)
+	clusterItemFieldMemoryEfficiency           = big.NewInt(1 << 47)
+	clusterItemFieldEfficiency                 = big.NewInt(1 << 48)
+	clusterItemFieldCostBasis                  = big.NewInt(1 << 49)
+	clusterItemFieldPricedThrough              = big.NewInt(1 << 50)
+	clusterItemFieldBillStatus                 = big.NewInt(1 << 51)
+	clusterItemFieldBillExpectedBy             = big.NewInt(1 << 52)
+	clusterItemFieldCostChangePct              = big.NewInt(1 << 53)
+	clusterItemFieldWaste                      = big.NewInt(1 << 54)
+	clusterItemFieldNetwork                    = big.NewInt(1 << 55)
+	clusterItemFieldReliability                = big.NewInt(1 << 56)
+	clusterItemFieldWorkloadsAtRisk            = big.NewInt(1 << 57)
+	clusterItemFieldHealth                     = big.NewInt(1 << 58)
+	clusterItemFieldKarpenter                  = big.NewInt(1 << 59)
+	clusterItemFieldCo2EKg                     = big.NewInt(1 << 60)
+	clusterItemFieldCo2EMethod                 = big.NewInt(1 << 61)
 )
 
 type ClusterItem struct {
@@ -9308,6 +10297,8 @@ type ClusterItem struct {
 	// The namespaces the Automation tab lists
 	AutomationNamespacesTotal *int           `json:"automation_namespaces_total,omitempty" url:"automation_namespaces_total,omitempty"`
 	Levers                    *ClusterLevers `json:"levers,omitempty" url:"levers,omitempty"`
+	// The available recommendations that are not a container change, so no switch turns them on: an HPA's bounds, an idle workload, a NodePool, node group or claim. With rightsizing and consolidation they add up to available_savings_monthly
+	OtherSavings *OtherSavings `json:"other_savings,omitempty" url:"other_savings,omitempty"`
 	// This month's forecast of the cluster's node compute, as the summary's compute.forecast_month
 	MonthlyCost *float64 `json:"monthly_cost,omitempty" url:"monthly_cost,omitempty"`
 	// What the verified changes saved (GET /v1/k8s/realized); null when nothing is verified
@@ -9384,7 +10375,7 @@ type ClusterItem struct {
 	// The pods' traffic, as the Network lens counts it, and the data transfer billed to the cluster
 	Network     *Traffic              `json:"network" url:"network"`
 	Reliability *NamespaceReliability `json:"reliability" url:"reliability"`
-	// Current workloads at high risk: an OOM kill, an eviction, no ready replica in two batches in a row, or a crash loop. Medium and low never count. An ephemeral one, a pull-request environment, counts only with include_ephemeral
+	// Current workloads at high risk, on what holds now: an OOM kill or an eviction in the window's last two days, a container restarting at a crash loop's pace in them, or no ready replica in two batches in a row. Medium and low never count. An ephemeral one, a pull-request or branch environment, counts only with include_ephemeral
 	WorkloadsAtRisk int `json:"workloads_at_risk" url:"workloads_at_risk"`
 	// Null until the cluster has workloads or a priced day
 	Health *ClusterHealth `json:"health,omitempty" url:"health,omitempty"`
@@ -9448,6 +10439,13 @@ func (c *ClusterItem) GetLevers() *ClusterLevers {
 		return nil
 	}
 	return c.Levers
+}
+
+func (c *ClusterItem) GetOtherSavings() *OtherSavings {
+	if c == nil {
+		return nil
+	}
+	return c.OtherSavings
 }
 
 func (c *ClusterItem) GetMonthlyCost() *float64 {
@@ -9889,6 +10887,13 @@ func (c *ClusterItem) SetAutomationNamespacesTotal(automationNamespacesTotal *in
 func (c *ClusterItem) SetLevers(levers *ClusterLevers) {
 	c.Levers = levers
 	c.require(clusterItemFieldLevers)
+}
+
+// SetOtherSavings sets the OtherSavings field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClusterItem) SetOtherSavings(otherSavings *OtherSavings) {
+	c.OtherSavings = otherSavings
+	c.require(clusterItemFieldOtherSavings)
 }
 
 // SetMonthlyCost sets the MonthlyCost field and marks it as non-optional;
@@ -10513,10 +11518,10 @@ var (
 )
 
 type ClusterLevers struct {
-	// On where the automation applies changes by itself in a namespace; yields the available container and workload recommendations; counts the namespaces it acts in of the ones it lists
+	// On where the automation applies changes by itself in a namespace; yields the available container recommendations, the changes the automation makes; counts the namespaces it acts in of the ones it lists
 	Rightsizing *Lever `json:"rightsizing" url:"rightsizing"`
-	// On when a Karpenter NodePool removes underused nodes (consolidationPolicy not WhenEmpty, consolidateAfter not Never) or Cluster Autoscaler runs, its scale-down on by default since the agent reports no flags; false when every NodePool keeps them and Cluster Autoscaler does not run; null with neither. Yields and counts the held nodes that would go and no recommendation covers, of the cluster's nodes
-	Consolidation *Lever `json:"consolidation" url:"consolidation"`
+	// On when a Karpenter NodePool removes underused nodes (consolidationPolicy not WhenEmpty, consolidateAfter not Never) or Cluster Autoscaler runs, its scale-down on by default since the agent reports no flags; false when every NodePool keeps them and Cluster Autoscaler does not run; null with neither. Counts the held nodes that would go of the held nodes at the latest batch, as the cluster's Nodes tab counts them. Yields the window's average a month of what the held nodes that would go and no recommendation covers cost, over the hours ingest worked them out in, and counts the changes that free them, as GET /clusters/{cluster_id}/consolidation-changes lists and totals them
+	Consolidation *ConsolidationLever `json:"consolidation" url:"consolidation"`
 	// On when a node runs on Spot at the latest batch; counts the Spot nodes of the nodes. Its saving is null: no estimate of moving to Spot exists apart from a pool's rightsizing. With no node up at the latest batch (agentless, or not reporting yet), on and the node counts of spot and consolidation are null
 	Spot *Lever `json:"spot" url:"spot"`
 
@@ -10534,7 +11539,7 @@ func (c *ClusterLevers) GetRightsizing() *Lever {
 	return c.Rightsizing
 }
 
-func (c *ClusterLevers) GetConsolidation() *Lever {
+func (c *ClusterLevers) GetConsolidation() *ConsolidationLever {
 	if c == nil {
 		return nil
 	}
@@ -10571,7 +11576,7 @@ func (c *ClusterLevers) SetRightsizing(rightsizing *Lever) {
 
 // SetConsolidation sets the Consolidation field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (c *ClusterLevers) SetConsolidation(consolidation *Lever) {
+func (c *ClusterLevers) SetConsolidation(consolidation *ConsolidationLever) {
 	c.Consolidation = consolidation
 	c.require(clusterLeversFieldConsolidation)
 }
@@ -10992,48 +11997,53 @@ func (c *ClusterResponse) String() string {
 var (
 	clusterSummaryFieldAvailableSavingsMonthly    = big.NewInt(1 << 0)
 	clusterSummaryFieldLevers                     = big.NewInt(1 << 1)
-	clusterSummaryFieldRealized                   = big.NewInt(1 << 2)
-	clusterSummaryFieldAutomationNamespacesActing = big.NewInt(1 << 3)
-	clusterSummaryFieldAutomationNamespacesTotal  = big.NewInt(1 << 4)
-	clusterSummaryFieldAsOf                       = big.NewInt(1 << 5)
-	clusterSummaryFieldUnreportedLists            = big.NewInt(1 << 6)
-	clusterSummaryFieldTotalCost                  = big.NewInt(1 << 7)
-	clusterSummaryFieldIdleCost                   = big.NewInt(1 << 8)
-	clusterSummaryFieldIdleShare                  = big.NewInt(1 << 9)
-	clusterSummaryFieldSystemCost                 = big.NewInt(1 << 10)
-	clusterSummaryFieldTotalCostNet               = big.NewInt(1 << 11)
-	clusterSummaryFieldIdleCostNet                = big.NewInt(1 << 12)
-	clusterSummaryFieldSystemCostNet              = big.NewInt(1 << 13)
-	clusterSummaryFieldCPUEfficiency              = big.NewInt(1 << 14)
-	clusterSummaryFieldMemoryEfficiency           = big.NewInt(1 << 15)
-	clusterSummaryFieldCostBasis                  = big.NewInt(1 << 16)
-	clusterSummaryFieldPricedThrough              = big.NewInt(1 << 17)
-	clusterSummaryFieldBillStatus                 = big.NewInt(1 << 18)
-	clusterSummaryFieldBillExpectedBy             = big.NewInt(1 << 19)
-	clusterSummaryFieldNodesByPurchaseType        = big.NewInt(1 << 20)
-	clusterSummaryFieldWorkloadsAtRisk            = big.NewInt(1 << 21)
-	clusterSummaryFieldPodsPending                = big.NewInt(1 << 22)
-	clusterSummaryFieldNodeCount                  = big.NewInt(1 << 23)
-	clusterSummaryFieldNamespaceCount             = big.NewInt(1 << 24)
-	clusterSummaryFieldNamespacesEnabled          = big.NewInt(1 << 25)
-	clusterSummaryFieldWorkloadCount              = big.NewInt(1 << 26)
-	clusterSummaryFieldPvcCount                   = big.NewInt(1 << 27)
-	clusterSummaryFieldPotentialSavings           = big.NewInt(1 << 28)
-	clusterSummaryFieldPurchaseBalance            = big.NewInt(1 << 29)
-	clusterSummaryFieldPods                       = big.NewInt(1 << 30)
-	clusterSummaryFieldWorkloadsByKind            = big.NewInt(1 << 31)
-	clusterSummaryFieldWorkloadNamespaceCount     = big.NewInt(1 << 32)
-	clusterSummaryFieldAutoscalers                = big.NewInt(1 << 33)
-	clusterSummaryFieldFixedReplicaCount          = big.NewInt(1 << 34)
-	clusterSummaryFieldCompute                    = big.NewInt(1 << 35)
-	clusterSummaryFieldCPUUsedP95Milli            = big.NewInt(1 << 36)
-	clusterSummaryFieldMemoryUsedP95Bytes         = big.NewInt(1 << 37)
+	clusterSummaryFieldOtherSavings               = big.NewInt(1 << 2)
+	clusterSummaryFieldRealized                   = big.NewInt(1 << 3)
+	clusterSummaryFieldAutomationNamespacesActing = big.NewInt(1 << 4)
+	clusterSummaryFieldAutomationNamespacesTotal  = big.NewInt(1 << 5)
+	clusterSummaryFieldAsOf                       = big.NewInt(1 << 6)
+	clusterSummaryFieldUnreportedLists            = big.NewInt(1 << 7)
+	clusterSummaryFieldTotalCost                  = big.NewInt(1 << 8)
+	clusterSummaryFieldIdleCost                   = big.NewInt(1 << 9)
+	clusterSummaryFieldIdleShare                  = big.NewInt(1 << 10)
+	clusterSummaryFieldSystemCost                 = big.NewInt(1 << 11)
+	clusterSummaryFieldTotalCostNet               = big.NewInt(1 << 12)
+	clusterSummaryFieldIdleCostNet                = big.NewInt(1 << 13)
+	clusterSummaryFieldSystemCostNet              = big.NewInt(1 << 14)
+	clusterSummaryFieldCPUEfficiency              = big.NewInt(1 << 15)
+	clusterSummaryFieldMemoryEfficiency           = big.NewInt(1 << 16)
+	clusterSummaryFieldCostBasis                  = big.NewInt(1 << 17)
+	clusterSummaryFieldPricedThrough              = big.NewInt(1 << 18)
+	clusterSummaryFieldBillStatus                 = big.NewInt(1 << 19)
+	clusterSummaryFieldBillExpectedBy             = big.NewInt(1 << 20)
+	clusterSummaryFieldNodesByPurchaseType        = big.NewInt(1 << 21)
+	clusterSummaryFieldWorkloadsAtRisk            = big.NewInt(1 << 22)
+	clusterSummaryFieldPodsPending                = big.NewInt(1 << 23)
+	clusterSummaryFieldNodeCount                  = big.NewInt(1 << 24)
+	clusterSummaryFieldNamespaceCount             = big.NewInt(1 << 25)
+	clusterSummaryFieldNamespacesEnabled          = big.NewInt(1 << 26)
+	clusterSummaryFieldWorkloadCount              = big.NewInt(1 << 27)
+	clusterSummaryFieldPvcCount                   = big.NewInt(1 << 28)
+	clusterSummaryFieldPotentialSavings           = big.NewInt(1 << 29)
+	clusterSummaryFieldRightsizingFrees           = big.NewInt(1 << 30)
+	clusterSummaryFieldOffNamespacesWaste         = big.NewInt(1 << 31)
+	clusterSummaryFieldPurchaseBalance            = big.NewInt(1 << 32)
+	clusterSummaryFieldPods                       = big.NewInt(1 << 33)
+	clusterSummaryFieldWorkloadsByKind            = big.NewInt(1 << 34)
+	clusterSummaryFieldWorkloadNamespaceCount     = big.NewInt(1 << 35)
+	clusterSummaryFieldAutoscalers                = big.NewInt(1 << 36)
+	clusterSummaryFieldFixedReplicaCount          = big.NewInt(1 << 37)
+	clusterSummaryFieldCompute                    = big.NewInt(1 << 38)
+	clusterSummaryFieldCPUUsedP95Milli            = big.NewInt(1 << 39)
+	clusterSummaryFieldMemoryUsedP95Bytes         = big.NewInt(1 << 40)
 )
 
 type ClusterSummary struct {
 	// What the available recommendations would save a month (as the savings page's Available tab counts them), plus the held nodes that would go and no recommendation covers
 	AvailableSavingsMonthly *float64       `json:"available_savings_monthly,omitempty" url:"available_savings_monthly,omitempty"`
 	Levers                  *ClusterLevers `json:"levers,omitempty" url:"levers,omitempty"`
+	// The available recommendations that are not a container change, so no switch turns them on: an HPA's bounds, an idle workload, a NodePool, node group or claim. With rightsizing and consolidation they add up to available_savings_monthly
+	OtherSavings *OtherSavings `json:"other_savings,omitempty" url:"other_savings,omitempty"`
 	// What the verified changes saved (GET /v1/k8s/realized); null when nothing is verified
 	Realized *KubernetesRealized `json:"realized,omitempty" url:"realized,omitempty"`
 	// Namespaces where the automation applies changes by itself: apply mode, not opted out by the levelfour.ai/automation=off label, in the Helm install's namespaces, recommendations on, sized by no other tool, not being taken over and not paused because the approver left; 0 while the cluster's automation is off or paused. Null when no cluster has the automation component
@@ -11067,7 +12077,7 @@ type ClusterSummary struct {
 	// While awaiting_bill, the day the first priced day should show: 2 days after the later of the bill's last day and the day the cluster connected, since a bill runs a day or two behind. Null otherwise
 	BillExpectedBy      *time.Time           `json:"bill_expected_by,omitempty" url:"bill_expected_by,omitempty" format:"date"`
 	NodesByPurchaseType []*PurchaseTypeShare `json:"nodes_by_purchase_type" url:"nodes_by_purchase_type"`
-	// Current workloads at high risk: an OOM kill, an eviction, no ready replica in two batches in a row, or a crash loop. Medium and low never count. An ephemeral one, a pull-request environment, counts only with include_ephemeral
+	// Current workloads at high risk, on what holds now: an OOM kill or an eviction in the window's last two days, a container restarting at a crash loop's pace in them, or no ready replica in two batches in a row. Medium and low never count. An ephemeral one, a pull-request or branch environment, counts only with include_ephemeral
 	WorkloadsAtRisk int `json:"workloads_at_risk" url:"workloads_at_risk"`
 	// Pods Pending on average in the latest hour the agent reported
 	PodsPending       *float64          `json:"pods_pending,omitempty" url:"pods_pending,omitempty"`
@@ -11077,6 +12087,10 @@ type ClusterSummary struct {
 	WorkloadCount     int               `json:"workload_count" url:"workload_count"`
 	PvcCount          int               `json:"pvc_count" url:"pvc_count"`
 	PotentialSavings  *PotentialSavings `json:"potential_savings,omitempty" url:"potential_savings,omitempty"`
+	// The nodes rightsizing every workload would free and what they cost a month, as the worker's last scan reviewed the pools; null before a scan stored it
+	RightsizingFrees *RightsizingFrees `json:"rightsizing_frees,omitempty" url:"rightsizing_frees,omitempty"`
+	// What the namespaces whose recommendations are off leave unused a month, and how many are off; null when none is off (api#2091)
+	OffNamespacesWaste *OffNamespacesWaste `json:"off_namespaces_waste,omitempty" url:"off_namespaces_waste,omitempty"`
 	// Over the cluster's NodePool and node group reviews; null until the worker reviewed one
 	PurchaseBalance *PurchaseBalance `json:"purchase_balance,omitempty" url:"purchase_balance,omitempty"`
 	// As of the latest batch
@@ -11113,6 +12127,13 @@ func (c *ClusterSummary) GetLevers() *ClusterLevers {
 		return nil
 	}
 	return c.Levers
+}
+
+func (c *ClusterSummary) GetOtherSavings() *OtherSavings {
+	if c == nil {
+		return nil
+	}
+	return c.OtherSavings
 }
 
 func (c *ClusterSummary) GetRealized() *KubernetesRealized {
@@ -11304,6 +12325,20 @@ func (c *ClusterSummary) GetPotentialSavings() *PotentialSavings {
 	return c.PotentialSavings
 }
 
+func (c *ClusterSummary) GetRightsizingFrees() *RightsizingFrees {
+	if c == nil {
+		return nil
+	}
+	return c.RightsizingFrees
+}
+
+func (c *ClusterSummary) GetOffNamespacesWaste() *OffNamespacesWaste {
+	if c == nil {
+		return nil
+	}
+	return c.OffNamespacesWaste
+}
+
 func (c *ClusterSummary) GetPurchaseBalance() *PurchaseBalance {
 	if c == nil {
 		return nil
@@ -11393,6 +12428,13 @@ func (c *ClusterSummary) SetAvailableSavingsMonthly(availableSavingsMonthly *flo
 func (c *ClusterSummary) SetLevers(levers *ClusterLevers) {
 	c.Levers = levers
 	c.require(clusterSummaryFieldLevers)
+}
+
+// SetOtherSavings sets the OtherSavings field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClusterSummary) SetOtherSavings(otherSavings *OtherSavings) {
+	c.OtherSavings = otherSavings
+	c.require(clusterSummaryFieldOtherSavings)
 }
 
 // SetRealized sets the Realized field and marks it as non-optional;
@@ -11582,6 +12624,20 @@ func (c *ClusterSummary) SetPvcCount(pvcCount int) {
 func (c *ClusterSummary) SetPotentialSavings(potentialSavings *PotentialSavings) {
 	c.PotentialSavings = potentialSavings
 	c.require(clusterSummaryFieldPotentialSavings)
+}
+
+// SetRightsizingFrees sets the RightsizingFrees field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClusterSummary) SetRightsizingFrees(rightsizingFrees *RightsizingFrees) {
+	c.RightsizingFrees = rightsizingFrees
+	c.require(clusterSummaryFieldRightsizingFrees)
+}
+
+// SetOffNamespacesWaste sets the OffNamespacesWaste field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ClusterSummary) SetOffNamespacesWaste(offNamespacesWaste *OffNamespacesWaste) {
+	c.OffNamespacesWaste = offNamespacesWaste
+	c.require(clusterSummaryFieldOffNamespacesWaste)
 }
 
 // SetPurchaseBalance sets the PurchaseBalance field and marks it as non-optional;
@@ -16432,16 +17488,21 @@ var (
 	consolidationBlockerFieldName                       = big.NewInt(1 << 5)
 	consolidationBlockerFieldWorkloadKind               = big.NewInt(1 << 6)
 	consolidationBlockerFieldWorkloadName               = big.NewInt(1 << 7)
-	consolidationBlockerFieldReasons                    = big.NewInt(1 << 8)
-	consolidationBlockerFieldUnhealthyReasons           = big.NewInt(1 << 9)
-	consolidationBlockerFieldKarpenterSays              = big.NewInt(1 << 10)
-	consolidationBlockerFieldNodeMonthlyCost            = big.NewInt(1 << 11)
-	consolidationBlockerFieldNodeMonthlyCostNet         = big.NewInt(1 << 12)
-	consolidationBlockerFieldNodePricedBy               = big.NewInt(1 << 13)
-	consolidationBlockerFieldNodeWouldFree              = big.NewInt(1 << 14)
-	consolidationBlockerFieldNodeKeptReason             = big.NewInt(1 << 15)
-	consolidationBlockerFieldNodeNotKnownReason         = big.NewInt(1 << 16)
-	consolidationBlockerFieldHasPublishedRecommendation = big.NewInt(1 << 17)
+	consolidationBlockerFieldWorkloadReplicas           = big.NewInt(1 << 8)
+	consolidationBlockerFieldWorkloadReadyReplicas      = big.NewInt(1 << 9)
+	consolidationBlockerFieldWorkloadZeroReadySince     = big.NewInt(1 << 10)
+	consolidationBlockerFieldPdbs                       = big.NewInt(1 << 11)
+	consolidationBlockerFieldScaler                     = big.NewInt(1 << 12)
+	consolidationBlockerFieldReasons                    = big.NewInt(1 << 13)
+	consolidationBlockerFieldUnhealthyReasons           = big.NewInt(1 << 14)
+	consolidationBlockerFieldKarpenterSays              = big.NewInt(1 << 15)
+	consolidationBlockerFieldNodeMonthlyCost            = big.NewInt(1 << 16)
+	consolidationBlockerFieldNodeMonthlyCostNet         = big.NewInt(1 << 17)
+	consolidationBlockerFieldNodePricedBy               = big.NewInt(1 << 18)
+	consolidationBlockerFieldNodeWouldFree              = big.NewInt(1 << 19)
+	consolidationBlockerFieldNodeKeptReason             = big.NewInt(1 << 20)
+	consolidationBlockerFieldNodeNotKnownReason         = big.NewInt(1 << 21)
+	consolidationBlockerFieldHasPublishedRecommendation = big.NewInt(1 << 22)
 )
 
 type ConsolidationBlocker struct {
@@ -16455,6 +17516,16 @@ type ConsolidationBlocker struct {
 	// "Pod" for a pod without a controller, empty for a static pod
 	WorkloadKind string `json:"workload_kind" url:"workload_kind"`
 	WorkloadName string `json:"workload_name" url:"workload_name"`
+	// The replicas its workload wants, at the latest batch; null for a pod without a workload
+	WorkloadReplicas *int `json:"workload_replicas,omitempty" url:"workload_replicas,omitempty"`
+	// Of those, how many are ready
+	WorkloadReadyReplicas *int `json:"workload_ready_replicas,omitempty" url:"workload_ready_replicas,omitempty"`
+	// Since when every batch has read its workload wanting replicas with none ready; null once one is ready or none is wanted, and null when all that is known is that none was ready by 2026-11-19 20:26 UTC, a start the migration that added this field filled in
+	WorkloadZeroReadySince *time.Time `json:"workload_zero_ready_since,omitempty" url:"workload_zero_ready_since,omitempty"`
+	// The PodDisruptionBudgets selecting its workload that allow no disruption now, by name; empty unless one of its reasons is pdb
+	Pdbs []*BlockingPdb `json:"pdbs,omitempty" url:"pdbs,omitempty"`
+	// The HPA or KEDA ScaledObject that scales its workload, KEDA's own object before the HPA it runs; null when nothing does. Scaling such a workload to 0 means changing or removing it
+	Scaler *WorkloadScaler `json:"scaler,omitempty" url:"scaler,omitempty"`
 	// static_pod alone for a static pod, which goes with its node
 	Reasons []*BlockingReason `json:"reasons" url:"reasons"`
 	// Why moving the pod carries no risk: its app has no healthy pod, or its workload has no ready replica. Empty for a pod of a healthy app
@@ -16537,6 +17608,41 @@ func (c *ConsolidationBlocker) GetWorkloadName() string {
 		return ""
 	}
 	return c.WorkloadName
+}
+
+func (c *ConsolidationBlocker) GetWorkloadReplicas() *int {
+	if c == nil {
+		return nil
+	}
+	return c.WorkloadReplicas
+}
+
+func (c *ConsolidationBlocker) GetWorkloadReadyReplicas() *int {
+	if c == nil {
+		return nil
+	}
+	return c.WorkloadReadyReplicas
+}
+
+func (c *ConsolidationBlocker) GetWorkloadZeroReadySince() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.WorkloadZeroReadySince
+}
+
+func (c *ConsolidationBlocker) GetPdbs() []*BlockingPdb {
+	if c == nil {
+		return nil
+	}
+	return c.Pdbs
+}
+
+func (c *ConsolidationBlocker) GetScaler() *WorkloadScaler {
+	if c == nil {
+		return nil
+	}
+	return c.Scaler
 }
 
 func (c *ConsolidationBlocker) GetReasons() []*BlockingReason {
@@ -16679,6 +17785,41 @@ func (c *ConsolidationBlocker) SetWorkloadName(workloadName string) {
 	c.require(consolidationBlockerFieldWorkloadName)
 }
 
+// SetWorkloadReplicas sets the WorkloadReplicas field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationBlocker) SetWorkloadReplicas(workloadReplicas *int) {
+	c.WorkloadReplicas = workloadReplicas
+	c.require(consolidationBlockerFieldWorkloadReplicas)
+}
+
+// SetWorkloadReadyReplicas sets the WorkloadReadyReplicas field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationBlocker) SetWorkloadReadyReplicas(workloadReadyReplicas *int) {
+	c.WorkloadReadyReplicas = workloadReadyReplicas
+	c.require(consolidationBlockerFieldWorkloadReadyReplicas)
+}
+
+// SetWorkloadZeroReadySince sets the WorkloadZeroReadySince field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationBlocker) SetWorkloadZeroReadySince(workloadZeroReadySince *time.Time) {
+	c.WorkloadZeroReadySince = workloadZeroReadySince
+	c.require(consolidationBlockerFieldWorkloadZeroReadySince)
+}
+
+// SetPdbs sets the Pdbs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationBlocker) SetPdbs(pdbs []*BlockingPdb) {
+	c.Pdbs = pdbs
+	c.require(consolidationBlockerFieldPdbs)
+}
+
+// SetScaler sets the Scaler field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationBlocker) SetScaler(scaler *WorkloadScaler) {
+	c.Scaler = scaler
+	c.require(consolidationBlockerFieldScaler)
+}
+
 // SetReasons sets the Reasons field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (c *ConsolidationBlocker) SetReasons(reasons []*BlockingReason) {
@@ -16750,12 +17891,18 @@ func (c *ConsolidationBlocker) SetHasPublishedRecommendation(hasPublishedRecomme
 }
 
 func (c *ConsolidationBlocker) UnmarshalJSON(data []byte) error {
-	type unmarshaler ConsolidationBlocker
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
+	type embed ConsolidationBlocker
+	var unmarshaler = struct {
+		embed
+		WorkloadZeroReadySince *internal.DateTime `json:"workload_zero_ready_since,omitempty"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*c = ConsolidationBlocker(value)
+	*c = ConsolidationBlocker(unmarshaler.embed)
+	c.WorkloadZeroReadySince = unmarshaler.WorkloadZeroReadySince.TimePtr()
 	extraProperties, err := internal.ExtractExtraProperties(data, *c)
 	if err != nil {
 		return err
@@ -16769,8 +17916,10 @@ func (c *ConsolidationBlocker) MarshalJSON() ([]byte, error) {
 	type embed ConsolidationBlocker
 	var marshaler = struct {
 		embed
+		WorkloadZeroReadySince *internal.DateTime `json:"workload_zero_ready_since,omitempty"`
 	}{
-		embed: embed(*c),
+		embed:                  embed(*c),
+		WorkloadZeroReadySince: internal.NewOptionalDateTime(c.WorkloadZeroReadySince),
 	}
 	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
 	return json.Marshal(explicitMarshaler)
@@ -17124,6 +18273,1011 @@ func (c *ConsolidationBlockersResponse) MarshalJSON() ([]byte, error) {
 }
 
 func (c *ConsolidationBlockersResponse) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+// A workload that held a node that would go in the window, or a pod with no workload, with its share of what
+// freeing the held nodes saves.
+var (
+	consolidationChangeFieldNamespace              = big.NewInt(1 << 0)
+	consolidationChangeFieldKind                   = big.NewInt(1 << 1)
+	consolidationChangeFieldName                   = big.NewInt(1 << 2)
+	consolidationChangeFieldReasons                = big.NewInt(1 << 3)
+	consolidationChangeFieldMonthlyAverage         = big.NewInt(1 << 4)
+	consolidationChangeFieldMonthlyAverageNet      = big.NewInt(1 << 5)
+	consolidationChangeFieldHoursHeld              = big.NewInt(1 << 6)
+	consolidationChangeFieldHoldsNow               = big.NewInt(1 << 7)
+	consolidationChangeFieldWorkloadReplicas       = big.NewInt(1 << 8)
+	consolidationChangeFieldWorkloadReadyReplicas  = big.NewInt(1 << 9)
+	consolidationChangeFieldWorkloadZeroReadySince = big.NewInt(1 << 10)
+	consolidationChangeFieldPdbs                   = big.NewInt(1 << 11)
+	consolidationChangeFieldScaler                 = big.NewInt(1 << 12)
+)
+
+type ConsolidationChange struct {
+	Namespace string `json:"namespace" url:"namespace"`
+	// The workload's kind, "Pod" for a pod with no workload
+	Kind string `json:"kind" url:"kind"`
+	// The workload's name, or the pod's
+	Name string `json:"name" url:"name"`
+	// The kinds of blocker its pods raised in the window
+	Reasons []ConsolidationChangeReasonsItem `json:"reasons" url:"reasons"`
+	// Its share a month of the window's average: each hour a node that would go ran, priced per hour, shared out evenly between what held it then; null when none of its nodes is priced
+	MonthlyAverage *float64 `json:"monthly_average,omitempty" url:"monthly_average,omitempty"`
+	// The same after the enterprise discount and the commitments; a day rolled up before the net basis counts at its amortized cost
+	MonthlyAverageNet *float64 `json:"monthly_average_net,omitempty" url:"monthly_average_net,omitempty"`
+	// The hours of the window it held a node that would go
+	HoursHeld int `json:"hours_held" url:"hours_held"`
+	// The nodes it holds at the latest batch; empty when it holds none
+	HoldsNow []*ConsolidationChangeNode `json:"holds_now,omitempty" url:"holds_now,omitempty"`
+	// The replicas its workload wants, at the latest batch; null for a pod without a workload
+	WorkloadReplicas *int `json:"workload_replicas,omitempty" url:"workload_replicas,omitempty"`
+	// Of those, how many are ready
+	WorkloadReadyReplicas *int `json:"workload_ready_replicas,omitempty" url:"workload_ready_replicas,omitempty"`
+	// Since when every batch has read its workload wanting replicas with none ready; null once one is ready or none is wanted
+	WorkloadZeroReadySince *time.Time `json:"workload_zero_ready_since,omitempty" url:"workload_zero_ready_since,omitempty"`
+	// The PodDisruptionBudgets selecting its workload that allow no disruption now, by name; empty unless one of its reasons is pdb
+	Pdbs []*BlockingPdb `json:"pdbs,omitempty" url:"pdbs,omitempty"`
+	// The HPA or KEDA ScaledObject that scales its workload, KEDA's own object before the HPA it runs; null when nothing does
+	Scaler *WorkloadScaler `json:"scaler,omitempty" url:"scaler,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ConsolidationChange) GetNamespace() string {
+	if c == nil {
+		return ""
+	}
+	return c.Namespace
+}
+
+func (c *ConsolidationChange) GetKind() string {
+	if c == nil {
+		return ""
+	}
+	return c.Kind
+}
+
+func (c *ConsolidationChange) GetName() string {
+	if c == nil {
+		return ""
+	}
+	return c.Name
+}
+
+func (c *ConsolidationChange) GetReasons() []ConsolidationChangeReasonsItem {
+	if c == nil {
+		return nil
+	}
+	return c.Reasons
+}
+
+func (c *ConsolidationChange) GetMonthlyAverage() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.MonthlyAverage
+}
+
+func (c *ConsolidationChange) GetMonthlyAverageNet() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.MonthlyAverageNet
+}
+
+func (c *ConsolidationChange) GetHoursHeld() int {
+	if c == nil {
+		return 0
+	}
+	return c.HoursHeld
+}
+
+func (c *ConsolidationChange) GetHoldsNow() []*ConsolidationChangeNode {
+	if c == nil {
+		return nil
+	}
+	return c.HoldsNow
+}
+
+func (c *ConsolidationChange) GetWorkloadReplicas() *int {
+	if c == nil {
+		return nil
+	}
+	return c.WorkloadReplicas
+}
+
+func (c *ConsolidationChange) GetWorkloadReadyReplicas() *int {
+	if c == nil {
+		return nil
+	}
+	return c.WorkloadReadyReplicas
+}
+
+func (c *ConsolidationChange) GetWorkloadZeroReadySince() *time.Time {
+	if c == nil {
+		return nil
+	}
+	return c.WorkloadZeroReadySince
+}
+
+func (c *ConsolidationChange) GetPdbs() []*BlockingPdb {
+	if c == nil {
+		return nil
+	}
+	return c.Pdbs
+}
+
+func (c *ConsolidationChange) GetScaler() *WorkloadScaler {
+	if c == nil {
+		return nil
+	}
+	return c.Scaler
+}
+
+func (c *ConsolidationChange) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ConsolidationChange) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetNamespace sets the Namespace field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChange) SetNamespace(namespace string) {
+	c.Namespace = namespace
+	c.require(consolidationChangeFieldNamespace)
+}
+
+// SetKind sets the Kind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChange) SetKind(kind string) {
+	c.Kind = kind
+	c.require(consolidationChangeFieldKind)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChange) SetName(name string) {
+	c.Name = name
+	c.require(consolidationChangeFieldName)
+}
+
+// SetReasons sets the Reasons field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChange) SetReasons(reasons []ConsolidationChangeReasonsItem) {
+	c.Reasons = reasons
+	c.require(consolidationChangeFieldReasons)
+}
+
+// SetMonthlyAverage sets the MonthlyAverage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChange) SetMonthlyAverage(monthlyAverage *float64) {
+	c.MonthlyAverage = monthlyAverage
+	c.require(consolidationChangeFieldMonthlyAverage)
+}
+
+// SetMonthlyAverageNet sets the MonthlyAverageNet field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChange) SetMonthlyAverageNet(monthlyAverageNet *float64) {
+	c.MonthlyAverageNet = monthlyAverageNet
+	c.require(consolidationChangeFieldMonthlyAverageNet)
+}
+
+// SetHoursHeld sets the HoursHeld field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChange) SetHoursHeld(hoursHeld int) {
+	c.HoursHeld = hoursHeld
+	c.require(consolidationChangeFieldHoursHeld)
+}
+
+// SetHoldsNow sets the HoldsNow field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChange) SetHoldsNow(holdsNow []*ConsolidationChangeNode) {
+	c.HoldsNow = holdsNow
+	c.require(consolidationChangeFieldHoldsNow)
+}
+
+// SetWorkloadReplicas sets the WorkloadReplicas field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChange) SetWorkloadReplicas(workloadReplicas *int) {
+	c.WorkloadReplicas = workloadReplicas
+	c.require(consolidationChangeFieldWorkloadReplicas)
+}
+
+// SetWorkloadReadyReplicas sets the WorkloadReadyReplicas field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChange) SetWorkloadReadyReplicas(workloadReadyReplicas *int) {
+	c.WorkloadReadyReplicas = workloadReadyReplicas
+	c.require(consolidationChangeFieldWorkloadReadyReplicas)
+}
+
+// SetWorkloadZeroReadySince sets the WorkloadZeroReadySince field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChange) SetWorkloadZeroReadySince(workloadZeroReadySince *time.Time) {
+	c.WorkloadZeroReadySince = workloadZeroReadySince
+	c.require(consolidationChangeFieldWorkloadZeroReadySince)
+}
+
+// SetPdbs sets the Pdbs field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChange) SetPdbs(pdbs []*BlockingPdb) {
+	c.Pdbs = pdbs
+	c.require(consolidationChangeFieldPdbs)
+}
+
+// SetScaler sets the Scaler field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChange) SetScaler(scaler *WorkloadScaler) {
+	c.Scaler = scaler
+	c.require(consolidationChangeFieldScaler)
+}
+
+func (c *ConsolidationChange) UnmarshalJSON(data []byte) error {
+	type embed ConsolidationChange
+	var unmarshaler = struct {
+		embed
+		WorkloadZeroReadySince *internal.DateTime `json:"workload_zero_ready_since,omitempty"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = ConsolidationChange(unmarshaler.embed)
+	c.WorkloadZeroReadySince = unmarshaler.WorkloadZeroReadySince.TimePtr()
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ConsolidationChange) MarshalJSON() ([]byte, error) {
+	type embed ConsolidationChange
+	var marshaler = struct {
+		embed
+		WorkloadZeroReadySince *internal.DateTime `json:"workload_zero_ready_since,omitempty"`
+	}{
+		embed:                  embed(*c),
+		WorkloadZeroReadySince: internal.NewOptionalDateTime(c.WorkloadZeroReadySince),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ConsolidationChange) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	consolidationChangeNodeFieldNode               = big.NewInt(1 << 0)
+	consolidationChangeNodeFieldNodeWouldFree      = big.NewInt(1 << 1)
+	consolidationChangeNodeFieldNodeMonthlyCost    = big.NewInt(1 << 2)
+	consolidationChangeNodeFieldNodeMonthlyCostNet = big.NewInt(1 << 3)
+)
+
+type ConsolidationChangeNode struct {
+	Node string `json:"node" url:"node"`
+	// Whether the node would go once every pod holding it is freed; null when not known
+	NodeWouldFree *bool `json:"node_would_free,omitempty" url:"node_would_free,omitempty"`
+	// What the node costs a month, priced as the consolidation blockers price it
+	NodeMonthlyCost *float64 `json:"node_monthly_cost,omitempty" url:"node_monthly_cost,omitempty"`
+	// The same after the enterprise discount and the commitments; a day rolled up before the net basis counts at its amortized cost
+	NodeMonthlyCostNet *float64 `json:"node_monthly_cost_net,omitempty" url:"node_monthly_cost_net,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ConsolidationChangeNode) GetNode() string {
+	if c == nil {
+		return ""
+	}
+	return c.Node
+}
+
+func (c *ConsolidationChangeNode) GetNodeWouldFree() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.NodeWouldFree
+}
+
+func (c *ConsolidationChangeNode) GetNodeMonthlyCost() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.NodeMonthlyCost
+}
+
+func (c *ConsolidationChangeNode) GetNodeMonthlyCostNet() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.NodeMonthlyCostNet
+}
+
+func (c *ConsolidationChangeNode) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ConsolidationChangeNode) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetNode sets the Node field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChangeNode) SetNode(node string) {
+	c.Node = node
+	c.require(consolidationChangeNodeFieldNode)
+}
+
+// SetNodeWouldFree sets the NodeWouldFree field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChangeNode) SetNodeWouldFree(nodeWouldFree *bool) {
+	c.NodeWouldFree = nodeWouldFree
+	c.require(consolidationChangeNodeFieldNodeWouldFree)
+}
+
+// SetNodeMonthlyCost sets the NodeMonthlyCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChangeNode) SetNodeMonthlyCost(nodeMonthlyCost *float64) {
+	c.NodeMonthlyCost = nodeMonthlyCost
+	c.require(consolidationChangeNodeFieldNodeMonthlyCost)
+}
+
+// SetNodeMonthlyCostNet sets the NodeMonthlyCostNet field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChangeNode) SetNodeMonthlyCostNet(nodeMonthlyCostNet *float64) {
+	c.NodeMonthlyCostNet = nodeMonthlyCostNet
+	c.require(consolidationChangeNodeFieldNodeMonthlyCostNet)
+}
+
+func (c *ConsolidationChangeNode) UnmarshalJSON(data []byte) error {
+	type unmarshaler ConsolidationChangeNode
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ConsolidationChangeNode(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ConsolidationChangeNode) MarshalJSON() ([]byte, error) {
+	type embed ConsolidationChangeNode
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ConsolidationChangeNode) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type ConsolidationChangeReasonsItem string
+
+const (
+	ConsolidationChangeReasonsItemDoNotDisrupt   ConsolidationChangeReasonsItem = "do_not_disrupt"
+	ConsolidationChangeReasonsItemPdb            ConsolidationChangeReasonsItem = "pdb"
+	ConsolidationChangeReasonsItemNodeAffinity   ConsolidationChangeReasonsItem = "node_affinity"
+	ConsolidationChangeReasonsItemAntiAffinity   ConsolidationChangeReasonsItem = "anti_affinity"
+	ConsolidationChangeReasonsItemTopologySpread ConsolidationChangeReasonsItem = "topology_spread"
+	ConsolidationChangeReasonsItemTaints         ConsolidationChangeReasonsItem = "taints"
+	ConsolidationChangeReasonsItemLocalStorage   ConsolidationChangeReasonsItem = "local_storage"
+	ConsolidationChangeReasonsItemSafeToEvict    ConsolidationChangeReasonsItem = "safe_to_evict"
+	ConsolidationChangeReasonsItemKubeSystem     ConsolidationChangeReasonsItem = "kube_system"
+	ConsolidationChangeReasonsItemNoController   ConsolidationChangeReasonsItem = "no_controller"
+	ConsolidationChangeReasonsItemStaticPod      ConsolidationChangeReasonsItem = "static_pod"
+)
+
+func NewConsolidationChangeReasonsItemFromString(s string) (ConsolidationChangeReasonsItem, error) {
+	switch s {
+	case "do_not_disrupt":
+		return ConsolidationChangeReasonsItemDoNotDisrupt, nil
+	case "pdb":
+		return ConsolidationChangeReasonsItemPdb, nil
+	case "node_affinity":
+		return ConsolidationChangeReasonsItemNodeAffinity, nil
+	case "anti_affinity":
+		return ConsolidationChangeReasonsItemAntiAffinity, nil
+	case "topology_spread":
+		return ConsolidationChangeReasonsItemTopologySpread, nil
+	case "taints":
+		return ConsolidationChangeReasonsItemTaints, nil
+	case "local_storage":
+		return ConsolidationChangeReasonsItemLocalStorage, nil
+	case "safe_to_evict":
+		return ConsolidationChangeReasonsItemSafeToEvict, nil
+	case "kube_system":
+		return ConsolidationChangeReasonsItemKubeSystem, nil
+	case "no_controller":
+		return ConsolidationChangeReasonsItemNoController, nil
+	case "static_pod":
+		return ConsolidationChangeReasonsItemStaticPod, nil
+	}
+	var t ConsolidationChangeReasonsItem
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (c ConsolidationChangeReasonsItem) Ptr() *ConsolidationChangeReasonsItem {
+	return &c
+}
+
+var (
+	consolidationChangeTotalsFieldMonthlyAverage    = big.NewInt(1 << 0)
+	consolidationChangeTotalsFieldMonthlyAverageNet = big.NewInt(1 << 1)
+	consolidationChangeTotalsFieldHoursAveraged     = big.NewInt(1 << 2)
+	consolidationChangeTotalsFieldChanges           = big.NewInt(1 << 3)
+)
+
+type ConsolidationChangeTotals struct {
+	// What the changes free a month, the window's average, added up from the changes: the cluster's levers.consolidation.monthly
+	MonthlyAverage *float64 `json:"monthly_average,omitempty" url:"monthly_average,omitempty"`
+	// The same after the enterprise discount and the commitments; a day rolled up before the net basis counts at its amortized cost
+	MonthlyAverageNet *float64 `json:"monthly_average_net,omitempty" url:"monthly_average_net,omitempty"`
+	// The hours of the window ingest worked out the held nodes in; null when none was, and the latest batch stands in for them
+	HoursAveraged *int `json:"hours_averaged,omitempty" url:"hours_averaged,omitempty"`
+	// The changes there are: levers.consolidation.changes
+	Changes int `json:"changes" url:"changes"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ConsolidationChangeTotals) GetMonthlyAverage() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.MonthlyAverage
+}
+
+func (c *ConsolidationChangeTotals) GetMonthlyAverageNet() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.MonthlyAverageNet
+}
+
+func (c *ConsolidationChangeTotals) GetHoursAveraged() *int {
+	if c == nil {
+		return nil
+	}
+	return c.HoursAveraged
+}
+
+func (c *ConsolidationChangeTotals) GetChanges() int {
+	if c == nil {
+		return 0
+	}
+	return c.Changes
+}
+
+func (c *ConsolidationChangeTotals) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ConsolidationChangeTotals) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetMonthlyAverage sets the MonthlyAverage field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChangeTotals) SetMonthlyAverage(monthlyAverage *float64) {
+	c.MonthlyAverage = monthlyAverage
+	c.require(consolidationChangeTotalsFieldMonthlyAverage)
+}
+
+// SetMonthlyAverageNet sets the MonthlyAverageNet field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChangeTotals) SetMonthlyAverageNet(monthlyAverageNet *float64) {
+	c.MonthlyAverageNet = monthlyAverageNet
+	c.require(consolidationChangeTotalsFieldMonthlyAverageNet)
+}
+
+// SetHoursAveraged sets the HoursAveraged field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChangeTotals) SetHoursAveraged(hoursAveraged *int) {
+	c.HoursAveraged = hoursAveraged
+	c.require(consolidationChangeTotalsFieldHoursAveraged)
+}
+
+// SetChanges sets the Changes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChangeTotals) SetChanges(changes int) {
+	c.Changes = changes
+	c.require(consolidationChangeTotalsFieldChanges)
+}
+
+func (c *ConsolidationChangeTotals) UnmarshalJSON(data []byte) error {
+	type unmarshaler ConsolidationChangeTotals
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ConsolidationChangeTotals(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ConsolidationChangeTotals) MarshalJSON() ([]byte, error) {
+	type embed ConsolidationChangeTotals
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ConsolidationChangeTotals) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	consolidationChangesDataFieldItems      = big.NewInt(1 << 0)
+	consolidationChangesDataFieldPagination = big.NewInt(1 << 1)
+	consolidationChangesDataFieldTotals     = big.NewInt(1 << 2)
+)
+
+type ConsolidationChangesData struct {
+	// The changes that free the most first, unpriced last
+	Items      []*ConsolidationChange     `json:"items" url:"items"`
+	Pagination *PaginationMeta            `json:"pagination" url:"pagination"`
+	Totals     *ConsolidationChangeTotals `json:"totals" url:"totals"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ConsolidationChangesData) GetItems() []*ConsolidationChange {
+	if c == nil {
+		return nil
+	}
+	return c.Items
+}
+
+func (c *ConsolidationChangesData) GetPagination() *PaginationMeta {
+	if c == nil {
+		return nil
+	}
+	return c.Pagination
+}
+
+func (c *ConsolidationChangesData) GetTotals() *ConsolidationChangeTotals {
+	if c == nil {
+		return nil
+	}
+	return c.Totals
+}
+
+func (c *ConsolidationChangesData) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ConsolidationChangesData) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChangesData) SetItems(items []*ConsolidationChange) {
+	c.Items = items
+	c.require(consolidationChangesDataFieldItems)
+}
+
+// SetPagination sets the Pagination field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChangesData) SetPagination(pagination *PaginationMeta) {
+	c.Pagination = pagination
+	c.require(consolidationChangesDataFieldPagination)
+}
+
+// SetTotals sets the Totals field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChangesData) SetTotals(totals *ConsolidationChangeTotals) {
+	c.Totals = totals
+	c.require(consolidationChangesDataFieldTotals)
+}
+
+func (c *ConsolidationChangesData) UnmarshalJSON(data []byte) error {
+	type unmarshaler ConsolidationChangesData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ConsolidationChangesData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ConsolidationChangesData) MarshalJSON() ([]byte, error) {
+	type embed ConsolidationChangesData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ConsolidationChangesData) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+var (
+	consolidationChangesResponseFieldSuccess   = big.NewInt(1 << 0)
+	consolidationChangesResponseFieldData      = big.NewInt(1 << 1)
+	consolidationChangesResponseFieldTimestamp = big.NewInt(1 << 2)
+)
+
+type ConsolidationChangesResponse struct {
+	Success   *bool                     `json:"success,omitempty" url:"success,omitempty"`
+	Data      *ConsolidationChangesData `json:"data" url:"data"`
+	Timestamp string                    `json:"timestamp" url:"timestamp"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ConsolidationChangesResponse) GetSuccess() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.Success
+}
+
+func (c *ConsolidationChangesResponse) GetData() *ConsolidationChangesData {
+	if c == nil {
+		return nil
+	}
+	return c.Data
+}
+
+func (c *ConsolidationChangesResponse) GetTimestamp() string {
+	if c == nil {
+		return ""
+	}
+	return c.Timestamp
+}
+
+func (c *ConsolidationChangesResponse) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ConsolidationChangesResponse) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChangesResponse) SetSuccess(success *bool) {
+	c.Success = success
+	c.require(consolidationChangesResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChangesResponse) SetData(data *ConsolidationChangesData) {
+	c.Data = data
+	c.require(consolidationChangesResponseFieldData)
+}
+
+// SetTimestamp sets the Timestamp field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationChangesResponse) SetTimestamp(timestamp string) {
+	c.Timestamp = timestamp
+	c.require(consolidationChangesResponseFieldTimestamp)
+}
+
+func (c *ConsolidationChangesResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler ConsolidationChangesResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ConsolidationChangesResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ConsolidationChangesResponse) MarshalJSON() ([]byte, error) {
+	type embed ConsolidationChangesResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ConsolidationChangesResponse) String() string {
+	if c == nil {
+		return "<nil>"
+	}
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+// Node consolidation, which yields the window's average rather than the latest batch's (#2112).
+var (
+	consolidationLeverFieldOn            = big.NewInt(1 << 0)
+	consolidationLeverFieldMonthly       = big.NewInt(1 << 1)
+	consolidationLeverFieldCount         = big.NewInt(1 << 2)
+	consolidationLeverFieldChanges       = big.NewInt(1 << 3)
+	consolidationLeverFieldHoursAveraged = big.NewInt(1 << 4)
+)
+
+type ConsolidationLever struct {
+	// Whether it is on; null when it cannot be told
+	On *bool `json:"on,omitempty" url:"on,omitempty"`
+	// What it yields a month; null when nothing measures it yet
+	Monthly *float64 `json:"monthly,omitempty" url:"monthly,omitempty"`
+	// Of what it can act on, how much it acts on now
+	Count *LeverCount `json:"count,omitempty" url:"count,omitempty"`
+	// The workloads, or pods with none, that held a node that would go in the window, each a change to make: what GET /clusters/{cluster_id}/consolidation-changes lists, so it counts its rows
+	Changes *int `json:"changes,omitempty" url:"changes,omitempty"`
+	// The hours of the window the average counts: those ingest worked out the held nodes in. Null with none, as right after the deploy that began keeping them or in a window before it: monthly and changes then stand on the latest batch alone, as before
+	HoursAveraged *int `json:"hours_averaged,omitempty" url:"hours_averaged,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ConsolidationLever) GetOn() *bool {
+	if c == nil {
+		return nil
+	}
+	return c.On
+}
+
+func (c *ConsolidationLever) GetMonthly() *float64 {
+	if c == nil {
+		return nil
+	}
+	return c.Monthly
+}
+
+func (c *ConsolidationLever) GetCount() *LeverCount {
+	if c == nil {
+		return nil
+	}
+	return c.Count
+}
+
+func (c *ConsolidationLever) GetChanges() *int {
+	if c == nil {
+		return nil
+	}
+	return c.Changes
+}
+
+func (c *ConsolidationLever) GetHoursAveraged() *int {
+	if c == nil {
+		return nil
+	}
+	return c.HoursAveraged
+}
+
+func (c *ConsolidationLever) GetExtraProperties() map[string]interface{} {
+	if c == nil {
+		return nil
+	}
+	return c.extraProperties
+}
+
+func (c *ConsolidationLever) require(field *big.Int) {
+	if c.explicitFields == nil {
+		c.explicitFields = big.NewInt(0)
+	}
+	c.explicitFields.Or(c.explicitFields, field)
+}
+
+// SetOn sets the On field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationLever) SetOn(on *bool) {
+	c.On = on
+	c.require(consolidationLeverFieldOn)
+}
+
+// SetMonthly sets the Monthly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationLever) SetMonthly(monthly *float64) {
+	c.Monthly = monthly
+	c.require(consolidationLeverFieldMonthly)
+}
+
+// SetCount sets the Count field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationLever) SetCount(count *LeverCount) {
+	c.Count = count
+	c.require(consolidationLeverFieldCount)
+}
+
+// SetChanges sets the Changes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationLever) SetChanges(changes *int) {
+	c.Changes = changes
+	c.require(consolidationLeverFieldChanges)
+}
+
+// SetHoursAveraged sets the HoursAveraged field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (c *ConsolidationLever) SetHoursAveraged(hoursAveraged *int) {
+	c.HoursAveraged = hoursAveraged
+	c.require(consolidationLeverFieldHoursAveraged)
+}
+
+func (c *ConsolidationLever) UnmarshalJSON(data []byte) error {
+	type unmarshaler ConsolidationLever
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ConsolidationLever(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ConsolidationLever) MarshalJSON() ([]byte, error) {
+	type embed ConsolidationLever
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*c),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, c.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (c *ConsolidationLever) String() string {
 	if c == nil {
 		return "<nil>"
 	}
@@ -28470,6 +30624,159 @@ func (f *FacetCount) String() string {
 	return fmt.Sprintf("%#v", f)
 }
 
+var (
+	failingShareFieldWorkloads        = big.NewInt(1 << 0)
+	failingShareFieldRestarts         = big.NewInt(1 << 1)
+	failingShareFieldRestartWorkloads = big.NewInt(1 << 2)
+	failingShareFieldOomKills         = big.NewInt(1 << 3)
+	failingShareFieldOomWorkloads     = big.NewInt(1 << 4)
+)
+
+type FailingShare struct {
+	// Current workloads that fail now: no replica ready in two batches in a row (the no_ready_replica and crash_looping indicators), or a container restarting at a crash loop's pace in the window's last two days, ready replica or not (the restarts indicator at high)
+	Workloads int `json:"workloads" url:"workloads"`
+	// Their restarts in the window: a crash loop restarts every few minutes
+	Restarts int `json:"restarts" url:"restarts"`
+	// How many of them restarted in the window
+	RestartWorkloads int `json:"restart_workloads" url:"restart_workloads"`
+	// Their OOM kills in the window
+	OomKills int `json:"oom_kills" url:"oom_kills"`
+	// How many of them were OOM killed in the window
+	OomWorkloads int `json:"oom_workloads" url:"oom_workloads"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (f *FailingShare) GetWorkloads() int {
+	if f == nil {
+		return 0
+	}
+	return f.Workloads
+}
+
+func (f *FailingShare) GetRestarts() int {
+	if f == nil {
+		return 0
+	}
+	return f.Restarts
+}
+
+func (f *FailingShare) GetRestartWorkloads() int {
+	if f == nil {
+		return 0
+	}
+	return f.RestartWorkloads
+}
+
+func (f *FailingShare) GetOomKills() int {
+	if f == nil {
+		return 0
+	}
+	return f.OomKills
+}
+
+func (f *FailingShare) GetOomWorkloads() int {
+	if f == nil {
+		return 0
+	}
+	return f.OomWorkloads
+}
+
+func (f *FailingShare) GetExtraProperties() map[string]interface{} {
+	if f == nil {
+		return nil
+	}
+	return f.extraProperties
+}
+
+func (f *FailingShare) require(field *big.Int) {
+	if f.explicitFields == nil {
+		f.explicitFields = big.NewInt(0)
+	}
+	f.explicitFields.Or(f.explicitFields, field)
+}
+
+// SetWorkloads sets the Workloads field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FailingShare) SetWorkloads(workloads int) {
+	f.Workloads = workloads
+	f.require(failingShareFieldWorkloads)
+}
+
+// SetRestarts sets the Restarts field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FailingShare) SetRestarts(restarts int) {
+	f.Restarts = restarts
+	f.require(failingShareFieldRestarts)
+}
+
+// SetRestartWorkloads sets the RestartWorkloads field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FailingShare) SetRestartWorkloads(restartWorkloads int) {
+	f.RestartWorkloads = restartWorkloads
+	f.require(failingShareFieldRestartWorkloads)
+}
+
+// SetOomKills sets the OomKills field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FailingShare) SetOomKills(oomKills int) {
+	f.OomKills = oomKills
+	f.require(failingShareFieldOomKills)
+}
+
+// SetOomWorkloads sets the OomWorkloads field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FailingShare) SetOomWorkloads(oomWorkloads int) {
+	f.OomWorkloads = oomWorkloads
+	f.require(failingShareFieldOomWorkloads)
+}
+
+func (f *FailingShare) UnmarshalJSON(data []byte) error {
+	type unmarshaler FailingShare
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*f = FailingShare(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *f)
+	if err != nil {
+		return err
+	}
+	f.extraProperties = extraProperties
+	f.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (f *FailingShare) MarshalJSON() ([]byte, error) {
+	type embed FailingShare
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*f),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, f.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (f *FailingShare) String() string {
+	if f == nil {
+		return "<nil>"
+	}
+	if len(f.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(f.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(f); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", f)
+}
+
 // A file part of a message.
 var (
 	fileUIPartFieldType             = big.NewInt(1 << 0)
@@ -29165,6 +31472,407 @@ func (f *FitSet) String() string {
 }
 
 var (
+	fixAmountFieldCurrent     = big.NewInt(1 << 0)
+	fixAmountFieldRecommended = big.NewInt(1 << 1)
+)
+
+type FixAmount struct {
+	// Bytes for memory, millicores for CPU; null where it is not set
+	Current *int `json:"current,omitempty" url:"current,omitempty"`
+	// Bytes for memory, millicores for CPU; null where it is not set
+	Recommended *int `json:"recommended,omitempty" url:"recommended,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (f *FixAmount) GetCurrent() *int {
+	if f == nil {
+		return nil
+	}
+	return f.Current
+}
+
+func (f *FixAmount) GetRecommended() *int {
+	if f == nil {
+		return nil
+	}
+	return f.Recommended
+}
+
+func (f *FixAmount) GetExtraProperties() map[string]interface{} {
+	if f == nil {
+		return nil
+	}
+	return f.extraProperties
+}
+
+func (f *FixAmount) require(field *big.Int) {
+	if f.explicitFields == nil {
+		f.explicitFields = big.NewInt(0)
+	}
+	f.explicitFields.Or(f.explicitFields, field)
+}
+
+// SetCurrent sets the Current field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FixAmount) SetCurrent(current *int) {
+	f.Current = current
+	f.require(fixAmountFieldCurrent)
+}
+
+// SetRecommended sets the Recommended field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FixAmount) SetRecommended(recommended *int) {
+	f.Recommended = recommended
+	f.require(fixAmountFieldRecommended)
+}
+
+func (f *FixAmount) UnmarshalJSON(data []byte) error {
+	type unmarshaler FixAmount
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*f = FixAmount(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *f)
+	if err != nil {
+		return err
+	}
+	f.extraProperties = extraProperties
+	f.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (f *FixAmount) MarshalJSON() ([]byte, error) {
+	type embed FixAmount
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*f),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, f.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (f *FixAmount) String() string {
+	if f == nil {
+		return "<nil>"
+	}
+	if len(f.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(f.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(f); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", f)
+}
+
+// What a fix moves on one resource of its container: its request and its limit, each from and to.
+var (
+	fixChangeFieldResource = big.NewInt(1 << 0)
+	fixChangeFieldRequest  = big.NewInt(1 << 1)
+	fixChangeFieldLimit    = big.NewInt(1 << 2)
+)
+
+type FixChange struct {
+	Resource FixChangeResource `json:"resource" url:"resource"`
+	Request  *FixAmount        `json:"request" url:"request"`
+	Limit    *FixAmount        `json:"limit" url:"limit"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (f *FixChange) GetResource() FixChangeResource {
+	if f == nil {
+		return ""
+	}
+	return f.Resource
+}
+
+func (f *FixChange) GetRequest() *FixAmount {
+	if f == nil {
+		return nil
+	}
+	return f.Request
+}
+
+func (f *FixChange) GetLimit() *FixAmount {
+	if f == nil {
+		return nil
+	}
+	return f.Limit
+}
+
+func (f *FixChange) GetExtraProperties() map[string]interface{} {
+	if f == nil {
+		return nil
+	}
+	return f.extraProperties
+}
+
+func (f *FixChange) require(field *big.Int) {
+	if f.explicitFields == nil {
+		f.explicitFields = big.NewInt(0)
+	}
+	f.explicitFields.Or(f.explicitFields, field)
+}
+
+// SetResource sets the Resource field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FixChange) SetResource(resource FixChangeResource) {
+	f.Resource = resource
+	f.require(fixChangeFieldResource)
+}
+
+// SetRequest sets the Request field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FixChange) SetRequest(request *FixAmount) {
+	f.Request = request
+	f.require(fixChangeFieldRequest)
+}
+
+// SetLimit sets the Limit field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FixChange) SetLimit(limit *FixAmount) {
+	f.Limit = limit
+	f.require(fixChangeFieldLimit)
+}
+
+func (f *FixChange) UnmarshalJSON(data []byte) error {
+	type unmarshaler FixChange
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*f = FixChange(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *f)
+	if err != nil {
+		return err
+	}
+	f.extraProperties = extraProperties
+	f.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (f *FixChange) MarshalJSON() ([]byte, error) {
+	type embed FixChange
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*f),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, f.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (f *FixChange) String() string {
+	if f == nil {
+		return "<nil>"
+	}
+	if len(f.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(f.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(f); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", f)
+}
+
+type FixChangeResource string
+
+const (
+	FixChangeResourceMemory FixChangeResource = "memory"
+	FixChangeResourceCPU    FixChangeResource = "cpu"
+)
+
+func NewFixChangeResourceFromString(s string) (FixChangeResource, error) {
+	switch s {
+	case "memory":
+		return FixChangeResourceMemory, nil
+	case "cpu":
+		return FixChangeResourceCPU, nil
+	}
+	var t FixChangeResource
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (f FixChangeResource) Ptr() *FixChangeResource {
+	return &f
+}
+
+// The tool that sizes the container, and the change to make in it (levelfour-api#2068).
+var (
+	fixSizedByFieldKind   = big.NewInt(1 << 0)
+	fixSizedByFieldAction = big.NewInt(1 << 1)
+	fixSizedByFieldFix    = big.NewInt(1 << 2)
+	fixSizedByFieldFlags  = big.NewInt(1 << 3)
+)
+
+type FixSizedBy struct {
+	Kind FixSizedByKind `json:"kind" url:"kind"`
+	// The change on one line
+	Action *string `json:"action,omitempty" url:"action,omitempty"`
+	// The whole change, in words
+	Fix   *string      `json:"fix,omitempty" url:"fix,omitempty"`
+	Flags []*SizerFlag `json:"flags,omitempty" url:"flags,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (f *FixSizedBy) GetKind() FixSizedByKind {
+	if f == nil {
+		return ""
+	}
+	return f.Kind
+}
+
+func (f *FixSizedBy) GetAction() *string {
+	if f == nil {
+		return nil
+	}
+	return f.Action
+}
+
+func (f *FixSizedBy) GetFix() *string {
+	if f == nil {
+		return nil
+	}
+	return f.Fix
+}
+
+func (f *FixSizedBy) GetFlags() []*SizerFlag {
+	if f == nil {
+		return nil
+	}
+	return f.Flags
+}
+
+func (f *FixSizedBy) GetExtraProperties() map[string]interface{} {
+	if f == nil {
+		return nil
+	}
+	return f.extraProperties
+}
+
+func (f *FixSizedBy) require(field *big.Int) {
+	if f.explicitFields == nil {
+		f.explicitFields = big.NewInt(0)
+	}
+	f.explicitFields.Or(f.explicitFields, field)
+}
+
+// SetKind sets the Kind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FixSizedBy) SetKind(kind FixSizedByKind) {
+	f.Kind = kind
+	f.require(fixSizedByFieldKind)
+}
+
+// SetAction sets the Action field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FixSizedBy) SetAction(action *string) {
+	f.Action = action
+	f.require(fixSizedByFieldAction)
+}
+
+// SetFix sets the Fix field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FixSizedBy) SetFix(fix *string) {
+	f.Fix = fix
+	f.require(fixSizedByFieldFix)
+}
+
+// SetFlags sets the Flags field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FixSizedBy) SetFlags(flags []*SizerFlag) {
+	f.Flags = flags
+	f.require(fixSizedByFieldFlags)
+}
+
+func (f *FixSizedBy) UnmarshalJSON(data []byte) error {
+	type unmarshaler FixSizedBy
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*f = FixSizedBy(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *f)
+	if err != nil {
+		return err
+	}
+	f.extraProperties = extraProperties
+	f.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (f *FixSizedBy) MarshalJSON() ([]byte, error) {
+	type embed FixSizedBy
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*f),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, f.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (f *FixSizedBy) String() string {
+	if f == nil {
+		return "<nil>"
+	}
+	if len(f.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(f.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(f); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", f)
+}
+
+type FixSizedByKind string
+
+const (
+	FixSizedByKindVpa          FixSizedByKind = "vpa"
+	FixSizedByKindAddonResizer FixSizedByKind = "addon_resizer"
+	FixSizedByKindAdmission    FixSizedByKind = "admission"
+)
+
+func NewFixSizedByKindFromString(s string) (FixSizedByKind, error) {
+	switch s {
+	case "vpa":
+		return FixSizedByKindVpa, nil
+	case "addon_resizer":
+		return FixSizedByKindAddonResizer, nil
+	case "admission":
+		return FixSizedByKindAdmission, nil
+	}
+	var t FixSizedByKind
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (f FixSizedByKind) Ptr() *FixSizedByKind {
+	return &f
+}
+
+var (
 	flagCountFieldValue = big.NewInt(1 << 0)
 	flagCountFieldCount = big.NewInt(1 << 1)
 )
@@ -29250,6 +31958,158 @@ func (f *FlagCount) MarshalJSON() ([]byte, error) {
 }
 
 func (f *FlagCount) String() string {
+	if f == nil {
+		return "<nil>"
+	}
+	if len(f.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(f.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(f); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", f)
+}
+
+var (
+	fleetConsolidationLeverFieldClustersOn = big.NewInt(1 << 0)
+	fleetConsolidationLeverFieldClusters   = big.NewInt(1 << 1)
+	fleetConsolidationLeverFieldMonthly    = big.NewInt(1 << 2)
+	fleetConsolidationLeverFieldCount      = big.NewInt(1 << 3)
+	fleetConsolidationLeverFieldChanges    = big.NewInt(1 << 4)
+)
+
+type FleetConsolidationLever struct {
+	// The clusters it is on in
+	ClustersOn int `json:"clusters_on" url:"clusters_on"`
+	Clusters   int `json:"clusters" url:"clusters"`
+	// What it yields a month, added up
+	Monthly *float64 `json:"monthly,omitempty" url:"monthly,omitempty"`
+	// Its counts added up; null when no cluster has them
+	Count *LeverCount `json:"count,omitempty" url:"count,omitempty"`
+	// The clusters' changes that free their held nodes over the window, added up
+	Changes *int `json:"changes,omitempty" url:"changes,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (f *FleetConsolidationLever) GetClustersOn() int {
+	if f == nil {
+		return 0
+	}
+	return f.ClustersOn
+}
+
+func (f *FleetConsolidationLever) GetClusters() int {
+	if f == nil {
+		return 0
+	}
+	return f.Clusters
+}
+
+func (f *FleetConsolidationLever) GetMonthly() *float64 {
+	if f == nil {
+		return nil
+	}
+	return f.Monthly
+}
+
+func (f *FleetConsolidationLever) GetCount() *LeverCount {
+	if f == nil {
+		return nil
+	}
+	return f.Count
+}
+
+func (f *FleetConsolidationLever) GetChanges() *int {
+	if f == nil {
+		return nil
+	}
+	return f.Changes
+}
+
+func (f *FleetConsolidationLever) GetExtraProperties() map[string]interface{} {
+	if f == nil {
+		return nil
+	}
+	return f.extraProperties
+}
+
+func (f *FleetConsolidationLever) require(field *big.Int) {
+	if f.explicitFields == nil {
+		f.explicitFields = big.NewInt(0)
+	}
+	f.explicitFields.Or(f.explicitFields, field)
+}
+
+// SetClustersOn sets the ClustersOn field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FleetConsolidationLever) SetClustersOn(clustersOn int) {
+	f.ClustersOn = clustersOn
+	f.require(fleetConsolidationLeverFieldClustersOn)
+}
+
+// SetClusters sets the Clusters field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FleetConsolidationLever) SetClusters(clusters int) {
+	f.Clusters = clusters
+	f.require(fleetConsolidationLeverFieldClusters)
+}
+
+// SetMonthly sets the Monthly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FleetConsolidationLever) SetMonthly(monthly *float64) {
+	f.Monthly = monthly
+	f.require(fleetConsolidationLeverFieldMonthly)
+}
+
+// SetCount sets the Count field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FleetConsolidationLever) SetCount(count *LeverCount) {
+	f.Count = count
+	f.require(fleetConsolidationLeverFieldCount)
+}
+
+// SetChanges sets the Changes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FleetConsolidationLever) SetChanges(changes *int) {
+	f.Changes = changes
+	f.require(fleetConsolidationLeverFieldChanges)
+}
+
+func (f *FleetConsolidationLever) UnmarshalJSON(data []byte) error {
+	type unmarshaler FleetConsolidationLever
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*f = FleetConsolidationLever(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *f)
+	if err != nil {
+		return err
+	}
+	f.extraProperties = extraProperties
+	f.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (f *FleetConsolidationLever) MarshalJSON() ([]byte, error) {
+	type embed FleetConsolidationLever
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*f),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, f.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (f *FleetConsolidationLever) String() string {
 	if f == nil {
 		return "<nil>"
 	}
@@ -29725,9 +32585,9 @@ var (
 )
 
 type FleetLevers struct {
-	Rightsizing   *FleetLever `json:"rightsizing" url:"rightsizing"`
-	Consolidation *FleetLever `json:"consolidation" url:"consolidation"`
-	Spot          *FleetLever `json:"spot" url:"spot"`
+	Rightsizing   *FleetLever              `json:"rightsizing" url:"rightsizing"`
+	Consolidation *FleetConsolidationLever `json:"consolidation" url:"consolidation"`
+	Spot          *FleetLever              `json:"spot" url:"spot"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -29743,7 +32603,7 @@ func (f *FleetLevers) GetRightsizing() *FleetLever {
 	return f.Rightsizing
 }
 
-func (f *FleetLevers) GetConsolidation() *FleetLever {
+func (f *FleetLevers) GetConsolidation() *FleetConsolidationLever {
 	if f == nil {
 		return nil
 	}
@@ -29780,7 +32640,7 @@ func (f *FleetLevers) SetRightsizing(rightsizing *FleetLever) {
 
 // SetConsolidation sets the Consolidation field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
-func (f *FleetLevers) SetConsolidation(consolidation *FleetLever) {
+func (f *FleetLevers) SetConsolidation(consolidation *FleetConsolidationLever) {
 	f.Consolidation = consolidation
 	f.require(fleetLeversFieldConsolidation)
 }
@@ -32334,43 +35194,51 @@ func (f *FleetStorage) String() string {
 }
 
 var (
-	fleetSummaryFieldLevers                     = big.NewInt(1 << 0)
-	fleetSummaryFieldRealized                   = big.NewInt(1 << 1)
-	fleetSummaryFieldAutomationNamespacesActing = big.NewInt(1 << 2)
-	fleetSummaryFieldAutomationNamespacesTotal  = big.NewInt(1 << 3)
-	fleetSummaryFieldAsOf                       = big.NewInt(1 << 4)
-	fleetSummaryFieldUnreportedLists            = big.NewInt(1 << 5)
-	fleetSummaryFieldTotalCost                  = big.NewInt(1 << 6)
-	fleetSummaryFieldIdleCost                   = big.NewInt(1 << 7)
-	fleetSummaryFieldIdleShare                  = big.NewInt(1 << 8)
-	fleetSummaryFieldSystemCost                 = big.NewInt(1 << 9)
-	fleetSummaryFieldTotalCostNet               = big.NewInt(1 << 10)
-	fleetSummaryFieldIdleCostNet                = big.NewInt(1 << 11)
-	fleetSummaryFieldSystemCostNet              = big.NewInt(1 << 12)
-	fleetSummaryFieldCPUEfficiency              = big.NewInt(1 << 13)
-	fleetSummaryFieldMemoryEfficiency           = big.NewInt(1 << 14)
-	fleetSummaryFieldClusterCount               = big.NewInt(1 << 15)
-	fleetSummaryFieldAccountCount               = big.NewInt(1 << 16)
-	fleetSummaryFieldNodesByPurchaseType        = big.NewInt(1 << 17)
-	fleetSummaryFieldClustersByStatus           = big.NewInt(1 << 18)
-	fleetSummaryFieldNodeCount                  = big.NewInt(1 << 19)
-	fleetSummaryFieldNamespaceCount             = big.NewInt(1 << 20)
-	fleetSummaryFieldNamespacesEnabled          = big.NewInt(1 << 21)
-	fleetSummaryFieldWorkloadCount              = big.NewInt(1 << 22)
-	fleetSummaryFieldPodsWaiting                = big.NewInt(1 << 23)
-	fleetSummaryFieldCostBasis                  = big.NewInt(1 << 24)
-	fleetSummaryFieldPricedThrough              = big.NewInt(1 << 25)
-	fleetSummaryFieldBillStatus                 = big.NewInt(1 << 26)
-	fleetSummaryFieldBillExpectedBy             = big.NewInt(1 << 27)
-	fleetSummaryFieldWorkloadsAtRisk            = big.NewInt(1 << 28)
-	fleetSummaryFieldPotentialSavings           = big.NewInt(1 << 29)
-	fleetSummaryFieldRealizedSavings            = big.NewInt(1 << 30)
-	fleetSummaryFieldByProvider                 = big.NewInt(1 << 31)
-	fleetSummaryFieldStorage                    = big.NewInt(1 << 32)
+	fleetSummaryFieldAvailableSavingsMonthly    = big.NewInt(1 << 0)
+	fleetSummaryFieldLevers                     = big.NewInt(1 << 1)
+	fleetSummaryFieldOtherSavings               = big.NewInt(1 << 2)
+	fleetSummaryFieldRealized                   = big.NewInt(1 << 3)
+	fleetSummaryFieldAutomationNamespacesActing = big.NewInt(1 << 4)
+	fleetSummaryFieldAutomationNamespacesTotal  = big.NewInt(1 << 5)
+	fleetSummaryFieldAsOf                       = big.NewInt(1 << 6)
+	fleetSummaryFieldUnreportedLists            = big.NewInt(1 << 7)
+	fleetSummaryFieldTotalCost                  = big.NewInt(1 << 8)
+	fleetSummaryFieldIdleCost                   = big.NewInt(1 << 9)
+	fleetSummaryFieldIdleShare                  = big.NewInt(1 << 10)
+	fleetSummaryFieldSystemCost                 = big.NewInt(1 << 11)
+	fleetSummaryFieldTotalCostNet               = big.NewInt(1 << 12)
+	fleetSummaryFieldIdleCostNet                = big.NewInt(1 << 13)
+	fleetSummaryFieldSystemCostNet              = big.NewInt(1 << 14)
+	fleetSummaryFieldCPUEfficiency              = big.NewInt(1 << 15)
+	fleetSummaryFieldMemoryEfficiency           = big.NewInt(1 << 16)
+	fleetSummaryFieldClusterCount               = big.NewInt(1 << 17)
+	fleetSummaryFieldAccountCount               = big.NewInt(1 << 18)
+	fleetSummaryFieldNodesByPurchaseType        = big.NewInt(1 << 19)
+	fleetSummaryFieldClustersByStatus           = big.NewInt(1 << 20)
+	fleetSummaryFieldNodeCount                  = big.NewInt(1 << 21)
+	fleetSummaryFieldNamespaceCount             = big.NewInt(1 << 22)
+	fleetSummaryFieldNamespacesEnabled          = big.NewInt(1 << 23)
+	fleetSummaryFieldWorkloadCount              = big.NewInt(1 << 24)
+	fleetSummaryFieldPodsWaiting                = big.NewInt(1 << 25)
+	fleetSummaryFieldCostBasis                  = big.NewInt(1 << 26)
+	fleetSummaryFieldPricedThrough              = big.NewInt(1 << 27)
+	fleetSummaryFieldBillStatus                 = big.NewInt(1 << 28)
+	fleetSummaryFieldBillExpectedBy             = big.NewInt(1 << 29)
+	fleetSummaryFieldWorkloadsAtRisk            = big.NewInt(1 << 30)
+	fleetSummaryFieldPotentialSavings           = big.NewInt(1 << 31)
+	fleetSummaryFieldRightsizingFrees           = big.NewInt(1 << 32)
+	fleetSummaryFieldOffNamespacesWaste         = big.NewInt(1 << 33)
+	fleetSummaryFieldRealizedSavings            = big.NewInt(1 << 34)
+	fleetSummaryFieldByProvider                 = big.NewInt(1 << 35)
+	fleetSummaryFieldStorage                    = big.NewInt(1 << 36)
 )
 
 type FleetSummary struct {
-	Levers *FleetLevers `json:"levers,omitempty" url:"levers,omitempty"`
+	// What the available recommendations would save a month (as the savings page's Available tab counts them), plus the held nodes that would go and no recommendation covers, added up over the connected clusters; null when none has any
+	AvailableSavingsMonthly *float64     `json:"available_savings_monthly,omitempty" url:"available_savings_monthly,omitempty"`
+	Levers                  *FleetLevers `json:"levers,omitempty" url:"levers,omitempty"`
+	// Every connected cluster's other savings, added up
+	OtherSavings *OtherSavings `json:"other_savings,omitempty" url:"other_savings,omitempty"`
 	// What the verified changes saved (GET /v1/k8s/realized); null when nothing is verified
 	Realized *KubernetesRealized `json:"realized,omitempty" url:"realized,omitempty"`
 	// Namespaces where the automation applies changes by itself: apply mode, not opted out by the levelfour.ai/automation=off label, in the Helm install's namespaces, recommendations on, sized by no other tool, not being taken over and not paused because the approver left; 0 while the cluster's automation is off or paused. Null when no cluster has the automation component
@@ -32416,10 +35284,14 @@ type FleetSummary struct {
 	BillStatus FleetSummaryBillStatus `json:"bill_status" url:"bill_status"`
 	// While awaiting_bill, the earliest day a waiting cluster's first priced day should show
 	BillExpectedBy *time.Time `json:"bill_expected_by,omitempty" url:"bill_expected_by,omitempty" format:"date"`
-	// Current workloads at high risk: an OOM kill, an eviction, no ready replica in two batches in a row, or a crash loop. Medium and low never count. An ephemeral one, a pull-request environment, counts only with include_ephemeral
+	// Current workloads at high risk, on what holds now: an OOM kill or an eviction in the window's last two days, a container restarting at a crash loop's pace in them, or no ready replica in two batches in a row. Medium and low never count. An ephemeral one, a pull-request or branch environment, counts only with include_ephemeral
 	WorkloadsAtRisk  *int              `json:"workloads_at_risk,omitempty" url:"workloads_at_risk,omitempty"`
 	PotentialSavings *PotentialSavings `json:"potential_savings,omitempty" url:"potential_savings,omitempty"`
-	RealizedSavings  *RealizedTotal    `json:"realized_savings" url:"realized_savings"`
+	// The nodes rightsizing every workload would free and what they cost a month, as the worker's last scan reviewed the pools; null before a scan stored it
+	RightsizingFrees *RightsizingFrees `json:"rightsizing_frees,omitempty" url:"rightsizing_frees,omitempty"`
+	// What the namespaces whose recommendations are off leave unused a month, and how many are off; null when none is off (api#2091)
+	OffNamespacesWaste *OffNamespacesWaste `json:"off_namespaces_waste,omitempty" url:"off_namespaces_waste,omitempty"`
+	RealizedSavings    *RealizedTotal      `json:"realized_savings" url:"realized_savings"`
 	// Costliest first; adds up to cluster_count, node_count and total_cost
 	ByProvider []*ProviderShare `json:"by_provider,omitempty" url:"by_provider,omitempty"`
 	Storage    *FleetStorage    `json:"storage" url:"storage"`
@@ -32431,11 +35303,25 @@ type FleetSummary struct {
 	rawJSON         json.RawMessage
 }
 
+func (f *FleetSummary) GetAvailableSavingsMonthly() *float64 {
+	if f == nil {
+		return nil
+	}
+	return f.AvailableSavingsMonthly
+}
+
 func (f *FleetSummary) GetLevers() *FleetLevers {
 	if f == nil {
 		return nil
 	}
 	return f.Levers
+}
+
+func (f *FleetSummary) GetOtherSavings() *OtherSavings {
+	if f == nil {
+		return nil
+	}
+	return f.OtherSavings
 }
 
 func (f *FleetSummary) GetRealized() *KubernetesRealized {
@@ -32641,6 +35527,20 @@ func (f *FleetSummary) GetPotentialSavings() *PotentialSavings {
 	return f.PotentialSavings
 }
 
+func (f *FleetSummary) GetRightsizingFrees() *RightsizingFrees {
+	if f == nil {
+		return nil
+	}
+	return f.RightsizingFrees
+}
+
+func (f *FleetSummary) GetOffNamespacesWaste() *OffNamespacesWaste {
+	if f == nil {
+		return nil
+	}
+	return f.OffNamespacesWaste
+}
+
 func (f *FleetSummary) GetRealizedSavings() *RealizedTotal {
 	if f == nil {
 		return nil
@@ -32676,11 +35576,25 @@ func (f *FleetSummary) require(field *big.Int) {
 	f.explicitFields.Or(f.explicitFields, field)
 }
 
+// SetAvailableSavingsMonthly sets the AvailableSavingsMonthly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FleetSummary) SetAvailableSavingsMonthly(availableSavingsMonthly *float64) {
+	f.AvailableSavingsMonthly = availableSavingsMonthly
+	f.require(fleetSummaryFieldAvailableSavingsMonthly)
+}
+
 // SetLevers sets the Levers field and marks it as non-optional;
 // this prevents an empty or null value for this field from being omitted during serialization.
 func (f *FleetSummary) SetLevers(levers *FleetLevers) {
 	f.Levers = levers
 	f.require(fleetSummaryFieldLevers)
+}
+
+// SetOtherSavings sets the OtherSavings field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FleetSummary) SetOtherSavings(otherSavings *OtherSavings) {
+	f.OtherSavings = otherSavings
+	f.require(fleetSummaryFieldOtherSavings)
 }
 
 // SetRealized sets the Realized field and marks it as non-optional;
@@ -32884,6 +35798,20 @@ func (f *FleetSummary) SetWorkloadsAtRisk(workloadsAtRisk *int) {
 func (f *FleetSummary) SetPotentialSavings(potentialSavings *PotentialSavings) {
 	f.PotentialSavings = potentialSavings
 	f.require(fleetSummaryFieldPotentialSavings)
+}
+
+// SetRightsizingFrees sets the RightsizingFrees field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FleetSummary) SetRightsizingFrees(rightsizingFrees *RightsizingFrees) {
+	f.RightsizingFrees = rightsizingFrees
+	f.require(fleetSummaryFieldRightsizingFrees)
+}
+
+// SetOffNamespacesWaste sets the OffNamespacesWaste field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FleetSummary) SetOffNamespacesWaste(offNamespacesWaste *OffNamespacesWaste) {
+	f.OffNamespacesWaste = offNamespacesWaste
+	f.require(fleetSummaryFieldOffNamespacesWaste)
 }
 
 // SetRealizedSavings sets the RealizedSavings field and marks it as non-optional;
@@ -33303,10 +36231,11 @@ var (
 	fleetVolumeFieldCreatedAt          = big.NewInt(1 << 18)
 	fleetVolumeFieldPeriodCost         = big.NewInt(1 << 19)
 	fleetVolumeFieldCostUnknownReason  = big.NewInt(1 << 20)
-	fleetVolumeFieldLastBilledOn       = big.NewInt(1 << 21)
-	fleetVolumeFieldBillRate           = big.NewInt(1 << 22)
-	fleetVolumeFieldClusterID          = big.NewInt(1 << 23)
-	fleetVolumeFieldClusterName        = big.NewInt(1 << 24)
+	fleetVolumeFieldUnpricedReason     = big.NewInt(1 << 21)
+	fleetVolumeFieldLastBilledOn       = big.NewInt(1 << 22)
+	fleetVolumeFieldBillRate           = big.NewInt(1 << 23)
+	fleetVolumeFieldClusterID          = big.NewInt(1 << 24)
+	fleetVolumeFieldClusterName        = big.NewInt(1 << 25)
 )
 
 type FleetVolume struct {
@@ -33342,6 +36271,8 @@ type FleetVolume struct {
 	PeriodCost *float64 `json:"period_cost,omitempty" url:"period_cost,omitempty"`
 	// Why period_cost is null: not_on_bill when the bill of the cluster's account arrives over the window and no line of it names the volume, no_bill when no bill for that account arrives (none connected, not there yet, or a cloud whose bill this does not read for volumes)
 	CostUnknownReason *FleetVolumeCostUnknownReason `json:"cost_unknown_reason,omitempty" url:"cost_unknown_reason,omitempty"`
+	// Why the worker could not price the claim it found, from its open candidate: not_on_bill when the bill names no line for the volume while it prices the cluster's other claims; null otherwise (api#2074)
+	UnpricedReason *string `json:"unpriced_reason,omitempty" url:"unpriced_reason,omitempty"`
 	// While period_cost is null, the last day any bill line named the volume; null if none ever
 	LastBilledOn *time.Time `json:"last_billed_on,omitempty" url:"last_billed_on,omitempty" format:"date"`
 	// While period_cost is null, what the tenant's own bill charged a GiB-month of the claim's volume type in the cluster's region over the window; null when the bill charged nothing for that type there. Never a list price
@@ -33690,6 +36621,13 @@ func (f *FleetVolume) SetPeriodCost(periodCost *float64) {
 func (f *FleetVolume) SetCostUnknownReason(costUnknownReason *FleetVolumeCostUnknownReason) {
 	f.CostUnknownReason = costUnknownReason
 	f.require(fleetVolumeFieldCostUnknownReason)
+}
+
+// SetUnpricedReason sets the UnpricedReason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FleetVolume) SetUnpricedReason(unpricedReason *string) {
+	f.UnpricedReason = unpricedReason
+	f.require(fleetVolumeFieldUnpricedReason)
 }
 
 // SetLastBilledOn sets the LastBilledOn field and marks it as non-optional;
@@ -34088,6 +37026,8 @@ var (
 	fleetWorkloadFieldIndicators        = big.NewInt(1 << 14)
 	fleetWorkloadFieldReliability       = big.NewInt(1 << 15)
 	fleetWorkloadFieldPodsWaiting       = big.NewInt(1 << 16)
+	fleetWorkloadFieldFixes             = big.NewInt(1 << 17)
+	fleetWorkloadFieldFixState          = big.NewInt(1 << 18)
 )
 
 type FleetWorkload struct {
@@ -34100,7 +37040,7 @@ type FleetWorkload struct {
 	Removed *bool `json:"removed,omitempty" url:"removed,omitempty"`
 	// Set when the cluster's latest batch did not list the row because the agent could not read its list for more than 24 hours (it sent the list as null): the time of the last batch that read the list, which listed the row. Whether the row is still in the cluster is unknown, so removed is false and the list counts it as current; what only the latest batch can say (a node's ready and status, a workload's risk rating) reads it as not current. Null for a row the latest batch listed and for a removed one
 	UnreportedSince *time.Time `json:"unreported_since,omitempty" url:"unreported_since,omitempty"`
-	// A pull-request environment, which lives a few days: a label channel, or one ending in /channel, valued pr-<number>. The counts of workloads at risk leave it out unless the request passes include_ephemeral
+	// A pull-request or branch environment, which lives a few days: a label channel, or one ending in /channel, naming a pull request (pr-<number>) or a branch rather than a channel that lasts (main, master, prod, staging and the like, also as refs-heads-<name>). The counts of workloads at risk leave it out unless the request passes include_ephemeral
 	Ephemeral *bool `json:"ephemeral,omitempty" url:"ephemeral,omitempty"`
 	// As the cluster's workloads list reads it
 	Cost *float64 `json:"cost,omitempty" url:"cost,omitempty"`
@@ -34119,6 +37059,10 @@ type FleetWorkload struct {
 	Reliability *ReliabilityCounts `json:"reliability" url:"reliability"`
 	// Its pods no node took yet at its cluster's latest snapshot, the count the cluster summary's pods.pending and the fleet's pods_waiting add up
 	PodsWaiting *int `json:"pods_waiting,omitempty" url:"pods_waiting,omitempty"`
+	// The published raises that stop its risk, the riskiest first; none when nothing is published
+	Fixes []*WorkloadFix `json:"fixes,omitempty" url:"fixes,omitempty"`
+	// Where its fix stands: published (in fixes); in_review, a raise computed and not published yet; namespace_off, its namespace makes no recommendations until someone turns them on; namespace_off_by_label, the cluster's levelfour.ai/recommendations=disabled label turns them off; none otherwise
+	FixState *FleetWorkloadFixState `json:"fix_state,omitempty" url:"fix_state,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -34244,6 +37188,20 @@ func (f *FleetWorkload) GetPodsWaiting() *int {
 		return nil
 	}
 	return f.PodsWaiting
+}
+
+func (f *FleetWorkload) GetFixes() []*WorkloadFix {
+	if f == nil {
+		return nil
+	}
+	return f.Fixes
+}
+
+func (f *FleetWorkload) GetFixState() *FleetWorkloadFixState {
+	if f == nil {
+		return nil
+	}
+	return f.FixState
 }
 
 func (f *FleetWorkload) GetExtraProperties() map[string]interface{} {
@@ -34377,6 +37335,20 @@ func (f *FleetWorkload) SetReliability(reliability *ReliabilityCounts) {
 func (f *FleetWorkload) SetPodsWaiting(podsWaiting *int) {
 	f.PodsWaiting = podsWaiting
 	f.require(fleetWorkloadFieldPodsWaiting)
+}
+
+// SetFixes sets the Fixes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FleetWorkload) SetFixes(fixes []*WorkloadFix) {
+	f.Fixes = fixes
+	f.require(fleetWorkloadFieldFixes)
+}
+
+// SetFixState sets the FixState field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (f *FleetWorkload) SetFixState(fixState *FleetWorkloadFixState) {
+	f.FixState = fixState
+	f.require(fleetWorkloadFieldFixState)
 }
 
 func (f *FleetWorkload) UnmarshalJSON(data []byte) error {
@@ -34534,6 +37506,37 @@ func (f *FleetWorkloadFacets) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", f)
+}
+
+type FleetWorkloadFixState string
+
+const (
+	FleetWorkloadFixStatePublished           FleetWorkloadFixState = "published"
+	FleetWorkloadFixStateInReview            FleetWorkloadFixState = "in_review"
+	FleetWorkloadFixStateNamespaceOff        FleetWorkloadFixState = "namespace_off"
+	FleetWorkloadFixStateNamespaceOffByLabel FleetWorkloadFixState = "namespace_off_by_label"
+	FleetWorkloadFixStateNone                FleetWorkloadFixState = "none"
+)
+
+func NewFleetWorkloadFixStateFromString(s string) (FleetWorkloadFixState, error) {
+	switch s {
+	case "published":
+		return FleetWorkloadFixStatePublished, nil
+	case "in_review":
+		return FleetWorkloadFixStateInReview, nil
+	case "namespace_off":
+		return FleetWorkloadFixStateNamespaceOff, nil
+	case "namespace_off_by_label":
+		return FleetWorkloadFixStateNamespaceOffByLabel, nil
+	case "none":
+		return FleetWorkloadFixStateNone, nil
+	}
+	var t FleetWorkloadFixState
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (f FleetWorkloadFixState) Ptr() *FleetWorkloadFixState {
+	return &f
 }
 
 var (
@@ -51213,7 +54216,7 @@ type NamespaceReliability struct {
 	// At most the pods moved off a node that a Spot interruption, an instance event or a Karpenter disruption (consolidation, drift, expiry) removed. They leave through the Eviction API, so evictions does not count them. Per removal, each workload counts the most of its pods that ran on the node at once in the hour the removal began, a pod that left the node earlier in that hour included. DaemonSet and static pods go with their node and are not counted, nor is a removal that began while the agent was not watching. A day is measured from agent 0.6.2 on, when every watched hour a removal's pods are read from carries the pods' peaks. Null unless the row's cluster measured every day of the window it reported
 	DrainedPods    *int `json:"drained_pods,omitempty" url:"drained_pods,omitempty"`
 	PendingSeconds *int `json:"pending_seconds,omitempty" url:"pending_seconds,omitempty"`
-	// Current workloads at high risk: an OOM kill, an eviction, no ready replica in two batches in a row, or a crash loop. Medium and low never count. An ephemeral one, a pull-request environment, counts only with include_ephemeral
+	// Current workloads at high risk, on what holds now: an OOM kill or an eviction in the window's last two days, a container restarting at a crash loop's pace in them, or no ready replica in two batches in a row. Medium and low never count. An ephemeral one, a pull-request or branch environment, counts only with include_ephemeral
 	AtRisk *int `json:"at_risk,omitempty" url:"at_risk,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
@@ -59483,6 +62486,361 @@ func (n *NodeWorkload) String() string {
 
 type NotFound = *ErrorResponse
 
+// What the namespaces nobody turned on leave unused, measured only: none of them gets a recommendation.
+var (
+	offNamespacesWasteFieldCost          = big.NewInt(1 << 0)
+	offNamespacesWasteFieldCostNet       = big.NewInt(1 << 1)
+	offNamespacesWasteFieldMonthly       = big.NewInt(1 << 2)
+	offNamespacesWasteFieldMonthlyNet    = big.NewInt(1 << 3)
+	offNamespacesWasteFieldNamespaces    = big.NewInt(1 << 4)
+	offNamespacesWasteFieldOffNamespaces = big.NewInt(1 << 5)
+)
+
+type OffNamespacesWaste struct {
+	// Requests left unused in the namespaces whose recommendations are off over the window's priced days, what the Namespaces list's Waste lens adds up for them with the Off chip; null while none is priced
+	Cost *float64 `json:"cost,omitempty" url:"cost,omitempty"`
+	// cost on the net basis
+	CostNet *float64 `json:"cost_net,omitempty" url:"cost_net,omitempty"`
+	// Requests left unused in the namespaces whose recommendations are off, priced from the bill as the Namespaces list's Waste lens prices them, scaled to a month from each cluster's priced days in the window; null while no day of theirs is priced
+	Monthly *float64 `json:"monthly,omitempty" url:"monthly,omitempty"`
+	// monthly on the net basis
+	MonthlyNet *float64 `json:"monthly_net,omitempty" url:"monthly_net,omitempty"`
+	// The off namespaces with priced waste in the window
+	Namespaces int `json:"namespaces" url:"namespaces"`
+	// Every off namespace the latest batch lists, as the Off chip counts
+	OffNamespaces int `json:"off_namespaces" url:"off_namespaces"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (o *OffNamespacesWaste) GetCost() *float64 {
+	if o == nil {
+		return nil
+	}
+	return o.Cost
+}
+
+func (o *OffNamespacesWaste) GetCostNet() *float64 {
+	if o == nil {
+		return nil
+	}
+	return o.CostNet
+}
+
+func (o *OffNamespacesWaste) GetMonthly() *float64 {
+	if o == nil {
+		return nil
+	}
+	return o.Monthly
+}
+
+func (o *OffNamespacesWaste) GetMonthlyNet() *float64 {
+	if o == nil {
+		return nil
+	}
+	return o.MonthlyNet
+}
+
+func (o *OffNamespacesWaste) GetNamespaces() int {
+	if o == nil {
+		return 0
+	}
+	return o.Namespaces
+}
+
+func (o *OffNamespacesWaste) GetOffNamespaces() int {
+	if o == nil {
+		return 0
+	}
+	return o.OffNamespaces
+}
+
+func (o *OffNamespacesWaste) GetExtraProperties() map[string]interface{} {
+	if o == nil {
+		return nil
+	}
+	return o.extraProperties
+}
+
+func (o *OffNamespacesWaste) require(field *big.Int) {
+	if o.explicitFields == nil {
+		o.explicitFields = big.NewInt(0)
+	}
+	o.explicitFields.Or(o.explicitFields, field)
+}
+
+// SetCost sets the Cost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OffNamespacesWaste) SetCost(cost *float64) {
+	o.Cost = cost
+	o.require(offNamespacesWasteFieldCost)
+}
+
+// SetCostNet sets the CostNet field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OffNamespacesWaste) SetCostNet(costNet *float64) {
+	o.CostNet = costNet
+	o.require(offNamespacesWasteFieldCostNet)
+}
+
+// SetMonthly sets the Monthly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OffNamespacesWaste) SetMonthly(monthly *float64) {
+	o.Monthly = monthly
+	o.require(offNamespacesWasteFieldMonthly)
+}
+
+// SetMonthlyNet sets the MonthlyNet field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OffNamespacesWaste) SetMonthlyNet(monthlyNet *float64) {
+	o.MonthlyNet = monthlyNet
+	o.require(offNamespacesWasteFieldMonthlyNet)
+}
+
+// SetNamespaces sets the Namespaces field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OffNamespacesWaste) SetNamespaces(namespaces int) {
+	o.Namespaces = namespaces
+	o.require(offNamespacesWasteFieldNamespaces)
+}
+
+// SetOffNamespaces sets the OffNamespaces field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OffNamespacesWaste) SetOffNamespaces(offNamespaces int) {
+	o.OffNamespaces = offNamespaces
+	o.require(offNamespacesWasteFieldOffNamespaces)
+}
+
+func (o *OffNamespacesWaste) UnmarshalJSON(data []byte) error {
+	type unmarshaler OffNamespacesWaste
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*o = OffNamespacesWaste(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *o)
+	if err != nil {
+		return err
+	}
+	o.extraProperties = extraProperties
+	o.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (o *OffNamespacesWaste) MarshalJSON() ([]byte, error) {
+	type embed OffNamespacesWaste
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*o),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, o.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (o *OffNamespacesWaste) String() string {
+	if o == nil {
+		return "<nil>"
+	}
+	if len(o.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(o.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(o); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", o)
+}
+
+var (
+	otherCheckedDataFieldItems = big.NewInt(1 << 0)
+)
+
+type OtherCheckedData struct {
+	Items []*CheckedObject `json:"items" url:"items"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (o *OtherCheckedData) GetItems() []*CheckedObject {
+	if o == nil {
+		return nil
+	}
+	return o.Items
+}
+
+func (o *OtherCheckedData) GetExtraProperties() map[string]interface{} {
+	if o == nil {
+		return nil
+	}
+	return o.extraProperties
+}
+
+func (o *OtherCheckedData) require(field *big.Int) {
+	if o.explicitFields == nil {
+		o.explicitFields = big.NewInt(0)
+	}
+	o.explicitFields.Or(o.explicitFields, field)
+}
+
+// SetItems sets the Items field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OtherCheckedData) SetItems(items []*CheckedObject) {
+	o.Items = items
+	o.require(otherCheckedDataFieldItems)
+}
+
+func (o *OtherCheckedData) UnmarshalJSON(data []byte) error {
+	type unmarshaler OtherCheckedData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*o = OtherCheckedData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *o)
+	if err != nil {
+		return err
+	}
+	o.extraProperties = extraProperties
+	o.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (o *OtherCheckedData) MarshalJSON() ([]byte, error) {
+	type embed OtherCheckedData
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*o),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, o.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (o *OtherCheckedData) String() string {
+	if o == nil {
+		return "<nil>"
+	}
+	if len(o.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(o.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(o); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", o)
+}
+
+var (
+	otherCheckedResponseFieldSuccess = big.NewInt(1 << 0)
+	otherCheckedResponseFieldData    = big.NewInt(1 << 1)
+)
+
+type OtherCheckedResponse struct {
+	Success *bool             `json:"success,omitempty" url:"success,omitempty"`
+	Data    *OtherCheckedData `json:"data" url:"data"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (o *OtherCheckedResponse) GetSuccess() *bool {
+	if o == nil {
+		return nil
+	}
+	return o.Success
+}
+
+func (o *OtherCheckedResponse) GetData() *OtherCheckedData {
+	if o == nil {
+		return nil
+	}
+	return o.Data
+}
+
+func (o *OtherCheckedResponse) GetExtraProperties() map[string]interface{} {
+	if o == nil {
+		return nil
+	}
+	return o.extraProperties
+}
+
+func (o *OtherCheckedResponse) require(field *big.Int) {
+	if o.explicitFields == nil {
+		o.explicitFields = big.NewInt(0)
+	}
+	o.explicitFields.Or(o.explicitFields, field)
+}
+
+// SetSuccess sets the Success field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OtherCheckedResponse) SetSuccess(success *bool) {
+	o.Success = success
+	o.require(otherCheckedResponseFieldSuccess)
+}
+
+// SetData sets the Data field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OtherCheckedResponse) SetData(data *OtherCheckedData) {
+	o.Data = data
+	o.require(otherCheckedResponseFieldData)
+}
+
+func (o *OtherCheckedResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler OtherCheckedResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*o = OtherCheckedResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *o)
+	if err != nil {
+		return err
+	}
+	o.extraProperties = extraProperties
+	o.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (o *OtherCheckedResponse) MarshalJSON() ([]byte, error) {
+	type embed OtherCheckedResponse
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*o),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, o.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (o *OtherCheckedResponse) String() string {
+	if o == nil {
+		return "<nil>"
+	}
+	if len(o.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(o.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(o); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", o)
+}
+
 var (
 	otherRightsizerFieldKind      = big.NewInt(1 << 0)
 	otherRightsizerFieldWorkloads = big.NewInt(1 << 1)
@@ -59606,6 +62964,313 @@ func NewOtherRightsizerKindFromString(s string) (OtherRightsizerKind, error) {
 
 func (o OtherRightsizerKind) Ptr() *OtherRightsizerKind {
 	return &o
+}
+
+// The available recommendations that are not a container change, so no switch turns them on (#1483).
+var (
+	otherSavingsFieldMonthly     = big.NewInt(1 << 0)
+	otherSavingsFieldCount       = big.NewInt(1 << 1)
+	otherSavingsFieldCountByKind = big.NewInt(1 << 2)
+	otherSavingsFieldUnpriced    = big.NewInt(1 << 3)
+	otherSavingsFieldChecked     = big.NewInt(1 << 4)
+)
+
+type OtherSavings struct {
+	// What they save a month; null when there are none
+	Monthly *float64 `json:"monthly,omitempty" url:"monthly,omitempty"`
+	// How many there are
+	Count int `json:"count" url:"count"`
+	// How many of each kind; they add up to count
+	CountByKind *OtherSavingsByKind `json:"count_by_kind" url:"count_by_kind"`
+	// What the worker found and could not price, for the customer to check; null when none
+	Unpriced *UnpricedFindings `json:"unpriced,omitempty" url:"unpriced,omitempty"`
+	// How many objects of each kind the other savings checked (dashboard#1505); null when none
+	Checked *CheckedByKind `json:"checked,omitempty" url:"checked,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (o *OtherSavings) GetMonthly() *float64 {
+	if o == nil {
+		return nil
+	}
+	return o.Monthly
+}
+
+func (o *OtherSavings) GetCount() int {
+	if o == nil {
+		return 0
+	}
+	return o.Count
+}
+
+func (o *OtherSavings) GetCountByKind() *OtherSavingsByKind {
+	if o == nil {
+		return nil
+	}
+	return o.CountByKind
+}
+
+func (o *OtherSavings) GetUnpriced() *UnpricedFindings {
+	if o == nil {
+		return nil
+	}
+	return o.Unpriced
+}
+
+func (o *OtherSavings) GetChecked() *CheckedByKind {
+	if o == nil {
+		return nil
+	}
+	return o.Checked
+}
+
+func (o *OtherSavings) GetExtraProperties() map[string]interface{} {
+	if o == nil {
+		return nil
+	}
+	return o.extraProperties
+}
+
+func (o *OtherSavings) require(field *big.Int) {
+	if o.explicitFields == nil {
+		o.explicitFields = big.NewInt(0)
+	}
+	o.explicitFields.Or(o.explicitFields, field)
+}
+
+// SetMonthly sets the Monthly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OtherSavings) SetMonthly(monthly *float64) {
+	o.Monthly = monthly
+	o.require(otherSavingsFieldMonthly)
+}
+
+// SetCount sets the Count field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OtherSavings) SetCount(count int) {
+	o.Count = count
+	o.require(otherSavingsFieldCount)
+}
+
+// SetCountByKind sets the CountByKind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OtherSavings) SetCountByKind(countByKind *OtherSavingsByKind) {
+	o.CountByKind = countByKind
+	o.require(otherSavingsFieldCountByKind)
+}
+
+// SetUnpriced sets the Unpriced field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OtherSavings) SetUnpriced(unpriced *UnpricedFindings) {
+	o.Unpriced = unpriced
+	o.require(otherSavingsFieldUnpriced)
+}
+
+// SetChecked sets the Checked field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OtherSavings) SetChecked(checked *CheckedByKind) {
+	o.Checked = checked
+	o.require(otherSavingsFieldChecked)
+}
+
+func (o *OtherSavings) UnmarshalJSON(data []byte) error {
+	type unmarshaler OtherSavings
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*o = OtherSavings(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *o)
+	if err != nil {
+		return err
+	}
+	o.extraProperties = extraProperties
+	o.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (o *OtherSavings) MarshalJSON() ([]byte, error) {
+	type embed OtherSavings
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*o),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, o.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (o *OtherSavings) String() string {
+	if o == nil {
+		return "<nil>"
+	}
+	if len(o.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(o.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(o); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", o)
+}
+
+var (
+	otherSavingsByKindFieldNodePool     = big.NewInt(1 << 0)
+	otherSavingsByKindFieldVolume       = big.NewInt(1 << 1)
+	otherSavingsByKindFieldAutoscaler   = big.NewInt(1 << 2)
+	otherSavingsByKindFieldIdleWorkload = big.NewInt(1 << 3)
+	otherSavingsByKindFieldOther        = big.NewInt(1 << 4)
+)
+
+type OtherSavingsByKind struct {
+	// NodePools and node groups to right-size
+	NodePool int `json:"node_pool" url:"node_pool"`
+	// Claims to delete, unmounted, or to shrink
+	Volume int `json:"volume" url:"volume"`
+	// HPAs whose minimum replicas or CPU target to lower
+	Autoscaler int `json:"autoscaler" url:"autoscaler"`
+	// Idle workloads to scale to zero
+	IdleWorkload int `json:"idle_workload" url:"idle_workload"`
+	// Any other, or published by no candidate the worker still keeps
+	Other int `json:"other" url:"other"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (o *OtherSavingsByKind) GetNodePool() int {
+	if o == nil {
+		return 0
+	}
+	return o.NodePool
+}
+
+func (o *OtherSavingsByKind) GetVolume() int {
+	if o == nil {
+		return 0
+	}
+	return o.Volume
+}
+
+func (o *OtherSavingsByKind) GetAutoscaler() int {
+	if o == nil {
+		return 0
+	}
+	return o.Autoscaler
+}
+
+func (o *OtherSavingsByKind) GetIdleWorkload() int {
+	if o == nil {
+		return 0
+	}
+	return o.IdleWorkload
+}
+
+func (o *OtherSavingsByKind) GetOther() int {
+	if o == nil {
+		return 0
+	}
+	return o.Other
+}
+
+func (o *OtherSavingsByKind) GetExtraProperties() map[string]interface{} {
+	if o == nil {
+		return nil
+	}
+	return o.extraProperties
+}
+
+func (o *OtherSavingsByKind) require(field *big.Int) {
+	if o.explicitFields == nil {
+		o.explicitFields = big.NewInt(0)
+	}
+	o.explicitFields.Or(o.explicitFields, field)
+}
+
+// SetNodePool sets the NodePool field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OtherSavingsByKind) SetNodePool(nodePool int) {
+	o.NodePool = nodePool
+	o.require(otherSavingsByKindFieldNodePool)
+}
+
+// SetVolume sets the Volume field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OtherSavingsByKind) SetVolume(volume int) {
+	o.Volume = volume
+	o.require(otherSavingsByKindFieldVolume)
+}
+
+// SetAutoscaler sets the Autoscaler field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OtherSavingsByKind) SetAutoscaler(autoscaler int) {
+	o.Autoscaler = autoscaler
+	o.require(otherSavingsByKindFieldAutoscaler)
+}
+
+// SetIdleWorkload sets the IdleWorkload field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OtherSavingsByKind) SetIdleWorkload(idleWorkload int) {
+	o.IdleWorkload = idleWorkload
+	o.require(otherSavingsByKindFieldIdleWorkload)
+}
+
+// SetOther sets the Other field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (o *OtherSavingsByKind) SetOther(other int) {
+	o.Other = other
+	o.require(otherSavingsByKindFieldOther)
+}
+
+func (o *OtherSavingsByKind) UnmarshalJSON(data []byte) error {
+	type unmarshaler OtherSavingsByKind
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*o = OtherSavingsByKind(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *o)
+	if err != nil {
+		return err
+	}
+	o.extraProperties = extraProperties
+	o.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (o *OtherSavingsByKind) MarshalJSON() ([]byte, error) {
+	type embed OtherSavingsByKind
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*o),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, o.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (o *OtherSavingsByKind) String() string {
+	if o == nil {
+		return "<nil>"
+	}
+	if len(o.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(o.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(o); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", o)
 }
 
 // Pagination metadata
@@ -59921,7 +63586,7 @@ var (
 )
 
 type PendingShare struct {
-	// Current workloads whose pods spent 15 minutes or more Pending in the latest hour watched (the pods_pending indicator)
+	// Current workloads whose pods spent 15 minutes or more Pending each on average in the latest hour watched, or a whole pod-hour in all (the pods_pending indicator)
 	Workloads int `json:"workloads" url:"workloads"`
 	// Their Pending pod-hours in the window
 	PendingPodHours float64 `json:"pending_pod_hours" url:"pending_pod_hours"`
@@ -65672,6 +69337,7 @@ var (
 	realizedChangeFieldCostBeforeMonthly = big.NewInt(1 << 6)
 	realizedChangeFieldCostAfterMonthly  = big.NewInt(1 << 7)
 	realizedChangeFieldMonthly           = big.NewInt(1 << 8)
+	realizedChangeFieldWatch             = big.NewInt(1 << 9)
 )
 
 type RealizedChange struct {
@@ -65682,11 +69348,15 @@ type RealizedChange struct {
 	// namespace/workload, the NodePool or node group, or namespace/claim
 	Object string `json:"object" url:"object"`
 	// When the change merged; its saving runs from then
-	AppliedAt         time.Time `json:"applied_at" url:"applied_at"`
-	CostBeforeMonthly *float64  `json:"cost_before_monthly,omitempty" url:"cost_before_monthly,omitempty"`
-	CostAfterMonthly  *float64  `json:"cost_after_monthly,omitempty" url:"cost_after_monthly,omitempty"`
-	// What it saves a month
+	AppliedAt time.Time `json:"applied_at" url:"applied_at"`
+	// Null on a change that regressed
+	CostBeforeMonthly *float64 `json:"cost_before_monthly,omitempty" url:"cost_before_monthly,omitempty"`
+	// Null on a change that regressed
+	CostAfterMonthly *float64 `json:"cost_after_monthly,omitempty" url:"cost_after_monthly,omitempty"`
+	// What it saves a month; null on a change that regressed
 	Monthly *float64 `json:"monthly,omitempty" url:"monthly,omitempty"`
+	// What the watch saw; null before its verdict
+	Watch *ChangeWatch `json:"watch,omitempty" url:"watch,omitempty"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
 	explicitFields *big.Int `json:"-" url:"-"`
@@ -65757,6 +69427,13 @@ func (r *RealizedChange) GetMonthly() *float64 {
 		return nil
 	}
 	return r.Monthly
+}
+
+func (r *RealizedChange) GetWatch() *ChangeWatch {
+	if r == nil {
+		return nil
+	}
+	return r.Watch
 }
 
 func (r *RealizedChange) Source() string {
@@ -65838,6 +69515,13 @@ func (r *RealizedChange) SetCostAfterMonthly(costAfterMonthly *float64) {
 func (r *RealizedChange) SetMonthly(monthly *float64) {
 	r.Monthly = monthly
 	r.require(realizedChangeFieldMonthly)
+}
+
+// SetWatch sets the Watch field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RealizedChange) SetWatch(watch *ChangeWatch) {
+	r.Watch = watch
+	r.require(realizedChangeFieldWatch)
 }
 
 func (r *RealizedChange) UnmarshalJSON(data []byte) error {
@@ -68924,7 +72608,8 @@ var (
 	reliabilityTotalsFieldContainersWithoutRequests = big.NewInt(1 << 9)
 	reliabilityTotalsFieldContainersWithoutLimits   = big.NewInt(1 << 10)
 	reliabilityTotalsFieldNoReadyReplica            = big.NewInt(1 << 11)
-	reliabilityTotalsFieldPodsPending               = big.NewInt(1 << 12)
+	reliabilityTotalsFieldFailingNow                = big.NewInt(1 << 12)
+	reliabilityTotalsFieldPodsPending               = big.NewInt(1 << 13)
 )
 
 type ReliabilityTotals struct {
@@ -68942,7 +72627,7 @@ type ReliabilityTotals struct {
 	// At most the pods moved off a node that a Spot interruption, an instance event or a Karpenter disruption (consolidation, drift, expiry) removed. They leave through the Eviction API, so evictions does not count them. Per removal, each workload counts the most of its pods that ran on the node at once in the hour the removal began, a pod that left the node earlier in that hour included. DaemonSet and static pods go with their node and are not counted, nor is a removal that began while the agent was not watching. A day is measured from agent 0.6.2 on, when every watched hour a removal's pods are read from carries the pods' peaks. Null unless every day of the window watched measured it, so it never counts part of the window
 	DrainedPods     *int    `json:"drained_pods,omitempty" url:"drained_pods,omitempty"`
 	PendingPodHours float64 `json:"pending_pod_hours" url:"pending_pod_hours"`
-	// Current workloads at high risk: an OOM kill, an eviction, no ready replica in two batches in a row, or a crash loop. Medium and low never count. An ephemeral one, a pull-request environment, counts only with include_ephemeral
+	// Current workloads at high risk, on what holds now: an OOM kill or an eviction in the window's last two days, a container restarting at a crash loop's pace in them, or no ready replica in two batches in a row. Medium and low never count. An ephemeral one, a pull-request or branch environment, counts only with include_ephemeral
 	WorkloadsAtRisk int `json:"workloads_at_risk" url:"workloads_at_risk"`
 	// Current containers whose pods run, or would run, with no CPU or no memory request
 	ContainersWithoutRequests int `json:"containers_without_requests" url:"containers_without_requests"`
@@ -68950,6 +72635,8 @@ type ReliabilityTotals struct {
 	ContainersWithoutLimits int `json:"containers_without_limits" url:"containers_without_limits"`
 	// What the workloads with no ready replica make of the totals
 	NoReadyReplica *NoReadyShare `json:"no_ready_replica" url:"no_ready_replica"`
+	// What the workloads that fail now, in a crash loop or with no ready replica, make of the totals
+	FailingNow *FailingShare `json:"failing_now" url:"failing_now"`
 	// What the workloads with pods Pending now make of the totals
 	PodsPending *PendingShare `json:"pods_pending" url:"pods_pending"`
 
@@ -69042,6 +72729,13 @@ func (r *ReliabilityTotals) GetNoReadyReplica() *NoReadyShare {
 		return nil
 	}
 	return r.NoReadyReplica
+}
+
+func (r *ReliabilityTotals) GetFailingNow() *FailingShare {
+	if r == nil {
+		return nil
+	}
+	return r.FailingNow
 }
 
 func (r *ReliabilityTotals) GetPodsPending() *PendingShare {
@@ -69147,6 +72841,13 @@ func (r *ReliabilityTotals) SetContainersWithoutLimits(containersWithoutLimits i
 func (r *ReliabilityTotals) SetNoReadyReplica(noReadyReplica *NoReadyShare) {
 	r.NoReadyReplica = noReadyReplica
 	r.require(reliabilityTotalsFieldNoReadyReplica)
+}
+
+// SetFailingNow sets the FailingNow field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *ReliabilityTotals) SetFailingNow(failingNow *FailingShare) {
+	r.FailingNow = failingNow
+	r.require(reliabilityTotalsFieldFailingNow)
 }
 
 // SetPodsPending sets the PodsPending field and marks it as non-optional;
@@ -74452,6 +78153,7 @@ const (
 	RightsizedContainerHeldByComponentStepTooLarge         RightsizedContainerHeldByComponent = "step_too_large"
 	RightsizedContainerHeldByComponentNotAnIncrease        RightsizedContainerHeldByComponent = "not_an_increase"
 	RightsizedContainerHeldByComponentVpaManaged           RightsizedContainerHeldByComponent = "vpa_managed"
+	RightsizedContainerHeldByComponentAutoModeManaged      RightsizedContainerHeldByComponent = "auto_mode_managed"
 	RightsizedContainerHeldByComponentStaleStep            RightsizedContainerHeldByComponent = "stale_step"
 	RightsizedContainerHeldByComponentConcurrencyCap       RightsizedContainerHeldByComponent = "concurrency_cap"
 	RightsizedContainerHeldByComponentStepInterval         RightsizedContainerHeldByComponent = "step_interval"
@@ -74496,6 +78198,8 @@ func NewRightsizedContainerHeldByComponentFromString(s string) (RightsizedContai
 		return RightsizedContainerHeldByComponentNotAnIncrease, nil
 	case "vpa_managed":
 		return RightsizedContainerHeldByComponentVpaManaged, nil
+	case "auto_mode_managed":
+		return RightsizedContainerHeldByComponentAutoModeManaged, nil
 	case "stale_step":
 		return RightsizedContainerHeldByComponentStaleStep, nil
 	case "concurrency_cap":
@@ -74933,6 +78637,127 @@ func NewRightsizedContainerUnpricedReasonFromString(s string) (RightsizedContain
 
 func (r RightsizedContainerUnpricedReason) Ptr() *RightsizedContainerUnpricedReason {
 	return &r
+}
+
+// What sizing every workload would free on the nodes, measured only: in a namespace nobody turned on, LevelFour
+// makes no recommendation, and this total is all it shows (levelfour-k8s-recommendations card #90).
+var (
+	rightsizingFreesFieldNodes      = big.NewInt(1 << 0)
+	rightsizingFreesFieldMonthly    = big.NewInt(1 << 1)
+	rightsizingFreesFieldMonthlyNet = big.NewInt(1 << 2)
+)
+
+type RightsizingFrees struct {
+	// Whole nodes the pools would stop needing with every workload at its target
+	Nodes int `json:"nodes" url:"nodes"`
+	// What those nodes cost a month at the margin; null while a pool's nodes are unpriced
+	Monthly *float64 `json:"monthly,omitempty" url:"monthly,omitempty"`
+	// monthly on the net basis
+	MonthlyNet *float64 `json:"monthly_net,omitempty" url:"monthly_net,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (r *RightsizingFrees) GetNodes() int {
+	if r == nil {
+		return 0
+	}
+	return r.Nodes
+}
+
+func (r *RightsizingFrees) GetMonthly() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.Monthly
+}
+
+func (r *RightsizingFrees) GetMonthlyNet() *float64 {
+	if r == nil {
+		return nil
+	}
+	return r.MonthlyNet
+}
+
+func (r *RightsizingFrees) GetExtraProperties() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+	return r.extraProperties
+}
+
+func (r *RightsizingFrees) require(field *big.Int) {
+	if r.explicitFields == nil {
+		r.explicitFields = big.NewInt(0)
+	}
+	r.explicitFields.Or(r.explicitFields, field)
+}
+
+// SetNodes sets the Nodes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RightsizingFrees) SetNodes(nodes int) {
+	r.Nodes = nodes
+	r.require(rightsizingFreesFieldNodes)
+}
+
+// SetMonthly sets the Monthly field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RightsizingFrees) SetMonthly(monthly *float64) {
+	r.Monthly = monthly
+	r.require(rightsizingFreesFieldMonthly)
+}
+
+// SetMonthlyNet sets the MonthlyNet field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (r *RightsizingFrees) SetMonthlyNet(monthlyNet *float64) {
+	r.MonthlyNet = monthlyNet
+	r.require(rightsizingFreesFieldMonthlyNet)
+}
+
+func (r *RightsizingFrees) UnmarshalJSON(data []byte) error {
+	type unmarshaler RightsizingFrees
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*r = RightsizingFrees(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *r)
+	if err != nil {
+		return err
+	}
+	r.extraProperties = extraProperties
+	r.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (r *RightsizingFrees) MarshalJSON() ([]byte, error) {
+	type embed RightsizingFrees
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*r),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, r.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (r *RightsizingFrees) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if len(r.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(r.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(r); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", r)
 }
 
 var (
@@ -79178,6 +83003,116 @@ func (s *SizedElsewhereResponse) MarshalJSON() ([]byte, error) {
 }
 
 func (s *SizedElsewhereResponse) String() string {
+	if s == nil {
+		return "<nil>"
+	}
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+var (
+	sizerFlagFieldFlag     = big.NewInt(1 << 0)
+	sizerFlagFieldChangeBy = big.NewInt(1 << 1)
+	sizerFlagFieldPer      = big.NewInt(1 << 2)
+)
+
+type SizerFlag struct {
+	Flag string `json:"flag" url:"flag"`
+	// Bytes for memory, millicores for CPU
+	ChangeBy int     `json:"change_by" url:"change_by"`
+	Per      *string `json:"per,omitempty" url:"per,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SizerFlag) GetFlag() string {
+	if s == nil {
+		return ""
+	}
+	return s.Flag
+}
+
+func (s *SizerFlag) GetChangeBy() int {
+	if s == nil {
+		return 0
+	}
+	return s.ChangeBy
+}
+
+func (s *SizerFlag) GetExtraProperties() map[string]interface{} {
+	if s == nil {
+		return nil
+	}
+	return s.extraProperties
+}
+
+func (s *SizerFlag) require(field *big.Int) {
+	if s.explicitFields == nil {
+		s.explicitFields = big.NewInt(0)
+	}
+	s.explicitFields.Or(s.explicitFields, field)
+}
+
+// SetFlag sets the Flag field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizerFlag) SetFlag(flag string) {
+	s.Flag = flag
+	s.require(sizerFlagFieldFlag)
+}
+
+// SetChangeBy sets the ChangeBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizerFlag) SetChangeBy(changeBy int) {
+	s.ChangeBy = changeBy
+	s.require(sizerFlagFieldChangeBy)
+}
+
+// SetPer sets the Per field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (s *SizerFlag) SetPer(per *string) {
+	s.Per = per
+	s.require(sizerFlagFieldPer)
+}
+
+func (s *SizerFlag) UnmarshalJSON(data []byte) error {
+	type unmarshaler SizerFlag
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SizerFlag(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SizerFlag) MarshalJSON() ([]byte, error) {
+	type embed SizerFlag
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*s),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, s.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (s *SizerFlag) String() string {
 	if s == nil {
 		return "<nil>"
 	}
@@ -89246,15 +93181,15 @@ var (
 )
 
 type UnmonitoredCluster struct {
-	// aws for an EKS cluster, gcp for a GKE cluster
+	// aws for an EKS cluster, gcp for a GKE cluster, azure for an AKS cluster
 	Provider UnmonitoredClusterProvider `json:"provider" url:"provider"`
 	Name     string                     `json:"name" url:"name"`
-	// The AWS account or GCP project the cluster runs in
+	// The AWS account, GCP project or Azure subscription the cluster runs in
 	AccountID *string `json:"account_id,omitempty" url:"account_id,omitempty"`
-	// The name the organization's connected account or project carries, so clusters of one name in several accounts read apart; null when the account is not connected or has no name
+	// The name the organization's connected account or project carries, or for an AKS cluster the name of its Azure subscription, so clusters of one name in several accounts read apart; null when the account is not connected or has no name
 	AccountName *string `json:"account_name,omitempty" url:"account_name,omitempty"`
 	Region      *string `json:"region,omitempty" url:"region,omitempty"`
-	// bill when the bill names the cluster (its EKS control plane, or a cost split by pod), inventory when only the GCP inventory does
+	// bill when the bill names the cluster (its EKS control plane, or a cost split by pod), inventory when only the GCP or Azure inventory does
 	Source UnmonitoredClusterSource `json:"source" url:"source"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
@@ -89409,7 +93344,7 @@ var (
 )
 
 type UnmonitoredClusterList struct {
-	// The EKS and GKE clusters the tenant runs that no connected agent reports, each once
+	// The EKS, GKE and AKS clusters the tenant runs that no connected agent reports, each once
 	Items []*UnmonitoredCluster `json:"items" url:"items"`
 
 	// Private bitmask of fields set to an explicit value and therefore not to be omitted
@@ -89605,12 +93540,13 @@ func (u *UnmonitoredClusterListResponse) String() string {
 	return fmt.Sprintf("%#v", u)
 }
 
-// aws for an EKS cluster, gcp for a GKE cluster
+// aws for an EKS cluster, gcp for a GKE cluster, azure for an AKS cluster
 type UnmonitoredClusterProvider string
 
 const (
-	UnmonitoredClusterProviderAws UnmonitoredClusterProvider = "aws"
-	UnmonitoredClusterProviderGcp UnmonitoredClusterProvider = "gcp"
+	UnmonitoredClusterProviderAws   UnmonitoredClusterProvider = "aws"
+	UnmonitoredClusterProviderGcp   UnmonitoredClusterProvider = "gcp"
+	UnmonitoredClusterProviderAzure UnmonitoredClusterProvider = "azure"
 )
 
 func NewUnmonitoredClusterProviderFromString(s string) (UnmonitoredClusterProvider, error) {
@@ -89619,6 +93555,8 @@ func NewUnmonitoredClusterProviderFromString(s string) (UnmonitoredClusterProvid
 		return UnmonitoredClusterProviderAws, nil
 	case "gcp":
 		return UnmonitoredClusterProviderGcp, nil
+	case "azure":
+		return UnmonitoredClusterProviderAzure, nil
 	}
 	var t UnmonitoredClusterProvider
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -89628,7 +93566,7 @@ func (u UnmonitoredClusterProvider) Ptr() *UnmonitoredClusterProvider {
 	return &u
 }
 
-// bill when the bill names the cluster (its EKS control plane, or a cost split by pod), inventory when only the GCP inventory does
+// bill when the bill names the cluster (its EKS control plane, or a cost split by pod), inventory when only the GCP or Azure inventory does
 type UnmonitoredClusterSource string
 
 const (
@@ -89649,6 +93587,125 @@ func NewUnmonitoredClusterSourceFromString(s string) (UnmonitoredClusterSource, 
 
 func (u UnmonitoredClusterSource) Ptr() *UnmonitoredClusterSource {
 	return &u
+}
+
+// Findings the worker could not price, never a saving: publish refuses them (api#2074).
+var (
+	unpricedFindingsFieldCount       = big.NewInt(1 << 0)
+	unpricedFindingsFieldCountByKind = big.NewInt(1 << 1)
+)
+
+type UnpricedFindings struct {
+	// How many there are
+	Count int `json:"count" url:"count"`
+	// How many of each kind; they add up to count
+	CountByKind *OtherSavingsByKind `json:"count_by_kind" url:"count_by_kind"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+	reason         string
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (u *UnpricedFindings) GetCount() int {
+	if u == nil {
+		return 0
+	}
+	return u.Count
+}
+
+func (u *UnpricedFindings) GetCountByKind() *OtherSavingsByKind {
+	if u == nil {
+		return nil
+	}
+	return u.CountByKind
+}
+
+func (u *UnpricedFindings) Reason() string {
+	return u.reason
+}
+
+func (u *UnpricedFindings) GetExtraProperties() map[string]interface{} {
+	if u == nil {
+		return nil
+	}
+	return u.extraProperties
+}
+
+func (u *UnpricedFindings) require(field *big.Int) {
+	if u.explicitFields == nil {
+		u.explicitFields = big.NewInt(0)
+	}
+	u.explicitFields.Or(u.explicitFields, field)
+}
+
+// SetCount sets the Count field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UnpricedFindings) SetCount(count int) {
+	u.Count = count
+	u.require(unpricedFindingsFieldCount)
+}
+
+// SetCountByKind sets the CountByKind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (u *UnpricedFindings) SetCountByKind(countByKind *OtherSavingsByKind) {
+	u.CountByKind = countByKind
+	u.require(unpricedFindingsFieldCountByKind)
+}
+
+func (u *UnpricedFindings) UnmarshalJSON(data []byte) error {
+	type embed UnpricedFindings
+	var unmarshaler = struct {
+		embed
+		Reason string `json:"reason"`
+	}{
+		embed: embed(*u),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*u = UnpricedFindings(unmarshaler.embed)
+	if unmarshaler.Reason != "not_on_bill" {
+		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", u, "not_on_bill", unmarshaler.Reason)
+	}
+	u.reason = unmarshaler.Reason
+	extraProperties, err := internal.ExtractExtraProperties(data, *u, "reason")
+	if err != nil {
+		return err
+	}
+	u.extraProperties = extraProperties
+	u.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (u *UnpricedFindings) MarshalJSON() ([]byte, error) {
+	type embed UnpricedFindings
+	var marshaler = struct {
+		embed
+		Reason string `json:"reason"`
+	}{
+		embed:  embed(*u),
+		Reason: "not_on_bill",
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, u.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (u *UnpricedFindings) String() string {
+	if u == nil {
+		return "<nil>"
+	}
+	if len(u.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(u); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", u)
 }
 
 var (
@@ -93350,8 +97407,9 @@ var (
 	volumeItemFieldCreatedAt          = big.NewInt(1 << 18)
 	volumeItemFieldPeriodCost         = big.NewInt(1 << 19)
 	volumeItemFieldCostUnknownReason  = big.NewInt(1 << 20)
-	volumeItemFieldLastBilledOn       = big.NewInt(1 << 21)
-	volumeItemFieldBillRate           = big.NewInt(1 << 22)
+	volumeItemFieldUnpricedReason     = big.NewInt(1 << 21)
+	volumeItemFieldLastBilledOn       = big.NewInt(1 << 22)
+	volumeItemFieldBillRate           = big.NewInt(1 << 23)
 )
 
 type VolumeItem struct {
@@ -93387,6 +97445,8 @@ type VolumeItem struct {
 	PeriodCost *float64 `json:"period_cost,omitempty" url:"period_cost,omitempty"`
 	// Why period_cost is null: not_on_bill when the bill of the cluster's account arrives over the window and no line of it names the volume, no_bill when no bill for that account arrives (none connected, not there yet, or a cloud whose bill this does not read for volumes)
 	CostUnknownReason *VolumeItemCostUnknownReason `json:"cost_unknown_reason,omitempty" url:"cost_unknown_reason,omitempty"`
+	// Why the worker could not price the claim it found, from its open candidate: not_on_bill when the bill names no line for the volume while it prices the cluster's other claims; null otherwise (api#2074)
+	UnpricedReason *string `json:"unpriced_reason,omitempty" url:"unpriced_reason,omitempty"`
 	// While period_cost is null, the last day any bill line named the volume; null if none ever
 	LastBilledOn *time.Time `json:"last_billed_on,omitempty" url:"last_billed_on,omitempty" format:"date"`
 	// While period_cost is null, what the tenant's own bill charged a GiB-month of the claim's volume type in the cluster's region over the window; null when the bill charged nothing for that type there. Never a list price
@@ -93719,6 +97779,13 @@ func (v *VolumeItem) SetPeriodCost(periodCost *float64) {
 func (v *VolumeItem) SetCostUnknownReason(costUnknownReason *VolumeItemCostUnknownReason) {
 	v.CostUnknownReason = costUnknownReason
 	v.require(volumeItemFieldCostUnknownReason)
+}
+
+// SetUnpricedReason sets the UnpricedReason field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (v *VolumeItem) SetUnpricedReason(unpricedReason *string) {
+	v.UnpricedReason = unpricedReason
+	v.require(volumeItemFieldUnpricedReason)
 }
 
 // SetLastBilledOn sets the LastBilledOn field and marks it as non-optional;
@@ -95080,6 +99147,258 @@ func (w *WasteTotal) String() string {
 }
 
 var (
+	watchPoolSignalsFieldHours          = big.NewInt(1 << 0)
+	watchPoolSignalsFieldPendingSeconds = big.NewInt(1 << 1)
+	watchPoolSignalsFieldEvictions      = big.NewInt(1 << 2)
+)
+
+type WatchPoolSignals struct {
+	// The hours the watch read on this side of the rollout
+	Hours int `json:"hours" url:"hours"`
+	// Seconds the pool's pods waited for a node
+	PendingSeconds int `json:"pending_seconds" url:"pending_seconds"`
+	Evictions      int `json:"evictions" url:"evictions"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (w *WatchPoolSignals) GetHours() int {
+	if w == nil {
+		return 0
+	}
+	return w.Hours
+}
+
+func (w *WatchPoolSignals) GetPendingSeconds() int {
+	if w == nil {
+		return 0
+	}
+	return w.PendingSeconds
+}
+
+func (w *WatchPoolSignals) GetEvictions() int {
+	if w == nil {
+		return 0
+	}
+	return w.Evictions
+}
+
+func (w *WatchPoolSignals) GetExtraProperties() map[string]interface{} {
+	if w == nil {
+		return nil
+	}
+	return w.extraProperties
+}
+
+func (w *WatchPoolSignals) require(field *big.Int) {
+	if w.explicitFields == nil {
+		w.explicitFields = big.NewInt(0)
+	}
+	w.explicitFields.Or(w.explicitFields, field)
+}
+
+// SetHours sets the Hours field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WatchPoolSignals) SetHours(hours int) {
+	w.Hours = hours
+	w.require(watchPoolSignalsFieldHours)
+}
+
+// SetPendingSeconds sets the PendingSeconds field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WatchPoolSignals) SetPendingSeconds(pendingSeconds int) {
+	w.PendingSeconds = pendingSeconds
+	w.require(watchPoolSignalsFieldPendingSeconds)
+}
+
+// SetEvictions sets the Evictions field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WatchPoolSignals) SetEvictions(evictions int) {
+	w.Evictions = evictions
+	w.require(watchPoolSignalsFieldEvictions)
+}
+
+func (w *WatchPoolSignals) UnmarshalJSON(data []byte) error {
+	type unmarshaler WatchPoolSignals
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*w = WatchPoolSignals(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *w)
+	if err != nil {
+		return err
+	}
+	w.extraProperties = extraProperties
+	w.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (w *WatchPoolSignals) MarshalJSON() ([]byte, error) {
+	type embed WatchPoolSignals
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*w),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, w.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (w *WatchPoolSignals) String() string {
+	if w == nil {
+		return "<nil>"
+	}
+	if len(w.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(w.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(w); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", w)
+}
+
+var (
+	watchWorkloadSignalsFieldHours          = big.NewInt(1 << 0)
+	watchWorkloadSignalsFieldOomKills       = big.NewInt(1 << 1)
+	watchWorkloadSignalsFieldRestarts       = big.NewInt(1 << 2)
+	watchWorkloadSignalsFieldThrottledRatio = big.NewInt(1 << 3)
+)
+
+type WatchWorkloadSignals struct {
+	// The hours the watch read on this side of the rollout
+	Hours    int `json:"hours" url:"hours"`
+	OomKills int `json:"oom_kills" url:"oom_kills"`
+	Restarts int `json:"restarts" url:"restarts"`
+	// The share of CFS periods throttled, averaged over the hours; null while none was measured
+	ThrottledRatio *float64 `json:"throttled_ratio,omitempty" url:"throttled_ratio,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (w *WatchWorkloadSignals) GetHours() int {
+	if w == nil {
+		return 0
+	}
+	return w.Hours
+}
+
+func (w *WatchWorkloadSignals) GetOomKills() int {
+	if w == nil {
+		return 0
+	}
+	return w.OomKills
+}
+
+func (w *WatchWorkloadSignals) GetRestarts() int {
+	if w == nil {
+		return 0
+	}
+	return w.Restarts
+}
+
+func (w *WatchWorkloadSignals) GetThrottledRatio() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.ThrottledRatio
+}
+
+func (w *WatchWorkloadSignals) GetExtraProperties() map[string]interface{} {
+	if w == nil {
+		return nil
+	}
+	return w.extraProperties
+}
+
+func (w *WatchWorkloadSignals) require(field *big.Int) {
+	if w.explicitFields == nil {
+		w.explicitFields = big.NewInt(0)
+	}
+	w.explicitFields.Or(w.explicitFields, field)
+}
+
+// SetHours sets the Hours field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WatchWorkloadSignals) SetHours(hours int) {
+	w.Hours = hours
+	w.require(watchWorkloadSignalsFieldHours)
+}
+
+// SetOomKills sets the OomKills field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WatchWorkloadSignals) SetOomKills(oomKills int) {
+	w.OomKills = oomKills
+	w.require(watchWorkloadSignalsFieldOomKills)
+}
+
+// SetRestarts sets the Restarts field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WatchWorkloadSignals) SetRestarts(restarts int) {
+	w.Restarts = restarts
+	w.require(watchWorkloadSignalsFieldRestarts)
+}
+
+// SetThrottledRatio sets the ThrottledRatio field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WatchWorkloadSignals) SetThrottledRatio(throttledRatio *float64) {
+	w.ThrottledRatio = throttledRatio
+	w.require(watchWorkloadSignalsFieldThrottledRatio)
+}
+
+func (w *WatchWorkloadSignals) UnmarshalJSON(data []byte) error {
+	type unmarshaler WatchWorkloadSignals
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*w = WatchWorkloadSignals(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *w)
+	if err != nil {
+		return err
+	}
+	w.extraProperties = extraProperties
+	w.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (w *WatchWorkloadSignals) MarshalJSON() ([]byte, error) {
+	type embed WatchWorkloadSignals
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*w),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, w.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (w *WatchWorkloadSignals) String() string {
+	if w == nil {
+		return "<nil>"
+	}
+	if len(w.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(w.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(w); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", w)
+}
+
+var (
 	workloadAutomationFieldNamespace    = big.NewInt(1 << 0)
 	workloadAutomationFieldWorkloadKind = big.NewInt(1 << 1)
 	workloadAutomationFieldWorkloadName = big.NewInt(1 << 2)
@@ -95967,25 +100286,27 @@ var (
 	workloadDetailFieldAPIVersion         = big.NewInt(1 << 4)
 	workloadDetailFieldRevisions          = big.NewInt(1 << 5)
 	workloadDetailFieldKro                = big.NewInt(1 << 6)
-	workloadDetailFieldLabels             = big.NewInt(1 << 7)
-	workloadDetailFieldAnnotations        = big.NewInt(1 << 8)
-	workloadDetailFieldVolumes            = big.NewInt(1 << 9)
-	workloadDetailFieldGranularity        = big.NewInt(1 << 10)
-	workloadDetailFieldContainers         = big.NewInt(1 << 11)
-	workloadDetailFieldAutoscalers        = big.NewInt(1 << 12)
-	workloadDetailFieldPdbs               = big.NewInt(1 << 13)
-	workloadDetailFieldScaling            = big.NewInt(1 << 14)
-	workloadDetailFieldAutoscalerInsights = big.NewInt(1 << 15)
-	workloadDetailFieldPodsByNode         = big.NewInt(1 << 16)
-	workloadDetailFieldPodsSeries         = big.NewInt(1 << 17)
-	workloadDetailFieldDays               = big.NewInt(1 << 18)
-	workloadDetailFieldNetworkDays        = big.NewInt(1 << 19)
-	workloadDetailFieldNetworkByNode      = big.NewInt(1 << 20)
-	workloadDetailFieldEvents             = big.NewInt(1 << 21)
-	workloadDetailFieldPodEvents          = big.NewInt(1 << 22)
-	workloadDetailFieldLastTerminations   = big.NewInt(1 << 23)
-	workloadDetailFieldRecommendations    = big.NewInt(1 << 24)
-	workloadDetailFieldSizing             = big.NewInt(1 << 25)
+	workloadDetailFieldSchedule           = big.NewInt(1 << 7)
+	workloadDetailFieldTimeZone           = big.NewInt(1 << 8)
+	workloadDetailFieldLabels             = big.NewInt(1 << 9)
+	workloadDetailFieldAnnotations        = big.NewInt(1 << 10)
+	workloadDetailFieldVolumes            = big.NewInt(1 << 11)
+	workloadDetailFieldGranularity        = big.NewInt(1 << 12)
+	workloadDetailFieldContainers         = big.NewInt(1 << 13)
+	workloadDetailFieldAutoscalers        = big.NewInt(1 << 14)
+	workloadDetailFieldPdbs               = big.NewInt(1 << 15)
+	workloadDetailFieldScaling            = big.NewInt(1 << 16)
+	workloadDetailFieldAutoscalerInsights = big.NewInt(1 << 17)
+	workloadDetailFieldPodsByNode         = big.NewInt(1 << 18)
+	workloadDetailFieldPodsSeries         = big.NewInt(1 << 19)
+	workloadDetailFieldDays               = big.NewInt(1 << 20)
+	workloadDetailFieldNetworkDays        = big.NewInt(1 << 21)
+	workloadDetailFieldNetworkByNode      = big.NewInt(1 << 22)
+	workloadDetailFieldEvents             = big.NewInt(1 << 23)
+	workloadDetailFieldPodEvents          = big.NewInt(1 << 24)
+	workloadDetailFieldLastTerminations   = big.NewInt(1 << 25)
+	workloadDetailFieldRecommendations    = big.NewInt(1 << 26)
+	workloadDetailFieldSizing             = big.NewInt(1 << 27)
 )
 
 type WorkloadDetail struct {
@@ -96002,6 +100323,10 @@ type WorkloadDetail struct {
 	Revisions []*KnativeRevisionItem `json:"revisions,omitempty" url:"revisions,omitempty"`
 	// The KRO instance the workload was rendered from
 	Kro *KroInstanceDetail `json:"kro,omitempty" url:"kro,omitempty"`
+	// A CronJob's schedule, null for any other kind and from an agent before 0.8.5
+	Schedule *string `json:"schedule,omitempty" url:"schedule,omitempty"`
+	// The time zone a CronJob's schedule runs in, null when it names none and the controller's applies
+	TimeZone *string `json:"time_zone,omitempty" url:"time_zone,omitempty"`
 	// The pod template's labels
 	Labels map[string]string `json:"labels" url:"labels"`
 	// Only the allowlisted annotations the agent reports
@@ -96087,6 +100412,20 @@ func (w *WorkloadDetail) GetKro() *KroInstanceDetail {
 		return nil
 	}
 	return w.Kro
+}
+
+func (w *WorkloadDetail) GetSchedule() *string {
+	if w == nil {
+		return nil
+	}
+	return w.Schedule
+}
+
+func (w *WorkloadDetail) GetTimeZone() *string {
+	if w == nil {
+		return nil
+	}
+	return w.TimeZone
 }
 
 func (w *WorkloadDetail) GetLabels() map[string]string {
@@ -96276,6 +100615,20 @@ func (w *WorkloadDetail) SetRevisions(revisions []*KnativeRevisionItem) {
 func (w *WorkloadDetail) SetKro(kro *KroInstanceDetail) {
 	w.Kro = kro
 	w.require(workloadDetailFieldKro)
+}
+
+// SetSchedule sets the Schedule field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadDetail) SetSchedule(schedule *string) {
+	w.Schedule = schedule
+	w.require(workloadDetailFieldSchedule)
+}
+
+// SetTimeZone sets the TimeZone field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadDetail) SetTimeZone(timeZone *string) {
+	w.TimeZone = timeZone
+	w.require(workloadDetailFieldTimeZone)
 }
 
 // SetLabels sets the Labels field and marks it as non-optional;
@@ -96966,6 +101319,193 @@ func (w *WorkloadFacets) String() string {
 	return fmt.Sprintf("%#v", w)
 }
 
+// A published recommendation that stops a workload's risk and adds to the bill instead of saving.
+var (
+	workloadFixFieldRecommendationID    = big.NewInt(1 << 0)
+	workloadFixFieldDetector            = big.NewInt(1 << 1)
+	workloadFixFieldContainer           = big.NewInt(1 << 2)
+	workloadFixFieldChanges             = big.NewInt(1 << 3)
+	workloadFixFieldAddedMonthlyCost    = big.NewInt(1 << 4)
+	workloadFixFieldAddedMonthlyCostNet = big.NewInt(1 << 5)
+	workloadFixFieldSizedBy             = big.NewInt(1 << 6)
+)
+
+type WorkloadFix struct {
+	// Opens the recommendation's drawer to approve it
+	RecommendationID string `json:"recommendation_id" url:"recommendation_id"`
+	// oom_kills, missing_requests, cpu_throttling or container_rightsizing
+	Detector  string `json:"detector" url:"detector"`
+	Container string `json:"container" url:"container"`
+	// Only the resources it moves
+	Changes []*FixChange `json:"changes" url:"changes"`
+	// What it adds to the bill a month, 0 or more
+	AddedMonthlyCost *float64 `json:"added_monthly_cost,omitempty" url:"added_monthly_cost,omitempty"`
+	// The same after discounts and commitments
+	AddedMonthlyCostNet *float64 `json:"added_monthly_cost_net,omitempty" url:"added_monthly_cost_net,omitempty"`
+	// Who sizes the container; null for its own manifest
+	SizedBy *FixSizedBy `json:"sized_by,omitempty" url:"sized_by,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (w *WorkloadFix) GetRecommendationID() string {
+	if w == nil {
+		return ""
+	}
+	return w.RecommendationID
+}
+
+func (w *WorkloadFix) GetDetector() string {
+	if w == nil {
+		return ""
+	}
+	return w.Detector
+}
+
+func (w *WorkloadFix) GetContainer() string {
+	if w == nil {
+		return ""
+	}
+	return w.Container
+}
+
+func (w *WorkloadFix) GetChanges() []*FixChange {
+	if w == nil {
+		return nil
+	}
+	return w.Changes
+}
+
+func (w *WorkloadFix) GetAddedMonthlyCost() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.AddedMonthlyCost
+}
+
+func (w *WorkloadFix) GetAddedMonthlyCostNet() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.AddedMonthlyCostNet
+}
+
+func (w *WorkloadFix) GetSizedBy() *FixSizedBy {
+	if w == nil {
+		return nil
+	}
+	return w.SizedBy
+}
+
+func (w *WorkloadFix) GetExtraProperties() map[string]interface{} {
+	if w == nil {
+		return nil
+	}
+	return w.extraProperties
+}
+
+func (w *WorkloadFix) require(field *big.Int) {
+	if w.explicitFields == nil {
+		w.explicitFields = big.NewInt(0)
+	}
+	w.explicitFields.Or(w.explicitFields, field)
+}
+
+// SetRecommendationID sets the RecommendationID field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadFix) SetRecommendationID(recommendationID string) {
+	w.RecommendationID = recommendationID
+	w.require(workloadFixFieldRecommendationID)
+}
+
+// SetDetector sets the Detector field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadFix) SetDetector(detector string) {
+	w.Detector = detector
+	w.require(workloadFixFieldDetector)
+}
+
+// SetContainer sets the Container field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadFix) SetContainer(container string) {
+	w.Container = container
+	w.require(workloadFixFieldContainer)
+}
+
+// SetChanges sets the Changes field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadFix) SetChanges(changes []*FixChange) {
+	w.Changes = changes
+	w.require(workloadFixFieldChanges)
+}
+
+// SetAddedMonthlyCost sets the AddedMonthlyCost field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadFix) SetAddedMonthlyCost(addedMonthlyCost *float64) {
+	w.AddedMonthlyCost = addedMonthlyCost
+	w.require(workloadFixFieldAddedMonthlyCost)
+}
+
+// SetAddedMonthlyCostNet sets the AddedMonthlyCostNet field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadFix) SetAddedMonthlyCostNet(addedMonthlyCostNet *float64) {
+	w.AddedMonthlyCostNet = addedMonthlyCostNet
+	w.require(workloadFixFieldAddedMonthlyCostNet)
+}
+
+// SetSizedBy sets the SizedBy field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadFix) SetSizedBy(sizedBy *FixSizedBy) {
+	w.SizedBy = sizedBy
+	w.require(workloadFixFieldSizedBy)
+}
+
+func (w *WorkloadFix) UnmarshalJSON(data []byte) error {
+	type unmarshaler WorkloadFix
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*w = WorkloadFix(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *w)
+	if err != nil {
+		return err
+	}
+	w.extraProperties = extraProperties
+	w.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (w *WorkloadFix) MarshalJSON() ([]byte, error) {
+	type embed WorkloadFix
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*w),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, w.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (w *WorkloadFix) String() string {
+	if w == nil {
+		return "<nil>"
+	}
+	if len(w.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(w.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(w); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", w)
+}
+
 var (
 	workloadItemFieldNamespace             = big.NewInt(1 << 0)
 	workloadItemFieldKind                  = big.NewInt(1 << 1)
@@ -97039,7 +101579,7 @@ type WorkloadItem struct {
 	Removed *bool `json:"removed,omitempty" url:"removed,omitempty"`
 	// Set when the cluster's latest batch did not list the row because the agent could not read its list for more than 24 hours (it sent the list as null): the time of the last batch that read the list, which listed the row. Whether the row is still in the cluster is unknown, so removed is false and the list counts it as current; what only the latest batch can say (a node's ready and status, a workload's risk rating) reads it as not current. Null for a row the latest batch listed and for a removed one
 	UnreportedSince *time.Time `json:"unreported_since,omitempty" url:"unreported_since,omitempty"`
-	// A pull-request environment, which lives a few days: a label channel, or one ending in /channel, valued pr-<number>. The counts of workloads at risk leave it out unless the request passes include_ephemeral
+	// A pull-request or branch environment, which lives a few days: a label channel, or one ending in /channel, naming a pull request (pr-<number>) or a branch rather than a channel that lasts (main, master, prod, staging and the like, also as refs-heads-<name>). The counts of workloads at risk leave it out unless the request passes include_ephemeral
 	Ephemeral      *bool `json:"ephemeral,omitempty" url:"ephemeral,omitempty"`
 	Replicas       int   `json:"replicas" url:"replicas"`
 	ReadyReplicas  int   `json:"ready_replicas" url:"ready_replicas"`
@@ -98674,7 +103214,7 @@ type WorkloadListItem struct {
 	Removed *bool `json:"removed,omitempty" url:"removed,omitempty"`
 	// Set when the cluster's latest batch did not list the row because the agent could not read its list for more than 24 hours (it sent the list as null): the time of the last batch that read the list, which listed the row. Whether the row is still in the cluster is unknown, so removed is false and the list counts it as current; what only the latest batch can say (a node's ready and status, a workload's risk rating) reads it as not current. Null for a row the latest batch listed and for a removed one
 	UnreportedSince *time.Time `json:"unreported_since,omitempty" url:"unreported_since,omitempty"`
-	// A pull-request environment, which lives a few days: a label channel, or one ending in /channel, valued pr-<number>. The counts of workloads at risk leave it out unless the request passes include_ephemeral
+	// A pull-request or branch environment, which lives a few days: a label channel, or one ending in /channel, naming a pull request (pr-<number>) or a branch rather than a channel that lasts (main, master, prod, staging and the like, also as refs-heads-<name>). The counts of workloads at risk leave it out unless the request passes include_ephemeral
 	Ephemeral      *bool `json:"ephemeral,omitempty" url:"ephemeral,omitempty"`
 	Replicas       int   `json:"replicas" url:"replicas"`
 	ReadyReplicas  int   `json:"ready_replicas" url:"ready_replicas"`
@@ -100580,6 +105120,164 @@ func (w *WorkloadRef) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", w)
+}
+
+// What sets a workload's replica count.
+var (
+	workloadScalerFieldKind        = big.NewInt(1 << 0)
+	workloadScalerFieldName        = big.NewInt(1 << 1)
+	workloadScalerFieldMinReplicas = big.NewInt(1 << 2)
+	workloadScalerFieldMaxReplicas = big.NewInt(1 << 3)
+)
+
+type WorkloadScaler struct {
+	// hpa, or keda for a KEDA ScaledObject (not the HPA it runs)
+	Kind WorkloadScalerKind `json:"kind" url:"kind"`
+	Name string             `json:"name" url:"name"`
+	// Null when the object leaves it unset (an HPA then keeps 1)
+	MinReplicas *int `json:"min_replicas,omitempty" url:"min_replicas,omitempty"`
+	MaxReplicas *int `json:"max_replicas,omitempty" url:"max_replicas,omitempty"`
+
+	// Private bitmask of fields set to an explicit value and therefore not to be omitted
+	explicitFields *big.Int `json:"-" url:"-"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (w *WorkloadScaler) GetKind() WorkloadScalerKind {
+	if w == nil {
+		return ""
+	}
+	return w.Kind
+}
+
+func (w *WorkloadScaler) GetName() string {
+	if w == nil {
+		return ""
+	}
+	return w.Name
+}
+
+func (w *WorkloadScaler) GetMinReplicas() *int {
+	if w == nil {
+		return nil
+	}
+	return w.MinReplicas
+}
+
+func (w *WorkloadScaler) GetMaxReplicas() *int {
+	if w == nil {
+		return nil
+	}
+	return w.MaxReplicas
+}
+
+func (w *WorkloadScaler) GetExtraProperties() map[string]interface{} {
+	if w == nil {
+		return nil
+	}
+	return w.extraProperties
+}
+
+func (w *WorkloadScaler) require(field *big.Int) {
+	if w.explicitFields == nil {
+		w.explicitFields = big.NewInt(0)
+	}
+	w.explicitFields.Or(w.explicitFields, field)
+}
+
+// SetKind sets the Kind field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadScaler) SetKind(kind WorkloadScalerKind) {
+	w.Kind = kind
+	w.require(workloadScalerFieldKind)
+}
+
+// SetName sets the Name field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadScaler) SetName(name string) {
+	w.Name = name
+	w.require(workloadScalerFieldName)
+}
+
+// SetMinReplicas sets the MinReplicas field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadScaler) SetMinReplicas(minReplicas *int) {
+	w.MinReplicas = minReplicas
+	w.require(workloadScalerFieldMinReplicas)
+}
+
+// SetMaxReplicas sets the MaxReplicas field and marks it as non-optional;
+// this prevents an empty or null value for this field from being omitted during serialization.
+func (w *WorkloadScaler) SetMaxReplicas(maxReplicas *int) {
+	w.MaxReplicas = maxReplicas
+	w.require(workloadScalerFieldMaxReplicas)
+}
+
+func (w *WorkloadScaler) UnmarshalJSON(data []byte) error {
+	type unmarshaler WorkloadScaler
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*w = WorkloadScaler(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *w)
+	if err != nil {
+		return err
+	}
+	w.extraProperties = extraProperties
+	w.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (w *WorkloadScaler) MarshalJSON() ([]byte, error) {
+	type embed WorkloadScaler
+	var marshaler = struct {
+		embed
+	}{
+		embed: embed(*w),
+	}
+	explicitMarshaler := internal.HandleExplicitFields(marshaler, w.explicitFields)
+	return json.Marshal(explicitMarshaler)
+}
+
+func (w *WorkloadScaler) String() string {
+	if w == nil {
+		return "<nil>"
+	}
+	if len(w.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(w.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(w); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", w)
+}
+
+// hpa, or keda for a KEDA ScaledObject (not the HPA it runs)
+type WorkloadScalerKind string
+
+const (
+	WorkloadScalerKindHpa  WorkloadScalerKind = "hpa"
+	WorkloadScalerKindKeda WorkloadScalerKind = "keda"
+)
+
+func NewWorkloadScalerKindFromString(s string) (WorkloadScalerKind, error) {
+	switch s {
+	case "hpa":
+		return WorkloadScalerKindHpa, nil
+	case "keda":
+		return WorkloadScalerKindKeda, nil
+	}
+	var t WorkloadScalerKind
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (w WorkloadScalerKind) Ptr() *WorkloadScalerKind {
+	return &w
 }
 
 var (

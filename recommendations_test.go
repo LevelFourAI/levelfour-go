@@ -234,6 +234,22 @@ func TestSettersGetProviderOverviewRecommendationsRequest(t *testing.T) {
 		assert.NotNil(t, obj.explicitFields)
 	})
 
+	t.Run("SetTargetKind", func(t *testing.T) {
+		obj := &GetProviderOverviewRecommendationsRequest{}
+		var fernTestValueTargetKind []string
+		obj.SetTargetKind(fernTestValueTargetKind)
+		assert.Equal(t, fernTestValueTargetKind, obj.TargetKind)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetTargetKindNot", func(t *testing.T) {
+		obj := &GetProviderOverviewRecommendationsRequest{}
+		var fernTestValueTargetKindNot []string
+		obj.SetTargetKindNot(fernTestValueTargetKindNot)
+		assert.Equal(t, fernTestValueTargetKindNot, obj.TargetKindNot)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
 }
 
 func TestSettersMarkExplicitGetProviderOverviewRecommendationsRequest(t *testing.T) {
@@ -276,6 +292,68 @@ func TestSettersMarkExplicitGetProviderOverviewRecommendationsRequest(t *testing
 
 		// Act
 		obj.SetClusterID(fernTestValueClusterID)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetTargetKind_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &GetProviderOverviewRecommendationsRequest{}
+		var fernTestValueTargetKind []string
+
+		// Act
+		obj.SetTargetKind(fernTestValueTargetKind)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetTargetKindNot_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &GetProviderOverviewRecommendationsRequest{}
+		var fernTestValueTargetKindNot []string
+
+		// Act
+		obj.SetTargetKindNot(fernTestValueTargetKindNot)
 
 		// Assert - object with explicitly set field can be marshaled/unmarshaled
 		bytes, err := json.Marshal(obj)
@@ -597,6 +675,22 @@ func TestSettersListByProviderRecommendationsRequest(t *testing.T) {
 		var fernTestValueResourceTypeNot []string
 		obj.SetResourceTypeNot(fernTestValueResourceTypeNot)
 		assert.Equal(t, fernTestValueResourceTypeNot, obj.ResourceTypeNot)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetTargetKind", func(t *testing.T) {
+		obj := &ListByProviderRecommendationsRequest{}
+		var fernTestValueTargetKind []string
+		obj.SetTargetKind(fernTestValueTargetKind)
+		assert.Equal(t, fernTestValueTargetKind, obj.TargetKind)
+		assert.NotNil(t, obj.explicitFields)
+	})
+
+	t.Run("SetTargetKindNot", func(t *testing.T) {
+		obj := &ListByProviderRecommendationsRequest{}
+		var fernTestValueTargetKindNot []string
+		obj.SetTargetKindNot(fernTestValueTargetKindNot)
+		assert.Equal(t, fernTestValueTargetKindNot, obj.TargetKindNot)
 		assert.NotNil(t, obj.explicitFields)
 	})
 
@@ -1171,6 +1265,68 @@ func TestSettersMarkExplicitListByProviderRecommendationsRequest(t *testing.T) {
 
 		// Act
 		obj.SetResourceTypeNot(fernTestValueResourceTypeNot)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetTargetKind_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &ListByProviderRecommendationsRequest{}
+		var fernTestValueTargetKind []string
+
+		// Act
+		obj.SetTargetKind(fernTestValueTargetKind)
+
+		// Assert - object with explicitly set field can be marshaled/unmarshaled
+		bytes, err := json.Marshal(obj)
+		require.NoError(t, err, "marshaling should succeed for test setup")
+
+		// This test ensures JSON marshaling and unmarshaling succeed when the field has a zero/nil value
+		// Detect if marshaled JSON is an object or primitive to use correct unmarshal target
+		if len(bytes) > 0 && bytes[0] == '{' {
+			// JSON object - unmarshal into map
+			var unmarshaled map[string]interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		} else {
+			// JSON primitive (string, number, boolean, null) - unmarshal into interface{}
+			var unmarshaled interface{}
+			err = json.Unmarshal(bytes, &unmarshaled)
+			require.NoError(t, err, "unmarshaling should succeed for test verification")
+		}
+
+		// Note: This does not explicitly assert the presence of a specific JSON field
+		// It verifies that setting a field via setter allows successful JSON round-trip
+	})
+
+	t.Run("SetTargetKindNot_MarksExplicit", func(t *testing.T) {
+		t.Parallel()
+		// Arrange
+		obj := &ListByProviderRecommendationsRequest{}
+		var fernTestValueTargetKindNot []string
+
+		// Act
+		obj.SetTargetKindNot(fernTestValueTargetKindNot)
 
 		// Assert - object with explicitly set field can be marshaled/unmarshaled
 		bytes, err := json.Marshal(obj)
