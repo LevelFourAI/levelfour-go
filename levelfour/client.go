@@ -14,7 +14,7 @@ import (
 )
 
 // Version is the current SDK version.
-const Version = "0.17.0" // x-release-please-version
+const Version = "0.18.0" // x-release-please-version
 
 const DefaultBaseURL = "https://api.levelfour.ai"
 
